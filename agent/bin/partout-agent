@@ -1,0 +1,21 @@
+#!/usr/bin/env node
+
+/*jslint node: true */
+'use strict';
+
+/*
+ * partout-agent [apply | serve] site.json ...
+ */
+
+var opts = {},
+  args = process.argv.slice(2);
+
+if (args.length > 0) {
+  opts[args.shift()] = true;
+  opts.args = args;
+} else {
+  opts.serve = true;
+  opts.apply = false;
+}
+
+var app = require('../app')(opts);

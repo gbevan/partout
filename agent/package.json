@@ -1,0 +1,27 @@
+{
+  "name": "partout-agent",
+  "version": "0.1.0",
+  "private": true,
+  "license": "UNLICENSED",
+  "scripts": {
+    "start": "node ./bin/partout-agent"
+  },
+  "dependencies": {
+    "express": "^4.13.1",
+    "lodash": "^3.10.0",
+    "mkdirp": "^0.5.1",
+    "morgan": "^1.6.1",
+    "nimble": "0.0.2",
+    "node-forge": "^0.6.34"
+  },
+  "devDependencies": {
+    "gulp": "^3.9.0",
+    "gulp-load-plugins": "^0.10.0",
+    "gulp-mocha": "^2.1.1",
+    "gulp-nodemon": "^2.0.3",
+    "gulp-util": "^3.0.5",
+    "should": "^6.0.3",
+    "should-sinon": "0.0.1",
+    "sinon": "^1.14.1"
+  }
+}
