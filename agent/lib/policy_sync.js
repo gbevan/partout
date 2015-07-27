@@ -5,7 +5,8 @@ var _ = require('lodash'),
   utils = new (require('./utils'))(),
   path = require('path'),
   mkdirp = require('mkdirp'),
-  fs = require('fs');
+  fs = require('fs'),
+  nimble = require('nimble');
 
 var Policy_Sync = function (app, https) {
   var self = this;
@@ -56,7 +57,7 @@ Policy_Sync.prototype.get_file = function (file, cb) {
       buffer += d.toString();
     });
     res.on('end', function () {
-      console.log('file buffer:', buffer);
+      //console.log('file buffer:', buffer);
       var dir = path.dirname(file);
       var base_file = path.basename(file);
 
@@ -81,38 +82,59 @@ Policy_Sync.prototype.sync = function (folder, cb) {
       //console.log('local_manifest:', local_manifest);
 
       var files = Object.keys(manifest),
-        local_files = Object.keys(local_manifest);
+        local_files = Object.keys(local_manifest),
+        tasks = [];
       //console.log('files:', files);
 
       _.each(files, function (file) {
-        //console.log('file:', file, 'hash:', manifest[file]);
+        tasks.push(function (done) {
+          //console.log('file:', file, 'hash:', manifest[file]);
 
-        if (!local_manifest[file]) {
-          console.log('syncing new file:', file);
-          // create it
-          self.get_file(file, function (err) {
-            if (err) {
-              console.error(err);
-            };
-          });
+          if (!local_manifest[file]) {
+            console.log('syncing new file:', file);
+            // create it
+            self.get_file(file, function (err) {
+              if (err) {
+                console.error(err);
+              };
+              done();
+            });
 
-        } else if (local_manifest[file] !== manifest[file]) {
-          console.log('syncing changed file:', file, local_manifest[file], '->', manifest[file]);
-          // replace it
-          self.get_file(file, function (err) {
-            if (err) {
-              console.error(err);
-            };
-          });
-
-        }
-
+          } else if (local_manifest[file] !== manifest[file]) {
+            console.log('syncing changed file:', file, local_manifest[file], '->', manifest[file]);
+            // replace it
+            self.get_file(file, function (err) {
+              if (err) {
+                console.error(err);
+              };
+              done();
+            });
+          } else {
+            done();
+          }
+        });
       });
+
+      _.each(local_files, function (file) {
+        tasks.push(function (done) {
+          if (!manifest[file]) {
+            // delete local file
+            console.log('removing file:', file);
+            fs.unlink(file, function (err) {
+              if (err) {
+                console.error(err);
+              }
+              done();
+            });
+          }
+          done();
+        });
+      });
+
+      nimble.series(tasks, cb);
+
     });
 
-    if (cb) {
-      cb();
-    }
   });
 
 };

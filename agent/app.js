@@ -17,7 +17,10 @@ var express = require('express'),
   Policy = require('./lib/policy'),
   Policy_Sync = require('./lib/policy_sync');
 
-//console.log('hostname:', hostName);
+var apply = function (args) {
+  var policy = new Policy(args);
+  policy.apply();
+};
 
 var serve = function () {
   console.log('Serve');
@@ -92,8 +95,24 @@ var serve = function () {
 
   app.master = '192.168.5.64';
   app.master_port = 10443;
+  app.apply_every_mins = 5;
+  app.apply_site_p2 = 'etc/manifest/site.p2';
 
   var policy_sync = new Policy_Sync(app, https);
+
+  app.run = function () {
+    policy_sync.sync('etc/manifest', function () {
+      console.log('sync done');
+
+      fs.exists(app.apply_site_p2, function (exists) {
+        if (!exists) {
+          console.error('Error: site policy file', app.apply_site_p2, 'does not yet exist');
+        } else {
+          apply([app.apply_site_p2]);
+        }
+      });
+    });
+  };
 
   router.use(morgan('combined'));
 
@@ -106,16 +125,10 @@ var serve = function () {
   https.createServer(ssl_options, app)
     .listen(10444);
 
-  policy_sync.sync('etc/manifest', function () {
-    console.log('sync done');
-  });
-
-
-};
-
-var apply = function (args) {
-  var policy = new Policy(args);
-  policy.apply();
+  app.run();
+  setInterval(function () {
+    app.run();
+  }, (app.apply_every_mins * 60 * 1000));
 };
 
 module.exports = function (opts) {
