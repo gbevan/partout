@@ -95,7 +95,7 @@ var serve = function () {
 
   app.master = '192.168.5.64';
   app.master_port = 10443;
-  app.apply_every_mins = 5;
+  app.apply_every_mins = 0.1;
   app.apply_site_p2 = 'etc/manifest/site.p2';
 
   var policy_sync = new Policy_Sync(app, https);
@@ -108,6 +108,7 @@ var serve = function () {
         if (!exists) {
           console.error('Error: site policy file', app.apply_site_p2, 'does not yet exist');
         } else {
+          console.log('applying');
           apply([app.apply_site_p2]);
         }
       });

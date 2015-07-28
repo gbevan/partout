@@ -96,7 +96,7 @@ Policy_Sync.prototype.sync = function (folder, cb) {
             self.get_file(file, function (err) {
               if (err) {
                 console.error(err);
-              };
+              }
               done();
             });
 
@@ -106,7 +106,7 @@ Policy_Sync.prototype.sync = function (folder, cb) {
             self.get_file(file, function (err) {
               if (err) {
                 console.error(err);
-              };
+              }
               done();
             });
           } else {

@@ -47,10 +47,10 @@ var _ = require('lodash'),
 var Exec = function (cmd, opts, cb) {
   var self = this;  // self is parents _impl
 
-  console.log('typeof opts:', typeof (opts));
   if (!opts) {
     opts = {};
   }
+
   if (typeof (opts) === 'function') {
     cb = opts;
     opts = {};
