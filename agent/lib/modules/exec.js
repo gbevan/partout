@@ -6,7 +6,7 @@
  * ~~~~~~~~~~~
  *
  * p2.node([...])
- *   exec('a command', options, function (err, stdout, stderr) { ... });
+ *   .exec('a command', options, function (err, stdout, stderr) { ... });
  *
  * Options (from https://nodejs.org/api/child_process.html):
  *
