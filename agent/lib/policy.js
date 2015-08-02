@@ -1,4 +1,4 @@
-/*jslint node: true, nomen: true */
+/*jslint node: true, nomen: true, regexp: true, vars: true*/
 'use strict';
 
 /*global GLOBAL */
@@ -7,6 +7,7 @@ var _ = require('lodash'),
   path = require('path');
 
 GLOBAL.p2 = new P2();
+GLOBAL.P2 = P2;
 //console.log('GLOBAL:', GLOBAL);
 
 function Policy(args) {
@@ -25,21 +26,18 @@ Policy.prototype.apply = function () {
 
     delete require.cache[abs_a];
 
-    var p = require(abs_a);
-
-    /*
-    var i,
-      keys = Object.keys(require.cache);
-    for (i in keys) {
-      var e = keys[i];
-      if (typeof(e) === 'string') {
-        if (e.match(/site\.p2/)) {
-          console.log('req:', e);
-        }
+    try {
+      var p = require(abs_a);
+    } catch (e) {
+      console.log(e);
+      console.log(e.stack);
+      var te = e.toString();
+      // TODO: check against list of registered methods imported
+      if (!te.match(/^TypeError: Cannot call method .* of null/)) {
+        throw e;
       }
     }
-    console.log('p:', p);
-    */
+
   });
 };
 

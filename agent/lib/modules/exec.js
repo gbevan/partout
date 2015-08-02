@@ -56,57 +56,62 @@ var Exec = function (cmd, opts, cb) {
     opts = {};
   }
 
-  _.each(self.nodes, function (node) {
-    if (os.hostname() === node) {
-      //console.log('Queing on node "' + node + '", cmd:', cmd);
-      self._steps.push(function (callback) {
-        console.log('Exec on node "' + node + '", cmd:', cmd, ', opts:', JSON.stringify(opts));
+  //console.log('Queing on node "' + node + '", cmd:', cmd);
+  self.steps.push(function (callback) {
 
-        function _exec(exists) {
-          if (exists) {
-            console.log('skipped');
-            callback();
+    console.log('Exec on node "' + os.hostname() + '", cmd:', cmd, ', opts:', JSON.stringify(opts));
 
-          } else {
-            exec(cmd, opts, function (err, stdout, stderr) {
-              if (stderr) {
-                console.error(stderr);
-              }
-              if (stdout) {
-                console.log(stdout);
-              }
-              if (err === null) {
-                err = new Error();
-                err.code = 0;
-              }
-              if (opts.returns) {
-                if (err.code !== opts.returns) {
-                  var err2 = new Error('Return code does not match expected by returns option');
-                  err2.code = err.code;
-                  throw err2;
-                }
-              } else if (err && err.code !== 0) {
-                throw err;
-              }
-              if (cb) {
-                cb(err, stdout, stderr);
-              }
-              callback();
-            });
+    function _exec(exists) {
+      if (exists) {
+        console.log('skipped');
+        callback();
+
+      } else {
+        exec(cmd, opts, function (err, stdout, stderr) {
+          if (stderr) {
+            console.error(stderr);
           }
-        }
+          if (stdout) {
+            console.log(stdout);
+          }
+          if (err === null) {
+            err = new Error();
+            err.code = 0;
+          }
+          if (opts.returns) {
+            if (err.code !== opts.returns) {
+              var err2 = new Error('Return code does not match expected by returns option');
+              err2.code = err.code;
+              throw err2;
+            }
+          } else if (err && err.code !== 0) {
+            throw err;
+          }
+          if (cb) {
+            cb(err, stdout, stderr);
+          }
+          callback();
+        });
+      }
+    }
 
-        // handle 'extra' options
-        if (opts.creates) {
-          fs.exists(opts.creates, _exec);
-          delete opts.creates;
-        } else {
-          _exec(false);
-        }
-      });
+    // handle 'extra' options
+    if (opts.creates) {
+      fs.exists(opts.creates, _exec);
+      delete opts.creates;
+    } else {
+      _exec(false);
     }
   });
   return self;
+};
+
+Exec.getName = function () { return 'exec'; };
+
+Exec.getFacts = function () {
+  var facts = {};
+  facts.exec_loaded = true;
+  return facts;
 };
 
 module.exports = Exec;

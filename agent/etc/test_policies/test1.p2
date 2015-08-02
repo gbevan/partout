@@ -1,5 +1,8 @@
+/*jslint node: true, nomen: true */
+'use strict';
+/*global p2, P2*/
 
-p2.node('officepc')
+p2.node(['officepc', 'host2'])
   .exec('sleep 1; id')
   .exec('id -u');
 
@@ -22,3 +25,22 @@ p2.exec('pwd > /tmp/pwd', {
 p2.end(function () {
   console.log('*** FINI ***');
 });
+
+new P2()
+  .node('officepc')
+  .exec('echo hi new P2')
+  .end();
+
+new P2()
+  .select(function (f) { console.log(f.platform, ':', (f.platform === 'linux')); return f.platform === 'linux'; })
+  .exec('echo this is linux')
+  .end(function () {
+    console.log('after linux match');
+  });
+
+new P2()
+  .select(/^off/)
+  .exec('echo matched regexp')
+  .end(function () {
+    console.log('after regexp');
+  });
