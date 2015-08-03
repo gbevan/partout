@@ -1,7 +1,8 @@
 /*jslint node: true, vars: true*/
 'use strict';
 
-var express = require('express'),
+var console = require('better-console'),
+  express = require('express'),
   router = express.Router(),
   https = require('https'),
   pki = require('node-forge').pki,

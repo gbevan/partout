@@ -1,0 +1,18 @@
+/*jslint node: true, nomen: true */
+'use strict';
+/*global p2, P2*/
+
+new P2()
+  .select(/^office/)
+
+  .file('/tmp/testpresent', {ensure: 'absent'})
+  .file('/tmp/testlink', {ensure: 'absent'})
+  .file('/tmp/testdir', {ensure: 'absent'})
+  .file('/tmp/testfile', {ensure: 'absent'})
+
+  .file('/tmp/testpresent', {ensure: 'present'})
+  .file('/tmp/testlink', {ensure: 'link', target: '/tmp/testtarget'})
+  .file('/tmp/testdir', {ensure: 'directory'})
+  .file('/tmp/testfile', {ensure: 'file'})
+
+  .end();

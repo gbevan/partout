@@ -7,6 +7,7 @@
     "start": "node ./bin/partout-agent"
   },
   "dependencies": {
+    "better-console": "^0.2.4",
     "express": "^4.13.1",
     "lodash": "^3.10.0",
     "mkdirp": "^0.5.1",

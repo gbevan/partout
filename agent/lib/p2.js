@@ -3,7 +3,8 @@
 
 /*global GLOBAL */
 
-var _ = require('lodash'),
+var console = require('better-console'),
+  _ = require('lodash'),
   nimble = require('nimble'),
   os = require('os'),
   exec = require('child_process').exec;
@@ -56,13 +57,14 @@ var P2 = function () {
     //console.log('m:', m);
     self[m] = self._impl[m] = _modules[m];
   });
-  //console.log('P2 self:', self);
 
   self.p2Dummy = new P2dummy(Object.keys(_modules));
+  //console.log('P2 self:', self);
 };
 
 P2.prototype.end = function (cb) {
   var self = this;
+  console.log('end steps:', self.steps);
   nimble.series(self.steps, function () {
     if (cb) {
       cb();
@@ -85,7 +87,7 @@ P2.prototype.node = function (select) {
     console.log('in RegExp:');
     if (os.hostname().match(select)) {
       console.log('RegExp match');
-      console.log('RegExp returning _impl');
+      console.log('RegExp returning _impl:', self._impl);
       return self._impl;
     }
 

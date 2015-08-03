@@ -39,7 +39,8 @@
  *   - unless
  */
 
-var _ = require('lodash'),
+var console = require('better-console'),
+  _ = require('lodash'),
   os = require('os'),
   fs = require('fs'),
   exec = require('child_process').exec;
@@ -102,7 +103,8 @@ var Exec = function (cmd, opts, cb) {
     } else {
       _exec(false);
     }
-  });
+
+  }); // push
   return self;
 };
 

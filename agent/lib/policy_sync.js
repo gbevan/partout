@@ -1,7 +1,8 @@
 /*jslint node: true, nomen: true, vars: true*/
 'use strict';
 
-var _ = require('lodash'),
+var console = require('better-console'),
+  _ = require('lodash'),
   utils = new (require('./utils'))(),
   path = require('path'),
   mkdirp = require('mkdirp'),

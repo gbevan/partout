@@ -2,7 +2,8 @@
 'use strict';
 
 /*global GLOBAL */
-var _ = require('lodash'),
+var console = require('better-console'),
+  _ = require('lodash'),
   P2 = require('./p2'),
   path = require('path');
 
@@ -26,8 +27,10 @@ Policy.prototype.apply = function () {
 
     delete require.cache[abs_a];
 
-    try {
-      var p = require(abs_a);
+    // try approach deprecated by p2Dummy
+    //try {
+    var p = require(abs_a);
+    /*
     } catch (e) {
       console.log(e);
       console.log(e.stack);
@@ -37,6 +40,7 @@ Policy.prototype.apply = function () {
         throw e;
       }
     }
+    */
 
   });
 };
