@@ -12,6 +12,7 @@
  *
  *   - path: file path, overrides title
  *   - ensure: present, absent, file, directory, link
+ *   - content: String, content of file
  *
  * also supports:
  *   -
@@ -20,11 +21,15 @@
  *   -
  */
 
+/*global p2 */
+
 var console = require('better-console'),
   _ = require('lodash'),
   os = require('os'),
   fs = require('fs'),
-  exec = require('child_process').exec;
+  utils = new (require('../utils'))(),
+  Mustache = require('mustache');
+  //exec = require('child_process').exec;
 
 var File = function (title, opts, cb) {
   var self = this;  // self is parents _impl
@@ -40,7 +45,25 @@ var File = function (title, opts, cb) {
     opts = {};
   }
 
-  //console.log('Queing on node "' + node + '", cmd:', cmd);
+  /********************
+   * internal methods
+   */
+
+  // ensure contents match
+  function _ensure_content(file, data) {
+    var f_hash = utils.hashFileSync(file);
+    data = Mustache.render(data, p2.facts);
+    var d_hash = utils.hash(data);
+    console.log('File: comparing file hash:', f_hash, '-> content hash:', d_hash);
+    if (f_hash != d_hash) {
+      console.warn('File: updating file content');
+      fs.writeFileSync(file, data);
+    }
+  }
+
+  /********************
+   * push actions
+   */
   self.steps.push(function (callback) {
 
     var file = title,
@@ -53,6 +76,7 @@ var File = function (title, opts, cb) {
     console.log('File on node "' + os.hostname() + '", file:', title, ', opts:', JSON.stringify(opts));
 
     fs.lstat(file, function (err, stats) {
+      var fd;
 
       console.warn('err:', err, 'stats:', stats);
 
@@ -61,7 +85,11 @@ var File = function (title, opts, cb) {
         case 'present':
           if (err && err.code === 'ENOENT') {
             console.warn('Creating file', file);
-            fs.openSync(file, 'w');
+            fd = fs.openSync(file, 'w');
+            fs.closeSync(fd);
+          }
+          if (opts.content !== undefined && typeof(opts.content) === 'string') {
+            _ensure_content(file, opts.content);
           }
           break;
 
@@ -80,7 +108,11 @@ var File = function (title, opts, cb) {
         case 'file':
           if (err && err.code === 'ENOENT') {
             console.warn('Creating file', file);
-            fs.openSync(file, 'w');
+            fd = fs.openSync(file, 'w');
+            fs.closeSync(fd);
+          }
+          if (opts.content !== undefined && typeof(opts.content) === 'string') {
+            _ensure_content(file, opts.content);
           }
           break;
 
@@ -116,7 +148,7 @@ var File = function (title, opts, cb) {
           console.error(msg);
           throw (new Error(msg));
         }
-      }
+      } // if ensure
 
       callback();
 

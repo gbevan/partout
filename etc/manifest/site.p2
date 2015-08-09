@@ -21,7 +21,11 @@ p2.exec('pwd > /tmp/pwd', {
   creates: '/tmp/pwd'
 });
 
-p2.file('/tmp/whatever');
+p2.file('/tmp/whatever')
+  .file('/tmp/testcontent', {
+    ensure: 'present',
+    content: 'This is\n\tan example\n\t\tfile...\n'
+  });
 
 p2.end(function () {
   console.log('*** FINI ***');

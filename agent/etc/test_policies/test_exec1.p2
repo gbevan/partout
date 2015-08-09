@@ -1,4 +1,4 @@
-/*jslint node: true, nomen: true */
+/*jslint node: true */
 'use strict';
 /*global p2, P2*/
 
@@ -21,7 +21,6 @@ p2.exec('pwd > /tmp/pwd', {
   creates: '/tmp/pwd'
 });
 
-
 p2.end(function () {
   console.log('*** FINI ***');
 });
@@ -32,7 +31,10 @@ new P2()
   .end();
 
 new P2()
-  .select(function (f) { console.log(f.platform, ':', (f.platform === 'linux')); return f.platform === 'linux'; })
+  .select(function (f) {
+    console.log(f.platform, ':', (f.platform === 'linux'));
+    return f.platform === 'linux';
+  })
   .exec('echo this is linux')
   .end(function () {
     console.log('after linux match');
