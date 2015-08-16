@@ -2,47 +2,52 @@
 'use strict';
 /*global p2, P2*/
 
-p2.node(['officepcxxx', 'host2'])
-  .exec('sleep 1; id')
-  .exec('id -u');
+p2
+.node(['officepcxxx', 'host2'])
 
-p2.node('officepc')
-  .exec('sleep 1; echo "second after sleep"')
-  .exec('echo "second"')
-  .exec('pwd', function () { console.log('pwd ended'); })
-  .exec('pwd', {
-    cwd: '/tmp'
-  }, function () { console.log('pwd2 ended'); })
-  .exec('exit 1', {
-    returns: 1
-  });
+.exec('sleep 1; id')
+.exec('id -u');
 
-p2.exec('pwd > /tmp/pwd', {
+p2
+.node('officepc')
+.exec('sleep 1; echo "second after sleep"')
+.exec('echo "second"')
+.exec('pwd', function () { console.log('pwd ended'); })
+.exec('pwd', {
+  cwd: '/tmp'
+}, function () { console.log('pwd2 ended'); })
+.exec('exit 1', {
+  returns: 1
+});
+
+p2
+.exec('pwd > /tmp/pwd', {
   creates: '/tmp/pwd'
 });
 
-p2.end(function () {
+p2
+.end(function () {
   console.log('*** FINI ***');
 });
 
 new P2()
-  .node('officepc')
-  .exec('echo hi new P2')
-  .end();
+.node('officepc')
+.exec('echo hi new P2')
+.end();
 
 new P2()
-  .select(function (f) {
-    console.log(f.platform, ':', (f.platform === 'linux'));
-    return f.platform === 'linux';
-  })
-  .exec('echo this is linux')
-  .end(function () {
-    console.log('after linux match');
-  });
+.select(function (f) {
+  console.log(f.platform, ':', (f.platform === 'linux'));
+  return f.platform === 'linux';
+})
+.exec('echo this is linux')
+.end(function () {
+  console.log('after linux match');
+});
 
 new P2()
-  .select(/^off/)
-  .exec('echo matched regexp')
-  .end(function () {
-    console.log('after regexp');
-  });
+.select(/^off/)
+.exec('echo matched regexp')
+.end(function () {
+  console.log('after regexp');
+});

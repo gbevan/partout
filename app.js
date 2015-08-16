@@ -17,6 +17,10 @@ var express = require('express'),
 
 //console.log('hostname:', hostName);
 
+/**
+ * Partout application server
+ */
+
 if (fs.existsSync(keyFile) && fs.existsSync(certFile)) {
   sslKey = fs.readFileSync(keyFile);
   sslCert = fs.readFileSync(certFile);

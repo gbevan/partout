@@ -50,15 +50,37 @@ var File = function (title, opts, cb) {
    */
 
   // ensure contents match
-  function _ensure_content(file, data) {
+  function _ensure_content(file, data, is_template) {
     var f_hash = utils.hashFileSync(file);
-    data = Mustache.render(data, p2.facts);
+
+    console.log('_ensure_content file:', file, ' data:', data);
+
+    if (typeof(data) === 'object') {
+      if (data.file) {
+        _ensure_file(file, data.file, is_template);
+      } else if (data.template) {
+        _ensure_file(file, data.template, true);
+      }
+      return;
+    }
+
+    if (is_template) {
+      data = Mustache.render(data, p2.facts);
+    }
+
     var d_hash = utils.hash(data);
     console.log('File: comparing file hash:', f_hash, '-> content hash:', d_hash);
     if (f_hash != d_hash) {
       console.warn('File: updating file content');
       fs.writeFileSync(file, data);
     }
+  }
+
+  function _ensure_file(file, srcfile, is_template) {
+    console.log('_ensure_file(' + file + ',', srcfile + ')');
+    var data = fs.readFileSync(srcfile).toString();
+    console.log('data:', data);
+    _ensure_content(file, data, is_template);
   }
 
   /********************
@@ -76,20 +98,39 @@ var File = function (title, opts, cb) {
     console.log('File on node "' + os.hostname() + '", file:', title, ', opts:', JSON.stringify(opts));
 
     fs.lstat(file, function (err, stats) {
-      var fd;
+      var fd,
+        mode_prefix = '';
 
       console.warn('err:', err, 'stats:', stats);
 
       if (opts.ensure) {
         switch (opts.ensure) {
         case 'present':
+          mode_prefix = '100';
+
           if (err && err.code === 'ENOENT') {
             console.warn('Creating file', file);
             fd = fs.openSync(file, 'w');
             fs.closeSync(fd);
           }
-          if (opts.content !== undefined && typeof(opts.content) === 'string') {
-            _ensure_content(file, opts.content);
+          console.log('**** content:', typeof(opts.content));
+          if (opts.content !== undefined) {
+            _ensure_content(file, opts.content, opts.is_template);
+          }
+
+          break;
+
+        case 'file':
+          mode_prefix = '100';
+
+          if (err && err.code === 'ENOENT') {
+            console.warn('Creating file', file);
+            fd = fs.openSync(file, 'w');
+            fs.closeSync(fd);
+          }
+          console.log('**** content:', typeof(opts.content));
+          if (opts.content !== undefined) {
+            _ensure_content(file, opts.content, opts.is_template);
           }
           break;
 
@@ -103,20 +144,12 @@ var File = function (title, opts, cb) {
               fs.unlinkSync(file);
             }
           }
-          break;
-
-        case 'file':
-          if (err && err.code === 'ENOENT') {
-            console.warn('Creating file', file);
-            fd = fs.openSync(file, 'w');
-            fs.closeSync(fd);
-          }
-          if (opts.content !== undefined && typeof(opts.content) === 'string') {
-            _ensure_content(file, opts.content);
-          }
-          break;
+          callback();
+          return;
 
         case 'directory':
+          mode_prefix = '040';
+
           if (err && err.code === 'ENOENT') {
             console.warn('Creating directory', file);
             fs.mkdirSync(file);
@@ -126,6 +159,8 @@ var File = function (title, opts, cb) {
           break;
 
         case 'link':
+          mode_prefix = '120';
+
           if (!opts.target) {
             msg = 'Error: Link ' + file + ' requested but no target specified';
             console.error(msg);
@@ -139,7 +174,7 @@ var File = function (title, opts, cb) {
             throw (err);
 
           } else if (!stats.isDirectory()) {
-            console.error('Error:', file, 'exists and is not a directory');
+            console.error('Error:', file, 'exists and is not a link');
           }
           break;
 
@@ -149,6 +184,16 @@ var File = function (title, opts, cb) {
           throw (new Error(msg));
         }
       } // if ensure
+
+      stats = fs.lstatSync(file);
+
+      if (opts.mode && typeof(opts.mode) === 'string') {
+        if (opts.mode.match(/^0[0-9]{3}$/)) {
+          var m = parseInt(mode_prefix + opts.mode.slice(1), 8);
+          console.log('File: mode', stats.mode.toString(8), 'should be', m.toString(8));
+          fs.chmodSync(file, m);
+        }
+      }
 
       callback();
 

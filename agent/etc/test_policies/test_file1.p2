@@ -1,39 +1,92 @@
 /*jslint node: true */
+/*jshint -W115 */
 'use strict';
 /*global p2, P2*/
 
 new P2()
-  .select(/^office/)
+.select(/^office/)
 
-  .file('/tmp/testpresent', {ensure: 'absent'})
-  .file('/tmp/testlink', {ensure: 'absent'})
-  .file('/tmp/testdir', {ensure: 'absent'})
-  .file('/tmp/testfile', {ensure: 'absent'})
-  .file('/tmp/testcontent', {ensure: 'absent'})
+.file('/tmp/testpresent', {ensure: 'absent'})
+.file('/tmp/testlink', {ensure: 'absent'})
+.file('/tmp/testlink1', {ensure: 'absent'})
+.file('/tmp/testlink2', {ensure: 'absent'})
+.file('/tmp/testlink3', {ensure: 'absent'})
+.file('/tmp/testlink4', {ensure: 'absent'})
+.file('/tmp/testdir', {ensure: 'absent'})
+.file('/tmp/testfile', {ensure: 'absent'})
+.file('/tmp/testcontent', {ensure: 'absent'})
+.file('/tmp/testtemplate', {ensure: 'absent'})
+.file('/tmp/testmode1', {ensure: 'absent'})
+.file('/tmp/testmode2', {ensure: 'absent'})
+.file('/tmp/testmode3', {ensure: 'absent'})
+.file('/tmp/testmode4', {ensure: 'absent'})
 
-  .file('/tmp/testpresent', {ensure: 'present'})
-  .file('/tmp/testlink', {ensure: 'link', target: '/tmp/testtarget'})
-  .file('/tmp/testdir', {ensure: 'directory'})
-  .file('/tmp/testfile', {ensure: 'file'})
+.file('/tmp/testpresent', {ensure: 'present'})
+.file('/tmp/testlink', {ensure: 'link', target: '/tmp/testtarget'})
+.file('/tmp/testdir', {ensure: 'directory'})
+.file('/tmp/testfile', {ensure: 'file'})
 
-  .file('/tmp/testcontent', {
-    ensure: 'present',
-    content: 'This is\n\tan example\n\t\tfile...\n'
-  })
+.file('/tmp/testcontent', {
+  ensure: 'present',
+  content: 'This is\n\tan example\n\t\tfile...\n'
+})
 
-  .file('/tmp/testcontent', {
-    ensure: 'file',
-    content: 'This is\n\tan example\n\t\tfile #2...\n'
-  })
+.file('/tmp/testcontent', {
+  ensure: 'file',
+  content: 'This is\n\tan example\n\t\tfile #2...\n'
+})
 
-  .file('/tmp/testcontent', {
-    ensure: 'file',
-    content: 'This is\n\tan example\n\t\tfile #2...\n'
-  })
+.file('/tmp/testcontent', {
+  ensure: 'file',
+  content: 'This is\n\tan example\n\t\tfile #2...\n'
+})
 
-  .file('/tmp/testcontent', {
-    ensure: 'file',
-    content: 'This is \nTemplate: \nPlatform:\t{{platform}}\narch:\t{{arch}}\nos_release:\t{{os_release}}\n'
-  })
+.file('/tmp/testcontent', {
+  ensure: 'file',
+  content: 'This is \nTemplate: \nPlatform:\t{{platform}}\narch:\t{{arch}}\nos_release:\t{{os_release}}\n'
+})
 
-  .end();
+.file('/tmp/testtemplate', {
+  ensure: 'file',
+  content: 'This is \nTemplate: \nPlatform:\t{{platform}}\narch:\t{{arch}}\nos_release:\t{{os_release}}\n',
+  is_template: true
+})
+
+
+/**************************************
+ * Test mode:
+ */
+.file('/tmp/testmode1', {
+  ensure: 'file',
+  mode: '0111'
+})
+
+.file('/tmp/testmode2', {
+  ensure: 'file',
+  mode: '0222'
+})
+
+.file('/tmp/testmode4', {
+  ensure: 'file',
+  mode: '0444'
+})
+
+
+/**************************************
+ * Test content: file for content
+ */
+.file('/tmp/testfile3', {
+  ensure: 'file',
+  content: {file: '/tmp/testcontent'}
+})
+
+/**************************************
+ * Test content: template for content
+ */
+.file('/tmp/testfile4', {
+  ensure: 'file',
+  content: {template: '/tmp/testcontent'}
+})
+
+
+.end();

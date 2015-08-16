@@ -1,0 +1,12 @@
+/*jslint node: true */
+'use strict';
+
+/*global describe, it*/
+var app = require('../app');
+
+describe('Module exec', function () {
+
+  console.log('in test Module exec');
+
+
+});
