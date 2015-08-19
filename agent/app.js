@@ -18,8 +18,8 @@ var console = require('better-console'),
   Policy = require('./lib/policy'),
   Policy_Sync = require('./lib/policy_sync');
 
-var apply = function (args) {
-  var policy = new Policy(args);
+var apply = function (args, opts) {
+  var policy = new Policy(args, opts);
   policy.apply();
 };
 
@@ -96,7 +96,7 @@ var serve = function () {
 
   app.master = '192.168.5.64';
   app.master_port = 10443;
-  app.apply_every_mins = 0.1;
+  app.apply_every_mins = 5;
   app.apply_site_p2 = 'etc/manifest/site.p2';
 
   var policy_sync = new Policy_Sync(app, https);
@@ -110,7 +110,7 @@ var serve = function () {
           console.error('Error: site policy file', app.apply_site_p2, 'does not yet exist');
         } else {
           console.log('applying');
-          apply([app.apply_site_p2]);
+          apply([app.apply_site_p2], {daemon: true});
         }
       });
     });
@@ -135,7 +135,7 @@ var serve = function () {
 
 module.exports = function (opts) {
   if (opts.apply) {
-    apply(opts.args);
+    apply(opts.args, {daemon: false});
 
   } else if (opts.serve) {
     serve(opts.args);

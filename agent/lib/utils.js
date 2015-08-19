@@ -14,8 +14,8 @@ var Utils = function () {
 };
 
 /**
- * Generate a sha512 has of data.
- * @param {String} data
+ * Generate a sha512 hash of data.
+ * @param {String} data   data to hash
  * @return {String} sha512 hex hash of data
  */
 Utils.prototype.hash = function (data) {
@@ -25,8 +25,8 @@ Utils.prototype.hash = function (data) {
 };
 
 /**
- * Asynchronously Generate a sha512 has of a file's contents
- * @param {String} file name to hash
+ * Asynchronously Generate a sha512 hash of a file's contents
+ * @param {String} file   file name to hash
  * @param {Function} callback
  */
 Utils.prototype.hashFile = function (f, cb) {
@@ -40,8 +40,8 @@ Utils.prototype.hashFile = function (f, cb) {
 };
 
 /**
- * Synchronously Generate a sha512 has of a file's contents
- * @param {String} file name to hash
+ * Synchronously Generate a sha512 hash of a file's contents
+ * @param {String} file   file name to hash
  * @return {String} sha512 hex hash of file
  */
 Utils.prototype.hashFileSync = function (f) {
@@ -50,11 +50,10 @@ Utils.prototype.hashFileSync = function (f) {
 };
 
 /**
- * Asynchronously walk a folder tree, generating a sha512 has of each file's contents
- * @param {String} folder to hash
- * @param {Function} callback(manifest), where manifest is filename=sha512 hex hash of file
+ * Asynchronously walk a folder tree, generating a sha512 hash of each file's contents
+ * @param {String} folder   folder to hash
+ * @param {Function} callback callback(manifest), where manifest is {filename:sha512 hex hash of file}
  */
-// walk folder tree hashing files
 Utils.prototype.hashWalk = function (folder, cb) {
   var self = this,
     walker = walk.walk(folder),

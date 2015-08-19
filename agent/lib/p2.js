@@ -7,7 +7,8 @@ var console = require('better-console'),
   _ = require('lodash'),
   nimble = require('nimble'),
   os = require('os'),
-  exec = require('child_process').exec;
+  exec = require('child_process').exec,
+  fs = require('fs');
   //_modules = require('./modules');
 
 var P2dummy = function (methods) {
@@ -29,13 +30,29 @@ var P2dummy = function (methods) {
   self._impl.end = self.end;
 };
 
+/**
+ * Set a watcher on a filesystem object
+ * @param file {String} file name / path
+ * @param cb {Function} callback(event, filename)
+ */
+var P2_watch = function (file, cb) {
+  console.log('P2_watch() this:', this);
+  var self = this;  // is _impl
+  fs.watch(file, cb);
+};
+
 var P2 = function () {
   var self = this;
   self._impl = function _impl() {  };
   self._impl.end = self.end;
+  self._impl.node = self.node;
+  self._impl.watch = self.watch;
   self.steps = [];
   self._impl.steps = self.steps;
   self._impl.nodes = [];
+
+  self._impl._watch_state = false;
+  self.P2_watch = P2_watch;
 
   //console.log('P2 this:', this);
 
@@ -60,6 +77,8 @@ var P2 = function () {
 
   self.p2Dummy = new P2dummy(Object.keys(_modules));
   //console.log('P2 self:', self);
+
+  return self; //._impl;
 };
 
 P2.prototype.end = function (cb) {
@@ -113,5 +132,14 @@ P2.prototype.node = function (select) {
   return self.p2Dummy;
 };
 P2.prototype.select = P2.prototype.node;  // alias of node
+
+P2.prototype.watch = function (state) {
+  var self = this;  // self is _impl
+  console.log('>>>>>>> in file watch state (parse phase):', state, 'self:', self);
+  self._watch_state = state;
+
+  return self;
+};
+
 
 module.exports = P2;

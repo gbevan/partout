@@ -41,14 +41,17 @@ gulp.task('docs', function () {
     './docs',
     {
       path: 'ink-docstrap',
-      systemName      : 'Partout',
-      footer          : 'Partout',
+      systemName      : 'Partout Agent',
+      footer          : 'Partout Agent',
       copyright       : 'Copyright 2015 Graham Lee Bevan <graham.bevan@ntlworld.com>',
       navType         : 'vertical',
       theme           : 'cerulean',
       linenums        : true,
       collapseSymbols : false,
       inverseNav      : false
+    },
+    {
+      plugins         : ['plugins/markdown']
     }
   ));
 });

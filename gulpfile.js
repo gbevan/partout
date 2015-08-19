@@ -49,6 +49,9 @@ gulp.task('docs', function () {
       linenums        : true,
       collapseSymbols : false,
       inverseNav      : false
+    },
+    {
+      plugins         : ['plugins/markdown']
     }
   ));
 });

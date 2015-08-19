@@ -1,17 +1,19 @@
 /*jslint node: true, nomen: true */
 'use strict';
 
-/*********************************************************************
- * Facts module
- * ~~~~~~~~~~~~
- *
- * built-in module for gathering core facts.
- */
-
 var _ = require('lodash'),
   os = require('os'),
   fs = require('fs'),
   exec = require('child_process').exec;
+
+/**
+ * @constructor
+ * @description
+ * Facts module
+ * ============
+ *
+ * built-in module for gathering core facts.
+ */
 
 var Facts = function (cb) {
   var self = this;  // self is parents _impl
@@ -19,8 +21,16 @@ var Facts = function (cb) {
   return self;
 };
 
+/**
+ * Return this module's name
+ * @return {String} name of module
+ */
 Facts.getName = function () { return 'Facts'; };
 
+/**
+ * Return this module's discovered facts
+ * @return {String} name of module
+ */
 Facts.getFacts = function () {
   var facts = {
 

@@ -1,26 +1,6 @@
 /*jslint node: true, nomen: true, vars: true*/
 'use strict';
 
-/*********************************************************************
- * File module
- * ~~~~~~~~~~~
- *
- * p2.node([...])
- *   .file('file or title', options, function (err, stdout, stderr) { ... });
- *
- * Options (from https://nodejs.org/api/child_process.html):
- *
- *   - path: file path, overrides title
- *   - ensure: present, absent, file, directory, link
- *   - content: String, content of file
- *
- * also supports:
- *   -
- *
- * TODO: remaining support
- *   -
- */
-
 /*global p2 */
 
 var console = require('better-console'),
@@ -31,10 +11,36 @@ var console = require('better-console'),
   Mustache = require('mustache');
   //exec = require('child_process').exec;
 
+/**
+ * @constructor
+ * @description
+ * File module
+ * ===========
+ *
+ *     p2.node([...])
+ *       .file('file or title', options, function (err, stdout, stderr) { ... });
+ *
+ * Options:
+ *
+ *   | Operand    | Type    | Description                                                |
+ *   |:-----------|---------|:-----------------------------------------------------------|
+ *   | path       | String  | File path, overrides title |
+ *   | ensure     | Boolean | Present, absent, file, directory, link |
+ *   | content    | String  | Content of file |
+ * ---
+ * also supports:
+ *
+ * ---
+ * TODO: remaining support
+ *
+ */
+
 var File = function (title, opts, cb) {
   var self = this;  // self is parents _impl
   console.log('file self:', self);
-  console.log('file self.steps:', self.steps);
+  console.log('file watch_state on push:', self._watch_state);
+  var _watch_state = self._watch_state;
+  //console.log('file self.steps:', self.steps);
 
   if (!opts) {
     opts = {};
@@ -46,10 +52,19 @@ var File = function (title, opts, cb) {
   }
 
   /********************
+   * Extensions to p2
+   */
+
+  /********************
    * internal methods
    */
 
-  // ensure contents match
+  /**
+   * ensure contents match
+   * @param {String} file file name
+   * @param {String} data file content (can be a template)
+   * @param {Boolean} is_template is this a template
+   */
   function _ensure_content(file, data, is_template) {
     var f_hash = utils.hashFileSync(file);
 
@@ -76,6 +91,12 @@ var File = function (title, opts, cb) {
     }
   }
 
+  /**
+   * ensure file matches
+   * @param {String} file file name
+   * @param {String} srcfile source file (can be a template)
+   * @param {Boolean} is_template is this a template
+   */
   function _ensure_file(file, srcfile, is_template) {
     console.log('_ensure_file(' + file + ',', srcfile + ')');
     var data = fs.readFileSync(srcfile).toString();
@@ -95,7 +116,7 @@ var File = function (title, opts, cb) {
       file = opts.path;
     }
 
-    console.log('File on node "' + os.hostname() + '", file:', title, ', opts:', JSON.stringify(opts));
+    console.log('File on node "' + os.hostname() + '", file:', title, ', opts:', JSON.stringify(opts), 'watch_state:', _watch_state);
 
     fs.lstat(file, function (err, stats) {
       var fd,
@@ -195,6 +216,14 @@ var File = function (title, opts, cb) {
         }
       }
 
+      if (_watch_state && GLOBAL.p2_agent_opts.daemon) {
+        // TODO: prevent multiple watches...
+        console.log('>>> Starting watcher on file:', file);
+        self.P2_watch(file, function (event, filename) {
+          console.log('watcher triggered. event:', event, 'filename:', filename, 'file:', file);
+        });
+      }
+
       callback();
 
     }); // fs.stat
@@ -203,7 +232,10 @@ var File = function (title, opts, cb) {
   return self;
 };
 
+/**
+ * Return this module's name
+ * @return {String} name of module
+ */
 File.getName = function () { return 'file'; };
-
 
 module.exports = File;

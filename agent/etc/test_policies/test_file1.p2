@@ -88,5 +88,16 @@ new P2()
   content: {template: '/tmp/testcontent'}
 })
 
+/**************************************
+ * Test watch
+ */
+.watch(true)
+.file('/tmp/testwatch1', {
+  ensure: 'file',
+  content: {template: '/tmp/testcontent'}
+})
+.watch(false)
+
+
 
 .end();

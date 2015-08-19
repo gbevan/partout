@@ -11,10 +11,11 @@ GLOBAL.p2 = new P2();
 GLOBAL.P2 = P2;
 //console.log('GLOBAL:', GLOBAL);
 
-function Policy(args) {
+function Policy(args, opts) {
   var self = this;
   //console.log('Policy called with args:', args);
   self.args = args;
+  GLOBAL.p2_agent_opts = opts;
 }
 
 //Policy.prototype.... = function () {} ;

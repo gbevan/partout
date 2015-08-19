@@ -1,32 +1,42 @@
 /*jslint node: true, nomen: true */
 'use strict';
 
-/*********************************************************************
+var console = require('better-console'),
+  _ = require('lodash'),
+  os = require('os'),
+  fs = require('fs'),
+  exec = require('child_process').exec;
+
+/**
+ * @constructor
+ * @description
  * Exec module
- * ~~~~~~~~~~~
+ * ===========
  *
- * p2.node([...])
- *   .exec('a command', options, function (err, stdout, stderr) { ... });
+ *     p2.node([...])
+ *       .exec('a command', options, function (err, stdout, stderr) { ... });
  *
  * Options (from https://nodejs.org/api/child_process.html):
  *
- *   - cwd String Current working directory of the child process
- *   - env Object Environment key-value pairs
- *   - encoding String (Default: 'utf8')
- *   - shell String Shell to execute the command with (Default: '/bin/sh'
- *     on UNIX, 'cmd.exe' on Windows, The shell should understand the
- *     -c switch on UNIX or /s /c on Windows. On Windows, command line
- *     parsing should be compatible with cmd.exe.)
- *   - timeout Number (Default: 0)
- *   - maxBuffer Number (Default: 200*1024)
- *   - killSignal String (Default: 'SIGTERM')
- *   - uid Number Sets the user identity of the process. (See setuid(2).)
- *   - gid Number Sets the group identity of the process. (See setgid(2).)
- *
+ *   | Operand    | Type   | Description                                                |
+ *   |:-----------|--------|:-----------------------------------------------------------|
+ *   | cwd        | String | Current working directory of the child process |
+ *   | env        | Object | Environment key-value pairs |
+ *   | encoding   | String | (Default: 'utf8') |
+ *   | shell      | String | Shell to execute the command with (Default: '/bin/sh'
+ *   |            |        | on UNIX, 'cmd.exe' on Windows, The shell should understand |
+ *   |            |        | the -c switch on UNIX or /s /c on Windows. On Windows, |
+ *   |            |        | command line parsing should be compatible with cmd.exe.) |
+ *   | timeout    | Number | (Default: 0) |
+ *   | maxBuffer  | Number | (Default: 200*1024) |
+ *   | killSignal | String | (Default: 'SIGTERM') |
+ *   | uid        | Number | Sets the user identity of the process. (See setuid(2).) |
+ *   | gid        | Number | Sets the group identity of the process. (See setgid(2).) |
+ * ---
  * also supports:
  *   - creates: 'file' - test file does not exist, otherwise skip.
  *   - returns: expected return code on error to be ignored.
- *
+ * ---
  * TODO: remaining support
  *   - command (override)
  *   - logoutput
@@ -38,12 +48,6 @@
  *   - umask
  *   - unless
  */
-
-var console = require('better-console'),
-  _ = require('lodash'),
-  os = require('os'),
-  fs = require('fs'),
-  exec = require('child_process').exec;
 
 var Exec = function (cmd, opts, cb) {
   var self = this;  // self is parents _impl
@@ -108,8 +112,16 @@ var Exec = function (cmd, opts, cb) {
   return self;
 };
 
+/**
+ * Return this module's name
+ * @return {String} name of module
+ */
 Exec.getName = function () { return 'exec'; };
 
+/**
+ * Return this module's discovered facts
+ * @return {String} name of module
+ */
 Exec.getFacts = function () {
   var facts = {};
   facts.exec_loaded = true;
