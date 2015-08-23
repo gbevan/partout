@@ -16,7 +16,7 @@ gulp.task('default', function () {
   plugins.nodemon({
     script: 'bin/www',
     env: { 'NODE_ENV': env},
-    ignore: ['node_modules'],
+    ignore: ['node_modules', 'agent'],
     nodeArgs: ['--debug']
   });
 });

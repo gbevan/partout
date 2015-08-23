@@ -24,10 +24,11 @@ p2.exec('pwd > /tmp/pwd', {
 p2.watch(true)
   .file('/tmp/testcontent', {
     ensure: 'present',
-    content: 'This is\n\tan example\n\t\tfile...\n'
+    content: 'This is\n\tan example\n\t\tfile...\n{{platform}}\n',
+    is_template: true
   })
   .watch(false);
 
 p2.end(function () {
-  console.log('*** FINI ***');
+  console.log('*** POLICY FINI (in site.pp) ***\n\n');
 });
