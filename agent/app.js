@@ -94,6 +94,7 @@ var serve = function () {
       cert: sslCert
     };
 
+  // TODO: parameterise from a yaml file
   app.master = '192.168.5.64';
   app.master_port = 10443;
   app.apply_every_mins = 5;

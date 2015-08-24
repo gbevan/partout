@@ -25,7 +25,8 @@ p2.watch(true)
   .file('/tmp/testcontent', {
     ensure: 'present',
     content: 'This is\n\tan example\n\t\tfile...\n{{platform}}\n',
-    is_template: true
+    is_template: true,
+    mode: '0600'
   })
   .watch(false);
 

@@ -66,17 +66,18 @@ var File = function (title, opts, cb) {
    * @param {Boolean} is_template is this a template
    */
   function _ensure_content(file, data, is_template) {
-    var f_hash = utils.hashFileSync(file);
+    var f_hash = utils.hashFileSync(file),
+      record = '';
 
     //console.log('_ensure_content file:', file, ' data:', data);
 
     if (typeof(data) === 'object') {
       if (data.file) {
-        _ensure_file(file, data.file, is_template);
+        return _ensure_file(file, data.file, is_template);
+
       } else if (data.template) {
-        _ensure_file(file, data.template, true);
+        return _ensure_file(file, data.template, true);
       }
-      return;
     }
 
     if (is_template) {
@@ -89,7 +90,10 @@ var File = function (title, opts, cb) {
     if (f_hash != d_hash) {
       //console.warn('File: updating file content:\n' + data);
       fs.writeFileSync(file, data);
+      record += 'Content Replaced. ';
     }
+
+    return record;
   }
 
   /**
@@ -102,7 +106,7 @@ var File = function (title, opts, cb) {
     console.log('_ensure_file(' + file + ',', srcfile + ')');
     var data = fs.readFileSync(srcfile).toString();
     console.log('data:', data);
-    _ensure_content(file, data, is_template);
+    return _ensure_content(file, data, is_template);
   }
 
   /********************
@@ -133,8 +137,11 @@ var File = function (title, opts, cb) {
 
           if (err && err.code === 'ENOENT') {
             console.warn('Creating file', file);
-            //self.P2_unwatch(file);
-            //inWatch = false;
+
+            // Unwatch and force new watcher
+            self.P2_unwatch(file);
+            inWatch = false;
+
             fd = fs.openSync(file, 'w');
             fs.closeSync(fd);
             record += 'Created file. ';
@@ -142,7 +149,7 @@ var File = function (title, opts, cb) {
           }
           //console.log('**** content:', typeof(opts.content));
           if (opts.content !== undefined) {
-            _ensure_content(file, opts.content, opts.is_template);
+            record += _ensure_content(file, opts.content, opts.is_template);
           }
 
           break;
@@ -152,6 +159,11 @@ var File = function (title, opts, cb) {
 
           if (err && err.code === 'ENOENT') {
             console.warn('Creating file', file);
+
+            // Unwatch and force new watcher
+            self.P2_unwatch(file);
+            inWatch = false;
+
             fd = fs.openSync(file, 'w');
             fs.closeSync(fd);
             record += 'Created file. ';
@@ -159,7 +171,7 @@ var File = function (title, opts, cb) {
           }
           //console.log('**** content:', typeof(opts.content));
           if (opts.content !== undefined) {
-            _ensure_content(file, opts.content, opts.is_template);
+            record += _ensure_content(file, opts.content, opts.is_template);
           }
           break;
 
@@ -225,11 +237,11 @@ var File = function (title, opts, cb) {
 
       if (opts.mode && typeof(opts.mode) === 'string') {
         if (opts.mode.match(/^0[0-9]{3}$/)) {
-          var m = parseInt(mode_prefix + opts.mode.slice(1), 8);
+          var m = parseInt(mode_prefix + opts.mode.slice(1), 8); // as octal
           if (m !== stats.mode) {
             console.log('File: mode', stats.mode.toString(8), 'should be', m.toString(8));
             fs.chmodSync(file, m);
-            record += 'Changed mode. ';
+            record += 'Changed mode from ' + stats.mode.toString(8) + ' to ' + m.toString(8) + '. ';
           }
         }
       }
@@ -254,7 +266,8 @@ var File = function (title, opts, cb) {
 
   };
 
-  self.steps.push(action);
+  //self.steps.push(action);
+  self.push_action(action);
 
   return self;
 };

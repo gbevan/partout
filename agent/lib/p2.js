@@ -16,6 +16,7 @@ var init_impl = function _impl() {  };
 
 /**
  * Set a watcher on a filesystem object
+ * @function
  * @param file {String} file name / path
  * @param cb {Function} callback(event, filename)
  */
@@ -29,7 +30,7 @@ var P2_watch = function (file, cb) {
     //self._watch_event_cb_list.push(cb);
     self._watch_event_cb_list.push(function (nimblecb) {
       cb(function (o) {
-        console.log('o:', o);
+        //console.log('o:', o);
         if (o.msg && o.msg.length > 0) {
           self.sendevent(o);
         }
@@ -68,11 +69,20 @@ var P2_watchers_close = function () {
   }
 };
 
+/**
+ * P2 implementor of the Partout Domain Specific Language.
+ * @constructor
+ */
 var P2 = function () {
   var self = this;
   self._impl = init_impl;
 
-  //self._impl.end = self.end;
+  /**
+   * execute accrued actions
+   * @function
+   * @return {class} P2 DSL impl
+   * @memberof P2
+   */
   self._impl.end = function (cb) {
     var self = this;
     console.log('end steps:', self.steps);
@@ -84,7 +94,12 @@ var P2 = function () {
     return self;
   };
 
-  //self._impl.node = self.node;
+  /**
+   * filter by node
+   * (alias: select)
+   * @return {class} P2 DSL impl
+   * @memberof P2
+   */
   self._impl.node = function (select) {
     var self = this, // _impl
       i;
@@ -125,9 +140,20 @@ var P2 = function () {
     //return null;
     return init_impl;  // empty _impl
   };
+  /**
+   * filter by node
+   * (alias: node)
+   * @return {class} P2 DSL impl
+   * @function
+   * @memberof P2
+   */
   self._impl.select = self._impl.node;
 
-  //self._impl.watch = self.watch;
+  /**
+   * enable watcher
+   * @return {class} P2 DSL impl
+   * @memberof P2
+   */
   self._impl.watch = function (state) {
     var self = this;  // self is _impl
     console.log('>>>>>>> watch state (parse phase):', state, 'self:', self);
@@ -155,13 +181,39 @@ var P2 = function () {
     nimble.series(tmp_cb_list);
   });
 
+  /**
+   * Set a watcher on a filesystem object
+   * @function
+   * @param {String} file name
+   * @param {Function} callback
+   * @memberof P2
+   */
   self._impl.P2_watch = P2_watch;
 
+  /**
+   * Unset a watcher on a filesystem object
+   * @function
+   * @param {String} file name
+   * @memberof P2
+   */
   self._impl.P2_unwatch = P2_unwatch;
+
+  /**
+   * Close all watchers
+   * @function
+   * @memberof P2
+   */
   self._impl.P2_watchers_close = P2_watchers_close;
 
   /**
    * send event to master
+   * @function
+   * @param {Object} - {
+   *    module: 'file',
+   *    object: filename,
+   *    msg: string of actions taken
+   *  }
+   * @memberof P2
    */
   self._impl.sendevent = function (o) {
     console.log('sendevent, app:', GLOBAL.p2_agent_opts.app);
@@ -192,6 +244,24 @@ var P2 = function () {
     post_req.end();
   };
 
+  /**
+   * push action step on to the list to execute by .end()
+   * @function
+   * @memberof P2
+   * @param {Function} action
+   */
+  self._impl.push_action = function (action) {
+    self._impl.steps.push(function (nimblecb) {
+      action(function (o) {
+        //console.log('o:', o);
+        if (o.msg && o.msg.length > 0) {
+          self._impl.sendevent(o);
+        }
+        nimblecb();
+      });
+    });
+  };
+
   //console.log('P2 this:', this);
 
   var _modules;
@@ -205,10 +275,13 @@ var P2 = function () {
     _modules = require('./modules')(self.facts);
   }
   self._impl.facts = self.facts;
-  //console.log('_modules:', _modules);
 
-  //console.log('before global facts:', self.facts);
 
+  /**
+   * print discovered facts
+   * @function
+   * @memberof P2
+   */
   self._impl.print_facts = function () {
     if (GLOBAL.p2_agent_opts && GLOBAL.p2_agent_opts.showfacts) {
       console.log(JSON.stringify(self.facts, null, 2));
@@ -221,74 +294,7 @@ var P2 = function () {
     self[m] = self._impl[m] = _modules[m];
   });
 
-  //self.p2Dummy = new P2dummy(Object.keys(_modules));
-  //console.log('P2 self:', self);
-
   return self._impl;  // after this self will be _impl
 };
-
-/*
-P2.prototype.end = function (cb) {
-  var self = this;
-  console.log('end steps:', self.steps);
-  nimble.series(self.steps, function () {
-    if (cb) {
-      cb();
-    }
-  });
-  return self;
-};
-
-P2.prototype.node = function (select) {
-  var self = this, // _impl
-    i;
-  if (typeof (select) === 'function') {
-    if (select(self.facts)) {
-      console.log('function returning _impl');
-      return self._impl;
-    }
-    return init_impl;  // empty _impl
-
-  } else if (select instanceof RegExp) {
-    console.log('in RegExp:');
-    if (os.hostname().match(select)) {
-      console.log('RegExp match');
-      console.log('RegExp returning _impl:', self);
-      return self;
-    }
-
-  } else {
-    if (typeof (select) === 'string') {
-      select = [ select ]; // make array
-    }
-    //self.nodes = self._impl.nodes = select;
-    self.nodes = select;
-    for (i in self.nodes) {
-      if (self.nodes.hasOwnProperty(i)) {
-        var node = self.nodes[i];
-        console.log('node:', node, 'hostname:', os.hostname());
-        if (os.hostname() === node) {
-          console.log('node match');
-          return self;
-        }
-      }
-    }
-  }
-  console.log('node no match');
-  //process.exit(0);
-  //return null;
-  return init_impl;  // empty _impl
-};
-P2.prototype.select = P2.prototype.node;  // alias of node
-
-P2.prototype.watch = function (state) {
-  var self = this;  // self is _impl
-  console.log('>>>>>>> in file watch state (parse phase):', state, 'self:', self);
-  self._watch_state = state;
-
-  return self;
-};
-*/
-
 
 module.exports = P2;
