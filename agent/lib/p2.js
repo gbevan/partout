@@ -48,6 +48,8 @@ var P2_watch = function (file, cb) {
   }
 
   // NOTE: _watchers are closed in P2_watchers_close() below
+  // TODO: Allow multiple watchers per object, e.g. from different modules.
+  // Maybe make value a list to push handlers on to.
   self._watchers[file] = fs.watch(file, {persistent: false}, queue_event);
 };
 
@@ -217,6 +219,8 @@ var P2 = function () {
    */
   self._impl.sendevent = function (o) {
     console.log('sendevent, app:', GLOBAL.p2_agent_opts.app);
+    GLOBAL.p2_agent_opts.app.sendevent(o);
+    /*
     var app = GLOBAL.p2_agent_opts.app,
       post_data = querystring.stringify(o),
       options = {
@@ -242,7 +246,9 @@ var P2 = function () {
 
     post_req.write(post_data);
     post_req.end();
+    */
   };
+  //self._impl.sendevent = GLOBAL.p2_agent_opts.app.sendevent;
 
   /**
    * push action step on to the list to execute by .end()
