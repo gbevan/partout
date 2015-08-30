@@ -1,7 +1,7 @@
 /*jslint node: true, nomen: true, regexp: true, vars: true*/
 'use strict';
 
-/*global GLOBAL */
+/*global GLOBAL, p2 */
 var console = require('better-console'),
   _ = require('lodash'),
   P2 = require('./p2'),
@@ -13,9 +13,13 @@ GLOBAL.P2 = P2;
 
 function Policy(args, opts) {
   var self = this;
-  //console.log('Policy called with args:', args);
+  //console.log('Policy called with args:', args, 'opts:', opts);
   self.args = args;
-  GLOBAL.p2_agent_opts = opts;
+  GLOBAL.p2_agent_opts = self.opts = opts;
+
+  if (self.opts.showfacts) {
+    p2.print_facts();
+  }
 }
 
 //Policy.prototype.... = function () {} ;
@@ -27,6 +31,9 @@ Policy.prototype.apply = function () {
     var abs_a = path.resolve(a);
 
     delete require.cache[abs_a];
+    p2.P2_watchers_close();
+    GLOBAL.p2 = new P2();
+    GLOBAL.P2 = P2;
 
     // try approach deprecated by p2Dummy
     //try {
@@ -42,7 +49,7 @@ Policy.prototype.apply = function () {
       }
     }
     */
-
+    console.log('### END OF APPLY ################################');
   });
 };
 

@@ -9,6 +9,7 @@
   "dependencies": {
     "better-console": "^0.2.4",
     "express": "^4.13.1",
+    "forever": "^0.15.1",
     "ink-docstrap": "^0.5.2",
     "lodash": "^3.10.0",
     "mkdirp": "^0.5.1",

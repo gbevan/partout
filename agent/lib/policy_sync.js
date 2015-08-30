@@ -9,11 +9,11 @@ var console = require('better-console'),
   fs = require('fs'),
   nimble = require('nimble');
 
-var Policy_Sync = function (app, https) {
+var Policy_Sync = function (app) {
   var self = this;
 
   self.app = app;
-  self.https = https;
+  self.https = app.https;
 };
 
 Policy_Sync.prototype.get_manifest = function (cb) {

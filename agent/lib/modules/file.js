@@ -66,29 +66,34 @@ var File = function (title, opts, cb) {
    * @param {Boolean} is_template is this a template
    */
   function _ensure_content(file, data, is_template) {
-    var f_hash = utils.hashFileSync(file);
+    var f_hash = utils.hashFileSync(file),
+      record = '';
 
-    console.log('_ensure_content file:', file, ' data:', data);
+    //console.log('_ensure_content file:', file, ' data:', data);
 
     if (typeof(data) === 'object') {
       if (data.file) {
-        _ensure_file(file, data.file, is_template);
+        return _ensure_file(file, data.file, is_template);
+
       } else if (data.template) {
-        _ensure_file(file, data.template, true);
+        return _ensure_file(file, data.template, true);
       }
-      return;
     }
 
     if (is_template) {
+      //console.log('+++ template: p2.facts:', p2.facts, 'p2:', p2, 'self:', self, 'self.facts:', self.facts);
       data = Mustache.render(data, p2.facts);
     }
 
     var d_hash = utils.hash(data);
     console.log('File: comparing file hash:', f_hash, '-> content hash:', d_hash);
     if (f_hash != d_hash) {
-      console.warn('File: updating file content');
+      //console.warn('File: updating file content:\n' + data);
       fs.writeFileSync(file, data);
+      record += 'Content Replaced. ';
     }
+
+    return record;
   }
 
   /**
@@ -101,22 +106,23 @@ var File = function (title, opts, cb) {
     console.log('_ensure_file(' + file + ',', srcfile + ')');
     var data = fs.readFileSync(srcfile).toString();
     console.log('data:', data);
-    _ensure_content(file, data, is_template);
+    return _ensure_content(file, data, is_template);
   }
 
   /********************
    * push actions
    */
-  self.steps.push(function (callback) {
+  var action = function (callback, inWatch) {
 
     var file = title,
-      msg;
+      msg,
+      record = '';
 
     if (opts.path) {
       file = opts.path;
     }
-
-    console.log('File on node "' + os.hostname() + '", file:', title, ', opts:', JSON.stringify(opts), 'watch_state:', _watch_state);
+    console.log('-------------------------------------------');
+    console.log('File on node "' + os.hostname() + '", file:', title, ', opts:', JSON.stringify(opts), 'watch_state:', _watch_state, 'self:', self);
 
     fs.lstat(file, function (err, stats) {
       var fd,
@@ -131,12 +137,19 @@ var File = function (title, opts, cb) {
 
           if (err && err.code === 'ENOENT') {
             console.warn('Creating file', file);
+
+            // Unwatch and force new watcher
+            self.P2_unwatch(file);
+            inWatch = false;
+
             fd = fs.openSync(file, 'w');
             fs.closeSync(fd);
+            record += 'Created file. ';
+            console.log('record:', record);
           }
-          console.log('**** content:', typeof(opts.content));
+          //console.log('**** content:', typeof(opts.content));
           if (opts.content !== undefined) {
-            _ensure_content(file, opts.content, opts.is_template);
+            record += _ensure_content(file, opts.content, opts.is_template);
           }
 
           break;
@@ -146,12 +159,19 @@ var File = function (title, opts, cb) {
 
           if (err && err.code === 'ENOENT') {
             console.warn('Creating file', file);
+
+            // Unwatch and force new watcher
+            self.P2_unwatch(file);
+            inWatch = false;
+
             fd = fs.openSync(file, 'w');
             fs.closeSync(fd);
+            record += 'Created file. ';
+            console.log('record:', record);
           }
-          console.log('**** content:', typeof(opts.content));
+          //console.log('**** content:', typeof(opts.content));
           if (opts.content !== undefined) {
-            _ensure_content(file, opts.content, opts.is_template);
+            record += _ensure_content(file, opts.content, opts.is_template);
           }
           break;
 
@@ -160,12 +180,18 @@ var File = function (title, opts, cb) {
             if (stats.isDirectory()) {
               console.warn('Deleting directory', file);
               fs.rmdirSync(file);
+              record += 'Deleted directory. ';
             } else {
               console.warn('Deleting file', file);
               fs.unlinkSync(file);
+              record += 'Deleted file. ';
             }
           }
-          callback();
+          callback({
+            module: 'file',
+            object: file,
+            msg: record
+          });
           return;
 
         case 'directory':
@@ -174,6 +200,7 @@ var File = function (title, opts, cb) {
           if (err && err.code === 'ENOENT') {
             console.warn('Creating directory', file);
             fs.mkdirSync(file);
+            record += 'Created directory. ';
           } else if (!stats.isDirectory()) {
             console.error('Error:', file, 'exists and is not a directory');
           }
@@ -190,7 +217,7 @@ var File = function (title, opts, cb) {
           if (err && err.code === 'ENOENT') {
             console.warn('Creating link', file);
             fs.symlinkSync(opts.target, file, 'file');
-
+            record += 'Created link. ';
           } else if (err) {
             throw (err);
 
@@ -210,25 +237,38 @@ var File = function (title, opts, cb) {
 
       if (opts.mode && typeof(opts.mode) === 'string') {
         if (opts.mode.match(/^0[0-9]{3}$/)) {
-          var m = parseInt(mode_prefix + opts.mode.slice(1), 8);
-          console.log('File: mode', stats.mode.toString(8), 'should be', m.toString(8));
-          fs.chmodSync(file, m);
+          var m = parseInt(mode_prefix + opts.mode.slice(1), 8); // as octal
+          if (m !== stats.mode) {
+            console.log('File: mode', stats.mode.toString(8), 'should be', m.toString(8));
+            fs.chmodSync(file, m);
+            record += 'Changed mode from ' + stats.mode.toString(8) + ' to ' + m.toString(8) + '. ';
+          }
         }
       }
 
-      if (_watch_state && GLOBAL.p2_agent_opts.daemon) {
-        // TODO: prevent multiple watches...
+      if (!inWatch && _watch_state && GLOBAL.p2_agent_opts.daemon) {
         console.log('>>> Starting watcher on file:', file);
-        self.P2_watch(file, function (event, filename) {
-          console.log('watcher triggered. event:', event, 'filename:', filename, 'file:', file);
+        self.P2_watch(file, function (cb) {
+          console.log('watcher triggered. file:', file, 'this:', this);
+
+          action (cb, true);
         });
       }
 
-      callback();
+      // TODO: pass updated status to callback
+      callback({
+        module: 'file',
+        object: file,
+        msg: record
+      });
 
     }); // fs.stat
 
-  });
+  };
+
+  //self.steps.push(action);
+  self.push_action(action);
+
   return self;
 };
 

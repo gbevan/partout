@@ -1,9 +1,11 @@
 /*jslint node: true */
 'use strict';
 
-var express = require('express'),
+var console = require('better-console'),
+  express = require('express'),
   router = express.Router(),
   https = require('https'),
+  bodyParser = require('body-parser'),
   pki = require('node-forge').pki,
   morgan = require('morgan'),
   logger = morgan('combined'),
@@ -93,6 +95,9 @@ var app = express(),
   };
 
 router.use(morgan('combined'));
+
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
 //router.use('/', routes);
 require('./lib/routes')(router);

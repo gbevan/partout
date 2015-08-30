@@ -16,7 +16,51 @@ var console = require('better-console'),
   os = require('os'),
   hostName = os.hostname(),
   Policy = require('./lib/policy'),
-  Policy_Sync = require('./lib/policy_sync');
+  Policy_Sync = require('./lib/policy_sync'),
+  querystring = require('querystring');
+
+/**
+   * send event to master
+   * @function
+   * @param {Object} - {
+   *    module: 'file',
+   *    object: filename,
+   *    msg: string of actions taken
+   *  }
+   * @memberof P2
+   */
+var _sendevent = function (o, cb) {
+    console.log('sendevent, from agent app: this:', this);
+
+    var app = this,
+      post_data = querystring.stringify(o),
+      options = {
+        host: app.master, // TODO: param'ize
+        port: app.master_port,
+        path: '/_event',
+        method: 'POST',
+        rejectUnauthorized: false,
+        //requestCert: true,
+        agent: false,
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Content-Length': post_data.length
+        }
+      };
+
+    var post_req = app.https.request(options, function(res) {
+      res.setEncoding('utf8');
+      res.on('data', function (chunk) {
+        console.warn('Response: ' + chunk);
+        if (cb) {
+          cb(chunk);
+        }
+      });
+    });
+
+    post_req.write(post_data);
+    post_req.end();
+  };
 
 var apply = function (args, opts) {
   var policy = new Policy(args, opts);
@@ -94,26 +138,72 @@ var serve = function () {
       cert: sslCert
     };
 
+  // TODO: parameterise from a yaml file
   app.master = '192.168.5.64';
   app.master_port = 10443;
   app.apply_every_mins = 5;
+  app.poll_manifest_every = 6;
+  app.poll_manifest_splay_secs = 30;
+  app.apply_count = 0;
   app.apply_site_p2 = 'etc/manifest/site.p2';
+  app.https = https;
 
-  var policy_sync = new Policy_Sync(app, https);
+  app.sendevent = _sendevent;
+
+  process.on('SIGINT', function () {
+    app.sendevent({
+      module: 'app',
+      object: 'partout-agent',
+      msg: 'Agent terminating due to SIGINT'
+    }, function (resp) {
+      process.exit(1);
+    });
+  });
+  process.on('SIGTERM', function () {
+    app.sendevent({
+      module: 'app',
+      object: 'partout-agent',
+      msg: 'Agent terminating due to SIGTERM'
+    }, function (resp) {
+      process.exit(1);
+    });
+  });
+
+  var policy_sync = new Policy_Sync(app);
+
+  app._apply = function (cb) {
+    fs.exists(app.apply_site_p2, function (exists) {
+      if (!exists) {
+        console.error('Error: site policy file', app.apply_site_p2, 'does not yet exist');
+      } else {
+        console.log('applying');
+        apply([app.apply_site_p2], {app: app, daemon: true});
+      }
+      cb();
+    });
+  };
 
   app.run = function () {
-    policy_sync.sync('etc/manifest', function () {
-      console.log('sync done');
+    console.log('### START #######################################################');
+    var splay = (app.apply_count === 0 ? 0 : app.poll_manifest_splay_secs * 1000 * Math.random()) ;
 
-      fs.exists(app.apply_site_p2, function (exists) {
-        if (!exists) {
-          console.error('Error: site policy file', app.apply_site_p2, 'does not yet exist');
-        } else {
-          console.log('applying');
-          apply([app.apply_site_p2], {daemon: true});
-        }
+    if ((app.apply_count++ % app.poll_manifest_every) === 0) {
+
+      setTimeout(function () {
+        policy_sync.sync('etc/manifest', function () {
+          console.log('sync done');
+
+          app._apply(function () {
+            console.log('### FINI (after sync) ###########################################');
+          });
+        });
+      }, splay);  // Random Splay
+
+    } else {
+      app._apply(function () {
+        console.log('### FINI (no sync) ##############################################');
       });
-    });
+    }
   };
 
   router.use(morgan('combined'));
@@ -127,6 +217,12 @@ var serve = function () {
   https.createServer(ssl_options, app)
     .listen(10444);
 
+  app.sendevent({
+    module: 'app',
+    object: 'partout-agent',
+    msg: 'Partout-Agent has (re)started'
+  });
+
   app.run();
   setInterval(function () {
     app.run();
@@ -136,6 +232,9 @@ var serve = function () {
 module.exports = function (opts) {
   if (opts.apply) {
     apply(opts.args, {daemon: false});
+
+  } else if (opts.facts) {
+    apply({}, {daemon: false, showfacts: true});
 
   } else if (opts.serve) {
     serve(opts.args);
