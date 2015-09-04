@@ -9,6 +9,7 @@ var console = require('better-console'),
   pki = require('node-forge').pki,
   morgan = require('morgan'),
   logger = morgan('combined'),
+  compression = require('compression'),
   fs = require('fs'),
   keyFile = 'etc/ssl/server.key',
   certFile = 'etc/ssl/server.crt',
@@ -93,6 +94,8 @@ var app = express(),
     key: sslKey,
     cert: sslCert
   };
+
+app.use(compression());
 
 router.use(morgan('combined'));
 

@@ -38,7 +38,7 @@ gulp.task('watch-mocha', function () {
 gulp.task('docs', function () {
   gulp.src(['./app.js', 'lib/**/*.js', 'etc/**/*.p2', './README.md'])
     .pipe(jsdoc(
-    './docs',
+    './jsdocs',
     {
       path: 'ink-docstrap',
       systemName      : 'Partout Agent',
