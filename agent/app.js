@@ -20,15 +20,15 @@ var console = require('better-console'),
   querystring = require('querystring');
 
 /**
-   * send event to master
-   * @function
-   * @param {Object} - {
-   *    module: 'file',
-   *    object: filename,
-   *    msg: string of actions taken
-   *  }
-   * @memberof P2
-   */
+ * send event to master
+ * @function
+ * @param {Object} - {
+ *    module: 'file',
+ *    object: filename,
+ *    msg: string of actions taken
+ *  }
+ * @memberof P2
+ */
 var _sendevent = function (o, cb) {
     console.log('sendevent, from agent app: this:', this);
 
