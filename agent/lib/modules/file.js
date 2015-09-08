@@ -22,11 +22,11 @@ var console = require('better-console'),
  *
  * Options:
  *
- *   | Operand    | Type    | Description                                                |
- *   |:-----------|---------|:-----------------------------------------------------------|
- *   | path       | String  | File path, overrides title |
+ *   | Operand    | Type    | Description                            |
+ *   |:-----------|---------|:---------------------------------------|
+ *   | path       | String  | File path, overrides title             |
  *   | ensure     | Boolean | Present, absent, file, directory, link |
- *   | content    | String  | Content of file |
+ *   | content    | String  | Content of file                        |
  * ---
  * also supports:
  *

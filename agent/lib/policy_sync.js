@@ -7,13 +7,39 @@ var console = require('better-console'),
   path = require('path'),
   mkdirp = require('mkdirp'),
   fs = require('fs'),
-  nimble = require('nimble');
+  nimble = require('nimble'),
+  Q = require('q');
 
 var Policy_Sync = function (app) {
   var self = this;
 
   self.app = app;
   self.https = app.https;
+  self.server_cert = null;
+};
+
+/**
+ * Return a promise of completion of getting master https server's ssl cert
+ */
+Policy_Sync.prototype.get_server_cert = function () {
+  var self = this,
+    deferred = Q.defer(),
+    options = {
+      host: self.app.master, // TODO: param'ize
+      port: self.app.master_port,
+      method: 'GET',
+      rejectUnauthorized: false
+    };
+
+  var req = self.https.request(options, function (res) {
+    var cert = res.connection.getPeerCertificate();
+    //console.log('server cert:', cert);
+    deferred.resolve(cert);
+  });
+
+  req.end();
+
+  return deferred.promise;
 };
 
 Policy_Sync.prototype.get_manifest = function (cb) {
@@ -25,9 +51,13 @@ Policy_Sync.prototype.get_manifest = function (cb) {
       method: 'GET',
       rejectUnauthorized: false,
       //requestCert: true,
-      agent: false
+      //agent: false,
+      ca: [ self.server_cert ]
     },
     buffer = '';
+  console.log('get_manifest() server_cert:\n' + self.server_cert);
+
+  options.agent = new self.https.Agent(options);
 
   self.https.get(options, function (res) {
     res.on('data', function (d) {
@@ -74,69 +104,81 @@ Policy_Sync.prototype.get_file = function (file, cb) {
 
 Policy_Sync.prototype.sync = function (folder, cb) {
   var self = this;
-  console.log('syncing:', folder);
-  self.get_manifest(function (manifest) {
-    //console.log('manifest:', manifest);
+  console.log('get server cert');
+  self.get_server_cert()
+  .then(function (cert) {
+    console.log('promise cert:', cert);
+    self.server_cert = '-----BEGIN CERTIFICATE-----\n' +
+      cert.raw.toString('base64') +
+      '\n-----END CERTIFICATE-----\n';
 
-    // Get hashWalk of local manifest
-    utils.hashWalk(folder, function (local_manifest) {
-      //console.log('local_manifest:', local_manifest);
+    console.log('sync server_cert:\n' + self.server_cert);
 
-      var files = Object.keys(manifest),
-        local_files = Object.keys(local_manifest),
-        tasks = [];
-      //console.log('files:', files);
+    console.log('syncing:', folder);
+    self.get_manifest(function (manifest) {
+      console.log('manifest:', manifest);
 
-      _.each(files, function (file) {
-        tasks.push(function (done) {
-          //console.log('file:', file, 'hash:', manifest[file]);
+      // Get hashWalk of local manifest
+      utils.hashWalk(folder, function (local_manifest) {
+        //console.log('local_manifest:', local_manifest);
 
-          if (!local_manifest[file]) {
-            console.log('syncing new file:', file);
-            // create it
-            self.get_file(file, function (err) {
-              if (err) {
-                console.error(err);
-              }
+        var files = Object.keys(manifest),
+          local_files = Object.keys(local_manifest),
+          tasks = [];
+        //console.log('files:', files);
+
+        _.each(files, function (file) {
+          tasks.push(function (done) {
+            //console.log('file:', file, 'hash:', manifest[file]);
+
+            if (!local_manifest[file]) {
+              console.log('syncing new file:', file);
+              // create it
+              self.get_file(file, function (err) {
+                if (err) {
+                  console.error(err);
+                }
+                done();
+              });
+
+            } else if (local_manifest[file] !== manifest[file]) {
+              console.log('syncing changed file:', file, local_manifest[file], '->', manifest[file]);
+              // replace it
+              self.get_file(file, function (err) {
+                if (err) {
+                  console.error(err);
+                }
+                done();
+              });
+            } else {
               done();
-            });
+            }
+          });
+        });
 
-          } else if (local_manifest[file] !== manifest[file]) {
-            console.log('syncing changed file:', file, local_manifest[file], '->', manifest[file]);
-            // replace it
-            self.get_file(file, function (err) {
-              if (err) {
-                console.error(err);
-              }
-              done();
-            });
-          } else {
+        _.each(local_files, function (file) {
+          tasks.push(function (done) {
+            if (!manifest[file]) {
+              // delete local file
+              console.log('removing file:', file);
+              fs.unlink(file, function (err) {
+                if (err) {
+                  console.error(err);
+                }
+                done();
+              });
+            }
             done();
-          }
+          });
         });
-      });
 
-      _.each(local_files, function (file) {
-        tasks.push(function (done) {
-          if (!manifest[file]) {
-            // delete local file
-            console.log('removing file:', file);
-            fs.unlink(file, function (err) {
-              if (err) {
-                console.error(err);
-              }
-              done();
-            });
-          }
-          done();
-        });
-      });
+        nimble.series(tasks, cb);
 
-      nimble.series(tasks, cb);
+      });
 
     });
 
-  });
+  }); // cert promise
 
 };
 
