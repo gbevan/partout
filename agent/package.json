@@ -20,6 +20,7 @@
     "q": "^1.4.1"
   },
   "devDependencies": {
+    "expect": "^1.9.0",
     "gulp": "^3.9.0",
     "gulp-jsdoc": "^0.1.4",
     "gulp-load-plugins": "^0.10.0",

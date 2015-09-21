@@ -22,11 +22,11 @@ gulp.task('default', function () {
 });
 
 gulp.task('mocha', function () {
-  return gulp.src(['test/*.p2'], { read: false })
+  return gulp.src(['test/*.js', 'test/*.p2'], { read: false })
     .pipe(mocha({
       reporter: 'spec',
       globals: {
-        should: require('should')
+        should: require('should').noConflict()
       }
     }));
 });
