@@ -108,7 +108,7 @@ Ssl.prototype.createCA = function (cfg, keySize) {
     'public': pki.publicKeyToPem(keys.publicKey),
     'cert': pki.certificateToPem(cert),
     'certObj': cert,
-    'privateKey': keys.privateKey
+    'privateKey': keys.privateKey // XXX: BAD!!!
   };
   return pem;
 };
@@ -179,12 +179,12 @@ Ssl.prototype.createIntermediateCA = function (subjAttrs, cfg, keySize, pemCA) {
   cert.validity.notBefore = new Date();
   cert.validity.notAfter = new Date();
   cert.validity.notAfter.setFullYear(
-    cert.validity.notBefore.getFullYear() + 1
+    cert.validity.notBefore.getFullYear() + 10
   );
 
 
   cert.setSubject(csr.subject.attributes);
-  cert.setIssuer(pemCA.certObj.issuer.attributes);
+  cert.setIssuer(pemCA.certObj.subject.attributes);
   cert.setExtensions(cfg.extensions);
 
   cert.sign(pemCA.privateKey, forge.md.sha256.create());
@@ -201,7 +201,101 @@ Ssl.prototype.createIntermediateCA = function (subjAttrs, cfg, keySize, pemCA) {
     'public': pki.publicKeyToPem(keys.publicKey),
     'cert': pki.certificateToPem(cert),
     'certObj': cert,
-    'certChain': pki.certificateToPem(cert) + pemCA.cert
+    'certChain': pki.certificateToPem(cert) + pemCA.cert,
+    'privateKey': keys.privateKey // XXX: BAD!!!
+  };
+  return pem;
+};
+
+/**
+ * Generate a server certificate
+ * @param {Object} cfg
+ * @param {String} cfg.serialNumber
+ * @param {Number} cfg.maxAge in years
+ * @param cfg.subjAttrs
+ * @param cfg.issuerAttrs
+ */
+Ssl.prototype.createMasterCert = function (subjAttrs, cfg, keySize, pemIntCA) {
+  var self = this;
+
+  // XXX: FIX!
+  cfg.extensions = [{
+    name: 'basicConstraints',
+    critical: true,
+    cA: true,
+    pathlen: 0
+  }, {
+    name: 'keyUsage',
+    critical: true,
+    digitalSignature: true,
+    cRLSign: true,
+    keyCertSign: true
+    //nonRepudiation: true,
+    //keyEncipherment: true,
+    //dataEncipherment: true
+  }, {
+    name: 'subjectAltName',
+    altNames: [{
+      type: 7, // IP
+      ip: '127.0.0.1'
+    }]
+  }];
+
+  // Generate key pair
+  var keys = pki.rsa.generateKeyPair((keySize ? keySize: 2048));
+
+  // Create certificate request CSR
+  var csr = forge.pki.createCertificationRequest();
+  csr.publicKey = keys.publicKey;
+  csr.setSubject(subjAttrs);
+  csr.sign(keys.privateKey, forge.md.sha256.create());
+  console.log('csr:', csr);
+  console.log('csr.subject:', csr.subject);
+  console.log('csr.verify:', csr.verify());
+
+  var privkey_pkcs = pki.wrapRsaPrivateKey(
+    pki.privateKeyToAsn1(
+      keys.privateKey
+    )
+  );
+
+  var privkey_enc = pki.encryptedPrivateKeyToPem(
+    pki.encryptPrivateKeyInfo(
+      privkey_pkcs,
+      'password',
+      {algorithm: 'aes256'} // 'aes128', 'aes192', 'aes256', '3des'
+    )
+  );
+  console.log('privkey_enc:', privkey_enc);
+
+  var cert = pki.createCertificate();
+  cert.publicKey = keys.publicKey;
+  cert.serialNumber = '01';
+  cert.validity.notBefore = new Date();
+  cert.validity.notAfter = new Date();
+  cert.validity.notAfter.setFullYear(
+    cert.validity.notBefore.getFullYear() + 1
+  );
+
+  cert.setSubject(csr.subject.attributes);
+  cert.setIssuer(pemIntCA.certObj.subject.attributes);
+  cert.setExtensions(cfg.extensions);
+  console.log('cert:', cert);
+  cert.sign(pemIntCA.privateKey, forge.md.sha256.create());
+  //console.log('cert.verify:', cert.verify());
+
+  var pem = {
+    'private': pki.encryptedPrivateKeyToPem(
+      pki.encryptPrivateKeyInfo(
+        privkey_pkcs,
+        'password',
+        {algorithm: 'aes256'} // 'aes128', 'aes192', 'aes256', '3des'
+      )
+    ),
+    'public': pki.publicKeyToPem(keys.publicKey),
+    'cert': pki.certificateToPem(cert),
+    'certObj': cert,
+    'certChain': pki.certificateToPem(cert) + pemIntCA.cert
   };
   return pem;
 };

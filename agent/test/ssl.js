@@ -16,7 +16,8 @@ describe('Ssl', function () {
 
   var ssl,
     pemCA,
-    pemIntCA;
+    pemIntCA,
+    pemServer;
 
   before(function () {
     ssl = new Ssl();
@@ -173,6 +174,69 @@ describe('Ssl', function () {
       // test extensions
       should(pemIntCA.certObj.extensions).not.be.undefined;
     });
+  });
+
+  describe('Ssl method createMasterCert()', function () {
+    it('should have method createMasterCert()', function () {
+      should(ssl.createMasterCert).not.be.undefined;
+      ssl.createMasterCert.should.be.a.function;
+    });
+
+    it('should return a server certificate pem object containing public/private/certificate/certObj', function () {
+      var IntCAattrs = [{
+        name: 'commonName',
+        value: 'CA TEST Intermediate'
+      }, {
+        shortName: 'OU',
+        value: 'Partout'
+      }];
+
+      var Serverattrs = [{
+        name: 'commonName',
+        value: 'Partout Master Server Cert'
+      }, {
+        shortName: 'OU',
+        value: 'Partout'
+      }];
+
+      this.timeout(60000);
+      console.log('pemIntCA:', pemIntCA);
+      pemServer = ssl.createMasterCert(
+        Serverattrs, {
+          serialNumber: '01',
+          maxAge: 50,
+          subjAttrs: Serverattrs,
+          issuerAttrs: IntCAattrs
+        },
+        512, // small key to speed up test, defaults to 2048
+        pemIntCA
+      );
+      console.log('pemServer:', pemServer);
+      console.log('pemServer.subject:', pemServer.certObj.subject.attributes);
+      console.log('pemServer.issuer:', pemServer.certObj.issuer.attributes);
+
+      should(pemServer).not.be.undefined;
+      pemServer.should.have.property('private');
+      pemServer.should.have.property('public');
+      pemServer.should.have.property('cert');
+      pemServer.should.have.property('certObj');
+
+      //console.log('certObj:', pemIntCA.certObj);
+      should(pemServer.certObj).not.be.null;
+      pemServer.certObj.should.be.a.string;
+
+      //console.log('subject:', pem.certObj.subject);
+      pemServer.certObj.subject.getField('CN').should.have.property('value');
+      pemServer.certObj.subject.getField('CN').value.should.equal('Partout Master Server Cert');
+
+      //console.log('issuer:', pem.certObj.issuer.getField('CN'));
+      pemServer.certObj.issuer.getField('CN').should.have.property('value');
+      pemServer.certObj.issuer.getField('CN').value.should.equal('CA TEST Intermediate');
+
+      // test extensions
+      should(pemServer.certObj.extensions).not.be.undefined;
+    });
+
   });
 
 });
