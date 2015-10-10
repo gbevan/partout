@@ -81,6 +81,7 @@ describe('Ssl', function () {
 
   }); // gencert
 
+  /*
   describe('Ssl method createCA()', function () {
     it('should return a CA root pem object containing public/private/certificate/certObj', function () {
       var CAattrs = [{
@@ -175,6 +176,7 @@ describe('Ssl', function () {
       should(pemIntCA.certObj.extensions).not.be.undefined;
     });
   });
+  */
 
   describe('Ssl method createMasterCert()', function () {
     it('should have method createMasterCert()', function () {

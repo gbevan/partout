@@ -64,7 +64,6 @@ Ssl.prototype.gencert = function (cfg) {
  * @param {Number} cfg.maxAge in years
  * @param cfg.subjAttrs
  * @param cfg.issuerAttrs
- */
 Ssl.prototype.createCA = function (cfg, keySize) {
   var self = this;
 
@@ -112,6 +111,7 @@ Ssl.prototype.createCA = function (cfg, keySize) {
   };
   return pem;
 };
+ */
 
 /**
  * Generate a CA Intermediate certificate
@@ -120,7 +120,6 @@ Ssl.prototype.createCA = function (cfg, keySize) {
  * @param {Number} cfg.maxAge in years
  * @param cfg.subjAttrs
  * @param cfg.issuerAttrs
- */
 Ssl.prototype.createIntermediateCA = function (subjAttrs, cfg, keySize, pemCA) {
   var self = this;
 
@@ -206,6 +205,7 @@ Ssl.prototype.createIntermediateCA = function (subjAttrs, cfg, keySize, pemCA) {
   };
   return pem;
 };
+ */
 
 /**
  * Generate a server certificate

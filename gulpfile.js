@@ -26,13 +26,13 @@ gulp.task('mocha', function () {
     .pipe(mocha({
       reporter: 'spec',
       globals: {
-        should: require('should')
+        should: require('should').noConflict()
       }
     }));
 });
 
 gulp.task('watch-mocha', function () {
-  gulp.watch(['app.js', 'lib/**', 'test/**'], ['mocha']);
+  gulp.watch(['app.js', 'lib/**', 'etc/*.js', 'agent/lib/*.js', 'test/**'], ['mocha']);
 });
 
 gulp.task('docs', function () {

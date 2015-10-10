@@ -14,10 +14,13 @@
     "forever": "^0.15.1",
     "morgan": "^1.6.1",
     "node-forge": "^0.6.34",
+    "prompt": "^0.2.14",
     "q": "^1.4.1",
+    "rmdir": "^1.1.0",
     "walk": "^2.3.9"
   },
   "devDependencies": {
+    "expect": "^1.10.0",
     "gulp": "^3.9.0",
     "gulp-jsdoc": "^0.1.4",
     "gulp-load-plugins": "^0.10.0",

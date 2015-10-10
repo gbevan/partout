@@ -16,13 +16,18 @@ var console = require('better-console'),
   sslKey,
   sslCert,
   os = require('os'),
-  hostName = os.hostname();
+  hostName = os.hostname(),
+  ca = new (require('./lib/ca'))();
 
 //console.log('hostname:', hostName);
 
 /**
  * Partout application server
  */
+
+ca.checkRootCert(function () {
+  console.log('checkRootCert() returned');
+});
 
 if (fs.existsSync(keyFile) && fs.existsSync(certFile)) {
   sslKey = fs.readFileSync(keyFile);

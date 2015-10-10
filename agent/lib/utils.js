@@ -4,7 +4,9 @@
 var walk = require('walk'),
   path = require('path'),
   fs = require('fs'),
-  crypto = require('crypto');
+  crypto = require('crypto'),
+  mkdirp = require('mkdirp'),
+  Q = require('q');
 
 /**
  * Common utils
@@ -70,6 +72,29 @@ Utils.prototype.hashWalk = function (folder, cb) {
   walker.on('end', function () {
     cb(manifest);
   });
+};
+
+/**
+ * mkdir -p ...
+ * @param {String} folder path to recursively create
+ * @param {Function} callback (err)
+ */
+Utils.prototype.ensurePath = function (path, cb) {
+  console.log('calling mkdirp, path:', path, 'cb:', cb);
+  mkdirp(path, cb);
+};
+
+/**
+ * pExists - Promisified fs.exists()
+ * @param {String} file
+ * @returns {Promise} boolean exists?
+ */
+Utils.prototype.pExists = function (file) {
+  var deferred = Q.defer();
+  fs.exists(file, function (exists) {
+    deferred.resolve(exists);
+  });
+  return deferred.promise;
 };
 
 module.exports = Utils;
