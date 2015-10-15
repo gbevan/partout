@@ -3,6 +3,9 @@
 
 var os = require('os');
 
+//var hostname = os.hostname();
+var hostname = 'officepc.net';
+
 var Ca = function () {
   var self = this;
 
@@ -16,7 +19,7 @@ var Ca = function () {
       value: 'Partout'
     }],
     serialNumber: '01',
-    maxAge: 50,
+    maxAge: 25,
     keySize: 4096
   };
 
@@ -30,7 +33,7 @@ var Ca = function () {
       value: 'Partout'
     }],
     serialNumber: '01',
-    maxAge: 50,
+    maxAge: 25,
     keySize: 4096
   };
 
@@ -52,24 +55,24 @@ var Ca = function () {
   self.masterapi = {
     attrs: [{
       name: 'commonName',
-      value: os.hostname()
+      value: hostname
     }, {
       shortName: 'OU',
-      value: 'Partout'
+      value: 'Partout Master API'
     }],
     serialNumber: '01',
     maxAge: 25,
     keySize: 2048
   };
 
-  // Master API cert cfg
+  // Master UI cert cfg
   self.masterui = {
     attrs: [{
       name: 'commonName',
-      value: os.hostname()
+      value: hostname
     }, {
       shortName: 'OU',
-      value: 'Partout'
+      value: 'Partout Master UI'
     }],
     serialNumber: '01',
     maxAge: 25,

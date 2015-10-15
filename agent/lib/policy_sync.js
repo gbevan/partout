@@ -49,10 +49,11 @@ Policy_Sync.prototype.get_manifest = function (cb) {
       port: self.app.master_port,
       path: '/_getManifest',
       method: 'GET',
-      rejectUnauthorized: false,
+      rejectUnauthorized: false
       //requestCert: true,
       //agent: false,
-      ca: [ self.server_cert ]
+
+      //ca: [ self.server_cert ] // TODO: need to setup ca cert chain 1st
     },
     buffer = '';
   console.log('get_manifest() server_cert:\n' + self.server_cert);

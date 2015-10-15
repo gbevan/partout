@@ -80,7 +80,7 @@ Utils.prototype.hashWalk = function (folder, cb) {
  * @param {Function} callback (err)
  */
 Utils.prototype.ensurePath = function (path, cb) {
-  console.log('calling mkdirp, path:', path, 'cb:', cb);
+  //console.log('calling mkdirp, path:', path, 'cb:', cb);
   mkdirp(path, cb);
 };
 

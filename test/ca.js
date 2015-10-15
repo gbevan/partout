@@ -11,6 +11,7 @@ var assert = require('assert'),
   Q = require('q'),
   fs = require('fs'),
   utils = new (require('../agent/lib/utils'))(),
+  path = require('path'),
   os = require('os');
 
 GLOBAL.should = require('should');
@@ -52,9 +53,9 @@ describe('Ca', function () {
 
       // remove ssl-test folder and contents before rest of tests
       rmdir('./etc/ssl-test', function (err, dirs, files) {
-        console.log( dirs );
-        console.log( files );
-        console.log( 'all files are removed' );
+        //console.log( dirs );
+        //console.log( files );
+        //console.log( 'all files are removed' );
         done();
       });
     });
@@ -287,7 +288,7 @@ describe('Ca', function () {
       })
 
       .then(function () {
-        ca.createAgentSignerCert('my int pass phrase', 'my agent signer pass phrase', function (err, certObj, pem) {
+        ca.createAgentSignerCert('my int pass phrase', function (err, certObj, pem) {
           should(err).be.undefined;
           should(certObj).not.be.undefined;
           should(pem).not.be.undefined;
@@ -370,7 +371,7 @@ describe('Ca', function () {
           certObj.issuer.getField('CN').value.should.equal('Partout CA Intermediate');
 
           certObj.subject.getField('CN').should.have.property('value');
-          certObj.subject.getField('CN').value.should.equal(os.hostname());
+          //certObj.subject.getField('CN').value.should.equal(os.hostname());
 
           // test extensions
           should(certObj.extensions).not.be.undefined;
@@ -442,7 +443,7 @@ describe('Ca', function () {
           certObj.issuer.getField('CN').value.should.equal('Partout CA Intermediate');
 
           certObj.subject.getField('CN').should.have.property('value');
-          certObj.subject.getField('CN').value.should.equal(os.hostname());
+          //certObj.subject.getField('CN').value.should.equal(os.hostname());
 
           // test extensions
           should(certObj.extensions).not.be.undefined;
@@ -475,6 +476,64 @@ describe('Ca', function () {
       });
     });
   });
+
+  /*********************************
+   * Trusted Key Chain
+   */
+  it('should have method generateTrustedCertChain()', function () {
+    should(ca.generateTrustedCertChain).be.a.Function;
+  });
+
+  describe('generateTrustedCertChain', function () {
+    it('should return and create the trusted certificate chain', function (done) {
+      ca.generateTrustedCertChain(function (certChain) {
+        should(certChain).not.be.undefined;
+        utils.pExists(ca.trustedCertChain)
+        .done(function (exists) {
+          exists.should.be.true;
+          done();
+        });
+      });
+    });
+  });
+
+  it('should have method copyCaCertsToAgentManifest()', function () {
+    should(ca.copyCaCertsToAgentManifest).be.a.Function;
+  });
+
+  describe('copyCaCertsToAgentManifest', function () {
+    it('should create copies of the ca certs in manifest without error', function (done) {
+      ca.copyCaCertsToAgentManifest(function (err) {
+        should(err).be.undefined;
+
+        utils.pExists(path.join(ca.PARTOUT_AGENT_MANIFEST_DIR, 'root_ca.crt'))
+        .then(function (exists) {
+          console.log('returned');
+          exists.should.be.true;
+
+          utils.pExists(path.join(ca.PARTOUT_AGENT_MANIFEST_DIR, 'intermediate_ca.crt'))
+          .then(function (exists) {
+            exists.should.be.true;
+            done();
+          });
+        })
+        .fail(function (err) {
+          should(err).be.undefined;
+        });
+
+      });
+    });
+  });
+
+  /************************************************
+   * verify certificates against trusted key chain
+   *
+   * using openssl:
+   *  openssl x509 -noout -text -in root_ca.cert.pem
+   *  openssl verify -CAfile ca_cert.pem cert.pem
+   *  curl -v --cacert trusted_cert_chain.crt  https://officepc:11443
+   */
+
 
 
 

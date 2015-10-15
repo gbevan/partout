@@ -3,8 +3,10 @@
 
 var console = require('better-console'),
   express = require('express'),
-  router = express.Router(),
-  https = require('https'),
+  routerApi = express.Router(),
+  routerUi = express.Router(),
+  httpsApi = require('https'),
+  httpsUi = require('https'),
   bodyParser = require('body-parser'),
   pki = require('node-forge').pki,
   morgan = require('morgan'),
@@ -13,104 +15,110 @@ var console = require('better-console'),
   fs = require('fs'),
   keyFile = 'etc/ssl/server.key',
   certFile = 'etc/ssl/server.crt',
-  sslKey,
-  sslCert,
   os = require('os'),
   hostName = os.hostname(),
-  ca = new (require('./lib/ca'))();
+  ca = new (require('./lib/ca'))(),
+  Q = require('q');
 
-//console.log('hostname:', hostName);
+Q.longStackSupport = true;
 
 /**
  * Partout application server
  */
 
-ca.checkRootCert(function () {
-  console.log('checkRootCert() returned');
+/**
+ * check for SSL certificates and their dependencies (CA root etc)
+ */
+Q.ninvoke(ca, 'checkMasterApiCert')
+.then(function () {
+  return Q.ninvoke(ca, 'checkMasterUiCert');
+})
+.then(function () {
+  return Q.ninvoke(ca, 'checkAgentSignerCert');
+})
+.fail(function(err) {
+  console.error('failed checking for certificates:', err);
+  console.log(err.stack);
+  throw (new Error(err));
+})
+.done(function() {
+  console.log('Certificates ok, generating key chain');
+
+  ca.generateTrustedCertChain(function () {
+    console.log('trusted key chain done');
+
+    /****************************
+     * Start Master API Server
+     */
+    var appApi = express(),
+      optionsApi = {
+        key: fs.readFileSync(ca.masterApiPrivateKeyFile),
+        cert: fs.readFileSync(ca.masterApiCertFile),
+        ca: [
+          fs.readFileSync(ca.intCertFile)
+
+          /*
+           * root cert placed in /usr/share/ca-certificates/partout and updated
+           * /etc/ca-certificates.conf to point to it.
+           * run update-ca-certificates
+           * only include intermediate ca here, and import this into
+           * browsers cert stores
+           */
+          //fs.readFileSync(ca.rootCertFile)
+        ]
+      };
+
+    appApi.use(compression());
+
+    routerApi.use(morgan('combined'));
+
+    appApi.use(bodyParser.json());
+    appApi.use(bodyParser.urlencoded({ extended: true }));
+
+    //router.use('/', routes);
+    require('./lib/api/routes')(routerApi);
+
+    appApi.use('/', routerApi);
+
+    httpsApi.createServer(optionsApi, appApi)
+      .listen(10443);
+
+    /****************************
+     * Start Master UI Server
+     */
+    var appUi = express(),
+      optionsUi = {
+        key: fs.readFileSync(ca.masterUiPrivateKeyFile),
+        cert: fs.readFileSync(ca.masterUiCertFile),
+        ca: [
+          fs.readFileSync(ca.intCertFile)
+
+          /*
+           * root cert placed in /usr/share/ca-certificates/partout and updated
+           * /etc/ca-certificates.conf to point to it.
+           * run update-ca-certificates
+           * only include intermediate ca here, and import this into
+           * browsers cert stores
+           */
+          //fs.readFileSync(ca.rootCertFile)
+        ]
+      };
+
+    appUi.use(compression());
+
+    routerUi.use(morgan('combined'));
+
+    appUi.use(bodyParser.json());
+    appUi.use(bodyParser.urlencoded({ extended: true }));
+
+    //router.use('/', routes);
+    require('./lib/ui/routes')(routerUi);
+
+    appUi.use('/', routerUi);
+
+    httpsUi.createServer(optionsUi, appUi)
+      .listen(11443);
+
+  });
+
 });
-
-if (fs.existsSync(keyFile) && fs.existsSync(certFile)) {
-  sslKey = fs.readFileSync(keyFile);
-  sslCert = fs.readFileSync(certFile);
-} else {
-  console.log('Generating self-signed cert');
-
-  var keys = pki.rsa.generateKeyPair(2048);
-  //console.log('keys:', keys);
-
-  var cert = pki.createCertificate();
-  cert.publicKey = keys.publicKey;
-  cert.serialNumber = '01';
-  cert.validity.notBefore = new Date();
-  cert.validity.notAfter = new Date();
-  cert.validity.notAfter.setFullYear(cert.validity.notBefore.getFullYear() + 30);
-  var attrs = [{
-    name: 'commonName',
-    value: hostName
-  }, {
-    shortName: 'OU',
-    value: 'Partout'
-  }];
-  cert.setSubject(attrs);
-  cert.setIssuer(attrs);
-  // cert.setExtensions...?
-  cert.setExtensions([{
-    name: 'basicConstraints',
-    cA: true
-  }, {
-    name: 'keyUsage',
-    keyCertSign: true,
-    digitalSignature: true,
-    nonRepudiation: true,
-    keyEncipherment: true,
-    dataEncipherment: true
-  }, {
-    name: 'subjectAltName',
-    altNames: [{
-      type: 6, // URI
-      value: 'http://example.org/webid#me'
-    }]
-  }]);
-
-  cert.publicKey = keys.publicKey;
-
-  cert.sign(keys.privateKey);
-  //console.log('cert:', cert);
-
-  var pem = {
-    'private': pki.privateKeyToPem(keys.privateKey),
-    'public': pki.publicKeyToPem(keys.publicKey),
-    'cert': pki.certificateToPem(cert)
-  };
-
-  //console.log('pem:', pem);
-
-  sslKey = pem['private'];
-  sslCert = pem.cert;
-  fs.writeFileSync(keyFile, sslKey);
-  fs.writeFileSync(certFile, sslCert);
-}
-
-//console.log(pems);
-// TODO: Move new cert into mongodb to make permanent
-
-var app = express(),
-  options = {
-    key: sslKey,
-    cert: sslCert
-  };
-
-app.use(compression());
-
-router.use(morgan('combined'));
-
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
-
-//router.use('/', routes);
-require('./lib/routes')(router);
-
-app.use('/', router);
-
-https.createServer(options, app)
-  .listen(10443);
