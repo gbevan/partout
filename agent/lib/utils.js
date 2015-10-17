@@ -1,7 +1,8 @@
 /*jslint node: true, nomen: true, vars: true*/
 'use strict';
 
-var walk = require('walk'),
+var console = require('better-console'),
+  walk = require('walk'),
   path = require('path'),
   fs = require('fs'),
   crypto = require('crypto'),
@@ -52,7 +53,8 @@ Utils.prototype.hashFileSync = function (f) {
 };
 
 /**
- * Asynchronously walk a folder tree, generating a sha512 hash of each file's contents
+ * Asynchronously walk a folder tree, generating a sha512 hash of each file's contents.
+ * hidden files (.*) are filtered out.
  * @param {String} folder   folder to hash
  * @param {Function} callback callback(manifest), where manifest is {filename:sha512 hex hash of file}
  */
@@ -62,6 +64,10 @@ Utils.prototype.hashWalk = function (folder, cb) {
     manifest = {};
 
   walker.on('file', function (root, fstats, next) {
+    if (fstats.name.charAt(0) === '.') {
+      next();
+      return;
+    }
     var f = path.join(root, fstats.name);
     self.hashFile(f, function (hash) {
       manifest[f] = hash;

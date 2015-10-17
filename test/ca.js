@@ -25,18 +25,14 @@ describe('Ca', function () {
 
   before(function () {
     ca = new Ca();
-    /*
-    ca.PARTOUT_SSL_DIR = './etc/ssl-test';
-    ca.PARTOUT_SSL_CA_PREFIX = 'TEST.root.ca.';
-    ca.PARTOUT_SSL_INTERMEDIATE_CA_PREFIX = 'TEST.int.ca.';
-    */
 
     // reduce key sizes for test speed
-    ca.ca_config.ca_root.keySize = 512;
-    ca.ca_config.ca_int.keySize = 512;
-    ca.ca_config.agentsigner.keySize = 512;
-    ca.ca_config.masterapi.keySize = 512;
-    ca.ca_config.masterui.keySize = 512;
+    var keySize = 512;
+    ca.ca_config.ca_root.keySize = keySize;
+    ca.ca_config.ca_int.keySize = keySize;
+    ca.ca_config.agentsigner.keySize = keySize;
+    ca.ca_config.masterapi.keySize = keySize;
+    ca.ca_config.masterui.keySize = keySize;
   });
 
 
@@ -508,7 +504,6 @@ describe('Ca', function () {
 
         utils.pExists(path.join(ca.PARTOUT_AGENT_MANIFEST_DIR, 'root_ca.crt'))
         .then(function (exists) {
-          console.log('returned');
           exists.should.be.true;
 
           utils.pExists(path.join(ca.PARTOUT_AGENT_MANIFEST_DIR, 'intermediate_ca.crt'))
