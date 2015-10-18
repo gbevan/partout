@@ -37,7 +37,7 @@ var _sendevent = function (o, cb) {
       options = {
         host: app.master, // TODO: param'ize
         port: app.master_port,
-        path: '/_event',
+        path: '/event',
         method: 'POST',
         rejectUnauthorized: false,
         //requestCert: true,

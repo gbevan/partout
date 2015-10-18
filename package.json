@@ -4,7 +4,7 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "start": "node ./bin/www"
+    "start": "node ./bin/serve"
   },
   "dependencies": {
     "better-console": "^0.2.4",
@@ -29,6 +29,7 @@
     "gulp-util": "^3.0.5",
     "should": "^6.0.3",
     "should-sinon": "0.0.1",
-    "sinon": "^1.14.1"
+    "sinon": "^1.14.1",
+    "supertest": "^1.1.0"
   }
 }

@@ -64,7 +64,7 @@ Utils.prototype.hashWalk = function (folder, cb) {
     manifest = {};
 
   walker.on('file', function (root, fstats, next) {
-    if (fstats.name.charAt(0) === '.') {
+    if (fstats.name.match(/^\.git/)) {
       next();
       return;
     }

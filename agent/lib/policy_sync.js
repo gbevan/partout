@@ -47,7 +47,7 @@ Policy_Sync.prototype.get_manifest = function (cb) {
     options = {
       host: self.app.master, // TODO: param'ize
       port: self.app.master_port,
-      path: '/_getManifest',
+      path: '/manifest',
       method: 'GET',
       rejectUnauthorized: false
       //requestCert: true,
@@ -76,7 +76,7 @@ Policy_Sync.prototype.get_file = function (file, cb) {
     options = {
       host: self.app.master, // TODO: param'ize
       port: self.app.master_port,
-      path: '/_getFile?file=' + file,
+      path: '/file?file=' + file,
       method: 'GET',
       rejectUnauthorized: false,
       //requestCert: true,

@@ -14,7 +14,7 @@ console.log('Invoking gulp -', env);
 
 gulp.task('default', function () {
   plugins.nodemon({
-    script: 'bin/www',
+    script: 'bin/serve',
     env: { 'NODE_ENV': env},
     ignore: ['node_modules', 'agent'],
     nodeArgs: ['--debug']
@@ -22,7 +22,7 @@ gulp.task('default', function () {
 });
 
 gulp.task('mocha', function () {
-  return gulp.src(['test/*.js'], { read: false })
+  return gulp.src(['test/**/*.js'], { read: false })
     .pipe(mocha({
       reporter: 'spec',
       globals: {

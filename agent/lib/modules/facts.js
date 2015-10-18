@@ -55,6 +55,7 @@ Facts.getFacts = function () {
     os_numcpus: os.cpus().length,
     os_nics: os.networkInterfaces()
   };
+  console.log('facts:', facts);
   return facts;
 };
 
