@@ -25,6 +25,9 @@ Q.longStackSupport = true;
 /**
  * Partout application server
  */
+//console.clear();
+//console.info('--| Partout |-' + new Array(51).join('-') + '-| starting |--');
+console.info('Starting Partout Master Server...');
 
 /**
  * check for SSL certificates and their dependencies (CA root etc)
