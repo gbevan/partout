@@ -30,37 +30,37 @@ var console = require('better-console'),
  * @memberof P2
  */
 var _sendevent = function (o, cb) {
-    console.log('sendevent, from agent app: this:', this);
+  console.log('sendevent, from agent app: this:', this);
 
-    var app = this,
-      post_data = querystring.stringify(o),
-      options = {
-        host: app.master, // TODO: param'ize
-        port: app.master_port,
-        path: '/event',
-        method: 'POST',
-        rejectUnauthorized: false,
-        //requestCert: true,
-        agent: false,
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'Content-Length': post_data.length
-        }
-      };
+  var app = this,
+    post_data = querystring.stringify(o),
+    options = {
+      host: app.master, // TODO: param'ize
+      port: app.master_port,
+      path: '/event',
+      method: 'POST',
+      rejectUnauthorized: false,
+      //requestCert: true,
+      agent: false,
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Content-Length': post_data.length
+      }
+    };
 
-    var post_req = app.https.request(options, function(res) {
-      res.setEncoding('utf8');
-      res.on('data', function (chunk) {
-        console.warn('Response: ' + chunk);
-        if (cb) {
-          cb(chunk);
-        }
-      });
+  var post_req = app.https.request(options, function(res) {
+    res.setEncoding('utf8');
+    res.on('data', function (chunk) {
+      console.warn('Response: ' + chunk);
+      if (cb) {
+        cb(chunk);
+      }
     });
+  });
 
-    post_req.write(post_data);
-    post_req.end();
-  };
+  post_req.write(post_data);
+  post_req.end();
+};
 
 var apply = function (args, opts) {
   var policy = new Policy(args, opts);
