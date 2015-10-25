@@ -1,0 +1,37 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# use:
+#   $ vagrant up --provider=docker
+#   $ vagrant ssh
+#   guest$ cd appserver
+#   guest$ grunt
+#
+# Port 3000 is exposed on the host system, so access the vm using:
+#   http://127.0.0.1:3000
+
+VAGRANTFILE_API_VERSION = "2"
+MYUID = Process.uid
+MYGID = Process.gid
+
+COMMON_PROVISION = "export DEBIAN_FRONTEND=noninteractive; \
+      sed -i 's?vagrant:x:[0-9]*:?vagrant:x:#{MYGID}:?' /etc/group && \
+      sed -i 's?vagrant:x:[0-9]*:[0-9]*::/home/vagrant:/bin/bash?vagrant:x:#{MYUID}:#{MYGID}::/home/vagrant:/bin/bash?' /etc/passwd && \
+      chown -R #{MYUID}:#{MYGID} /home/vagrant && \
+      apt-get update && \
+      apt-get update && \
+      apt-get install -y sysstat"
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+
+  config.vm.usable_port_range = 2300..2350
+
+  config.vm.define "ubuntu14", primary: true do |u14|
+    u14.vm.provision "shell", inline: COMMON_PROVISION
+    u14.vm.provider "docker" do |d|
+      d.image = "gbevan/vagrant-ubuntu-dev:trusty"
+      d.has_ssh = true
+    end
+  end
+
+end

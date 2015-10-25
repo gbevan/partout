@@ -18,7 +18,8 @@ var console = require('better-console'),
   os = require('os'),
   hostName = os.hostname(),
   ca = new (require('./lib/ca'))(),
-  Q = require('q');
+  Q = require('q'),
+  cfg = new (require('./etc/partout.conf.js'))();
 
 Q.longStackSupport = true;
 
@@ -79,12 +80,12 @@ Q.ninvoke(ca, 'checkMasterApiCert')
     appApi.use(bodyParser.urlencoded({ extended: true }));
 
     //router.use('/', routes);
-    require('./lib/api/routes')(routerApi);
+    require('./lib/api/routes')(routerApi, cfg);
 
     appApi.use('/', routerApi);
 
     httpsApi.createServer(optionsApi, appApi)
-      .listen(10443);
+    .listen(cfg.partout_api_port);
 
     /****************************
      * Start Master UI Server
@@ -120,7 +121,7 @@ Q.ninvoke(ca, 'checkMasterApiCert')
     appUi.use('/', routerUi);
 
     httpsUi.createServer(optionsUi, appUi)
-      .listen(11443);
+    .listen(cfg.partout_ui_port);
 
   });
 
