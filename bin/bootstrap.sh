@@ -67,7 +67,7 @@ done
 echo "Starting Partout Agent (policies will finalise the installation)"
 cd agent || exit 1
 
-../node/bin/node node_modules/forever/bin/forever -c '../node/bin/node -- --singleprocess' bin/partout-agent
+#../node/bin/node bin/partout-agent
 
 
 

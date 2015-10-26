@@ -49,11 +49,14 @@ Policy_Sync.prototype.get_manifest = function (cb) {
       port: self.app.master_port,
       path: '/manifest',
       method: 'GET',
-      rejectUnauthorized: false
+      rejectUnauthorized: false,
       //requestCert: true,
       //agent: false,
 
       //ca: [ self.server_cert ] // TODO: need to setup ca cert chain 1st
+
+      cert: self.app.clientCert,
+      key: self.app.clientKey
     },
     buffer = '';
   console.log('get_manifest() server_cert:\n' + self.server_cert);
@@ -61,6 +64,10 @@ Policy_Sync.prototype.get_manifest = function (cb) {
   options.agent = new self.https.Agent(options);
 
   self.https.get(options, function (res) {
+    if (res.statusCode !== 200) {
+      console.error('Client authentication denied by master (csr may need signing to grant access)');
+      return;
+    }
     res.on('data', function (d) {
       buffer += d.toString();
     });

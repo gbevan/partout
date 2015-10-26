@@ -69,7 +69,9 @@ Q.ninvoke(ca, 'checkMasterApiCert')
            * browsers cert stores
            */
           //fs.readFileSync(ca.rootCertFile)
-        ]
+        ],
+        requestCert: true,
+        rejectUnauthorized: false
       };
 
     appApi.use(compression());
@@ -105,7 +107,9 @@ Q.ninvoke(ca, 'checkMasterApiCert')
            * browsers cert stores
            */
           //fs.readFileSync(ca.rootCertFile)
-        ]
+        ],
+        requestCert: true,
+        rejectUnauthorized: false
       };
 
     appUi.use(compression());

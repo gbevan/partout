@@ -56,12 +56,20 @@ Utils.prototype.hashFileSync = function (f) {
  * Asynchronously walk a folder tree, generating a sha512 hash of each file's contents.
  * hidden files (.*) are filtered out.
  * @param {String} folder   folder to hash
+ * @param {RegExp} excludere regexp to exclude matches (optional)
  * @param {Function} callback callback(manifest), where manifest is {filename:sha512 hex hash of file}
  */
-Utils.prototype.hashWalk = function (folder, cb) {
+Utils.prototype.hashWalk = function (folder, excludere, cb) {
   var self = this,
     walker = walk.walk(folder),
     manifest = {};
+
+  if (!cb) {
+    if (typeof(excludere) === 'function') {
+      cb = excludere;
+      excludere = undefined;
+    }
+  }
 
   walker.on('file', function (root, fstats, next) {
     if (fstats.name.match(/^\.git/)) {
@@ -69,6 +77,12 @@ Utils.prototype.hashWalk = function (folder, cb) {
       return;
     }
     var f = path.join(root, fstats.name);
+
+    if (excludere && f.match(excludere)) {
+      next();
+      return;
+    }
+
     self.hashFile(f, function (hash) {
       manifest[f] = hash;
       next();

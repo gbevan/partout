@@ -26,6 +26,7 @@ before(function () {
   appApi.use(bodyParser.json());
   appApi.use(bodyParser.urlencoded({ extended: true }));
   require('../../lib/api/routes')(routerApi);
+  routerApi.mock = true;
   appApi.use('/', routerApi);
 });
 

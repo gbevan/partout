@@ -148,6 +148,9 @@ var serve = function () {
   app.apply_site_p2 = 'etc/manifest/site.p2';
   app.https = https;
 
+  app.clientCert = sslCert;
+  app.clientKey = sslKey;
+
   app.sendevent = _sendevent;
 
   process.on('SIGINT', function () {
