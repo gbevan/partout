@@ -60,14 +60,14 @@ Ssl.prototype.gencert = function (cfg) {
 
 
 /**
- * Generate a server certificate
+ * Generate a server certificate signing request
  * @param {Object} cfg
  * @param {String} cfg.serialNumber
  * @param {Number} cfg.maxAge in years
  * @param cfg.subjAttrs
  * @param cfg.issuerAttrs
  */
-Ssl.prototype.createMasterCert = function (subjAttrs, cfg, keySize, pemIntCA) {
+Ssl.prototype.createMasterCsr = function (subjAttrs, cfg, keySize, pemIntCA) {
   var self = this;
 
   // XXX: FIX!
@@ -100,6 +100,7 @@ Ssl.prototype.createMasterCert = function (subjAttrs, cfg, keySize, pemIntCA) {
   var csr = forge.pki.createCertificationRequest();
   csr.publicKey = keys.publicKey;
   csr.setSubject(subjAttrs);
+  //csr.setAttributes ?
   csr.sign(keys.privateKey, forge.md.sha256.create());
   console.log('csr:', csr);
   console.log('csr.subject:', csr.subject);
@@ -111,6 +112,7 @@ Ssl.prototype.createMasterCert = function (subjAttrs, cfg, keySize, pemIntCA) {
     )
   );
 
+  /*
   var privkey_enc = pki.encryptedPrivateKeyToPem(
     pki.encryptPrivateKeyInfo(
       privkey_pkcs,
@@ -119,7 +121,10 @@ Ssl.prototype.createMasterCert = function (subjAttrs, cfg, keySize, pemIntCA) {
     )
   );
   console.log('privkey_enc:', privkey_enc);
+  */
 
+
+  /*
   var cert = pki.createCertificate();
   cert.publicKey = keys.publicKey;
   cert.serialNumber = '01';
@@ -135,17 +140,13 @@ Ssl.prototype.createMasterCert = function (subjAttrs, cfg, keySize, pemIntCA) {
   console.log('cert:', cert);
   cert.sign(pemIntCA.privateKey, forge.md.sha256.create());
   //console.log('cert.verify:', cert.verify());
+  */
 
   var pem = {
-    'private': pki.encryptedPrivateKeyToPem(
-      pki.encryptPrivateKeyInfo(
-        privkey_pkcs,
-        'password',
-        {algorithm: 'aes256'} // 'aes128', 'aes192', 'aes256', '3des'
-      )
-    ),
+    'private': forge.pki.certificationRequestToPem(csr),
     'public': pki.publicKeyToPem(keys.publicKey),
     'cert': pki.certificateToPem(cert),
+    'csr': forge.pki.certificationRequestToPem(csr),
     'certObj': cert,
     'certChain': pki.certificateToPem(cert) + pemIntCA.cert
   };

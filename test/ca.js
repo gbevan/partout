@@ -482,7 +482,8 @@ describe('Ca', function () {
 
   describe('generateTrustedCertChain', function () {
     it('should return and create the trusted certificate chain', function (done) {
-      ca.generateTrustedCertChain(function (certChain) {
+      ca.generateTrustedCertChain(function (err, certChain) {
+        should(err).be.undefined;
         should(certChain).not.be.undefined;
         utils.pExists(ca.trustedCertChain)
         .done(function (exists) {
@@ -493,25 +494,36 @@ describe('Ca', function () {
     });
   });
 
-  it('should have method copyCaCertsToAgentManifest()', function () {
-    should(ca.copyCaCertsToAgentManifest).be.a.Function;
+  it('should have method copyCaCertsToAgentSslPub()', function () {
+    should(ca.copyCaCertsToAgentSslPub).be.a.Function;
   });
 
-  describe('copyCaCertsToAgentManifest', function () {
-    it('should create copies of the ca certs in manifest without error', function (done) {
-      ca.copyCaCertsToAgentManifest(function (err) {
+  describe('copyCaCertsToAgentSslPub', function () {
+    it('should create copies of the ca certs in ssl_public without error', function (done) {
+      ca.copyCaCertsToAgentSslPub(function (err) {
         should(err).be.undefined;
 
-        utils.pExists(path.join(ca.PARTOUT_AGENT_MANIFEST_DIR, 'root_ca.crt'))
+        utils.pExists(path.join(ca.PARTOUT_SSL_PUBLIC, 'root_ca.crt'))
         .then(function (exists) {
           exists.should.be.true;
 
-          utils.pExists(path.join(ca.PARTOUT_AGENT_MANIFEST_DIR, 'intermediate_ca.crt'))
+          utils.pExists(path.join(ca.PARTOUT_SSL_PUBLIC, 'intermediate_ca.crt'))
           .then(function (exists) {
             exists.should.be.true;
-            done();
+
+            utils.pExists(path.join(ca.PARTOUT_AGENT_SSL_PUBLIC, 'root_ca.crt'))
+            .then(function (exists) {
+              exists.should.be.true;
+
+              utils.pExists(path.join(ca.PARTOUT_AGENT_SSL_PUBLIC, 'intermediate_ca.crt'))
+              .then(function (exists) {
+                exists.should.be.true;
+                done();
+              });
+            })
           });
         })
+
         .fail(function (err) {
           should(err).be.undefined;
         });

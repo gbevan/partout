@@ -9,15 +9,22 @@ var console = require('better-console'),
   morgan = require('morgan'),
   logger = morgan('combined'),
   fs = require('fs'),
-  keyFile = 'etc/ssl/server.key',
-  certFile = 'etc/ssl/server.crt',
+  keyFile = 'etc/ssl/agent.key',
+  csrFile = 'etc/ssl/agent.csr',
+  certFile = 'etc/ssl/agent.crt',
   sslKey,
   sslCert,
   os = require('os'),
+  path = require('path'),
   hostName = os.hostname(),
   Policy = require('./lib/policy'),
   Policy_Sync = require('./lib/policy_sync'),
-  querystring = require('querystring');
+  querystring = require('querystring'),
+  Q = require('q');
+
+var PARTOUT_AGENT_SSL_PUBLIC = './etc/ssl_public';
+
+Q.longStackSupport = true;
 
 /**
  * send event to master
@@ -30,7 +37,9 @@ var console = require('better-console'),
  * @memberof P2
  */
 var _sendevent = function (o, cb) {
-  console.log('sendevent, from agent app: this:', this);
+  console.warn('sendevent: msg:', o.msg);
+
+  var deferred = Q.defer();
 
   var app = this,
     post_data = querystring.stringify(o),
@@ -39,27 +48,53 @@ var _sendevent = function (o, cb) {
       port: app.master_port,
       path: '/event',
       method: 'POST',
-      rejectUnauthorized: false,
+      //rejectUnauthorized: true,
       //requestCert: true,
+      rejectUnauthorized: true,
+      requestCert: true,
       agent: false,
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
         'Content-Length': post_data.length
-      }
+      },
+      ca: [
+        fs.readFileSync(path.join(PARTOUT_AGENT_SSL_PUBLIC, 'root_ca.crt')),
+        fs.readFileSync(path.join(PARTOUT_AGENT_SSL_PUBLIC, 'intermediate_ca.crt'))
+      ]
+      //checkServerIdentity: function (servername, cert) {
+      //  console.log('servername:', servername, 'cert:', cert);
+      //  return undefined; // or err
+      //}
     };
 
+  options.agent = new https.Agent(options);
+
   var post_req = app.https.request(options, function(res) {
+    var data = '';
+
     res.setEncoding('utf8');
     res.on('data', function (chunk) {
       console.warn('Response: ' + chunk);
+      data += chunk;
+    });
+
+    res.on('end', function () {
       if (cb) {
-        cb(chunk);
+        cb(data);
       }
+      deferred.resolve(data);
     });
   });
 
   post_req.write(post_data);
   post_req.end();
+
+  post_req.on('error', function (err) {
+    console.error(err);
+    deferred.reject(new Error(err));
+  });
+
+  return deferred.promise;
 };
 
 var apply = function (args, opts) {
@@ -138,8 +173,8 @@ var serve = function () {
       cert: sslCert
     };
 
-  // TODO: parameterise from a yaml file
-  app.master = '192.168.5.64';
+  // TODO: parameterise from a js file
+  app.master = 'officepc.net';
   app.master_port = 10443;
   app.apply_every_mins = 5;
   app.poll_manifest_every = 6;
@@ -224,12 +259,17 @@ var serve = function () {
     module: 'app',
     object: 'partout-agent',
     msg: 'Partout-Agent has (re)started'
-  });
-
-  app.run();
-  setInterval(function () {
+  })
+  .then(function () {
     app.run();
-  }, (app.apply_every_mins * 60 * 1000));
+    setInterval(function () {
+      app.run();
+    }, (app.apply_every_mins * 60 * 1000));
+  })
+  .fail(function (err) {
+    console.error('app run failed, err:', err);
+    console.log(err.stack);
+  });
 };
 
 module.exports = function (opts) {
