@@ -48,8 +48,6 @@ var _sendevent = function (o, cb) {
       port: app.master_port,
       path: '/event',
       method: 'POST',
-      //rejectUnauthorized: true,
-      //requestCert: true,
       rejectUnauthorized: true,
       requestCert: true,
       agent: false,
@@ -67,7 +65,7 @@ var _sendevent = function (o, cb) {
       //}
     };
 
-  options.agent = new https.Agent(options);
+  //options.agent = new https.Agent(options);
 
   var post_req = app.https.request(options, function(res) {
     var data = '';

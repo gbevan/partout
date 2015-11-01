@@ -33,6 +33,9 @@ describe('Ca', function () {
     ca.ca_config.agentsigner.keySize = keySize;
     ca.ca_config.masterapi.keySize = keySize;
     ca.ca_config.masterui.keySize = keySize;
+
+    ca.PARTOUT_SSL_PUBLIC = './etc/ssl-test';
+    ca.PARTOUT_AGENT_SSL_PUBLIC = './agent/etc/ssl-test';
   });
 
 
@@ -520,7 +523,7 @@ describe('Ca', function () {
                 exists.should.be.true;
                 done();
               });
-            })
+            });
           });
         })
 
