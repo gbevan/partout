@@ -9,6 +9,7 @@ var console = require('better-console'),
   httpsUi = require('https'),
   bodyParser = require('body-parser'),
   pki = require('node-forge').pki,
+  forge = require('node-forge'),
   morgan = require('morgan'),
   logger = morgan('combined'),
   compression = require('compression'),
@@ -50,6 +51,25 @@ Q.ninvoke(ca, 'checkMasterApiCert')
 
   ca.generateTrustedCertChain(function () {
     console.log('trusted key chain done');
+
+    console.log('starting Master API server.');
+
+    var master_fingerprint = pki.getPublicKeyFingerprint(
+      pki.publicKeyFromPem(
+        fs.readFileSync(
+          ca.masterApiPublicKeyFile
+        )
+      ),
+      {
+        encoding: 'hex',
+        delimiter: ':',
+        md: forge.md.sha256.create()
+      }
+    );
+    console.warn(new Array(master_fingerprint.length + 1).join('='));
+    console.warn('Master API SSL fingerprint (SHA256):\n' + master_fingerprint);
+    console.warn(new Array(master_fingerprint.length + 1).join('='));
+
 
     /****************************
      * Start Master API Server

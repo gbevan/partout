@@ -22,8 +22,6 @@ var console = require('better-console'),
   querystring = require('querystring'),
   Q = require('q');
 
-var PARTOUT_AGENT_SSL_PUBLIC = './etc/ssl_public';
-
 Q.longStackSupport = true;
 
 /**
@@ -56,8 +54,8 @@ var _sendevent = function (o, cb) {
         'Content-Length': post_data.length
       },
       ca: [
-        fs.readFileSync(path.join(PARTOUT_AGENT_SSL_PUBLIC, 'root_ca.crt')),
-        fs.readFileSync(path.join(PARTOUT_AGENT_SSL_PUBLIC, 'intermediate_ca.crt'))
+        fs.readFileSync(path.join(app.PARTOUT_AGENT_SSL_PUBLIC, 'root_ca.crt')),
+        fs.readFileSync(path.join(app.PARTOUT_AGENT_SSL_PUBLIC, 'intermediate_ca.crt'))
       ]
       //checkServerIdentity: function (servername, cert) {
       //  console.log('servername:', servername, 'cert:', cert);
@@ -180,6 +178,7 @@ var serve = function () {
   app.apply_count = 0;
   app.apply_site_p2 = 'etc/manifest/site.p2';
   app.https = https;
+  app.PARTOUT_AGENT_SSL_PUBLIC = './etc/ssl_public';
 
   app.clientCert = sslCert;
   app.clientKey = sslKey;

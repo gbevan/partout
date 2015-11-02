@@ -8,7 +8,10 @@ var console = require('better-console'),
   mkdirp = require('mkdirp'),
   fs = require('fs'),
   nimble = require('nimble'),
-  Q = require('q');
+  Q = require('q'),
+  pki = require('node-forge').pki,
+  forge = require('node-forge'),
+  readline = require('readline');
 
 var Policy_Sync = function (app) {
   var self = this;
@@ -19,9 +22,45 @@ var Policy_Sync = function (app) {
 };
 
 /**
+ * Load accepted master api ssl fingerprint
+ * @return {Promise} then(function (data) {...})
+ */
+Policy_Sync.prototype.load_master_fingerprint = function () {
+  var self = this,
+    deferred = Q.defer(),
+    fp = path.join(self.app.PARTOUT_AGENT_SSL_PUBLIC, 'master_fingerprint.dat');
+
+  utils.pExists(fp)
+  .then(function (exists) {
+    if (exists) {
+      Q.nfcall(fs.readFile, fp)
+      .then(function (data) {
+        data = data.toString().trim();
+        deferred.resolve(data);
+      });
+    } else {
+      deferred.resolve('');
+    }
+  });
+
+  return deferred.promise;
+};
+
+/**
+ * Save accepted master api ssl fingerprint
+ */
+Policy_Sync.prototype.save_master_fingerprint = function (fingerprint) {
+  var self = this,
+    deferred = Q.defer(),
+    fp = path.join(self.app.PARTOUT_AGENT_SSL_PUBLIC, 'master_fingerprint.dat');
+
+  return Q.nfcall(fs.writeFile, fp, fingerprint);
+};
+
+/**
  * Return a promise of completion of getting master https server's ssl cert
  */
-Policy_Sync.prototype.get_server_cert = function () {
+Policy_Sync.prototype.get_master_cert = function () {
   var self = this,
     deferred = Q.defer(),
     options = {
@@ -59,7 +98,7 @@ Policy_Sync.prototype.get_manifest = function (cb) {
       key: self.app.clientKey
     },
     buffer = '';
-  console.log('get_manifest() server_cert:\n' + self.server_cert);
+  //console.log('get_manifest() server_cert:\n' + self.server_cert);
 
   options.agent = new self.https.Agent(options);
 
@@ -112,15 +151,65 @@ Policy_Sync.prototype.get_file = function (file, cb) {
 
 Policy_Sync.prototype.sync = function (folder, cb) {
   var self = this;
-  console.log('get server cert');
-  self.get_server_cert()
+  self.accepted_master_fingerprint = '';
+  //console.log('get server cert');
+
+  self.load_master_fingerprint()
+  .then(function (accepted_master_fingerprint) {
+    self.accepted_master_fingerprint = accepted_master_fingerprint;
+    return self.get_master_cert();
+  })
   .then(function (cert) {
-    console.log('promise cert:', cert);
+    var deferred = Q.defer();
+
+    //console.log('promise cert:', cert);
     self.server_cert = '-----BEGIN CERTIFICATE-----\n' +
       cert.raw.toString('base64') +
       '\n-----END CERTIFICATE-----\n';
 
-    console.log('sync server_cert:\n' + self.server_cert);
+    self.server_cert_obj = pki.certificateFromPem(self.server_cert);
+
+    self.master_fingerprint = pki.getPublicKeyFingerprint(
+      self.server_cert_obj.publicKey,
+      {
+        encoding: 'hex',
+        delimiter: ':',
+        md: forge.md.sha256.create()
+      }
+    );
+
+    console.warn(new Array(self.master_fingerprint.length + 1).join('='));
+    console.warn('Master API SSL fingerprint (SHA256):\n' + self.master_fingerprint);
+    console.warn(new Array(self.master_fingerprint.length + 1).join('='));
+
+    if (self.accepted_master_fingerprint === '') {
+      console.warn('Accept new master SSL as trusted (y/n):');
+
+      var rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout
+      });
+      rl.question('(y/n)? ', function (answer) {
+        rl.close();
+        if (answer !== 'y') {
+          var errmsg = 'Error: Master SSL fingerprint not accepted! aborting...';
+          console.error(errmsg);
+          throw new Error(errmsg);
+        }
+
+        deferred.resolve(self.save_master_fingerprint(self.master_fingerprint));
+      });
+
+    } else if (self.accepted_master_fingerprint !== self.master_fingerprint) {
+      var errmsg = 'Error: Master SSL fingerprint does not match accepted fingerprint! aborting...';
+      console.error(errmsg);
+      throw new Error(errmsg);
+    } else {
+      deferred.resolve();
+    }
+    return deferred.promise;
+  })
+  .then(function () {
 
     console.log('syncing:', folder);
     self.get_manifest(function (manifest) {
@@ -186,6 +275,11 @@ Policy_Sync.prototype.sync = function (folder, cb) {
 
     });
 
+  })
+
+  .fail(function (err) {
+    console.error(err);
+    console.log(err.stack);
   }); // cert promise
 
 };
