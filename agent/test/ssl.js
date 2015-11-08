@@ -23,13 +23,17 @@ describe('Ssl', function () {
     ssl = new Ssl();
   });
 
-  it('should have method gencert()', function () {
-    should(ssl.gencert).not.be.undefined;
-    should(ssl.gencert).be.function;
+  it('should nolonger have method gencert()', function () {
+    should(ssl.gencert).be.undefined;
   });
 
-  describe('Ssl method gencert()', function () {
-    it('should return a certificate', function () {
+  it('should have method genCsr()', function () {
+    should(ssl.genCsr).not.be.undefined;
+    should(ssl.genCsr).be.function;
+  });
+
+  describe('Ssl method genCsr()', function () {
+    it('should return a certificate signing request (csr)', function () {
       var attrs = [{
         name: 'commonName',
         value: 'hostName'
@@ -37,15 +41,12 @@ describe('Ssl', function () {
         shortName: 'OU',
         value: 'Partout'
       }],
-      cert = ssl.gencert({
-        serialNumber: '01',
-        maxAge: 50,
+      csr = ssl.genCsr({
+        //serialNumber: '01',
+        //maxAge: 50,
         subjAttrs: attrs,
-        issuerAttrs: attrs,
+        /*
         extensions: [{
-          name: 'basicConstraints',
-          cA: true
-        }, {
           name: 'keyUsage',
           keyCertSign: true,
           digitalSignature: true,
@@ -58,65 +59,17 @@ describe('Ssl', function () {
             type: 6, // URI
             value: 'http://example.org/webid#me'
           }]
-        }]
+        }],
+        */
+        keySize: 512
       });
 
-      should(cert).not.be.null;
+      should(csr).not.be.null;
       //console.log('cert:', cert);
-      should(cert.version).not.be.null;
-      should(cert.serialNumber).not.be.null;
-      // should not yet be signed
-      should(cert.signature).be.null;
+      //should(csr.version).not.be.null;
+      //should(csr.serialNumber).not.be.null;
     });
 
-  }); // gencert
-
-  it('should have method gencert()', function () {
-    should(ssl.gencert).not.be.undefined;
-    should(ssl.gencert).be.function;
-  });
-
-  describe('Ssl method gencert()', function () {
-    it('should return a certificate', function () {
-      var attrs = [{
-        name: 'commonName',
-        value: 'hostName'
-      }, {
-        shortName: 'OU',
-        value: 'Partout'
-      }],
-      cert = ssl.gencert({
-        serialNumber: '01',
-        maxAge: 50,
-        subjAttrs: attrs,
-        issuerAttrs: attrs,
-        extensions: [{
-          name: 'basicConstraints',
-          cA: true
-        }, {
-          name: 'keyUsage',
-          keyCertSign: true,
-          digitalSignature: true,
-          nonRepudiation: true,
-          keyEncipherment: true,
-          dataEncipherment: true
-        }, {
-          name: 'subjectAltName',
-          altNames: [{
-            type: 6, // URI
-            value: 'http://example.org/webid#me'
-          }]
-        }]
-      });
-
-      should(cert).not.be.null;
-      //console.log('cert:', cert);
-      should(cert.version).not.be.null;
-      should(cert.serialNumber).not.be.null;
-      // should not yet be signed
-      should(cert.signature).be.null;
-    });
-
-  }); // gencert
+  }); // createMasterCsr
 
 });

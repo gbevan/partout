@@ -9,9 +9,6 @@ var console = require('better-console'),
   morgan = require('morgan'),
   logger = morgan('combined'),
   fs = require('fs'),
-  keyFile = 'etc/ssl/agent.key',
-  csrFile = 'etc/ssl/agent.csr',
-  certFile = 'etc/ssl/agent.crt',
   sslKey,
   sslCert,
   os = require('os'),
@@ -20,7 +17,12 @@ var console = require('better-console'),
   Policy = require('./lib/policy'),
   Policy_Sync = require('./lib/policy_sync'),
   querystring = require('querystring'),
-  Q = require('q');
+  Q = require('q'),
+  cfg = new (require('./etc/partout_agent.conf.js'))(),
+  privateKeyFile = cfg.partout_agent_privateKeyFile,
+  publicKeyFile = cfg.partout_agent_publicKeyFile,
+  csrFile = cfg.partout_agent_csrFile,
+  certFile = cfg.partout_agent_certFile;
 
 Q.longStackSupport = true;
 
@@ -100,8 +102,8 @@ var apply = function (args, opts) {
 
 var serve = function () {
   console.log('Serve');
-  if (fs.existsSync(keyFile) && fs.existsSync(certFile)) {
-    sslKey = fs.readFileSync(keyFile);
+  if (fs.existsSync(privateKeyFile) && fs.existsSync(certFile)) {
+    sslKey = fs.readFileSync(privateKeyFile);
     sslCert = fs.readFileSync(certFile);
   } else {
     console.log('Generating self-signed cert');
@@ -170,8 +172,8 @@ var serve = function () {
     };
 
   // TODO: parameterise from a js file
-  app.master = 'officepc.net';
-  app.master_port = 10443;
+  app.master = cfg.partout_master_hostname;
+  app.master_port = cfg.partout_master_port;
   app.apply_every_mins = 5;
   app.poll_manifest_every = 6;
   app.poll_manifest_splay_secs = 30;

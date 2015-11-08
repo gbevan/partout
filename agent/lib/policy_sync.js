@@ -183,7 +183,7 @@ Policy_Sync.prototype.sync = function (folder, cb) {
     console.warn(new Array(self.master_fingerprint.length + 1).join('='));
 
     if (self.accepted_master_fingerprint === '') {
-      console.warn('Accept new master SSL as trusted (y/n):');
+      console.warn('Accept new master SSL as trusted, after verifying the above fingerprint (y/n):');
 
       var rl = readline.createInterface({
         input: process.stdin,
