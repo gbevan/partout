@@ -96,7 +96,7 @@ Q.ninvoke(ca, 'checkMasterApiCert')
 
     appApi.use(compression());
 
-    routerApi.use(morgan('combined'));
+    routerApi.use(logger);
 
     appApi.use(bodyParser.json());
     appApi.use(bodyParser.urlencoded({ extended: true }));
@@ -134,7 +134,7 @@ Q.ninvoke(ca, 'checkMasterApiCert')
 
     appUi.use(compression());
 
-    routerUi.use(morgan('combined'));
+    routerUi.use(logger);
 
     appUi.use(bodyParser.json());
     appUi.use(bodyParser.urlencoded({ extended: true }));

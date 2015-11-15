@@ -18,76 +18,32 @@ var console = require('better-console'),
   Policy_Sync = require('./lib/policy_sync'),
   querystring = require('querystring'),
   Q = require('q'),
+  utils = new (require('./lib/utils'))(),
   cfg = new (require('./etc/partout_agent.conf.js'))(),
-  privateKeyFile = cfg.partout_agent_privateKeyFile,
-  publicKeyFile = cfg.partout_agent_publicKeyFile,
-  csrFile = cfg.partout_agent_csrFile,
-  certFile = cfg.partout_agent_certFile;
+  ssl = new (require('./lib/ssl'))(),
+  privateKeyFile = ssl.agentPrivateKeyFile,
+  publicKeyFile = ssl.agentPublicKeyFile,
+  csrFile = ssl.agentCsrFile,
+  certFile = ssl.agentCertFile,
+  Master = require('./lib/master');
 
 Q.longStackSupport = true;
 
-/**
- * send event to master
- * @function
- * @param {Object} - {
- *    module: 'file',
- *    object: filename,
- *    msg: string of actions taken
- *  }
- * @memberof P2
- */
-var _sendevent = function (o, cb) {
-  console.warn('sendevent: msg:', o.msg);
 
+var _sendCsr = function (master) {
   var deferred = Q.defer();
+  master.post('/agentcsr', {csr: fs.readFileSync(ssl.agentCsrFile).toString()})
+  .then(function (resp) {
+    console.log('resp:', resp);
 
-  var app = this,
-    post_data = querystring.stringify(o),
-    options = {
-      host: app.master, // TODO: param'ize
-      port: app.master_port,
-      path: '/event',
-      method: 'POST',
-      rejectUnauthorized: true,
-      requestCert: true,
-      agent: false,
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Content-Length': post_data.length
-      },
-      ca: [
-        fs.readFileSync(path.join(app.PARTOUT_AGENT_SSL_PUBLIC, 'root_ca.crt')),
-        fs.readFileSync(path.join(app.PARTOUT_AGENT_SSL_PUBLIC, 'intermediate_ca.crt'))
-      ]
-      //checkServerIdentity: function (servername, cert) {
-      //  console.log('servername:', servername, 'cert:', cert);
-      //  return undefined; // or err
-      //}
-    };
-
-  //options.agent = new https.Agent(options);
-
-  var post_req = app.https.request(options, function(res) {
-    var data = '';
-
-    res.setEncoding('utf8');
-    res.on('data', function (chunk) {
-      console.warn('Response: ' + chunk);
-      data += chunk;
+    master.sendevent({
+      object: 'partout-agent',
+      module: 'app',
+      msg: 'Partout-Agent has sent CSR'
     });
-
-    res.on('end', function () {
-      if (cb) {
-        cb(data);
-      }
-      deferred.resolve(data);
-    });
-  });
-
-  post_req.write(post_data);
-  post_req.end();
-
-  post_req.on('error', function (err) {
+    deferred.resolve(resp);
+  })
+  .fail(function (err) {
     console.error(err);
     deferred.reject(new Error(err));
   });
@@ -102,172 +58,152 @@ var apply = function (args, opts) {
 
 var serve = function () {
   console.log('Serve');
-  if (fs.existsSync(privateKeyFile) && fs.existsSync(certFile)) {
-    sslKey = fs.readFileSync(privateKeyFile);
-    sslCert = fs.readFileSync(certFile);
-  } else {
-    console.log('Generating self-signed cert');
 
-    var keys = pki.rsa.generateKeyPair(2048),
-      cert = pki.createCertificate();
-    cert.publicKey = keys.publicKey;
-    cert.serialNumber = '01';
-    cert.validity.notBefore = new Date();
-    cert.validity.notAfter = new Date();
-    cert.validity.notAfter.setFullYear(cert.validity.notBefore.getFullYear() + 30);
-    var attrs = [{
-      name: 'commonName',
-      value: hostName
-    }, {
-      shortName: 'OU',
-      value: 'Partout Agent'
-    }];
-    cert.setSubject(attrs);
-    cert.setIssuer(attrs);
-    // cert.setExtensions...?
-    cert.setExtensions([{
-      name: 'basicConstraints',
-      cA: true
-    }, {
-      name: 'keyUsage',
-      keyCertSign: true,
-      digitalSignature: true,
-      nonRepudiation: true,
-      keyEncipherment: true,
-      dataEncipherment: true
-    }, {
-      name: 'subjectAltName',
-      altNames: [{
-        type: 6, // URI
-        value: 'http://example.org/webid#me'
-      }]
-    }]);
+  // TODO: replace self-signed cert below with CSR Request/Sign via master protocol
 
-    cert.publicKey = keys.publicKey;
+  // TODO: test for Csr file vs cert
+  var master = new Master(cfg, https);
 
-    cert.sign(keys.privateKey);
-    //console.log('cert:', cert);
+  utils.pExists(certFile)
+  .then(function (cert_exists) {
+    if (!cert_exists) {
+      utils.pExists(csrFile)
+      .then(function (csr_exists) {
+        if (!csr_exists) {
 
-    var pem = {
-      'private': pki.privateKeyToPem(keys.privateKey),
-      'public': pki.publicKeyToPem(keys.publicKey),
-      'cert': pki.certificateToPem(cert)
-    };
+          // Generate this agent's csr
+          var attrs = [{
+            name: 'commonName',
+            value: hostName
+          }, {
+            shortName: 'OU',
+            value: 'Partout'
+          }];
 
-    //console.log('pem:', pem);
+          ssl.genCsr({
+            subjAttrs: attrs
+          }, function (err, csr) {
+            console.log('genCsr err:', err, 'csr:', csr);
 
-    sslKey = pem['private'];
-    sslCert = pem.cert;
-    fs.writeFileSync(keyFile, sslKey);
-    fs.writeFileSync(certFile, sslCert);
-  }
+            // Send csr to master
+            console.warn('Sending agent certificate signing request to master');
 
-  //console.log(pems);
-  // TODO: Move new cert into mongodb to make permanent
+            _sendCsr(master); // returns promise
 
-  var app = express(),
-    ssl_options = {
-      key: sslKey,
-      cert: sslCert
-    };
-
-  // TODO: parameterise from a js file
-  app.master = cfg.partout_master_hostname;
-  app.master_port = cfg.partout_master_port;
-  app.apply_every_mins = 5;
-  app.poll_manifest_every = 6;
-  app.poll_manifest_splay_secs = 30;
-  app.apply_count = 0;
-  app.apply_site_p2 = 'etc/manifest/site.p2';
-  app.https = https;
-  app.PARTOUT_AGENT_SSL_PUBLIC = './etc/ssl_public';
-
-  app.clientCert = sslCert;
-  app.clientKey = sslKey;
-
-  app.sendevent = _sendevent;
-
-  process.on('SIGINT', function () {
-    app.sendevent({
-      module: 'app',
-      object: 'partout-agent',
-      msg: 'Agent terminating due to SIGINT'
-    }, function (resp) {
-      process.exit(1);
-    });
-  });
-  process.on('SIGTERM', function () {
-    app.sendevent({
-      module: 'app',
-      object: 'partout-agent',
-      msg: 'Agent terminating due to SIGTERM'
-    }, function (resp) {
-      process.exit(1);
-    });
-  });
-
-  var policy_sync = new Policy_Sync(app);
-
-  app._apply = function (cb) {
-    fs.exists(app.apply_site_p2, function (exists) {
-      if (!exists) {
-        console.error('Error: site policy file', app.apply_site_p2, 'does not yet exist');
-      } else {
-        console.log('applying');
-        apply([app.apply_site_p2], {app: app, daemon: true});
-      }
-      cb();
-    });
-  };
-
-  app.run = function () {
-    console.log('### START #######################################################');
-    var splay = (app.apply_count === 0 ? 0 : app.poll_manifest_splay_secs * 1000 * Math.random()) ;
-
-    if ((app.apply_count++ % app.poll_manifest_every) === 0) {
-
-      setTimeout(function () {
-        policy_sync.sync('etc/manifest', function () {
-          console.log('sync done');
-
-          app._apply(function () {
-            console.log('### FINI (after sync) ###########################################');
           });
-        });
-      }, splay);  // Random Splay
+        } else {
+          _sendCsr(master); // returns promise
+        }
+      });
 
-    } else {
-      app._apply(function () {
-        console.log('### FINI (no sync) ##############################################');
+    } else { // cert exists
+
+      var app = express(),
+        ssl_options = {
+          key: sslKey,
+          cert: sslCert
+        };
+
+      // TODO: parameterise from a js file
+      app.master = cfg.partout_master_hostname;
+      app.master_port = cfg.partout_master_port;
+      app.apply_every_mins = 5;
+      app.poll_manifest_every = 6;
+      app.poll_manifest_splay_secs = 30;
+      app.apply_count = 0;
+      app.apply_site_p2 = 'etc/manifest/site.p2';
+      app.https = https;
+      app.PARTOUT_AGENT_SSL_PUBLIC = './etc/ssl_public';
+
+      app.clientCert = sslCert;
+      app.clientKey = sslKey;
+
+      app.sendevent = master.sendevent;
+
+
+      process.on('SIGINT', function () {
+        app.sendevent({
+          module: 'app',
+          object: 'partout-agent',
+          msg: 'Agent terminating due to SIGINT'
+        }, function (resp) {
+          process.exit(1);
+        });
+      });
+      process.on('SIGTERM', function () {
+        app.sendevent({
+          module: 'app',
+          object: 'partout-agent',
+          msg: 'Agent terminating due to SIGTERM'
+        }, function (resp) {
+          process.exit(1);
+        });
+      });
+
+      var policy_sync = new Policy_Sync(app);
+
+      app._apply = function (cb) {
+        fs.exists(app.apply_site_p2, function (exists) {
+          if (!exists) {
+            console.error('Error: site policy file', app.apply_site_p2, 'does not yet exist');
+          } else {
+            console.log('applying');
+            apply([app.apply_site_p2], {app: app, daemon: true});
+          }
+          cb();
+        });
+      };
+
+      app.run = function () {
+        console.log('### START #######################################################');
+        var splay = (app.apply_count === 0 ? 0 : app.poll_manifest_splay_secs * 1000 * Math.random()) ;
+
+        if ((app.apply_count++ % app.poll_manifest_every) === 0) {
+
+          setTimeout(function () {
+            policy_sync.sync('etc/manifest', function () {
+              console.log('sync done');
+
+              app._apply(function () {
+                console.log('### FINI (after sync) ###########################################');
+              });
+            });
+          }, splay);  // Random Splay
+
+        } else {
+          app._apply(function () {
+            console.log('### FINI (no sync) ##############################################');
+          });
+        }
+      };
+
+      router.use(morgan('combined'));
+
+      router.get('/', function (req, res, next) {
+        res.send('Hello');
+      });
+
+      app.use('/', router);
+
+      https.createServer(ssl_options, app)
+        .listen(10444);
+
+      app.sendevent({
+        module: 'app',
+        object: 'partout-agent',
+        msg: 'Partout-Agent has (re)started'
+      })
+      .then(function () {
+        app.run();
+        setInterval(function () {
+          app.run();
+        }, (app.apply_every_mins * 60 * 1000));
+      })
+      .fail(function (err) {
+        console.error('app run failed, err:', err);
+        console.log(err.stack);
       });
     }
-  };
-
-  router.use(morgan('combined'));
-
-  router.get('/', function (req, res, next) {
-    res.send('Hello');
-  });
-
-  app.use('/', router);
-
-  https.createServer(ssl_options, app)
-    .listen(10444);
-
-  app.sendevent({
-    module: 'app',
-    object: 'partout-agent',
-    msg: 'Partout-Agent has (re)started'
-  })
-  .then(function () {
-    app.run();
-    setInterval(function () {
-      app.run();
-    }, (app.apply_every_mins * 60 * 1000));
-  })
-  .fail(function (err) {
-    console.error('app run failed, err:', err);
-    console.log(err.stack);
   });
 };
 
@@ -280,6 +216,7 @@ module.exports = function (opts) {
 
   } else if (opts.serve) {
     serve(opts.args);
+    console.error('AFTER SERVE');
 
   } else {
     throw new Error('Unrecognised directive:' + JSON.stringify(opts));

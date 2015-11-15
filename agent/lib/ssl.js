@@ -3,7 +3,11 @@
 
 var expect = require('expect'),
   forge = require('node-forge'),
-  pki = forge.pki;
+  path = require('path'),
+  pki = forge.pki,
+  fs = require('fs'),
+  Q = require('q'),
+  utils = new (require('../lib/utils'))();
 
 /**
  * @constructor
@@ -11,7 +15,79 @@ var expect = require('expect'),
 var Ssl = function () {
   var self = this;
 
+  self.PARTOUT_AGENT_SSL_DIR = './etc/ssl';
+  self.PARTOUT_SSL_AGENT_PREFIX = 'agent';
+
+  self.setFileNames();
 };
+
+Ssl.prototype.setFileNames = function () {
+  var self = this;
+
+  /******************
+   * Agent Files
+   */
+  self.agentCsrFile = path.join(
+    self.PARTOUT_AGENT_SSL_DIR,
+    self.PARTOUT_SSL_AGENT_PREFIX
+  ) + '.csr';
+
+  self.agentCertFile = path.join(
+    self.PARTOUT_AGENT_SSL_DIR,
+    self.PARTOUT_SSL_AGENT_PREFIX
+  ) + '.crt';
+
+  self.agentPrivateKeyFile = path.join(
+    self.PARTOUT_AGENT_SSL_DIR,
+    self.PARTOUT_SSL_AGENT_PREFIX
+  ) + '.private.key.pem';
+
+  self.agentPublicKeyFile = path.join(
+    self.PARTOUT_AGENT_SSL_DIR,
+    self.PARTOUT_SSL_AGENT_PREFIX
+  ) + '.public.key.pem';
+
+};
+
+/**
+ * Set SSL Directory for certificates
+ * @param {String} directory path, e.g. /etc/ssl
+ */
+Ssl.prototype.setSslDir = function (dir) {
+  var self = this;
+  self.PARTOUT_AGENT_SSL_DIR = dir;
+  self.setFileNames();
+};
+
+/**
+ * Get SSL Directory for certificates
+ * @returns {String} directory path, e.g. /etc/ssl
+ */
+Ssl.prototype.getSslDir = function (dir) {
+  var self = this;
+  return self.PARTOUT_AGENT_SSL_DIR;
+};
+
+/**
+ * Set SSL Agent file prefix
+ * @param {String} prefix, e.g. 'agent.'
+ */
+Ssl.prototype.setSslAgentPrefix = function (p) {
+  var self = this;
+  self.PARTOUT_SSL_AGENT_PREFIX = p;
+  self.setFileNames();
+};
+
+/**
+ * Get SSL Agent Signer file prefix
+ * @param {String} prefix, e.g. 'agentsigner.'
+ */
+Ssl.prototype.getSslAgentPrefix = function (p) {
+  var self = this;
+  return self.PARTOUT_SSL_AGENT_PREFIX;
+};
+
+
 
 /*
  * Generate an SSL Certificate
@@ -19,8 +95,10 @@ var Ssl = function () {
  * @param {Object} cfg.subjAttrs
  * @param {Object} cfg.extensions
  * @param {int}    cfg.keySize
+ *
+ * @param {Function} callback (err, csr)
  */
-Ssl.prototype.genCsr = function (cfg) {
+Ssl.prototype.genCsr = function (cfg, cb) {
   var self = this,
     keys = pki.rsa.generateKeyPair((cfg.keySize || 2048)),
     csr = pki.createCertificationRequest();
@@ -66,7 +144,27 @@ Ssl.prototype.genCsr = function (cfg) {
     };
 
   // save agent keys
-
+  Q.nfcall(utils.ensurePath, path.dirname(self.agentCsrFile))
+  .then(function () {
+    // create CA Root Cert Pem file
+    return Q.nfcall(fs.writeFile, self.agentCsrFile, csr_pem);
+  })
+  .then(function () {
+    // create CA Root Private Key Pem file
+    return Q.nfcall(fs.writeFile, self.agentPrivateKeyFile, keys_pem.private, { mode: parseInt('0600', 8) });
+  })
+  .then(function () {
+    // create CA Root Public Key Pem file
+    return Q.nfcall(fs.writeFile, self.agentPublicKeyFile, keys_pem.public);
+  })
+  .then(function () {
+    cb(undefined, csr);
+  })
+  .fail(function (err) {
+    console.log('fail err:', err);
+    console.log(err.stack);
+    process.nextTick(function () { cb(err); });
+  });
 
   return csr;
 };

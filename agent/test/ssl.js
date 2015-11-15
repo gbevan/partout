@@ -6,7 +6,10 @@
 /*global describe, before, it, should*/
 var assert = require('assert'),
   expect = require('expect'),
-  Ssl = require('../lib/ssl');
+  rmdir = require('rmdir'),
+  Ssl = require('../lib/ssl'),
+  Q = require('q'),
+  utils = new (require('../lib/utils'))();
 
 GLOBAL.should = require('should');
 should.extend();
@@ -23,51 +26,130 @@ describe('Ssl', function () {
     ssl = new Ssl();
   });
 
-  it('should nolonger have method gencert()', function () {
-    should(ssl.gencert).be.undefined;
+  it('should have method setSslDir()', function () {
+    should(ssl.setSslDir).be.a.Function;
   });
+  it('should have method getSslDir()', function () {
+    should(ssl.getSslDir).be.a.Function;
+  });
+  describe('set/getSslDir', function () {
+    it ('should set and return the test SSL Dir', function (done) {
+      ssl.setSslDir('./etc/ssl-test');
+      ssl.getSslDir().should.eql('./etc/ssl-test');
+
+      // remove ssl-test folder and contents before rest of tests
+      rmdir('./etc/ssl-test', function (err, dirs, files) {
+        //console.log( dirs );
+        //console.log( files );
+        //console.log( 'all files are removed' );
+        done();
+      });
+    });
+  });
+
+  it('should have method setSslAgentPrefix()', function () {
+    should(ssl.setSslAgentPrefix).be.a.Function;
+  });
+  it('should have method getSslAgentPrefix()', function () {
+    should(ssl.getSslAgentPrefix).be.a.Function;
+  });
+  describe('set/getSslAgentPrefix', function () {
+    it ('should set and return the test SSL Agent Prefix', function () {
+      ssl.setSslAgentPrefix('TEST.agent');
+      ssl.getSslAgentPrefix().should.eql('TEST.agent');
+    });
+  });
+
 
   it('should have method genCsr()', function () {
     should(ssl.genCsr).not.be.undefined;
     should(ssl.genCsr).be.function;
   });
 
-  describe('Ssl method genCsr()', function () {
-    it('should return a certificate signing request (csr)', function () {
-      var attrs = [{
-        name: 'commonName',
-        value: 'hostName'
-      }, {
-        shortName: 'OU',
-        value: 'Partout'
-      }],
-      csr = ssl.genCsr({
-        //serialNumber: '01',
-        //maxAge: 50,
-        subjAttrs: attrs,
-        /*
-        extensions: [{
-          name: 'keyUsage',
-          keyCertSign: true,
-          digitalSignature: true,
-          nonRepudiation: true,
-          keyEncipherment: true,
-          dataEncipherment: true
+  describe('genCsr()', function () {
+    it('should create a certificate signing request (csr)', function (done) {
+
+      utils.pExists('./etc/ssl-test')
+
+      .then(function (sslDirExists) {
+        if (sslDirExists) {
+          return Q.defer().resolve();
+        } else {
+          return Q.defer().reject();
+        }
+      })
+
+      .then(function() {
+
+        var attrs = [{
+          name: 'commonName',
+          value: 'TEST.host.name'
         }, {
-          name: 'subjectAltName',
-          altNames: [{
-            type: 6, // URI
-            value: 'http://example.org/webid#me'
-          }]
-        }],
-        */
-        keySize: 512
+          shortName: 'OU',
+          value: 'Partout'
+        }];
+
+        ssl.genCsr({
+          //serialNumber: '01',
+          //maxAge: 50,
+          subjAttrs: attrs,
+          /*
+          extensions: [{
+            name: 'keyUsage',
+            keyCertSign: true,
+            digitalSignature: true,
+            nonRepudiation: true,
+            keyEncipherment: true,
+            dataEncipherment: true
+          }, {
+            name: 'subjectAltName',
+            altNames: [{
+              type: 6, // URI
+              value: 'http://example.org/webid#me'
+            }]
+          }],
+          */
+          keySize: 512
+        }, function (err, csr) {
+
+          should(csr).not.be.null;
+          //console.log('csr:', csr);
+          //console.log('csr.subject.getField(CN):', csr.subject.getField('CN'));
+          //console.log('csr.subject.getField(CN).value:', csr.subject.getField('CN').value);
+
+          csr.subject.getField('CN').should.have.property('value');
+          csr.subject.getField('CN').value.should.equal('TEST.host.name');
+
+          //should(csr.version).not.be.null;
+          //should(csr.serialNumber).not.be.null;
+
+          // test files created
+          //console.log('ssl.agentCsrFile:', ssl.agentCsrFile);
+          utils.pExists(ssl.agentCsrFile)
+          .then(function (exists) {
+            exists.should.be.true;
+
+            return utils.pExists(ssl.agentPrivateKeyFile);
+          })
+          .then(function (exists) {
+            exists.should.be.true;
+
+            return utils.pExists(ssl.agentPublicKeyFile);
+          })
+          .done(function (exists) {
+            exists.should.be.true;
+
+            done();
+          });
+        });
+      })
+
+      .fail(function (err) {
+        console.log('*** failed');
+        console.log('err:', err);
+        console.log(err.stack);
       });
 
-      should(csr).not.be.null;
-      //console.log('cert:', cert);
-      //should(csr.version).not.be.null;
-      //should(csr.serialNumber).not.be.null;
     });
 
   }); // createMasterCsr

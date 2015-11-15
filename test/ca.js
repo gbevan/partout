@@ -144,6 +144,14 @@ describe('Ca', function () {
 
       utils.pExists('./etc/ssl-test')
 
+      .then(function (sslDirExists) {
+        if (sslDirExists) {
+          return Q.defer().resolve();
+        } else {
+          return Q.defer().reject();
+        }
+      })
+
       .then(function () {
         ca.createRootCert('my root pass phrase', function (err, certObj, pemCA) {
           should(err).be.undefined;
