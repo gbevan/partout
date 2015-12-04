@@ -1,12 +1,12 @@
 {
   "name": "partout",
   "version": "0.1.0",
-  "private": true,
-  "license": "UNLICENSED",
+  "license": "GPL-3.0",
   "scripts": {
     "start": "node ./bin/serve"
   },
   "dependencies": {
+    "arangojs": "^4.0.1",
     "better-console": "^0.2.4",
     "body-parser": "^1.13.3",
     "compression": "^1.5.2",

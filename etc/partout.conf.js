@@ -9,6 +9,7 @@ var Cfg = function () {
   self.partout_ui_port = 11443;
   self.partout_api_port = 10443;
 
+  self.database_name = 'partout';
 
 };
 

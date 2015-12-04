@@ -1,3 +1,25 @@
+/*
+    Partout [Everywhere] - Policy-Based Configuration Management for the
+    Data-Driven-Infrastructure.
+
+    Copyright (C) 2015  Graham Lee Bevan <graham.bevan@ntlworld.com>
+
+    This file is part of Partout.
+
+    Partout is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 /*jslint node: true */
 'use strict';
 
@@ -20,7 +42,9 @@ var console = require('better-console'),
   hostName = os.hostname(),
   ca = new (require('./lib/ca'))(),
   Q = require('q'),
-  cfg = new (require('./etc/partout.conf.js'))();
+  cfg = new (require('./etc/partout.conf.js'))(),
+  arangojs = require('arangojs'),
+  db = arangojs();
 
 Q.longStackSupport = true;
 
@@ -71,82 +95,119 @@ Q.ninvoke(ca, 'checkMasterApiCert')
     console.warn(new Array(master_fingerprint.length + 1).join('='));
 
 
-    /****************************
-     * Start Master API Server
-     */
-    var appApi = express(),
-      optionsApi = {
-        key: fs.readFileSync(ca.masterApiPrivateKeyFile),
-        cert: fs.readFileSync(ca.masterApiCertFile),
-        ca: [
-          fs.readFileSync(ca.intCertFile)
+    var connectDb = function () {
+      var deferred = Q.defer();
+      // get list of databases
+      db.listUserDatabases()
+      .then(function (databases) {
+        console.warn('list databases:', databases);
 
-          /*
-           * root cert placed in /usr/share/ca-certificates/partout and updated
-           * /etc/ca-certificates.conf to point to it.
-           * run update-ca-certificates
-           * only include intermediate ca here, and import this into
-           * browsers cert stores
-           */
-          //fs.readFileSync(ca.rootCertFile)
-        ],
-        requestCert: true,
-        rejectUnauthorized: false
-      };
+        // Test if db exists
+        var dbExists = (databases.filter(function (d) {
+          return d === cfg.database_name;
+        }).length > 0);
+        console.warn('db exists:', dbExists);
 
-    appApi.use(compression());
+        if (!dbExists) {
+          // Create the database
+          db.createDatabase('partout')
+          .then(function(info) {
+            console.warn('create info:', info);
+            deferred.resolve('created');
+          });
+        } else {
+          deferred.resolve('opened');
+        }
+      });
+      return deferred.promise;
+    };
+    connectDb()
+    .then(function (status) {
+      console.log('db:', status);
 
-    routerApi.use(logger);
+      /****************************
+       * Connecting to database
+       */
+      var v = db.useDatabase(cfg.database_name);
+      console.warn('v:', v);
 
-    appApi.use(bodyParser.json());
-    appApi.use(bodyParser.urlencoded({ extended: true }));
+      /****************************
+       * Start Master API Server
+       */
+      var appApi = express(),
+        optionsApi = {
+          key: fs.readFileSync(ca.masterApiPrivateKeyFile),
+          cert: fs.readFileSync(ca.masterApiCertFile),
+          ca: [
+            fs.readFileSync(ca.intCertFile)
 
-    //router.use('/', routes);
-    require('./lib/api/routes')(routerApi, cfg);
+            /*
+             * root cert placed in /usr/share/ca-certificates/partout and updated
+             * /etc/ca-certificates.conf to point to it.
+             * run update-ca-certificates
+             * only include intermediate ca here, and import this into
+             * browsers cert stores
+             */
+            //fs.readFileSync(ca.rootCertFile)
+          ],
+          requestCert: true,
+          rejectUnauthorized: false
+        };
 
-    appApi.use('/', routerApi);
+      appApi.use(compression());
 
-    httpsApi.createServer(optionsApi, appApi)
-    .listen(cfg.partout_api_port);
+      routerApi.use(logger);
 
-    /****************************
-     * Start Master UI Server
-     */
-    var appUi = express(),
-      optionsUi = {
-        key: fs.readFileSync(ca.masterUiPrivateKeyFile),
-        cert: fs.readFileSync(ca.masterUiCertFile),
-        ca: [
-          fs.readFileSync(ca.intCertFile)
+      appApi.use(bodyParser.json());
+      appApi.use(bodyParser.urlencoded({ extended: true }));
 
-          /*
-           * root cert placed in /usr/share/ca-certificates/partout and updated
-           * /etc/ca-certificates.conf to point to it.
-           * run update-ca-certificates
-           * only include intermediate ca here, and import this into
-           * browsers cert stores
-           */
-          //fs.readFileSync(ca.rootCertFile)
-        ],
-        requestCert: true,
-        rejectUnauthorized: false
-      };
+      //router.use('/', routes);
+      require('./lib/api/routes')(routerApi, cfg);
 
-    appUi.use(compression());
+      appApi.use('/', routerApi);
 
-    routerUi.use(logger);
+      httpsApi.createServer(optionsApi, appApi)
+      .listen(cfg.partout_api_port);
 
-    appUi.use(bodyParser.json());
-    appUi.use(bodyParser.urlencoded({ extended: true }));
+      /****************************
+       * Start Master UI Server
+       */
+      var appUi = express(),
+        optionsUi = {
+          key: fs.readFileSync(ca.masterUiPrivateKeyFile),
+          cert: fs.readFileSync(ca.masterUiCertFile),
+          ca: [
+            fs.readFileSync(ca.intCertFile)
 
-    //router.use('/', routes);
-    require('./lib/ui/routes')(routerUi);
+            /*
+             * root cert placed in /usr/share/ca-certificates/partout and updated
+             * /etc/ca-certificates.conf to point to it.
+             * run update-ca-certificates
+             * only include intermediate ca here, and import this into
+             * browsers cert stores
+             */
+            //fs.readFileSync(ca.rootCertFile)
+          ],
+          requestCert: true,
+          rejectUnauthorized: false
+        };
 
-    appUi.use('/', routerUi);
+      appUi.use(compression());
 
-    httpsUi.createServer(optionsUi, appUi)
-    .listen(cfg.partout_ui_port);
+      routerUi.use(logger);
 
+      appUi.use(bodyParser.json());
+      appUi.use(bodyParser.urlencoded({ extended: true }));
+
+      //router.use('/', routes);
+      require('./lib/ui/routes')(routerUi);
+
+      appUi.use('/', routerUi);
+
+      httpsUi.createServer(optionsUi, appUi)
+      .listen(cfg.partout_ui_port);
+
+    });
   });
 
 });
