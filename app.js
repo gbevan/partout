@@ -44,7 +44,8 @@ var console = require('better-console'),
   Q = require('q'),
   cfg = new (require('./etc/partout.conf.js'))(),
   arangojs = require('arangojs'),
-  db = arangojs();
+  db = arangojs(),
+  Csr = require('./server/controllers/csr.js');
 
 Q.longStackSupport = true;
 
@@ -95,6 +96,10 @@ Q.ninvoke(ca, 'checkMasterApiCert')
     console.warn(new Array(master_fingerprint.length + 1).join('='));
 
 
+    /*
+     * Connect to the Partout Arango database, creating it if it doesnt
+     * exist. Set as active database.
+     */
     var connectDb = function () {
       var deferred = Q.defer();
       // get list of databases
@@ -125,11 +130,12 @@ Q.ninvoke(ca, 'checkMasterApiCert')
     .then(function (status) {
       console.log('db:', status);
 
-      /****************************
-       * Connecting to database
-       */
-      var v = db.useDatabase(cfg.database_name);
-      console.warn('v:', v);
+      db.useDatabase(cfg.database_name);
+      console.warn('db:',db);
+
+      var controllers = {
+        'csr': new Csr(db)
+      };
 
       /****************************
        * Start Master API Server
@@ -162,7 +168,7 @@ Q.ninvoke(ca, 'checkMasterApiCert')
       appApi.use(bodyParser.urlencoded({ extended: true }));
 
       //router.use('/', routes);
-      require('./lib/api/routes')(routerApi, cfg);
+      require('./lib/api/routes')(routerApi, cfg, db, controllers);
 
       appApi.use('/', routerApi);
 

@@ -56,7 +56,7 @@ var _sendCsr = function (master) {
   var deferred = Q.defer();
   master.post('/agentcsr', {csr: fs.readFileSync(ssl.agentCsrFile).toString()})
   .then(function (resp) {
-    console.log('resp:', resp);
+    //console.log('resp:', resp);
 
     master.sendevent({
       object: 'partout-agent',
@@ -110,11 +110,17 @@ var serve = function () {
             // Send csr to master
             console.warn('Sending agent certificate signing request to master');
 
-            _sendCsr(master); // returns promise
+            _sendCsr(master)
+            .then(function(resp) {
+              console.log('response to new csr:', resp);
+            });
 
           });
         } else {
-          _sendCsr(master); // returns promise
+          _sendCsr(master)
+          .then(function(resp) {
+            console.log('response to existing csr:', resp);
+          });
         }
       });
 
@@ -237,8 +243,17 @@ module.exports = function (opts) {
     apply({}, {daemon: false, showfacts: true});
 
   } else if (opts.serve) {
-    serve(opts.args);
-    console.error('AFTER SERVE');
+    // Start a keep-alive - for handling Agent CSR signing delay
+    var reexec = function () {
+      process.nextTick(function () {
+        console.error('running serve');
+        serve(opts.args);
+        setTimeout(function () {
+          reexec();
+        }, 60 * 1000); // TODO: Splay timing
+      });
+    };
+    reexec();
 
   } else {
     throw new Error('Unrecognised directive:' + JSON.stringify(opts));
