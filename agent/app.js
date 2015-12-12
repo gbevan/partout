@@ -79,7 +79,7 @@ var apply = function (args, opts) {
 };
 
 var serve = function () {
-  console.log('Serve');
+  console.log('Restarting Agent...');
 
   // TODO: replace self-signed cert below with CSR Request/Sign via master protocol
 

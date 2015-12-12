@@ -1,3 +1,4 @@
+/*jshint esnext: true*/
 /*
     Partout [Everywhere] - Policy-Based Configuration Management for the
     Data-Driven-Infrastructure.
@@ -28,65 +29,61 @@ var Q = require('q');
 /**
  * Controller for the csrs collection.
  *
- * ip
- * csr
+ * _key = ip
+ * csr = Certificate signing request string
  */
 var Csr = function (db) {
   var self = this;
 
   self.db = db;
   self.collectionName = 'csrs';
+  self.collection = self.db.collection(self.collectionName);
+};
 
-  var colfn = function () {
-    var deferred = Q.defer();
+/**
+ * Check if collection needs creating.
+ * @returns {Promise}
+ */
+Csr.prototype.init = function () {
+  var self = this,
+    deferred = Q.defer();
 
-    db.listCollections()
-    .then (function (collections) {
-      //console.log('collections:', collections);
+  self.db.listCollections()
+  .then (function (collections) {
 
-      var colExists = (collections.filter(function (d) {
-        return d.name === self.collectionName;
-      }).length > 0);
-      //console.log('colExists:', colExists);
-      self.collection = db.collection('csrs');
-      if (colExists) {
-        deferred.resolve('exists');
-      } else {
-        self.collection.create()
-        .then(function () {
-          //console.log('csrs created');
+    var colExists = (collections.filter(function (d) {
+      return d.name === self.collectionName;
+    }).length > 0);
 
-          //console.log('csr collection:', self.collection);
-          deferred.resolve('created');
 
-          /*
-          self.collection.save({
-            test: 'data'
-          })
-          .then(function (doc) {
-            console.log('doc:', doc);
-            deferred.resolve('created');
-          });
-          */
-        });
-      }
-    });
-    return deferred.promise;
-  };
-  colfn()
-  .then(function(status) {
-    console.log('col:', status, 'collection:', self.collection);
-    self.collection.count()
-    .then(function (c) {
-      console.log('count:', c);
-    });
+    if (colExists) {
+      deferred.resolve('exists');
+    } else {
+      self.collection.create()
+      .then(function () {
+        deferred.resolve('created');
+      });
+    }
   });
+  return deferred.promise;
 };
 
 Csr.prototype.query = function (keys) {
   var self = this;
 
   return self.collection.byExample(keys);
+};
+
+Csr.prototype.all = function () {
+  var self = this,
+    deferred = Q.defer();
+  //console.log('in csr.all() collection:', self.collection);
+  self.collection.all('key')
+  .then(function (cursor) {
+    //console.log('cursor:', cursor);
+    deferred.resolve(cursor.all());
+  });
+  return deferred.promise;
 };
 
 Csr.prototype.save = function (doc) {
@@ -100,27 +97,31 @@ Csr.prototype.register = function (ip, csr) {
     deferred = Q.defer();
 
   // check if ip and csr already exist
-  self.query({ip: ip})
+  self.query({_key: ip})
   .then(function (docCursor) {
-    console.log('docCursor:', docCursor);
+    //console.log('docCursor:', docCursor);
 
     if (docCursor.count === 0) {
       // Create new entry in csrs collection
       self.save({
-        ip: ip,
-        csr: csr
+        _key: ip,
+        csr: csr,
+        status: 'unsigned'
       })
-      .then(function () {
-        deferred.resolve('csr registration created');
+      .then(function (doch) {
+        self.collection.document(doch)
+        .then(function (doc) {
+          deferred.resolve(doc);
+        });
       });
     } else {
-      console.log('csr already exists for', ip);
+      //console.log('csr already exists for', ip);
       docCursor.next()
       .then(function (doc) {
-        console.log('doc:', doc);
-        self.collection.update(doc._id, {csr: csr})
+        //console.log('doc:', doc);
+        self.collection.update(doc._id, {csr: csr, status: 'unsigned'})
         .then(function () {
-          deferred.resolve('csr registration updated');
+          deferred.resolve(doc);
         });
       });
     }

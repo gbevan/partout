@@ -14,7 +14,7 @@ console.log('Invoking gulp -', env);
 
 gulp.task('default', function () {
   plugins.nodemon({
-    script: 'bin/serve',
+    script: 'bin/partout',
     env: { 'NODE_ENV': env},
     ignore: ['node_modules', 'agent'],
     nodeArgs: ['--debug']

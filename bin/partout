@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/node --harmony
 
 /*
     Partout [Everywhere] - Policy-Based Configuration Management for the
@@ -26,3 +26,19 @@
 'use strict';
 
 var app = require('../app');
+
+/*
+ * partout [ server | csr [ list | reject k | sign k ]]
+ */
+
+var opts = {},
+  args = process.argv.slice(2);
+
+if (args.length > 0) {
+  opts[args.shift()] = true;
+  opts.args = args;
+} else {
+  opts.serve = true;
+}
+
+var app = require('../app')(opts);
