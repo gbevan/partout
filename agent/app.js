@@ -57,7 +57,7 @@ var _sendCsr = function (master) {
   master.post('/agentcsr', {csr: fs.readFileSync(ssl.agentCsrFile).toString()})
   .then(function (resp) {
     //console.log('resp:', resp);
-
+    resp = JSON.parse(resp);
     master.sendevent({
       object: 'partout-agent',
       module: 'app',
@@ -104,27 +104,38 @@ var serve = function () {
 
           ssl.genCsr({
             subjAttrs: attrs
-          }, function (err, csr) {
-            console.log('genCsr err:', err, 'csr:', csr);
+          }, function (err, csr, fingerprint) {
+            console.warn('============================================================================');
+            console.warn('CSR fingerprint:', fingerprint);
+            console.warn('============================================================================');
 
             // Send csr to master
             console.warn('Sending agent certificate signing request to master');
 
             _sendCsr(master)
             .then(function(resp) {
-              console.log('response to new csr:', resp);
-            });
+              console.log('response to new csr:', resp.status);
+            }).done();
 
           });
         } else {
           _sendCsr(master)
           .then(function(resp) {
-            console.log('response to existing csr:', resp);
+            console.log('type:', typeof(resp));
+            console.log('response to existing csr:', resp.status);
+
+            // TODO: handle signed csr
+            Q.nfcall(fs.writeFile, certFile, resp.cert)
+            .done();
           });
         }
-      });
+      }).done();
 
     } else { // cert exists
+      console.log('cert exists, starting api');
+
+      sslKey = fs.readFileSync(privateKeyFile);
+      sslCert = fs.readFileSync(certFile);
 
       var app = express(),
         ssl_options = {
@@ -133,7 +144,8 @@ var serve = function () {
         };
 
       // TODO: parameterise from a js file
-      app.master = cfg.partout_master_hostname;
+      app.master_hostname = cfg.partout_master_hostname;
+      console.log('master_hostname:', app.master_hostname);
       app.master_port = cfg.partout_master_port;
       app.apply_every_mins = 5;
       app.poll_manifest_every = 6;
@@ -146,8 +158,10 @@ var serve = function () {
       app.clientCert = sslCert;
       app.clientKey = sslKey;
 
-      app.sendevent = master.sendevent;
-
+      app.master = master;
+      app.sendevent = function (o, cb) {
+        return app.master.sendevent(o, cb);
+      };
 
       process.on('SIGINT', function () {
         app.sendevent({
@@ -168,7 +182,9 @@ var serve = function () {
         });
       });
 
+      console.log('policy_sync');
       var policy_sync = new Policy_Sync(app);
+      console.log('after policy_sync');
 
       app._apply = function (cb) {
         fs.exists(app.apply_site_p2, function (exists) {
@@ -213,8 +229,10 @@ var serve = function () {
 
       app.use('/', router);
 
+      console.log('before https server');
       https.createServer(ssl_options, app)
         .listen(10444);
+      console.log('after https server');
 
       app.sendevent({
         module: 'app',
@@ -222,6 +240,7 @@ var serve = function () {
         msg: 'Partout-Agent has (re)started'
       })
       .then(function () {
+        console.log('after send event');
         app.run();
         setInterval(function () {
           app.run();
@@ -230,9 +249,9 @@ var serve = function () {
       .fail(function (err) {
         console.error('app run failed, err:', err);
         console.log(err.stack);
-      });
+      }).done();
     }
-  });
+  }).done();
 };
 
 module.exports = function (opts) {

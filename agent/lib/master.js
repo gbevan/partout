@@ -76,7 +76,7 @@ var Master = function (cfg, https) {
  * @returns Promise
  */
 Master.prototype.post = function (path, o, cb) {
-  //console.warn('POST: data:', o);
+  console.warn('POST: data:', o);
   var self = this;
 
   var deferred = Q.defer();
@@ -90,7 +90,7 @@ Master.prototype.post = function (path, o, cb) {
       }
     };
   options = _.merge(self.options, options);
-  //console.log('post merged options:', options);
+  console.log('post merged options:', options);
 
   //options.agent = new https.Agent(options);
 
@@ -136,7 +136,9 @@ Master.prototype.post = function (path, o, cb) {
  * @returns Promise
  */
 Master.prototype.sendevent = function (o, cb) {
+  console.warn('sendevent: data:', o);
   var self = this;
+  console.log('post:', self.post);
 
   return self.post('/event', o, cb);
 };

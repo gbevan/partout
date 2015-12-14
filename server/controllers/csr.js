@@ -61,6 +61,7 @@ Csr.prototype.init = function () {
     } else {
       self.collection.create()
       .then(function () {
+        console.log('csr collection:', self.collection);
         deferred.resolve('created');
       });
     }
@@ -68,10 +69,10 @@ Csr.prototype.init = function () {
   return deferred.promise;
 };
 
-Csr.prototype.query = function (keys) {
+Csr.prototype.query = function (example) {
   var self = this;
 
-  return self.collection.byExample(keys);
+  return self.collection.byExample(example);
 };
 
 Csr.prototype.all = function () {
@@ -119,14 +120,23 @@ Csr.prototype.register = function (ip, csr) {
       docCursor.next()
       .then(function (doc) {
         //console.log('doc:', doc);
-        self.collection.update(doc._id, {csr: csr, status: 'unsigned'})
-        .then(function () {
+        if (doc.csr !== csr) {
+          self.collection.update(doc._id, {csr: csr, status: 'unsigned'})
+          .then(function () {
+            deferred.resolve(doc);
+          });
+        } else {
           deferred.resolve(doc);
-        });
+        }
       });
     }
   });
   return deferred.promise;
+};
+
+Csr.prototype.update = function (doc) {
+  var self = this;
+  self.collection.update(doc._id, doc);
 };
 
 module.exports = Csr;

@@ -118,7 +118,7 @@ Ssl.prototype.getSslAgentPrefix = function (p) {
  * @param {Object} cfg.extensions
  * @param {int}    cfg.keySize
  *
- * @param {Function} callback (err, csr)
+ * @param {Function} callback (err, csr, fingerprint)
  */
 Ssl.prototype.genCsr = function (cfg, cb) {
   var self = this,
@@ -180,7 +180,7 @@ Ssl.prototype.genCsr = function (cfg, cb) {
     return Q.nfcall(fs.writeFile, self.agentPublicKeyFile, keys_pem.public);
   })
   .then(function () {
-    cb(undefined, csr);
+    cb(undefined, csr, pki.getPublicKeyFingerprint(csr.publicKey, {encoding: 'hex', delimiter: ':'}));
   })
   .fail(function (err) {
     console.log('fail err:', err);

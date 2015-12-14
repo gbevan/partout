@@ -86,7 +86,7 @@ Policy_Sync.prototype.get_master_cert = function () {
   var self = this,
     deferred = Q.defer(),
     options = {
-      host: self.app.master, // TODO: param'ize
+      host: self.app.master_hostname, // TODO: param'ize
       port: self.app.master_port,
       method: 'GET',
       rejectUnauthorized: false
@@ -106,7 +106,7 @@ Policy_Sync.prototype.get_master_cert = function () {
 Policy_Sync.prototype.get_manifest = function (cb) {
   var self = this,
     options = {
-      host: self.app.master, // TODO: param'ize
+      host: self.app.master_hostname, // TODO: param'ize
       port: self.app.master_port,
       path: '/manifest',
       method: 'GET',
@@ -142,7 +142,7 @@ Policy_Sync.prototype.get_manifest = function (cb) {
 Policy_Sync.prototype.get_file = function (file, cb) {
   var self = this,
     options = {
-      host: self.app.master, // TODO: param'ize
+      host: self.app.master_hostname,
       port: self.app.master_port,
       path: '/file?file=' + file,
       method: 'GET',

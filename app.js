@@ -1,3 +1,4 @@
+/*jshint multistr: true*/
 /*
     Partout [Everywhere] - Policy-Based Configuration Management for the
     Data-Driven-Infrastructure.
@@ -44,10 +45,21 @@ var console = require('better-console'),
   Q = require('q'),
   cfg = new (require('./etc/partout.conf.js'))(),
   arangojs = require('arangojs'),
-  db = arangojs(),
+  db = arangojs({promise: Q.promise}),
   Csr = require('./server/controllers/csr.js');
 
 Q.longStackSupport = true;
+
+var banner = "\n\
+'########:::::'###::::'########::'########::'#######::'##::::'##:'########:\n\
+ ##.... ##:::'## ##::: ##.... ##:... ##..::'##.... ##: ##:::: ##:... ##..::\n\
+ ##:::: ##::'##:. ##:: ##:::: ##:::: ##:::: ##:::: ##: ##:::: ##:::: ##::::\n\
+ ########::'##:::. ##: ########::::: ##:::: ##:::: ##: ##:::: ##:::: ##::::\n\
+ ##.....::: #########: ##.. ##:::::: ##:::: ##:::: ##: ##:::: ##:::: ##::::\n\
+ ##:::::::: ##.... ##: ##::. ##::::: ##:::: ##:::: ##: ##:::: ##:::: ##::::\n\
+ ##:::::::: ##:::: ##: ##:::. ##:::: ##::::. #######::. #######::::: ##::::\n\
+..:::::::::..:::::..::..:::::..:::::..::::::.......::::.......::::::..:::::\n\
+";
 
 
 /*
@@ -84,10 +96,26 @@ var connectDb = function () {
 };
 
 
+/**
+ * Initialise partout server database
+ */
+var init = function () {
+  console.warn('Initialising...\n');
+  console.warn(banner);
+
+  // Init Csr
+  var csr = new Csr(db);
+  csr.init();  // create collections if req'd. returns a promise
+};
+
+
 var serve = function () {
   /**
    * Partout application server
    */
+  console.info('Welcome to:');
+  console.info(banner);
+
   //console.clear();
   //console.info('--| Partout |-' + new Array(51).join('-') + '-| starting |--');
   console.info('Starting Partout Master Server...');
@@ -113,7 +141,7 @@ var serve = function () {
     ca.generateTrustedCertChain(function () {
       console.log('trusted key chain done');
 
-      console.log('starting Master API server.');
+      console.log('Starting Master API server.');
 
       var master_fingerprint = pki.getPublicKeyFingerprint(
         pki.publicKeyFromPem(
@@ -127,41 +155,9 @@ var serve = function () {
           md: forge.md.sha256.create()
         }
       );
-      console.warn(new Array(master_fingerprint.length + 1).join('='));
-      console.warn('Master API SSL fingerprint (SHA256):\n' + master_fingerprint);
-      console.warn(new Array(master_fingerprint.length + 1).join('='));
-
-
-      /*
-       * Connect to the Partout Arango database, creating it if it doesnt
-       * exist. Set as active database.
-      var connectDb = function () {
-        var deferred = Q.defer();
-        // get list of databases
-        db.listUserDatabases()
-        .then(function (databases) {
-          console.warn('list databases:', databases);
-
-          // Test if db exists
-          var dbExists = (databases.filter(function (d) {
-            return d === cfg.database_name;
-          }).length > 0);
-          console.warn('db exists:', dbExists);
-
-          if (!dbExists) {
-            // Create the database
-            db.createDatabase('partout')
-            .then(function(info) {
-              console.warn('create info:', info);
-              deferred.resolve('created');
-            });
-          } else {
-            deferred.resolve('opened');
-          }
-        });
-        return deferred.promise;
-      };
-       */
+      console.info(new Array(master_fingerprint.length + 1).join('='));
+      console.info('Master API SSL fingerprint (SHA256):\n' + master_fingerprint);
+      console.info(new Array(master_fingerprint.length + 1).join('='));
 
       connectDb()
       .then(function (status) {
@@ -183,7 +179,8 @@ var serve = function () {
             key: fs.readFileSync(ca.masterApiPrivateKeyFile),
             cert: fs.readFileSync(ca.masterApiCertFile),
             ca: [
-              fs.readFileSync(ca.intCertFile)
+              fs.readFileSync(ca.intCertFile),
+              fs.readFileSync(ca.agentSignerCertFile)
 
               /*
                * root cert placed in /usr/share/ca-certificates/partout and updated
@@ -258,7 +255,10 @@ var serve = function () {
 };
 
 module.exports = function (opts) {
-  if (opts.serve) {
+  if (opts.init) {
+    init(opts.args);
+
+  } else if (opts.serve) {
     serve(opts.args);
 
   } else if (opts.csr) {
@@ -269,24 +269,67 @@ module.exports = function (opts) {
       //console.log('csr db:', status);
       var csr = new Csr(db);
 
-      csr.all()
-      .then(function (csrList) {
-        //console.log('csrList:', csrList);
+      if (opts.args.length === 0) {
+        opts.args[0] = 'list';
+      }
 
-        console.warn('CSRs:');
-        for (var i in csrList) {
-          //console.log('b4 key:', csrList[i].csr);
-          var csrObj = ca.pki.certificationRequestFromPem(csrList[i].csr);
-          //console.log('csrObj:', csrObj);
-          var fingerprint = ca.pki.getPublicKeyFingerprint(csrObj.publicKey, {encoding: 'hex', delimiter: ':'});
-          //console.log('fingerprint:', fingerprint);
-          console.warn('   ' + csrList[i]._key + ' : ' + csrList[i].status + ' : ' + fingerprint);
+      if (opts.args[0] === 'list') {  // partout csr list
+        csr.all()
+        .then(function (csrList) {
+          //console.log('csrList:', csrList);
+
+          console.warn('CSRs:');
+          for (var i in csrList) {
+            var csrObj = ca.pki.certificationRequestFromPem(csrList[i].csr);
+            var fingerprint = ca.pki.getPublicKeyFingerprint(csrObj.publicKey, {encoding: 'hex', delimiter: ':'});
+            console.warn('   ' + csrList[i]._key + ' : ' + csrList[i].status + ' : ' + fingerprint);
+          }
+        })
+        .fail(function (err) {
+          console.error(err);
+        })
+        .done();
+
+      } else if (opts.args[0] === 'sign') { // partout csr sign
+        console.log('args legnth:', opts.args.length);
+        if (opts.args.length < 2) {
+          console.error('Error missing csr key to sign');
+          process.exit(1);
         }
-      })
-      .fail(function (err) {
-        console.error(err);
-      });
+        var key = opts.args[1];
+        console.warn('signing csr for agent:', key);
 
-    });
+        csr.query({_key: key})
+        .then(function (cursor) {
+          //console.log('cursor:', cursor);
+          if (cursor.count === 0) {
+            console.error('csr not found');
+            process.exit(1);
+          } else if (cursor.count > 1) {
+            console.error('Internal error, query for csr key returned more than 1 document');
+            process.exit(1);
+          } else {
+            cursor.next()
+            .then(function (csrDoc) {
+              //console.info('Signing CSR:\n', csrDoc.csr);
+              ca.signCsrWithAgentSigner(csrDoc.csr)
+              .then(function (certPem) {
+                console.log('Signed cert from csr:\n' + certPem);
+
+                // return to agent via the csr document in db
+                csrDoc.cert = certPem;
+                csrDoc.status = 'signed';
+                return csr.update(csrDoc);
+              }).done();
+            })
+            .done();
+          }
+        })
+        .done();
+
+      } // if args[0]
+
+    })
+    .done();
   }
 };
