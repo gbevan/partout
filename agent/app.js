@@ -247,13 +247,22 @@ var serve = function (args, master) {
     if ((app.apply_count++ % app.poll_manifest_every) === 0) {
 
       setTimeout(function () {
-        policy_sync.sync('etc/manifest', function () {
+        policy_sync.sync('etc/manifest')
+        .then(function () {
           console.log('sync done');
 
           app._apply(function () {
             console.log('### FINI (after sync) ###########################################');
           });
-        });
+        })
+        .fail(function (err) {
+          console.warn('policy_sync call failed, will continue to run existing cached manifest (if available)');
+
+          app._apply(function () {
+            console.log('### FINI (after FAILED sync) ###########################################');
+          });
+        })
+        .done();
       }, splay);  // Random Splay
 
     } else {
@@ -280,20 +289,18 @@ var serve = function (args, master) {
     module: 'app',
     object: 'partout-agent',
     msg: 'Partout-Agent has (re)started https server'
-  })
-  .then(function () {
-    //console.log('after send event, calling app.run');
-    //process.exit(999);
+  });
+  //.then(function () {
+  app.run();
+  setInterval(function () {
     app.run();
-    setInterval(function () {
-      app.run();
-    }, (app.apply_every_mins * 60 * 1000));
-  })
-  .fail(function (err) {
-    console.error('app run failed, err:', err);
-    console.log(err.stack);
-  })
-  .done();
+  }, (app.apply_every_mins * 60 * 1000));
+  //})
+  //.fail(function (err) {
+  //  console.error('app run failed, err:', err);
+  //  console.log(err.stack);
+  //})
+  //.done();
 
 };
 

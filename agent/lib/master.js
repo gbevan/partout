@@ -118,12 +118,10 @@ Master.prototype.post = function (path, o, cb) {
   });
 
   post_req.on('error', function (err) {
-    throw new Error(err);
-    /*
+    //throw new Error(err);
     err = new Error(err);
     console.error('POST to master ERROR:', err);
     deferred.reject(err);
-    */
   });
   //console.log('post_data:', post_data);
   post_req.write(post_data);
@@ -219,7 +217,7 @@ Master.prototype.get = function (path, cb) {
   });
 
   req.on('error', function (err) {
-    console.error('GET error:', err);
+    //console.error('GET error:', err);
     if (cb) {
       cb(err, null);
     }

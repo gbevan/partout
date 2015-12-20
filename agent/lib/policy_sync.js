@@ -85,108 +85,28 @@ Policy_Sync.prototype.save_master_fingerprint = function (fingerprint) {
 Policy_Sync.prototype.get_master_cert = function () {
   var self = this,
     deferred = Q.defer();
-  /*
-    options = {
-      host: self.app.master_hostname, // TODO: param'ize
-      port: self.app.master_port,
-      method: 'GET',
-      rejectUnauthorized: false
-    };
-
-  var req = self.https.request(options, function (res) {
-    var cert = res.connection.getPeerCertificate();
-    //console.log('server cert:', cert);
-    deferred.resolve(cert);
-  });
-
-  req.end();
-  */
 
   self.app.master.get('/')
   .then(function (obj) {
     var page = obj.page,
       cert = obj.cert;
-    console.log('page:', page, 'server cert:', cert);
+    //console.log('page:', page, 'server cert:', cert);
     deferred.resolve(cert);
-  }).done();
+  })
+  .fail(function (err) {
+    //console.error('get_master_cert failed err:', err);
+    deferred.reject(err);
+  })
+  .done();
 
   return deferred.promise;
 };
 
-/*
-Policy_Sync.prototype.get_manifest = function (cb) {
-  var self = this,
-    options = {
-      host: self.app.master_hostname, // TODO: param'ize
-      port: self.app.master_port,
-      path: '/manifest',
-      method: 'GET',
-      rejectUnauthorized: false,
-      //requestCert: true,
-      //agent: false,
-
-      //ca: [ self.server_cert ] // TODO: need to setup ca cert chain 1st
-
-      cert: self.app.clientCert,
-      key: self.app.clientKey
-    },
-    buffer = '';
-  //console.log('get_manifest() server_cert:\n' + self.server_cert);
-
-  options.agent = new self.https.Agent(options);
-
-  // TODO: Migrate to Master.js
-  self.https.get(options, function (res) {
-    if (res.statusCode !== 200) {
-      console.error('Client authentication denied by master (csr may need signing to grant access)');
-      return;
-    }
-    res.on('data', function (d) {
-      buffer += d.toString();
-    });
-    res.on('end', function () {
-      //console.log('full manifest buffer:', buffer);
-      cb(JSON.parse(buffer));
-    });
-  });
-};
-*/
 
 Policy_Sync.prototype.get_file = function (file, cb) {
   var self = this,
-    /*
-    options = {
-      host: self.app.master_hostname,
-      port: self.app.master_port,
-      path: '/file?file=' + file,
-      method: 'GET',
-      rejectUnauthorized: false,
-      //requestCert: true,
-      agent: false
-    },
-    buffer = '',
-    */
     dir = path.dirname(file),
     base_file = path.basename(file);
-
-  /*
-  self.https.get(options, function (res) {
-    res.on('data', function (d) {
-      buffer += d.toString();
-    });
-    res.on('end', function () {
-      //console.log('file buffer:', buffer);
-
-
-      mkdirp(dir, function (err) {
-        if (err) {
-          console.error(err);
-        }
-        fs.writeFile(file, buffer, cb);
-      });
-    });
-  });
-  */
 
   self.app.master.get('/file?file=' + file)
   .then(function (obj) {
@@ -197,13 +117,16 @@ Policy_Sync.prototype.get_file = function (file, cb) {
       }
       fs.writeFile(file, buffer, cb);
     });
-  });
+  })
+  .done();
 };
 
-Policy_Sync.prototype.sync = function (folder, cb) {
-  var self = this;
+Policy_Sync.prototype.sync = function (folder) {
+  var self = this,
+    outer_deferred = Q.defer();
+
   self.accepted_master_fingerprint = '';
-  console.log('get server cert');
+  //console.log('get server cert');
 
   self.load_master_fingerprint()
   .then(function (accepted_master_fingerprint) {
@@ -213,7 +136,7 @@ Policy_Sync.prototype.sync = function (folder, cb) {
   .then(function (cert) {
     var deferred = Q.defer();
 
-    console.log('promise cert:', cert);
+    //console.log('promise cert:', cert);
     self.server_cert = '-----BEGIN CERTIFICATE-----\n' +
       cert.raw.toString('base64') +
       '\n-----END CERTIFICATE-----\n';
@@ -323,7 +246,7 @@ Policy_Sync.prototype.sync = function (folder, cb) {
           });
         });
         //console.log('tasks:', tasks);
-        nimble.series(tasks, cb);
+        nimble.series(tasks, function () { outer_deferred.resolve(); });
 
       });
 
@@ -333,10 +256,12 @@ Policy_Sync.prototype.sync = function (folder, cb) {
   })
 
   .fail(function (err) {
-    console.error(err);
-    console.log(err.stack);
+    console.error('policy_sync err:', err);
+    //console.log(err.stack);
+    outer_deferred.reject(err);
   }); // cert promise
 
+  return outer_deferred.promise;
 };
 
 module.exports = Policy_Sync;

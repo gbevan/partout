@@ -100,8 +100,8 @@ var connectDb = function () {
  * Initialise partout server database
  */
 var init = function () {
-  console.warn('Initialising...\n');
-  console.warn(banner);
+  console.info('Initialising...\n');
+  console.info(banner);
 
   // Init Csr
   var csr = new Csr(db);
@@ -136,12 +136,11 @@ var serve = function () {
     throw (new Error(err));
   })
   .done(function() {
-    console.log('Certificates ok, generating key chain');
+    console.info('Certificates ok, generating key chain');
 
     ca.generateTrustedCertChain(function () {
-      console.log('trusted key chain done');
 
-      console.log('Starting Master API server.');
+      console.info('Starting Master API.');
 
       var master_fingerprint = pki.getPublicKeyFingerprint(
         pki.publicKeyFromPem(
@@ -155,16 +154,17 @@ var serve = function () {
           md: forge.md.sha256.create()
         }
       );
+      console.info('');
       console.info(new Array(master_fingerprint.length + 1).join('='));
       console.info('Master API SSL fingerprint (SHA256):\n' + master_fingerprint);
       console.info(new Array(master_fingerprint.length + 1).join('='));
 
       connectDb()
       .then(function (status) {
-        console.log('db:', status);
+        //console.log('db:', status);
 
         //db.useDatabase(cfg.database_name);
-        console.warn('db:',db);
+        //console.warn('db:',db);
 
         var controllers = {
           'csr': new Csr(db)
@@ -269,7 +269,7 @@ module.exports = function (opts) {
     serve(opts.args);
 
   } else if (opts.csr) {
-    console.log('csr args:', opts.args);
+    //console.log('csr args:', opts.args);
 
     connectDb()
     .then(function (status) {
@@ -285,7 +285,7 @@ module.exports = function (opts) {
         .then(function (csrList) {
           //console.log('csrList:', csrList);
 
-          console.warn('CSRs:');
+          //console.warn('CSRs:');
           for (var i in csrList) {
             var csrObj = ca.pki.certificationRequestFromPem(csrList[i].csr);
             var fingerprint = ca.pki.getPublicKeyFingerprint(csrObj.publicKey, {encoding: 'hex', delimiter: ':'});
@@ -300,11 +300,11 @@ module.exports = function (opts) {
       } else if (opts.args[0] === 'sign') { // partout csr sign
         console.log('args legnth:', opts.args.length);
         if (opts.args.length < 2) {
-          console.error('Error missing csr key to sign');
+          console.error('Error: Missing csr key to sign');
           process.exit(1);
         }
         var key = opts.args[1];
-        console.warn('signing csr for agent:', key);
+        console.warn('Signing csr for agent:', key);
 
         csr.query({_key: key})
         .then(function (cursor) {
