@@ -185,12 +185,12 @@ Policy_Sync.prototype.sync = function (folder) {
   })
   .then(function () {
 
-    console.log('after master fingerprint test - syncing:', folder);
+    console.info('syncing:', folder);
     //self.get_manifest(function (manifest) {
     self.app.master.get('/manifest')
     .then(function (obj) {
       var manifest = obj.data;
-      console.log('manifest:', manifest);
+      console.info('manifest:', manifest);
 
       // Get hashWalk of local manifest
       utils.hashWalk(folder, function (local_manifest) {

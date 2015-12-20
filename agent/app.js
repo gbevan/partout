@@ -232,7 +232,7 @@ var serve = function (args, master) {
         console.error('Error: site policy file', app.apply_site_p2, 'does not yet exist');
         cb();
       } else {
-        console.log('applying');
+        //console.log('applying');
         apply([app.apply_site_p2], {app: app, daemon: true});
         cb();
       }
@@ -249,7 +249,7 @@ var serve = function (args, master) {
       setTimeout(function () {
         policy_sync.sync('etc/manifest')
         .then(function () {
-          console.log('sync done');
+          //console.log('sync done');
 
           app._apply(function () {
             console.log('### FINI (after sync) ###########################################');
