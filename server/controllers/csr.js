@@ -24,10 +24,12 @@
 /*jslint node: true, vars: true*/
 'use strict';
 
-var Q = require('q');
+var Q = require('q'),
+  Common = require('./common');
 
 /**
  * Controller for the csrs collection.
+ * (See common.js for inherited methods.)
  *
  * _key = ip
  * csr = Certificate signing request string
@@ -35,108 +37,49 @@ var Q = require('q');
 var Csr = function (db) {
   var self = this;
 
-  self.db = db;
-  self.collectionName = 'csrs';
-  self.collection = self.db.collection(self.collectionName);
-};
-
-/**
- * Check if collection needs creating.
- * @returns {Promise}
- */
-Csr.prototype.init = function () {
-  var self = this,
-    deferred = Q.defer();
-
-  self.db.listCollections()
-  .then (function (collections) {
-
-    var colExists = (collections.filter(function (d) {
-      return d.name === self.collectionName;
-    }).length > 0);
+  self.__proto__ = Common(db, 'csrs');
 
 
-    if (colExists) {
-      deferred.resolve('exists');
-    } else {
-      self.collection.create()
-      .then(function () {
-        console.log('csr collection:', self.collection);
-        deferred.resolve('created');
-      });
-    }
-  });
-  return deferred.promise;
-};
+  self.register = function (ip, csr) {
+    var self = this,
+      deferred = Q.defer();
 
-Csr.prototype.query = function (example) {
-  var self = this;
+    // check if ip and csr already exist
+    self.query({_key: ip})
+    .then(function (docCursor) {
+      //console.log('docCursor:', docCursor);
 
-  return self.collection.byExample(example);
-};
-
-Csr.prototype.all = function () {
-  var self = this,
-    deferred = Q.defer();
-  //console.log('in csr.all() collection:', self.collection);
-  self.collection.all('key')
-  .then(function (cursor) {
-    //console.log('cursor:', cursor);
-    deferred.resolve(cursor.all());
-  });
-  return deferred.promise;
-};
-
-Csr.prototype.save = function (doc) {
-  var self = this;
-
-  return self.collection.save(doc);
-};
-
-Csr.prototype.register = function (ip, csr) {
-  var self = this,
-    deferred = Q.defer();
-
-  // check if ip and csr already exist
-  self.query({_key: ip})
-  .then(function (docCursor) {
-    //console.log('docCursor:', docCursor);
-
-    if (docCursor.count === 0) {
-      // Create new entry in csrs collection
-      self.save({
-        _key: ip,
-        csr: csr,
-        status: 'unsigned'
-      })
-      .then(function (doch) {
-        self.collection.document(doch)
-        .then(function (doc) {
-          deferred.resolve(doc);
-        });
-      });
-    } else {
-      //console.log('csr already exists for', ip);
-      docCursor.next()
-      .then(function (doc) {
-        //console.log('doc:', doc);
-        if (doc.csr !== csr) {
-          self.collection.update(doc._id, {csr: csr, status: 'unsigned'})
-          .then(function () {
+      if (docCursor.count === 0) {
+        // Create new entry in csrs collection
+        self.save({
+          _key: ip,
+          csr: csr,
+          status: 'unsigned'
+        })
+        .then(function (doch) {
+          self.collection.document(doch)
+          .then(function (doc) {
             deferred.resolve(doc);
           });
-        } else {
-          deferred.resolve(doc);
-        }
-      });
-    }
-  });
-  return deferred.promise;
-};
-
-Csr.prototype.update = function (doc) {
-  var self = this;
-  self.collection.update(doc._id, doc);
+        });
+      } else {
+        //console.log('csr already exists for', ip);
+        docCursor.next()
+        .then(function (doc) {
+          //console.log('doc:', doc);
+          if (doc.csr !== csr) {
+            self.collection.update(doc._id, {csr: csr, status: 'unsigned'})
+            .then(function () {
+              deferred.resolve(doc);
+            });
+          } else {
+            deferred.resolve(doc);
+          }
+        });
+      }
+    });
+    return deferred.promise;
+  };
 };
 
 module.exports = Csr;

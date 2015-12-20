@@ -84,7 +84,8 @@ Policy_Sync.prototype.save_master_fingerprint = function (fingerprint) {
  */
 Policy_Sync.prototype.get_master_cert = function () {
   var self = this,
-    deferred = Q.defer(),
+    deferred = Q.defer();
+  /*
     options = {
       host: self.app.master_hostname, // TODO: param'ize
       port: self.app.master_port,
@@ -99,10 +100,20 @@ Policy_Sync.prototype.get_master_cert = function () {
   });
 
   req.end();
+  */
+
+  self.app.master.get('/')
+  .then(function (obj) {
+    var page = obj.page,
+      cert = obj.cert;
+    console.log('page:', page, 'server cert:', cert);
+    deferred.resolve(cert);
+  }).done();
 
   return deferred.promise;
 };
 
+/*
 Policy_Sync.prototype.get_manifest = function (cb) {
   var self = this,
     options = {
@@ -124,6 +135,7 @@ Policy_Sync.prototype.get_manifest = function (cb) {
 
   options.agent = new self.https.Agent(options);
 
+  // TODO: Migrate to Master.js
   self.https.get(options, function (res) {
     if (res.statusCode !== 200) {
       console.error('Client authentication denied by master (csr may need signing to grant access)');
@@ -138,9 +150,11 @@ Policy_Sync.prototype.get_manifest = function (cb) {
     });
   });
 };
+*/
 
 Policy_Sync.prototype.get_file = function (file, cb) {
   var self = this,
+    /*
     options = {
       host: self.app.master_hostname,
       port: self.app.master_port,
@@ -150,16 +164,19 @@ Policy_Sync.prototype.get_file = function (file, cb) {
       //requestCert: true,
       agent: false
     },
-    buffer = '';
+    buffer = '',
+    */
+    dir = path.dirname(file),
+    base_file = path.basename(file);
 
+  /*
   self.https.get(options, function (res) {
     res.on('data', function (d) {
       buffer += d.toString();
     });
     res.on('end', function () {
       //console.log('file buffer:', buffer);
-      var dir = path.dirname(file);
-      var base_file = path.basename(file);
+
 
       mkdirp(dir, function (err) {
         if (err) {
@@ -169,12 +186,24 @@ Policy_Sync.prototype.get_file = function (file, cb) {
       });
     });
   });
+  */
+
+  self.app.master.get('/file?file=' + file)
+  .then(function (obj) {
+    var buffer = obj.data;
+    mkdirp(dir, function (err) {
+      if (err) {
+        console.error(err);
+      }
+      fs.writeFile(file, buffer, cb);
+    });
+  });
 };
 
 Policy_Sync.prototype.sync = function (folder, cb) {
   var self = this;
   self.accepted_master_fingerprint = '';
-  //console.log('get server cert');
+  console.log('get server cert');
 
   self.load_master_fingerprint()
   .then(function (accepted_master_fingerprint) {
@@ -184,7 +213,7 @@ Policy_Sync.prototype.sync = function (folder, cb) {
   .then(function (cert) {
     var deferred = Q.defer();
 
-    //console.log('promise cert:', cert);
+    console.log('promise cert:', cert);
     self.server_cert = '-----BEGIN CERTIFICATE-----\n' +
       cert.raw.toString('base64') +
       '\n-----END CERTIFICATE-----\n';
@@ -233,8 +262,11 @@ Policy_Sync.prototype.sync = function (folder, cb) {
   })
   .then(function () {
 
-    console.log('syncing:', folder);
-    self.get_manifest(function (manifest) {
+    console.log('after master fingerprint test - syncing:', folder);
+    //self.get_manifest(function (manifest) {
+    self.app.master.get('/manifest')
+    .then(function (obj) {
+      var manifest = obj.data;
       console.log('manifest:', manifest);
 
       // Get hashWalk of local manifest
@@ -290,12 +322,13 @@ Policy_Sync.prototype.sync = function (folder, cb) {
             done();
           });
         });
-
+        //console.log('tasks:', tasks);
         nimble.series(tasks, cb);
 
       });
 
-    });
+    })
+    .done();
 
   })
 

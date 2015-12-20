@@ -179,8 +179,10 @@ var serve = function () {
             key: fs.readFileSync(ca.masterApiPrivateKeyFile),
             cert: fs.readFileSync(ca.masterApiCertFile),
             ca: [
-              fs.readFileSync(ca.intCertFile),
-              fs.readFileSync(ca.agentSignerCertFile)
+              fs.readFileSync(ca.agentSignerCertFile, 'utf8'),
+              fs.readFileSync(ca.intCertFile, 'utf8'),
+              fs.readFileSync(ca.rootCertFile, 'utf8')
+              // cert to verify agents
 
               /*
                * root cert placed in /usr/share/ca-certificates/partout and updated
@@ -202,10 +204,15 @@ var serve = function () {
         appApi.use(bodyParser.json());
         appApi.use(bodyParser.urlencoded({ extended: true }));
 
+        //appApi.set('view engine', 'html');
+
         //router.use('/', routes);
         require('./lib/api/routes')(routerApi, cfg, db, controllers);
 
         appApi.use('/', routerApi);
+
+        //appApi.use(express.static('public'));
+
 
         httpsApi.createServer(optionsApi, appApi)
         .listen(cfg.partout_api_port);
@@ -248,7 +255,7 @@ var serve = function () {
         httpsUi.createServer(optionsUi, appUi)
         .listen(cfg.partout_ui_port);
 
-      });
+      }).done();
     });
 
   });
@@ -301,7 +308,7 @@ module.exports = function (opts) {
 
         csr.query({_key: key})
         .then(function (cursor) {
-          //console.log('cursor:', cursor);
+          console.log('cursor:', cursor);
           if (cursor.count === 0) {
             console.error('csr not found');
             process.exit(1);
@@ -311,7 +318,7 @@ module.exports = function (opts) {
           } else {
             cursor.next()
             .then(function (csrDoc) {
-              //console.info('Signing CSR:\n', csrDoc.csr);
+              console.info('Signing CSR:\n', csrDoc.csr);
               ca.signCsrWithAgentSigner(csrDoc.csr)
               .then(function (certPem) {
                 console.log('Signed cert from csr:\n' + certPem);
@@ -327,9 +334,41 @@ module.exports = function (opts) {
         })
         .done();
 
+      } else if (opts.args[0] === 'reject') { // partout csr reject ...
+        if (opts.args.length < 2) {
+          console.error('Error missing csr key to reject');
+          process.exit(1);
+        }
+        var key = opts.args[1];
+        console.warn('rejecting csr for agent:', key);
+
+        csr.query({_key: key})
+        .then(function (cursor) {
+          if (cursor.count === 0) {
+            console.error('csr not found');
+            process.exit(1);
+          } else if (cursor.count > 1) {
+            console.error('Internal error, query for csr key returned more than 1 document');
+            process.exit(1);
+          } else {
+            cursor.next()
+            .then(function (csrDoc) {
+              return csr.delete(csrDoc._key)
+            })
+            .done();
+          }
+        })
+        .done();
+
+      } else {
+        console.error('Error: Unrecognised sub command');
+        process.exit(1);
       } // if args[0]
 
     })
     .done();
+  } else {
+    console.error('Error: Unrecognised command');
+    process.exit(1);
   }
 };

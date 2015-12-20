@@ -42,28 +42,32 @@ var Master = function (cfg, https) {
   self.https = https;
 
   self.options = {
-    host: cfg.partout_master_hostname, // TODO: param'ize
+    host: cfg.partout_master_hostname,
     port: cfg.partout_master_port,
 
-    method: 'POST',
-    rejectUnauthorized: true,
+    rejectUnauthorized: false, //true,
     requestCert: true,
     agent: false,
-    /*
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-      'Content-Length': post_data.length
-    },
-    */
     ca: [
-      fs.readFileSync(path.join(cfg.PARTOUT_AGENT_SSL_PUBLIC, 'root_ca.crt')).toString(),
-      fs.readFileSync(path.join(cfg.PARTOUT_AGENT_SSL_PUBLIC, 'intermediate_ca.crt')).toString()
+      fs.readFileSync(path.join(cfg.PARTOUT_AGENT_SSL_PUBLIC, 'intermediate_ca.crt')).toString(),
+      fs.readFileSync(path.join(cfg.PARTOUT_AGENT_SSL_PUBLIC, 'root_ca.crt')).toString()
     ]
-    //checkServerIdentity: function (servername, cert) {
-    //  console.log('servername:', servername, 'cert:', cert);
-    //  return undefined; // or err
-    //}
   };
+};
+
+/**
+ * set the agent certificate and private key (once available)
+ * @param {Object} agent's private key
+ * @param {Object} agent's cert
+ */
+Master.prototype.set_agent_cert = function (key, cert) {
+  var self = this;
+  //console.warn('set_agent_cert');
+  self.options.key = key.toString();
+  self.options.cert = cert.toString();
+  delete self.options.method;
+
+  //self.options.agent = new self.https.Agent(self.options);
 };
 
 /**
@@ -76,25 +80,26 @@ var Master = function (cfg, https) {
  * @returns Promise
  */
 Master.prototype.post = function (path, o, cb) {
-  console.warn('POST: data:', o);
+  //console.warn('POST: path:', path, 'data:', o, 'type:', typeof(o));
   var self = this;
 
   var deferred = Q.defer();
 
   var post_data = JSON.stringify(o),
     options = {
+      method: 'POST',
       path: path,
       headers: {
-        'Content-Type': 'application/json',
-        'Content-Length': post_data.length
+        'Content-Type': 'application/json; charset=utf-8',
+        'Content-Length': Buffer.byteLength(post_data)
       }
     };
-  options = _.merge(self.options, options);
-  console.log('post merged options:', options);
+  _.merge(options, self.options);
+  //console.log('post merged options:', options);
 
-  //options.agent = new https.Agent(options);
-
+  //debugger;
   var post_req = self.https.request(options, function(res) {
+    //console.log('res:', res);
     var data = '';
 
     res.setEncoding('utf8');
@@ -104,6 +109,7 @@ Master.prototype.post = function (path, o, cb) {
     });
 
     res.on('end', function () {
+      //console.log('after on end data:', data);
       if (cb) {
         cb(data);
       }
@@ -111,14 +117,19 @@ Master.prototype.post = function (path, o, cb) {
     });
   });
 
+  post_req.on('error', function (err) {
+    throw new Error(err);
+    /*
+    err = new Error(err);
+    console.error('POST to master ERROR:', err);
+    deferred.reject(err);
+    */
+  });
   //console.log('post_data:', post_data);
   post_req.write(post_data);
+  //console.log('before end()')
   post_req.end();
-
-  post_req.on('error', function (err) {
-    console.error(err);
-    deferred.reject(new Error(err));
-  });
+  //console.log('after end()')
 
   return deferred.promise;
 };
@@ -136,11 +147,88 @@ Master.prototype.post = function (path, o, cb) {
  * @returns Promise
  */
 Master.prototype.sendevent = function (o, cb) {
-  console.warn('sendevent: data:', o);
+  //console.warn('sendevent: data:', o);
   var self = this;
-  console.log('post:', self.post);
+  //var deferred = Q.defer();
 
+  //deferred.resolve('dummy');
   return self.post('/event', o, cb);
+  //return deferred.promise;
+};
+
+
+// TODO: ****** FINISH THIS
+/**
+ * get from master RESTful API
+ * @function
+ * @param {String} path of API, e.g. '/event'
+ * @param {Object} data to send as query
+ * @param {Function} optional callback
+ * @memberof P2?
+ * @returns Promise
+ */
+Master.prototype.get = function (path, cb) {
+  //console.warn('GET: query:', path);
+  var self = this,
+    buffer = '',
+    deferred = Q.defer(),
+    options = {
+      path: path,
+      method: 'GET'
+    };
+  _.merge(options, self.options);
+  //console.log('GET merged options:', options);
+
+  //console.log('before https.get');
+  var req = self.https.request(options, function (res) {
+    //console.log('after https.get');
+    if (res.statusCode === 401) {
+      var msg = 'Client authentication denied by master (csr may need signing to grant access), status: ' + res.statusCode;
+      console.error(msg);
+      deferred.reject(new Error(msg));
+      return;
+    }
+    if (res.statusCode !== 200) {
+      var msg = 'Request failed for path: ' + path + ' status: ' + res.statusCode;
+      console.log(msg);
+      deferred.reject(new Error(msg));
+      return;
+    }
+    //console.log('res:', res);
+
+    var cert = res.connection.getPeerCertificate();
+    //console.log('GET server cert:', cert);
+
+    res.on('data', function (d) {
+      buffer += d.toString();
+    });
+    res.on('end', function () {
+      //console.log('full get for:', path, 'buffer:', buffer);
+      var data;
+      if (res.headers["content-type"].indexOf('application/json') !== -1) {
+        data = JSON.parse(buffer);
+      } else {
+        data = buffer;
+      }
+      //console.log('is there cert:', cert);
+      if (cb) {
+        cb(null, data, cert);
+      }
+      deferred.resolve({data: data, cert: cert});
+    });
+  });
+
+  req.on('error', function (err) {
+    console.error('GET error:', err);
+    if (cb) {
+      cb(err, null);
+    }
+    deferred.reject(err);
+  });
+
+  req.end();
+
+  return deferred.promise;
 };
 
 

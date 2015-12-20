@@ -78,13 +78,14 @@ var apply = function (args, opts) {
   policy.apply();
 };
 
-var serve = function () {
-  console.log('Restarting Agent...');
+var checkCert = function (args, master) {
+  var deferred = Q.defer();
 
-  // TODO: replace self-signed cert below with CSR Request/Sign via master protocol
+  console.info('=============================');
+  console.info('Checking Agent Certificate...');
+  console.info('=============================');
 
-  // TODO: test for Csr file vs cert
-  var master = new Master(cfg, https);
+  //var master = new Master(cfg, https);
 
   utils.pExists(certFile)
   .then(function (cert_exists) {
@@ -115,143 +116,185 @@ var serve = function () {
             _sendCsr(master)
             .then(function(resp) {
               console.log('response to new csr:', resp.status);
+
+              deferred.resolve(false);
             }).done();
 
           });
         } else {
           _sendCsr(master)
           .then(function(resp) {
-            console.log('type:', typeof(resp));
-            console.log('response to existing csr:', resp.status);
+            //console.log('type:', typeof(resp));
+            console.warn('response to existing csr:', resp.status);
 
-            // TODO: handle signed csr
-            Q.nfcall(fs.writeFile, certFile, resp.cert)
-            .done();
+            if (resp.status === 'signed') {
+              // TODO: handle signed csr
+              Q.nfcall(fs.writeFile, certFile, resp.cert)
+              .then(function () {
+                console.log('agent certificate created, continuing');
+                deferred.resolve(true);
+              })
+              .done();
+            } else {
+              deferred.resolve(false);
+            }
           });
         }
       }).done();
 
     } else { // cert exists
-      console.log('cert exists, starting api');
-
-      sslKey = fs.readFileSync(privateKeyFile);
-      sslCert = fs.readFileSync(certFile);
-
-      var app = express(),
-        ssl_options = {
-          key: sslKey,
-          cert: sslCert
-        };
-
-      // TODO: parameterise from a js file
-      app.master_hostname = cfg.partout_master_hostname;
-      console.log('master_hostname:', app.master_hostname);
-      app.master_port = cfg.partout_master_port;
-      app.apply_every_mins = 5;
-      app.poll_manifest_every = 6;
-      app.poll_manifest_splay_secs = 30;
-      app.apply_count = 0;
-      app.apply_site_p2 = 'etc/manifest/site.p2';
-      app.https = https;
-      app.PARTOUT_AGENT_SSL_PUBLIC = './etc/ssl_public';
-
-      app.clientCert = sslCert;
-      app.clientKey = sslKey;
-
-      app.master = master;
-      app.sendevent = function (o, cb) {
-        return app.master.sendevent(o, cb);
-      };
-
-      process.on('SIGINT', function () {
-        app.sendevent({
-          module: 'app',
-          object: 'partout-agent',
-          msg: 'Agent terminating due to SIGINT'
-        }, function (resp) {
-          process.exit(1);
-        });
-      });
-      process.on('SIGTERM', function () {
-        app.sendevent({
-          module: 'app',
-          object: 'partout-agent',
-          msg: 'Agent terminating due to SIGTERM'
-        }, function (resp) {
-          process.exit(1);
-        });
-      });
-
-      console.log('policy_sync');
-      var policy_sync = new Policy_Sync(app);
-      console.log('after policy_sync');
-
-      app._apply = function (cb) {
-        fs.exists(app.apply_site_p2, function (exists) {
-          if (!exists) {
-            console.error('Error: site policy file', app.apply_site_p2, 'does not yet exist');
-          } else {
-            console.log('applying');
-            apply([app.apply_site_p2], {app: app, daemon: true});
-          }
-          cb();
-        });
-      };
-
-      app.run = function () {
-        console.log('### START #######################################################');
-        var splay = (app.apply_count === 0 ? 0 : app.poll_manifest_splay_secs * 1000 * Math.random()) ;
-
-        if ((app.apply_count++ % app.poll_manifest_every) === 0) {
-
-          setTimeout(function () {
-            policy_sync.sync('etc/manifest', function () {
-              console.log('sync done');
-
-              app._apply(function () {
-                console.log('### FINI (after sync) ###########################################');
-              });
-            });
-          }, splay);  // Random Splay
-
-        } else {
-          app._apply(function () {
-            console.log('### FINI (no sync) ##############################################');
-          });
-        }
-      };
-
-      router.use(morgan('combined'));
-
-      router.get('/', function (req, res, next) {
-        res.send('Hello');
-      });
-
-      app.use('/', router);
-
-      console.log('before https server');
-      https.createServer(ssl_options, app)
-        .listen(10444);
-      console.log('after https server');
-
-      app.sendevent({
-        module: 'app',
-        object: 'partout-agent',
-        msg: 'Partout-Agent has (re)started'
-      })
-      .then(function () {
-        console.log('after send event');
-        app.run();
-        setInterval(function () {
-          app.run();
-        }, (app.apply_every_mins * 60 * 1000));
-      })
-      .fail(function (err) {
-        console.error('app run failed, err:', err);
-        console.log(err.stack);
-      }).done();
+      console.log('agent certificate exists, continuing');
+      deferred.resolve(true);
     }
+  })
+  .done();
+
+  return deferred.promise;
+};
+
+var serve = function (args, master) {
+  console.info('========================');
+  console.info('Starting Policy Agent...');
+  console.info('========================');
+
+  sslKey = fs.readFileSync(privateKeyFile);
+  sslCert = fs.readFileSync(certFile);
+
+  //console.log('sslKey:', sslKey.toString());
+  //console.log('sslCert:', sslCert.toString());
+
+  var app = express(),
+    ssl_options = {
+      key: sslKey,
+      cert: sslCert
+    };
+
+  master.set_agent_cert(sslKey, sslCert);
+
+  // TODO: parameterise from a js file
+  app.master_hostname = cfg.partout_master_hostname;
+  console.log('master_hostname:', app.master_hostname);
+  app.master_port = cfg.partout_master_port;
+  app.apply_every_mins = 5;
+  app.poll_manifest_every = 6;
+  app.poll_manifest_splay_secs = 30;
+  app.apply_count = 0;
+  app.apply_site_p2 = 'etc/manifest/site.p2';
+  app.https = https;
+  app.PARTOUT_AGENT_SSL_PUBLIC = './etc/ssl_public';
+
+  app.clientCert = sslCert;
+  app.clientKey = sslKey;
+
+  app.master = master;
+  app.sendevent = function (o, cb) {
+    return app.master.sendevent(o, cb);
+  };
+
+  process.on('SIGINT', function () {
+    app.sendevent({
+      module: 'app',
+      object: 'partout-agent',
+      msg: 'Agent terminating due to SIGINT'
+    }, function (resp) {
+      console.error('sendevent resp:', resp);
+      process.exit(1);
+    });
+    process.exit(1); // for now
+  });
+  process.on('SIGTERM', function () {
+    app.sendevent({
+      module: 'app',
+      object: 'partout-agent',
+      msg: 'Agent terminating due to SIGTERM'
+    }, function (resp) {
+      console.error('sendevent resp:', resp);
+      process.exit(1);
+    });
+    process.exit(1); // for now
+  });
+
+  /*
+  app.master.get('/manifest')
+  .then(function (manifest) {
+    console.log('manifest:', manifest);
   }).done();
+  //return;
+  */
+
+  //console.log('policy_sync');
+  var policy_sync = new Policy_Sync(app);
+  //console.log('after policy_sync');
+
+  app._apply = function (cb) {
+    fs.exists(app.apply_site_p2, function (exists) {
+      if (!exists) {
+        console.error('Error: site policy file', app.apply_site_p2, 'does not yet exist');
+        cb();
+      } else {
+        console.log('applying');
+        apply([app.apply_site_p2], {app: app, daemon: true});
+        cb();
+      }
+      //cb();
+    });
+  };
+
+  app.run = function () {
+    console.log('### START #######################################################');
+    var splay = (app.apply_count === 0 ? 0 : app.poll_manifest_splay_secs * 1000 * Math.random()) ;
+
+    if ((app.apply_count++ % app.poll_manifest_every) === 0) {
+
+      setTimeout(function () {
+        policy_sync.sync('etc/manifest', function () {
+          console.log('sync done');
+
+          app._apply(function () {
+            console.log('### FINI (after sync) ###########################################');
+          });
+        });
+      }, splay);  // Random Splay
+
+    } else {
+      app._apply(function () {
+        console.log('### FINI (no sync) ##############################################');
+      });
+    }
+  };
+
+  router.use(morgan('combined'));
+
+  router.get('/', function (req, res, next) {
+    res.send('Hello');
+  });
+
+  app.use('/', router);
+
+  //console.log('before https server');
+  https.createServer(ssl_options, app)
+    .listen(10444);
+  //console.log('after https server');
+
+  app.sendevent({
+    module: 'app',
+    object: 'partout-agent',
+    msg: 'Partout-Agent has (re)started https server'
+  })
+  .then(function () {
+    //console.log('after send event, calling app.run');
+    //process.exit(999);
+    app.run();
+    setInterval(function () {
+      app.run();
+    }, (app.apply_every_mins * 60 * 1000));
+  })
+  .fail(function (err) {
+    console.error('app run failed, err:', err);
+    console.log(err.stack);
+  })
+  .done();
+
 };
 
 module.exports = function (opts) {
@@ -262,14 +305,22 @@ module.exports = function (opts) {
     apply({}, {daemon: false, showfacts: true});
 
   } else if (opts.serve) {
+    var master = new Master(cfg, https);
+
     // Start a keep-alive - for handling Agent CSR signing delay
     var reexec = function () {
       process.nextTick(function () {
-        console.error('running serve');
-        serve(opts.args);
-        setTimeout(function () {
-          reexec();
-        }, 60 * 1000); // TODO: Splay timing
+        checkCert(opts.args, master)
+        .then(function (result) {
+          if (result) {
+            serve(opts.args, master);
+          } else {
+            setTimeout(function () {
+              reexec();
+            }, 60 * 1000); // TODO: Splay timing
+          }
+        })
+        .done();
       });
     };
     reexec();
