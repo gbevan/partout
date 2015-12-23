@@ -29,7 +29,7 @@ var Q = require('q');
 /**
  * Controller Common prototype for collections.
  *
- * this.__proto__ = Common(db, 'csrs');
+ * Object.setPrototypeOf(self, Common(db, 'csrs'));
  */
 var Common = function (db, name) {
 
@@ -64,7 +64,8 @@ var Common = function (db, name) {
         } else {
           self.collection.create()
           .then(function () {
-            console.log(self.collectionName, 'collection:', self.collection);
+            //console.log(self.collectionName, 'collection:', self.collection);
+            console.info('Collection', self.collectionName, 'created');
             deferred.resolve('created');
           });
         }
@@ -102,6 +103,11 @@ var Common = function (db, name) {
     delete: function (key) {
       var self = this;
       return self.collection.removeByKeys([{_key: key}]);
+    },
+
+    deleteAll: function () {
+      var self = this;
+      return self.collection.truncate();
     }
 
   };

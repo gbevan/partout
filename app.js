@@ -46,7 +46,8 @@ var console = require('better-console'),
   cfg = new (require('./etc/partout.conf.js'))(),
   arangojs = require('arangojs'),
   db = arangojs({promise: Q.promise}),
-  Csr = require('./server/controllers/csr.js');
+  Csr = require('./server/controllers/csr.js'),
+  Agent = require('./server/controllers/agent.js');
 
 Q.longStackSupport = true;
 
@@ -100,12 +101,30 @@ var connectDb = function () {
  * Initialise partout server database
  */
 var init = function () {
+  var deferred = Q.defer();
+
   console.info('Initialising...\n');
   console.info(banner);
 
-  // Init Csr
-  var csr = new Csr(db);
-  csr.init();  // create collections if req'd. returns a promise
+  connectDb()
+  .then(function () {
+
+    // Init ArangoDB Collections
+    var csr = new Csr(db);
+    var agent = new Agent(db);
+
+    csr.init()
+    .then(function () {
+      agent.init();
+    })
+    .then(function() {
+      deferred.resolve();
+    })
+    .done();
+  })
+  .done();
+
+  return deferred.promise;
 };
 
 
@@ -263,7 +282,8 @@ var serve = function () {
 
 module.exports = function (opts) {
   if (opts.init) {
-    init(opts.args);
+    init(opts.args)
+    .done();
 
   } else if (opts.serve) {
     serve(opts.args);
@@ -274,7 +294,8 @@ module.exports = function (opts) {
     connectDb()
     .then(function (status) {
       //console.log('csr db:', status);
-      var csr = new Csr(db);
+      var csr = new Csr(db),
+        key;
 
       if (opts.args.length === 0) {
         opts.args[0] = 'list';
@@ -289,7 +310,7 @@ module.exports = function (opts) {
           for (var i in csrList) {
             var csrObj = ca.pki.certificationRequestFromPem(csrList[i].csr);
             var fingerprint = ca.pki.getPublicKeyFingerprint(csrObj.publicKey, {encoding: 'hex', delimiter: ':'});
-            console.warn('   ' + csrList[i]._key + ' : ' + csrList[i].status + ' : ' + fingerprint);
+            console.warn('   ' + csrList[i]._key + ' : ' + csrList[i].status + ' : ' + fingerprint + ' : ' + csrList[i].lastSeen);
           }
         })
         .fail(function (err) {
@@ -303,7 +324,7 @@ module.exports = function (opts) {
           console.error('Error: Missing csr key to sign');
           process.exit(1);
         }
-        var key = opts.args[1];
+        key = opts.args[1];
         console.warn('Signing csr for agent:', key);
 
         csr.query({_key: key})
@@ -339,26 +360,33 @@ module.exports = function (opts) {
           console.error('Error missing csr key to reject');
           process.exit(1);
         }
-        var key = opts.args[1];
-        console.warn('rejecting csr for agent:', key);
+        key = opts.args[1];
 
-        csr.query({_key: key})
-        .then(function (cursor) {
-          if (cursor.count === 0) {
-            console.error('csr not found');
-            process.exit(1);
-          } else if (cursor.count > 1) {
-            console.error('Internal error, query for csr key returned more than 1 document');
-            process.exit(1);
-          } else {
-            cursor.next()
-            .then(function (csrDoc) {
-              return csr.delete(csrDoc._key)
-            })
-            .done();
-          }
-        })
-        .done();
+        if (key === 'all') {
+          console.warn('rejecting all csrs...');
+          csr.deleteAll()
+          .done();
+        } else {
+          console.warn('rejecting csr for agent:', key);
+
+          csr.query({_key: key})
+          .then(function (cursor) {
+            if (cursor.count === 0) {
+              console.error('csr not found');
+              process.exit(1);
+            } else if (cursor.count > 1) {
+              console.error('Internal error, query for csr key returned more than 1 document');
+              process.exit(1);
+            } else {
+              cursor.next()
+              .then(function (csrDoc) {
+                return csr.delete(csrDoc._key);
+              })
+              .done();
+            }
+          })
+          .done();
+        }
 
       } else {
         console.error('Error: Unrecognised sub command');

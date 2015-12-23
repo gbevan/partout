@@ -60,6 +60,11 @@ Facts.getFacts = function () {
      * Gather facts about this agent system
      */
 
+    partout_agent_uuid: (fs.existsSync('etc/UUID') ? fs.readFileSync('etc/UUID').toString() : ''),
+    partout_agent_facts_module_dirname: __dirname,
+    partout_agent_cwd: process.cwd(),
+    partout_agent_memusage: process.memoryUsage(),
+
     platform: process.platform,
     arch: process.arch,
 
@@ -75,8 +80,30 @@ Facts.getFacts = function () {
     os_freemem_bytes: os.freemem(),
     os_cpus: os.cpus(),
     os_numcpus: os.cpus().length,
-    os_nics: os.networkInterfaces()
+    os_nics: os.networkInterfaces(),
+    os_endianness: os.endianness(),
+    os_hostname: os.hostname(),
+
+    bios_date: fs.readFileSync('/sys/devices/virtual/dmi/id/bios_date').toString().trim(),
+    bios_vendor: fs.readFileSync('/sys/devices/virtual/dmi/id/bios_vendor').toString().trim(),
+    board_asset_tag: fs.readFileSync('/sys/devices/virtual/dmi/id/board_asset_tag').toString().trim(),
+    board_name: fs.readFileSync('/sys/devices/virtual/dmi/id/board_name').toString().trim(),
+    //board_serial: fs.readFileSync('/sys/devices/virtual/dmi/id/board_serial').toString().trim(),
+    board_vendor: fs.readFileSync('/sys/devices/virtual/dmi/id/board_vendor').toString().trim(),
+    board_version: fs.readFileSync('/sys/devices/virtual/dmi/id/board_version').toString().trim(),
+    chassis_asset_tag: fs.readFileSync('/sys/devices/virtual/dmi/id/chassis_asset_tag').toString().trim(),
+    //chassis_serial: fs.readFileSync('/sys/devices/virtual/dmi/id/chassis_serial').toString().trim(),
+    chassis_type: fs.readFileSync('/sys/devices/virtual/dmi/id/chassis_type').toString().trim(),
+    chassis_vendor: fs.readFileSync('/sys/devices/virtual/dmi/id/chassis_vendor').toString().trim(),
+    chassis_version: fs.readFileSync('/sys/devices/virtual/dmi/id/chassis_version').toString().trim(),
+    modalias: fs.readFileSync('/sys/devices/virtual/dmi/id/modalias').toString().trim(),
+    product_name: fs.readFileSync('/sys/devices/virtual/dmi/id/product_name').toString().trim(),
+    //product_serial: fs.readFileSync('/sys/devices/virtual/dmi/id/product_serial').toString().trim(),
+    //product_uuid: fs.readFileSync('/sys/devices/virtual/dmi/id/product_uuid').toString().trim(),
+    product_version: fs.readFileSync('/sys/devices/virtual/dmi/id/product_version').toString().trim(),
   };
+
+
   console.log('facts:', facts);
   return facts;
 };

@@ -1,4 +1,4 @@
-/*jshint esnext: true*/
+/*jshint newcap: false, esnext: true*/
 /*
     Partout [Everywhere] - Policy-Based Configuration Management for the
     Data-Driven-Infrastructure.
@@ -25,7 +25,8 @@
 'use strict';
 
 var Q = require('q'),
-  Common = require('./common');
+  Common = require('./common'),
+  uuid = require('node-uuid');
 
 /**
  * Controller for the csrs collection.
@@ -37,47 +38,66 @@ var Q = require('q'),
 var Csr = function (db) {
   var self = this;
 
-  self.__proto__ = Common(db, 'csrs');
+  //self.__proto__ = Common(db, 'csrs');
+  Object.setPrototypeOf(self, Common(db, 'csrs'));
 
 
-  self.register = function (ip, csr) {
+  self.register = function (agent_uuid, ip, csr) {
     var self = this,
-      deferred = Q.defer();
+      deferred = Q.defer(),
+      now = new Date();
+    console.log('agent_uuid:', agent_uuid);
 
-    // check if ip and csr already exist
-    self.query({_key: ip})
-    .then(function (docCursor) {
-      //console.log('docCursor:', docCursor);
+    // check if csr already exist for this agent's uuid (if one present)
+    var p;
+    if (agent_uuid) {
+      p = self.query({_key: agent_uuid});
+    } else {
+      p = Q.resolve({count: 0}); //fake empty query
+    }
+    console.log('p:', p);
+    p.then(function (docCursor) {
+      console.log('docCursor:', docCursor);
 
       if (docCursor.count === 0) {
         // Create new entry in csrs collection
-        self.save({
-          _key: ip,
+        var newDoc = {
+          _key: ((agent_uuid && agent_uuid !== '') ? agent_uuid : uuid.v4()),
+          ip: ip,
           csr: csr,
-          status: 'unsigned'
-        })
+          status: 'unsigned',
+          lastSeen: now
+        };
+        console.log('newDoc:', newDoc);
+        self.save(newDoc)
         .then(function (doch) {
+          console.log('doch:', doch);
           self.collection.document(doch)
           .then(function (doc) {
+            console.log('doc:', doc);
             deferred.resolve(doc);
           });
-        });
+        })
+        .done();
+
       } else {
         //console.log('csr already exists for', ip);
         docCursor.next()
         .then(function (doc) {
           //console.log('doc:', doc);
-          if (doc.csr !== csr) {
-            self.collection.update(doc._id, {csr: csr, status: 'unsigned'})
-            .then(function () {
-              deferred.resolve(doc);
-            });
-          } else {
+          self.collection.update(doc._id, {
+            csr: csr,
+            status: 'unsigned',
+            lastSeen: now
+          })
+          .then(function () {
             deferred.resolve(doc);
-          }
-        });
+          });
+        })
+        .done();
       }
-    });
+    })
+    .done();
     return deferred.promise;
   };
 };

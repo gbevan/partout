@@ -51,18 +51,29 @@ var console = require('better-console'),
 
 Q.longStackSupport = true;
 
+var MYUUID_FILE = 'etc/UUID';
+var MYUUID = (fs.existsSync(MYUUID_FILE) ? fs.readFileSync(MYUUID_FILE).toString() : '');
 
 var _sendCsr = function (master) {
   var deferred = Q.defer();
-  master.post('/agentcsr', {csr: fs.readFileSync(ssl.agentCsrFile).toString()})
+  master.post('/agentcsr', {
+    uuid: MYUUID,
+    csr: fs.readFileSync(ssl.agentCsrFile).toString()
+  })
   .then(function (resp) {
-    //console.log('resp:', resp);
+    console.log('resp to agentcsr:', resp);
     resp = JSON.parse(resp);
     master.sendevent({
       object: 'partout-agent',
       module: 'app',
       msg: 'Partout-Agent has sent CSR'
     });
+
+    // save returned UUID
+    if (resp._key) {
+      fs.writeFileSync(MYUUID_FILE, resp._key);
+      MYUUID = resp._key;
+    }
     deferred.resolve(resp);
   })
   .fail(function (err) {
@@ -190,6 +201,9 @@ var serve = function (args, master) {
   app.sendevent = function (o, cb) {
     return app.master.sendevent(o, cb);
   };
+
+  app.uuid = MYUUID;
+  //app.master.set_uuid(app.uuid);
 
   process.on('SIGINT', function () {
     app.sendevent({

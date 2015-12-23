@@ -55,6 +55,14 @@ var Master = function (cfg, https) {
   };
 };
 
+/*
+Master.prototype.set_uuid = function (uuid) {
+  var self = this;
+
+  self.uuid = uuid;
+}
+*/
+
 /**
  * set the agent certificate and private key (once available)
  * @param {Object} agent's private key
@@ -80,11 +88,12 @@ Master.prototype.set_agent_cert = function (key, cert) {
  * @returns Promise
  */
 Master.prototype.post = function (path, o, cb) {
-  //console.warn('POST: path:', path, 'data:', o, 'type:', typeof(o));
+  console.warn('POST: path:', path, 'data:', o, 'type:', typeof(o));
   var self = this;
 
   var deferred = Q.defer();
 
+  //o.uuid = self.uuid;
   var post_data = JSON.stringify(o),
     options = {
       method: 'POST',
@@ -173,7 +182,8 @@ Master.prototype.get = function (path, cb) {
     options = {
       path: path,
       method: 'GET'
-    };
+    },
+    msg;
   _.merge(options, self.options);
   //console.log('GET merged options:', options);
 
@@ -181,13 +191,13 @@ Master.prototype.get = function (path, cb) {
   var req = self.https.request(options, function (res) {
     //console.log('after https.get');
     if (res.statusCode === 401) {
-      var msg = 'Client authentication denied by master (csr may need signing to grant access), status: ' + res.statusCode;
+      msg = 'Client authentication denied by master (csr may need signing to grant access), status: ' + res.statusCode;
       console.error(msg);
       deferred.reject(new Error(msg));
       return;
     }
     if (res.statusCode !== 200) {
-      var msg = 'Request failed for path: ' + path + ' status: ' + res.statusCode;
+      msg = 'Request failed for path: ' + path + ' status: ' + res.statusCode;
       console.log(msg);
       deferred.reject(new Error(msg));
       return;
