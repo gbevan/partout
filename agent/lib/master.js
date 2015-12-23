@@ -88,7 +88,7 @@ Master.prototype.set_agent_cert = function (key, cert) {
  * @returns Promise
  */
 Master.prototype.post = function (path, o, cb) {
-  console.warn('POST: path:', path, 'data:', o, 'type:', typeof(o));
+  //console.warn('POST: path:', path, 'data:', o, 'type:', typeof(o));
   var self = this;
 
   var deferred = Q.defer();

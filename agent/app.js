@@ -85,8 +85,20 @@ var _sendCsr = function (master) {
 };
 
 var apply = function (args, opts) {
-  var policy = new Policy(args, opts);
-  policy.apply();
+  var deferred = Q.defer();
+  //var policy = new Policy(args, opts);
+  new Policy(args, opts)
+  .then(function (policy) {
+    //console.log('policy:', policy);
+    policy.apply()
+    .then(function () {
+      console.log('policy.apply() resolved');
+      deferred.resolve();
+    })
+    .done();
+  })
+  .done();
+  return deferred.promise;
 };
 
 var checkCert = function (args, master) {
@@ -247,8 +259,12 @@ var serve = function (args, master) {
         cb();
       } else {
         //console.log('applying');
-        apply([app.apply_site_p2], {app: app, daemon: true});
-        cb();
+        apply([app.apply_site_p2], {app: app, daemon: true})
+        .then(function () {
+          console.log('apply resolved');
+          cb();
+        })
+        .done();
       }
       //cb();
     });
@@ -266,14 +282,14 @@ var serve = function (args, master) {
           //console.log('sync done');
 
           app._apply(function () {
-            console.log('### FINI (after sync) ###########################################');
+            console.log('### FINISHED POLICY (after sync) ###########################################');
           });
         })
         .fail(function (err) {
           console.warn('policy_sync call failed, will continue to run existing cached manifest (if available)');
 
           app._apply(function () {
-            console.log('### FINI (after FAILED sync) ###########################################');
+            console.log('### FINISHED POLICY (after FAILED sync) ###########################################');
           });
         })
         .done();
@@ -281,7 +297,7 @@ var serve = function (args, master) {
 
     } else {
       app._apply(function () {
-        console.log('### FINI (no sync) ##############################################');
+        console.log('### FINISHED POLICY (no sync) ##############################################');
       });
     }
   };

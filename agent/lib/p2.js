@@ -32,7 +32,8 @@ var console = require('better-console'),
   exec = require('child_process').exec,
   fs = require('fs'),
   EventEmitter = require('events').EventEmitter,
-  querystring = require('querystring');
+  querystring = require('querystring'),
+  Q = require('q');
 
 var init_impl = function _impl() {  };
 
@@ -98,7 +99,8 @@ var P2_watchers_close = function () {
  * @constructor
  */
 var P2 = function () {
-  var self = this;
+  var self = this,
+    deferred = Q.defer();
   self._impl = init_impl;
 
   /**
@@ -322,7 +324,11 @@ var P2 = function () {
     self[m] = self._impl[m] = _modules[m];
   });
 
-  return self._impl;  // after this self will be _impl
+  //return self._impl;  // after this self will be _impl
+
+  deferred.resolve(self._impl);
+
+  return deferred.promise;
 };
 
 module.exports = P2;

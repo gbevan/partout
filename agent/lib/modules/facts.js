@@ -104,7 +104,7 @@ Facts.getFacts = function () {
   };
 
 
-  console.log('facts:', facts);
+  //console.log('facts:', facts);
   return facts;
 };
 
