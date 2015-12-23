@@ -37,7 +37,18 @@ function Policy(args, opts) {
   var self = this;
   //console.log('Policy called with args:', args, 'opts:', opts);
   self.args = args;
+  self.app = opts.app;
+  if (opts.app.master) {
+    self.master = opts.app.master;
+  }
   GLOBAL.p2_agent_opts = self.opts = opts;
+
+  // Post facts to master
+  if (self.master) {
+    // TODO: Only post on startup and when facts change !!!
+    self.master.post('/facts', p2.facts)
+    .done();
+  }
 
   if (self.opts.showfacts) {
     p2.print_facts();

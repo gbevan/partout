@@ -136,7 +136,7 @@ var serve = function () {
     throw (new Error(err));
   })
   .done(function() {
-    console.info('Certificates ok, generating key chain');
+    console.info('Certificates ok, generating trusted key chain');
 
     ca.generateTrustedCertChain(function () {
 
