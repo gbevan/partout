@@ -237,6 +237,7 @@ var serve = function () {
 
         httpsApi.createServer(optionsApi, appApi)
         .listen(cfg.partout_api_port);
+        console.info('Master API listening on port', cfg.partout_api_port);
 
         /****************************
          * Start Master UI Server
@@ -275,6 +276,7 @@ var serve = function () {
 
         httpsUi.createServer(optionsUi, appUi)
         .listen(cfg.partout_ui_port);
+        console.info('Master UI listening on port', cfg.partout_ui_port);
 
       }).done();
     });

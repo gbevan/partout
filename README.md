@@ -11,11 +11,15 @@ Modules
 ### facts
 Takes no parameters and is called internally before any other modules, to gather facts about the target system.
 
+If any module contains a method called getFacts, it will be called during fact discover, prior to module execution.
+
 ### exec
 Execute commands.
 
 ### file
 Manage files, includes the [Mustache](https://github.com/janl/mustache.js) templating library.
+
+Discovered facts are made available to the templating engine.
 
 P2 Language - Policy Files
 --------------------------
