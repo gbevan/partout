@@ -240,13 +240,6 @@ var serve = function (args, master) {
     process.exit(1); // for now
   });
 
-  /*
-  app.master.get('/manifest')
-  .then(function (manifest) {
-    console.log('manifest:', manifest);
-  }).done();
-  //return;
-  */
 
   //console.log('policy_sync');
   var policy_sync = new Policy_Sync(app);

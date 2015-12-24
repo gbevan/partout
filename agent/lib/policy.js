@@ -56,6 +56,9 @@ function Policy(args, opts) {
     if (self.master) {
       // TODO: Only post on startup and when facts change !!!
       self.master.post('/facts', p2.facts)
+      .fail(function (err) {
+        console.error('posting facts to master failed:', err);
+      })
       .done();
     }
 
