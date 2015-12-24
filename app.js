@@ -186,9 +186,11 @@ var serve = function () {
         //console.warn('db:',db);
 
         var controllers = {
-          'csr': new Csr(db)
+          'csr': new Csr(db),
+          'agent': new Agent(db)
         };
         controllers.csr.init();  // create collections if req'd. returns a promise
+        controllers.agent.init();  // create collections if req'd. returns a promise
 
         /****************************
          * Start Master API Server

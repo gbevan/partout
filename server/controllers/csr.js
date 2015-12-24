@@ -85,11 +85,9 @@ var Csr = function (db) {
         docCursor.next()
         .then(function (doc) {
           //console.log('doc:', doc);
-          self.collection.update(doc._id, {
-            csr: csr,
-            status: 'unsigned',
-            lastSeen: now
-          })
+          doc.csr = csr;
+          doc.lastSeen = now;
+          self.collection.update(doc._id, doc)
           .then(function () {
             deferred.resolve(doc);
           });

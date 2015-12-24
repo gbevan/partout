@@ -73,9 +73,39 @@ var Common = function (db, name) {
       return deferred.promise;
     },
 
+    /**
+     * Query by example document
+     * @param   {Object} example
+     * @returns {Object} arangojs cursor
+     */
     query: function (example) {
       var self = this;
       return self.collection.byExample(example);
+    },
+
+    queryOne: function (example) {
+      var self = this,
+        deferred = Q.defer();
+
+      self.query(example)
+      .then(function (cursor) {
+        console.log('cursor:', cursor);
+        if (cursor.count > 1) {
+          throw new Error('queryOne returned more than 1 result');
+        }
+        if (cursor.count === 1) {
+          cursor.next()
+          .then(function (doc) {
+            console.log('doc:', doc);
+            deferred.resolve(doc);
+          })
+          .done();
+        } else {
+          deferred.resolve();
+        }
+      })
+      .done();
+      return deferred.promise;
     },
 
     all: function () {
@@ -97,7 +127,7 @@ var Common = function (db, name) {
 
     update: function (doc) {
       var self = this;
-      self.collection.update(doc._id, doc);
+      return self.collection.update(doc._id, doc);
     },
 
     delete: function (key) {
