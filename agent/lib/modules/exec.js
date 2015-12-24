@@ -142,11 +142,12 @@ Exec.getName = function () { return 'exec'; };
 
 /**
  * Return this module's discovered facts
- * @return {String} name of module
+ * @return {String} name of module or a deferred promise
  */
 Exec.getFacts = function () {
   var facts = {};
   facts.exec_loaded = true;
+  //facts.THIS_IS_WORKING = true;
   return facts;
 };
 

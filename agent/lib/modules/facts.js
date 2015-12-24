@@ -26,7 +26,10 @@
 var _ = require('lodash'),
   os = require('os'),
   fs = require('fs'),
-  exec = require('child_process').exec;
+  exec = require('child_process').exec,
+  Q = require('q');
+
+Q.longStackSupport = true;
 
 /**
  * @constructor
@@ -54,6 +57,33 @@ Facts.getName = function () { return 'Facts'; };
  * @return {String} name of module
  */
 Facts.getFacts = function () {
+  var outer_deferred = Q.defer();
+
+  function tryRead(file) {
+    var deferred = Q.defer(),
+      factname = file[0],
+      filename = file[1];
+
+    //console.log('tryRead', factname, filename);
+    fs.exists(filename, function (exists) {
+      //console.log('exists:', exists);
+      if (exists) {
+        Q.nfcall(fs.readFile, filename)
+        .then(function (data) {
+          deferred.resolve([factname, data.toString()]);
+        })
+        .fail(function (err) {
+          console.error('reading file', filename, 'failed:', err.message);
+          deferred.resolve([factname, null]);
+        })
+        .done();
+      } else {
+        deferred.resolve([factname, null]);
+      }
+    });
+    return deferred.promise;
+  }
+
   var facts = {
 
     /***************************************
@@ -84,28 +114,55 @@ Facts.getFacts = function () {
     os_endianness: os.endianness(),
     os_hostname: os.hostname(),
 
-    bios_date: fs.readFileSync('/sys/devices/virtual/dmi/id/bios_date').toString().trim(),
-    bios_vendor: fs.readFileSync('/sys/devices/virtual/dmi/id/bios_vendor').toString().trim(),
-    board_asset_tag: fs.readFileSync('/sys/devices/virtual/dmi/id/board_asset_tag').toString().trim(),
-    board_name: fs.readFileSync('/sys/devices/virtual/dmi/id/board_name').toString().trim(),
-    //board_serial: fs.readFileSync('/sys/devices/virtual/dmi/id/board_serial').toString().trim(),
-    board_vendor: fs.readFileSync('/sys/devices/virtual/dmi/id/board_vendor').toString().trim(),
-    board_version: fs.readFileSync('/sys/devices/virtual/dmi/id/board_version').toString().trim(),
-    chassis_asset_tag: fs.readFileSync('/sys/devices/virtual/dmi/id/chassis_asset_tag').toString().trim(),
-    //chassis_serial: fs.readFileSync('/sys/devices/virtual/dmi/id/chassis_serial').toString().trim(),
-    chassis_type: fs.readFileSync('/sys/devices/virtual/dmi/id/chassis_type').toString().trim(),
-    chassis_vendor: fs.readFileSync('/sys/devices/virtual/dmi/id/chassis_vendor').toString().trim(),
-    chassis_version: fs.readFileSync('/sys/devices/virtual/dmi/id/chassis_version').toString().trim(),
-    modalias: fs.readFileSync('/sys/devices/virtual/dmi/id/modalias').toString().trim(),
-    product_name: fs.readFileSync('/sys/devices/virtual/dmi/id/product_name').toString().trim(),
-    //product_serial: fs.readFileSync('/sys/devices/virtual/dmi/id/product_serial').toString().trim(),
-    //product_uuid: fs.readFileSync('/sys/devices/virtual/dmi/id/product_uuid').toString().trim(),
-    product_version: fs.readFileSync('/sys/devices/virtual/dmi/id/product_version').toString().trim(),
   };
 
+  /*
+   * try to read these files as facts
+   * array, each entry is [ 'name of fact', 'filename to read' ]
+   */
+  var files = [],
+    promises = [];
+
+  if (os.type() === 'Linux') {
+    files = [
+      [ 'sys_bios_date',          '/sys/devices/virtual/dmi/id/bios_date'         ],
+      [ 'sys_bios_vendor',        '/sys/devices/virtual/dmi/id/bios_vendor'       ],
+      [ 'sys_board_asset_tag',    '/sys/devices/virtual/dmi/id/board_asset_tag'   ],
+      [ 'sys_board_name',         '/sys/devices/virtual/dmi/id/board_name'        ],
+      [ 'sys_board_serial',       '/sys/devices/virtual/dmi/id/board_serial'      ],
+      [ 'sys_board_vendor',       '/sys/devices/virtual/dmi/id/board_vendor'      ],
+      [ 'sys_board_version',      '/sys/devices/virtual/dmi/id/board_version'     ],
+      [ 'sys_chassis_asset_tag',  '/sys/devices/virtual/dmi/id/chassis_asset_tag' ],
+      [ 'sys_chassis_serial',     '/sys/devices/virtual/dmi/id/chassis_serial'    ],
+      [ 'sys_chassis_type',       '/sys/devices/virtual/dmi/id/chassis_type'      ],
+      [ 'sys_chassis_vendor',     '/sys/devices/virtual/dmi/id/chassis_vendor'    ],
+      [ 'sys_chassis_version',    '/sys/devices/virtual/dmi/id/chassis_version'   ],
+      [ 'sys_modalias',           '/sys/devices/virtual/dmi/id/modalias'          ],
+      [ 'sys_product_name',       '/sys/devices/virtual/dmi/id/product_name'      ],
+      [ 'sys_product_serial',     '/sys/devices/virtual/dmi/id/product_serial'    ],
+      [ 'sys_product_uuid',       '/sys/devices/virtual/dmi/id/product_uuid'      ],
+      [ 'sys_product_version',    '/sys/devices/virtual/dmi/id/product_version'   ],
+    ];
+  }
+
+  _.forEach(files, function (file) {
+    promises.push(tryRead(file));
+  });
+  //console.log('promises:', promises);
+
+  Q.all(promises)
+  .then(function (ar) {
+    _.forEach(ar, function (res) {
+      facts[res[0]] = res[1];
+    });
+    //console.log('facts:', facts);
+    outer_deferred.resolve(facts);
+  })
+  .done();
 
   //console.log('facts:', facts);
-  return facts;
+  //return facts;
+  return outer_deferred.promise;
 };
 
 module.exports = Facts;

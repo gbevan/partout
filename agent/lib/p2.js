@@ -36,6 +36,8 @@ var console = require('better-console'),
   querystring = require('querystring'),
   Q = require('q');
 
+Q.longStackSupport = true;
+
 var init_impl = function _impl() {  };
 
 /**
@@ -315,36 +317,48 @@ var P2 = function () {
   var _modules;
 
   // Use globally cached facts
+  var module_promise;
   if (GLOBAL.p2 && GLOBAL.p2.facts) {
+    console.warn('>>> Using cached facts');
     self.facts = GLOBAL.p2.facts;
-    _modules = require('./modules')();
+    //_modules = require('./modules')();
+    module_promise = require('./modules')();
   } else {
     self.facts = {};
-    _modules = require('./modules')(self.facts);
+    //_modules = require('./modules')(self.facts);
+    module_promise = require('./modules')(self.facts);
   }
-  self._impl.facts = self.facts;
 
-
-  /**
-   * print discovered facts
-   * @function
-   * @memberof P2
-   */
-  self._impl.print_facts = function () {
-    if (GLOBAL.p2_agent_opts && GLOBAL.p2_agent_opts.showfacts) {
-      console.log(JSON.stringify(self.facts, null, 2));
+  module_promise
+  .then(function (_modules) {
+    self._impl.facts = self.facts;
+    if (GLOBAL.p2) {
+      GLOBAL.p2.facts = self.facts;
     }
-  };
 
-  // Link modules
-  _.each(Object.keys(_modules), function (m) {
-    //console.log('m:', m);
-    self[m] = self._impl[m] = _modules[m];
-  });
 
-  //return self._impl;  // after this self will be _impl
+    /**
+     * print discovered facts
+     * @function
+     * @memberof P2
+     */
+    self._impl.print_facts = function () {
+      if (GLOBAL.p2_agent_opts && GLOBAL.p2_agent_opts.showfacts) {
+        console.log(JSON.stringify(self.facts, null, 2));
+      }
+    };
 
-  deferred.resolve(self._impl);
+    // Link modules
+    _.each(Object.keys(_modules), function (m) {
+      //console.log('m:', m);
+      self[m] = self._impl[m] = _modules[m];
+    });
+
+    //return self._impl;  // after this self will be _impl
+
+    deferred.resolve(self._impl);
+  })
+  .done();
 
   return deferred.promise;
 };

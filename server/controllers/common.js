@@ -89,14 +89,14 @@ var Common = function (db, name) {
 
       self.query(example)
       .then(function (cursor) {
-        console.log('cursor:', cursor);
+        //console.log('cursor:', cursor);
         if (cursor.count > 1) {
           throw new Error('queryOne returned more than 1 result');
         }
         if (cursor.count === 1) {
           cursor.next()
           .then(function (doc) {
-            console.log('doc:', doc);
+            //console.log('doc:', doc);
             deferred.resolve(doc);
           })
           .done();
@@ -116,7 +116,8 @@ var Common = function (db, name) {
       .then(function (cursor) {
         //console.log('cursor:', cursor);
         deferred.resolve(cursor.all());
-      });
+      })
+      .done();
       return deferred.promise;
     },
 
@@ -127,7 +128,7 @@ var Common = function (db, name) {
 
     update: function (doc) {
       var self = this;
-      return self.collection.update(doc._id, doc);
+      return self.collection.update(doc._id, doc, {mergeObjects: false});
     },
 
     delete: function (key) {

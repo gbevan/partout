@@ -31,32 +31,45 @@ var _ = require('lodash'),
     function (m) {
       return m.match(/\.js$/) !== null && m !== 'index.js';
     }
-  );
+  ),
+  Q = require('q');
+
+Q.longStackSupport = true;
 
 module.exports = function (facts) {
   // dynamically load modules
-  var _exports = {};
+  var _exports = {},
+    deferred = Q.defer(),
+    facts_promises = [];
+
   _.every(modules, function (m) {
     m = './' + m;
-    var M = require(m),
-      mFacts = {};
+    var M = require(m);
 
-    if (M.getFacts) {
-      mFacts = M.getFacts();
+    if (facts && M.getFacts) {
+      facts_promises.push(M.getFacts());
     }
-    //console.log('mFacts:', mFacts);
-
-    if (facts) {
-      //console.log(_o.name, 'facts:', _o.facts);
-      if (mFacts) {
-        _.merge(facts, mFacts);
-      }
-    }
-    //console.log('M.getName:', M.getName());
     _exports[M.getName()] = M;
-
     return true;
   });
 
-  return _exports;
+  if (!facts) {
+    deferred.resolve(_exports);
+  }
+
+  Q.all(facts_promises)
+  .then(function (ar_facts) {
+    _.forEach(ar_facts, function (mFacts) {
+      if (facts) {
+        //console.log(_o.name, 'facts:', _o.facts);
+        if (mFacts) {
+          _.merge(facts, mFacts);
+        }
+      }
+    });
+    console.log('merged facts:', facts);
+    deferred.resolve(_exports);
+  });
+
+  return deferred.promise;
 };

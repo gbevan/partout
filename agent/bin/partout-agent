@@ -25,6 +25,8 @@
 /*jslint node: true */
 'use strict';
 
+delete GLOBAL['p2'];
+delete GLOBAL['P2'];
 /*
  * partout-agent [apply | serve] site.json ...
  */
