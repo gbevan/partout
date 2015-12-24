@@ -70,7 +70,7 @@ Facts.getFacts = function () {
       if (exists) {
         Q.nfcall(fs.readFile, filename)
         .then(function (data) {
-          deferred.resolve([factname, data.toString()]);
+          deferred.resolve([factname, data.toString().trim()]);
         })
         .fail(function (err) {
           console.error('reading file', filename, 'failed:', err.message);

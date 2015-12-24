@@ -8,13 +8,13 @@
 <body>
   <h1>Partout Master API</h1>
   <h2>Installing Agent:</h2>
-  <p>on Linux / Unix:</p>
+  <p>on Linux / Unix (as root):</p>
   <pre>
-    bash < (curl -s "https://officepc.net:10443/bootstrap?os=$(uname -s)")
+    bash <(curl -k -s "https://officepc.net:10443/bootstrap?os=$(uname -s)")
   </pre>
   <p>or</p>
   <pre>
-    bash < (wget -q0- "https://officepc.net:10443/bootstrap?os=$(uname -s)")
+    bash <(wget --no-check-certificate -q0- "https://officepc.net:10443/bootstrap?os=$(uname -s)")
   </pre>
 </body>
 

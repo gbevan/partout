@@ -45,7 +45,8 @@ else
 fi
 
 echo "Getting Node.js manifest..."
-curl -k -s "https://{{partout_master_hostname}}:{{partout_api_port}}/nodejsManifest?os=$(uname -s)&arch=$(uname -m)&bootstrap=1" | while read F
+L=$(curl -k -s "https://{{partout_master_hostname}}:{{partout_api_port}}/nodejsManifest?os=$(uname -s)&arch=$(uname -m)&bootstrap=1")
+echo "$L" | while read F
 do
   nF=$(echo "$F" | sed 's?\([^/]*\)/[^/]*/[^/]*?\1?')
 
@@ -65,9 +66,10 @@ done
 
 
 echo "Getting Partout Agent manifest..."
-curl -k -s "https://{{partout_master_hostname}}:{{partout_api_port}}/agentManifest?bootstrap=1" | while read F
+L=$(curl -k -s "https://{{partout_master_hostname}}:{{partout_api_port}}/agentManifest?bootstrap=1")
+echo "$L" | while read F
 do
-  #echo "   Syncing file: $F"
+  echo $F | grep "agent/bin"
 
   D=`dirname "$F"`
   if [ ! -d "$D" ]
