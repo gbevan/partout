@@ -29,7 +29,18 @@ p2
   is_template: true,
   mode: '0600'
 })
-.watch(false);
+.watch(false)
+
+.watch('/etc/motd', function (callback, event, filename) {
+  console.warn('watch triggered', filename, event);
+  // optional callback
+  // pass updated status to callback
+  callback({
+    module: 'site.pp',
+    object: '/etc/motd',
+    msg: 'motd updated'
+  });
+});
 
 p2.end(function () {
   console.log('*** POLICY FINI (in site.pp) ***\n\n');

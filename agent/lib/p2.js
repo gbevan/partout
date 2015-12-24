@@ -1,3 +1,4 @@
+/*jshint newcap: false*/
 /*
     Partout [Everywhere] - Policy-Based Configuration Management for the
     Data-Driven-Infrastructure.
@@ -41,24 +42,29 @@ var init_impl = function _impl() {  };
  * Set a watcher on a filesystem object
  * @function
  * @param file {String} file name / path
- * @param cb {Function} callback(event, filename)
+ * @param cb {Function} callback(callback({module:..., object:..., msg:...}), event, filename)
  */
 var P2_watch = function (file, cb) {
   console.log('P2_watch() this:', this);
   var self = this;  // is _impl
+
 
   function queue_event (event, filename) {
     console.log('queue_event() event:', event, 'filename:', filename);
     var qlen = self._watch_event_cb_list.length;
     //self._watch_event_cb_list.push(cb);
     self._watch_event_cb_list.push(function (nimblecb) {
-      cb(function (o) {
-        //console.log('o:', o);
-        if (o.msg && o.msg.length > 0) {
-          self.sendevent(o);
-        }
-        nimblecb();
-      });
+      cb(
+        function (o) {
+          //console.log('o:', o);
+          if (o.msg && o.msg.length > 0) {
+            self.sendevent(o);
+          }
+          nimblecb();
+        },
+        event,
+        filename
+      );
     });
     if (qlen === 0) {
       /*
@@ -70,10 +76,16 @@ var P2_watch = function (file, cb) {
     }
   }
 
-  // NOTE: _watchers are closed in P2_watchers_close() below
-  // TODO: Allow multiple watchers per object, e.g. from different modules.
-  // Maybe make value a list to push handlers on to.
-  self._watchers[file] = fs.watch(file, {persistent: false}, queue_event);
+  fs.exists(file, function (exists) {
+    if (exists) {
+      // NOTE: _watchers are closed in P2_watchers_close() below
+      // TODO: Allow multiple watchers per object, e.g. from different modules.
+      // Maybe make value a list to push handlers on to.
+      self._watchers[file] = fs.watch(file, {persistent: false}, queue_event);
+    } else {
+      console.warn(file, 'does not yet exist, watch ignored for now');
+    }
+  });
 };
 
 var P2_unwatch = function (file) {
@@ -177,14 +189,20 @@ var P2 = function () {
 
   /**
    * enable watcher
+   * @param {boolean | string} boolean set watch on/off, or name of file (requires function parameter)
+   * @param {function} Callback when watch triggered
    * @return {class} P2 DSL impl
    * @memberof P2
    */
-  self._impl.watch = function (state) {
+  self._impl.watch = function (state, func) {
     var self = this;  // self is _impl
-    console.log('>>>>>>> watch state (parse phase):', state, 'self:', self);
-    self._watch_state = state;
 
+    if (typeof(state) === 'string' && typeof(func) === 'function') {
+      self.P2_watch(state, func);
+    } else {
+      console.log('>>>>>>> watch state (parse phase):', state, 'self:', self);
+      self._watch_state = state;
+    }
     return self;
   };
 
