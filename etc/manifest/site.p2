@@ -2,7 +2,7 @@
 'use strict';
 /*global p2*/
 
-p2.node('officepc')
+p2.node('officepc.net')
   .exec('sleep 1; id')
   .exec('id -u');
 

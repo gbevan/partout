@@ -73,6 +73,7 @@ var console = require('better-console'),
 
 var Exec = function (cmd, opts, cb) {
   var self = this;  // self is parents _impl
+  //console.log('Exec called self:', self);
 
   if (!opts) {
     opts = {};

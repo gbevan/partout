@@ -48,7 +48,7 @@ function Policy(args, opts) {
   //GLOBAL.p2 = new P2();
   new P2()
   .then(function (p2) {
-    console.log('p2:', p2);
+    //console.log('p2:', p2);
     GLOBAL.p2 = p2;
     GLOBAL.p2_agent_opts = self.opts = opts;
 

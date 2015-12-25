@@ -59,8 +59,8 @@ var console = require('better-console'),
 
 var File = function (title, opts, cb) {
   var self = this;  // self is parents _impl
-  console.log('file self:', self);
-  console.log('file watch_state on push:', self._watch_state);
+  //console.log('file self:', self);
+  //console.log('file watch_state on push:', self._watch_state);
   var _watch_state = self._watch_state;
   //console.log('file self.steps:', self.steps);
 
@@ -144,7 +144,7 @@ var File = function (title, opts, cb) {
       file = opts.path;
     }
     console.log('-------------------------------------------');
-    console.log('File on node "' + os.hostname() + '", file:', title, ', opts:', JSON.stringify(opts), 'watch_state:', _watch_state, 'self:', self);
+    //console.log('File on node "' + os.hostname() + '", file:', title, ', opts:', JSON.stringify(opts), 'watch_state:', _watch_state, 'self:', self);
 
     fs.lstat(file, function (err, stats) {
       var fd,

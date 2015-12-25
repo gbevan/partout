@@ -67,7 +67,7 @@ module.exports = function (facts) {
         }
       }
     });
-    console.log('merged facts:', facts);
+    //console.log('merged facts:', facts);
     deferred.resolve(_exports);
   });
 

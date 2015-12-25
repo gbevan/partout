@@ -38,7 +38,8 @@ var console = require('better-console'),
 
 Q.longStackSupport = true;
 
-var init_impl = function _impl() {  };
+var init_impl = function _impl() {  },
+  empty_impl = Object.create(init_impl);
 
 /**
  * Set a watcher on a filesystem object
@@ -47,7 +48,7 @@ var init_impl = function _impl() {  };
  * @param cb {Function} callback(callback({module:..., object:..., msg:...}), event, filename)
  */
 var P2_watch = function (file, cb) {
-  console.log('P2_watch() this:', this);
+  //console.log('P2_watch() this:', this);
   var self = this;  // is _impl
 
 
@@ -115,7 +116,7 @@ var P2_watchers_close = function () {
 var P2 = function () {
   var self = this,
     deferred = Q.defer();
-  self._impl = init_impl;
+  self._impl = Object.create(init_impl);
 
   /**
    * execute accrued actions
@@ -148,7 +149,7 @@ var P2 = function () {
         console.log('function returning _impl');
         return self._impl;
       }
-      return init_impl;  // empty _impl
+      return Object.create(init_impl);  // empty _impl
 
     } else if (select instanceof RegExp) {
       console.log('in RegExp:');
@@ -176,9 +177,11 @@ var P2 = function () {
       }
     }
     console.log('node no match');
+    //console.log('init_impl:', init_impl);
     //process.exit(0);
     //return null;
-    return init_impl;  // empty _impl
+    //console.log('empty_impl:', empty_impl);
+    return empty_impl;  // empty _impl
   };
   /**
    * filter by node
@@ -202,7 +205,7 @@ var P2 = function () {
     if (typeof(state) === 'string' && typeof(func) === 'function') {
       self.P2_watch(state, func);
     } else {
-      console.log('>>>>>>> watch state (parse phase):', state, 'self:', self);
+      //console.log('>>>>>>> watch state (parse phase):', state, 'self:', self);
       self._watch_state = state;
     }
     return self;
@@ -352,6 +355,9 @@ var P2 = function () {
     _.each(Object.keys(_modules), function (m) {
       //console.log('m:', m);
       self[m] = self._impl[m] = _modules[m];
+
+      // Dummy impl for excluded nodes
+      empty_impl[m] = function () { return this; };
     });
 
     //return self._impl;  // after this self will be _impl
