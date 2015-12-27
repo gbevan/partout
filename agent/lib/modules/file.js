@@ -289,7 +289,9 @@ var File = function (title, opts, cb) {
   };
 
   //self.steps.push(action);
-  self.push_action(action);
+  if (self.ifNode()) {
+    self.push_action(action);
+  }
 
   return self;
 };

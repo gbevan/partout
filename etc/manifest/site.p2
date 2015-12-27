@@ -2,24 +2,32 @@
 'use strict';
 /*global p2*/
 
-p2.node('officepc.net')
-  .exec('sleep 1; id')
-  .exec('id -u');
+p2
+.node('XXXXX')
+.exec('echo THIS SHOULDNT RUN')
+.node('officepc.net')
+.exec('echo THIS SHOULD RUN')
+.exec('sleep 1; id')
+.exec('id -u');
 
-p2.node('officepc')
-  .exec('sleep 1; echo "second after sleep"')
-  .exec('echo "second"')
-  .exec('pwd', function () { console.log('pwd ended'); })
-  .exec('pwd', {
-    cwd: '/tmp'
-  }, function () { console.log('pwd2 ended'); })
-  .exec('exit 1', {
-    returns: 1
-  });
-
-p2.exec('pwd > /tmp/pwd', {
-  creates: '/tmp/pwd'
+p2
+.node('officepc.net')
+.exec('sleep 1; echo "second after sleep"')
+.exec('echo "second"')
+.exec('pwd', function () { console.log('pwd ended'); })
+.exec('pwd', {
+  cwd: '/tmp'
+}, function () { console.log('pwd2 ended'); })
+.exec('exit 1', {
+  returns: 1
 });
+
+p2
+.watch(true)
+.exec('pwd > /tmp/pwd', {
+  creates: '/tmp/pwd'
+})
+.watch(false);
 
 p2
 .watch(true)

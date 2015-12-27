@@ -71,30 +71,55 @@ var console = require('better-console'),
  *   - unless
  */
 
-var Exec = function (cmd, opts, cb) {
+var Exec = function (cmd, opts, command_complete_cb) {
   var self = this;  // self is parents _impl
   //console.log('Exec called self:', self);
+
+  var _watch_state = self._watch_state;
 
   if (!opts) {
     opts = {};
   }
 
   if (typeof (opts) === 'function') {
-    cb = opts;
+    command_complete_cb = opts;
     opts = {};
   }
 
+  if (!self.ifNode()) {
+    return self;
+  }
+
   //console.log('Queing on node "' + node + '", cmd:', cmd);
-  self.steps.push(function (callback) {
+  self.push_action(function (next_step_callback) {
 
     console.log('Exec on node "' + os.hostname() + '", cmd:', cmd, ', opts:', JSON.stringify(opts));
 
-    function _exec(exists) {
+    function set_watcher(inWatch) {
+      console.log('Exec: inWatch:', inWatch, '_watch_state:', _watch_state, 'GLOBAL.p2_agent_opts.daemon:', GLOBAL.p2_agent_opts.daemon);
+      if (/*!inWatch && */_watch_state && GLOBAL.p2_agent_opts.daemon) {
+        console.log('>>> Exec: Starting watcher on file:', opts.creates);
+        self.P2_unwatch(opts.creates);
+        self.P2_watch(opts.creates, function (watcher_cb) {
+          console.log('watcher triggered. file:', opts.creates, 'this:', this);
+
+          fs.exists(opts.creates, function (exists) {
+            _exec(exists, true, watcher_cb);
+          });
+        });
+      }
+    }
+
+    function _exec(exists, inWatch, cb) {
       if (exists) {
-        console.log('skipped');
-        callback();
+        console.log('Exec: skipped due to target already exists (creates)');
+        if (opts.creates) {
+          set_watcher(inWatch);
+        }
+        cb();
 
       } else {
+        console.log('Executing command:', cmd);
         exec(cmd, opts, function (err, stdout, stderr) {
           if (stderr) {
             console.error(stderr);
@@ -115,20 +140,33 @@ var Exec = function (cmd, opts, cb) {
           } else if (err && err.code !== 0) {
             throw err;
           }
-          if (cb) {
-            cb(err, stdout, stderr);
+          if (opts.creates) {
+            set_watcher(inWatch);
           }
-          callback();
+          if (command_complete_cb) {
+            command_complete_cb(err, stdout, stderr);
+          }
+          if (opts.creates) {
+            cb({
+              module: 'exec',
+              object: opts.creates,
+              msg: 'target (re)created'
+            }); // next_step_callback or watcher callback
+          } else {
+            cb(); // next_step_callback or watcher callback
+          }
         });
       }
     }
 
     // handle 'extra' options
     if (opts.creates) {
-      fs.exists(opts.creates, _exec);
-      delete opts.creates;
+      fs.exists(opts.creates, function (exists) {
+        _exec(exists, false, next_step_callback);
+      });
+      //delete opts.creates;
     } else {
-      _exec(false);
+      _exec(false, false, next_step_callback);
     }
 
   }); // push

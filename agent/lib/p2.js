@@ -60,7 +60,7 @@ var P2_watch = function (file, cb) {
       cb(
         function (o) {
           //console.log('o:', o);
-          if (o.msg && o.msg.length > 0) {
+          if (o && o.msg && o.msg.length > 0) {
             self.sendevent(o);
           }
           nimblecb();
@@ -84,6 +84,7 @@ var P2_watch = function (file, cb) {
       // NOTE: _watchers are closed in P2_watchers_close() below
       // TODO: Allow multiple watchers per object, e.g. from different modules.
       // Maybe make value a list to push handlers on to.
+      console.log('Adding to watch list, file:', file);
       self._watchers[file] = fs.watch(file, {persistent: false}, queue_event);
     } else {
       console.warn(file, 'does not yet exist, watch ignored for now');
@@ -94,6 +95,7 @@ var P2_watch = function (file, cb) {
 var P2_unwatch = function (file) {
   var self = this;  // is _impl
   if (self._watchers[file]) {
+    console.log('P2_unwatch closing watcher for file:', file);
     self._watchers[file].close();
     delete self._watchers[file];
   }
@@ -104,6 +106,7 @@ var P2_watchers_close = function () {
     i;
   for (i in self._watchers) {
     if (self._watchers.hasOwnProperty(i)) {
+      console.log('Closing watcher for file:', i);
       self._watchers[i].close();
     }
   }
@@ -136,27 +139,39 @@ var P2 = function () {
   };
 
   /**
-   * filter by node
+   * DSL filter by node
    * (alias: select)
    * @return {class} P2 DSL impl
    * @memberof P2
    */
   self._impl.node = function (select) {
+    var self = this;
+    self._node_select = select;
+    return self;
+  };
+
+  /**
+   * Check if current node selected for this rule (used in modules before
+   * adding actions to _impl steps).
+   * @returns {boolean} true=this node is selected by last .node(...)
+   */
+  self._impl.ifNode = function () {
     var self = this, // _impl
       i;
+    var select = self._node_select;
+
     if (typeof (select) === 'function') {
       if (select(self.facts)) {
-        console.log('function returning _impl');
-        return self._impl;
+        console.log('function returning true');
+        return true;
       }
-      return Object.create(init_impl);  // empty _impl
+      return false;
 
     } else if (select instanceof RegExp) {
       console.log('in RegExp:');
       if (os.hostname().match(select)) {
         console.log('RegExp match');
-        console.log('RegExp returning _impl:', self);
-        return self;
+        return true;
       }
 
     } else {
@@ -171,7 +186,7 @@ var P2 = function () {
           console.log('node:', node, 'hostname:', os.hostname());
           if (os.hostname() === node) {
             console.log('node match');
-            return self;
+            return true;
           }
         }
       }
@@ -181,7 +196,7 @@ var P2 = function () {
     //process.exit(0);
     //return null;
     //console.log('empty_impl:', empty_impl);
-    return empty_impl;  // empty _impl
+    return false;
   };
   /**
    * filter by node
@@ -307,7 +322,7 @@ var P2 = function () {
     self._impl.steps.push(function (nimblecb) {
       action(function (o) {
         //console.log('o:', o);
-        if (o.msg && o.msg.length > 0) {
+        if (o && o.msg && o.msg.length > 0) {
           self._impl.sendevent(o);
         }
         nimblecb();
