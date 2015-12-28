@@ -12,6 +12,8 @@ var Cfg = function () {
   self.partout_ui_port = 11443;
   self.partout_api_port = 10443;
 
+  console.log('env:', process.env.NODE_ENV);
+
   self.database_name = 'partout';
 
 };

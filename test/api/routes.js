@@ -1,3 +1,4 @@
+/*jshint newcap: false*/
 /*
     Partout [Everywhere] - Policy-Based Configuration Management for the
     Data-Driven-Infrastructure.
@@ -43,11 +44,25 @@ Q.longStackSupport = true;
 
 var appApi;
 
+// Mock db controllers
+var controllers = {
+  agent: {
+    queryOne: function (doc) {
+      //console.log('agent.queryOne called with:', doc);
+      return Q(doc);
+    },
+    update: function (doc) {
+      //console.log('agent.update called with:', doc);
+      return Q();
+    }
+  }
+};
+
 before(function () {
   appApi = express();
   appApi.use(bodyParser.json());
   appApi.use(bodyParser.urlencoded({ extended: true }));
-  require('../../lib/api/routes')(routerApi);
+  require('../../lib/api/routes')(routerApi, undefined, undefined, controllers);
   routerApi.mock = true;
   appApi.use('/', routerApi);
 });
@@ -151,6 +166,7 @@ describe('api/routes', function () {
         request(appApi)
         .post('/facts')
         .send({
+          partout_agent_uuid: 'a test UUID',
           fact1: 'value of fact 1',
           fact2: 'value of fact 2',
           fact3: 'value of fact 3'

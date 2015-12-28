@@ -9,8 +9,13 @@ var gulp = require('gulp'),
   plugins = gulpLoadPlugins(),
   jsdoc = require('gulp-jsdoc');
 
+/*
+ * Currently env does not determine the arangodb being selected here, as all
+ * tests are using a mock-up of any required controllers.  This will probably
+ * change in the near future when unit-tests come out of the current fine-
+ * granularity and in to wider more inclusive tests (e.g. from the app itself).
+ */
 var env = process.env.NODE_ENV || 'development';
-console.log('Invoking gulp -', env);
 
 gulp.task('default', function () {
   plugins.nodemon({
