@@ -11,25 +11,46 @@
 #   http://127.0.0.1:3000
 
 VAGRANTFILE_API_VERSION = "2"
+#VAGRANT_DEFAULT_PROVIDER = "docker"  # see bashrc
+
 MYUID = Process.uid
 MYGID = Process.gid
 
-COMMON_PROVISION = "export DEBIAN_FRONTEND=noninteractive; \
-      sed -i 's?vagrant:x:[0-9]*:?vagrant:x:#{MYGID}:?' /etc/group && \
-      sed -i 's?vagrant:x:[0-9]*:[0-9]*::/home/vagrant:/bin/bash?vagrant:x:#{MYUID}:#{MYGID}::/home/vagrant:/bin/bash?' /etc/passwd && \
-      chown -R #{MYUID}:#{MYGID} /home/vagrant && \
-      apt-get update && \
-      apt-get update && \
-      apt-get install -y sysstat"
+UBUNTU_PROVISION = "export DEBIAN_FRONTEND=noninteractive; \
+sed -i 's?vagrant:x:[0-9]*:?vagrant:x:#{MYGID}:?' /etc/group && \
+sed -i 's?vagrant:x:[0-9]*:[0-9]*::/home/vagrant:/bin/bash?vagrant:x:#{MYUID}:#{MYGID}::/home/vagrant:/bin/bash?' /etc/passwd && \
+chown -R #{MYUID}:#{MYGID} /home/vagrant && \
+apt-get update && \
+apt-get upgrade -y; \
+apt-get install -y sysstat; \
+curl -sL https://deb.nodesource.com/setup_5.x | sudo -E bash -; \
+apt-get install -y nodejs build-essential; \
+"
+
+CENTOS_PROVISION = "yum clean all && yum swap fakesystemd systemd && \
+yum update && \
+yum install -y net-tools; \
+curl --silent --location https://rpm.nodesource.com/setup_5.x | bash -; \
+yum -y install -y nodejs gcc-c++ make; \
+"
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   config.vm.usable_port_range = 2300..2350
+  config.vm.provider "docker"
 
   config.vm.define "ubuntu14", primary: true do |u14|
-    u14.vm.provision "shell", inline: COMMON_PROVISION
+    u14.vm.provision "shell", inline: UBUNTU_PROVISION
     u14.vm.provider "docker" do |d|
       d.image = "gbevan/vagrant-ubuntu-dev:trusty"
+      d.has_ssh = true
+    end
+  end
+
+  config.vm.define "centos7", primary: true do |c7|
+    c7.vm.provision "shell", inline: CENTOS_PROVISION
+    c7.vm.provider "docker" do |d|
+      d.image = "gbevan/vagrant-centos-dev:centos7"
       d.has_ssh = true
     end
   end
