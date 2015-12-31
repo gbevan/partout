@@ -4,8 +4,7 @@
 var Cfg = function () {
   var self = this;
 
-  //self.partout_master_hostname = 'officepc.net';
-  self.partout_master_hostname = '172.17.0.1';
+  self.partout_master_hostname = 'officepc.net';
   self.partout_master_port = 10443;
 
   self.partout_agent_port = 10444;

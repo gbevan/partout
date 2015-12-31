@@ -10,11 +10,19 @@
 # Port 3000 is exposed on the host system, so access the vm using:
 #   http://127.0.0.1:3000
 
+require 'socket'
+
 VAGRANTFILE_API_VERSION = "2"
 #VAGRANT_DEFAULT_PROVIDER = "docker"  # see bashrc
 
 MYUID = Process.uid
 MYGID = Process.gid
+
+H=Socket.gethostname
+IP=Socket.ip_address_list.find { |ai| ai.ipv4? && !ai.ipv4_loopback? }.ip_address
+
+MASTERHOST = "#{H}:#{IP}"
+#print "MASTERHOST=#{MASTERHOST}"
 
 UBUNTU_PROVISION = "export DEBIAN_FRONTEND=noninteractive; \
 sed -i 's?vagrant:x:[0-9]*:?vagrant:x:#{MYGID}:?' /etc/group && \
@@ -24,15 +32,17 @@ apt-get update && \
 apt-get upgrade -y; \
 apt-get install -y sysstat; \
 curl -sL https://deb.nodesource.com/setup_5.x | sudo -E bash -; \
-apt-get install -y nodejs build-essential; \
+apt-get install -y nodejs; \
 "
+#apt-get install -y build-essential; # disabled to ensure pure-javascript in agent
 
 CENTOS_PROVISION = "yum clean all && yum swap fakesystemd systemd && \
 yum update && \
 yum install -y net-tools; \
 curl --silent --location https://rpm.nodesource.com/setup_5.x | bash -; \
-yum -y install -y nodejs gcc-c++ make; \
+yum -y install -y nodejs; \
 "
+#yum -y install -y gcc-c++ make; # disabled to ensure pure-javascript in agent
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
@@ -43,7 +53,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     u14.vm.provision "shell", inline: UBUNTU_PROVISION
     u14.vm.provider "docker" do |d|
       d.image = "gbevan/vagrant-ubuntu-dev:trusty"
+      #d.pull = true
       d.has_ssh = true
+      d.create_args = ['--add-host', MASTERHOST]
     end
   end
 
@@ -51,7 +63,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     c7.vm.provision "shell", inline: CENTOS_PROVISION
     c7.vm.provider "docker" do |d|
       d.image = "gbevan/vagrant-centos-dev:centos7"
+      #d.pull = true
       d.has_ssh = true
+      d.create_args = ['--add-host', MASTERHOST]
     end
   end
 

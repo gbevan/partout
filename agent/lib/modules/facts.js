@@ -1,3 +1,4 @@
+/*jshint newcap: false*/
 /*
     Partout [Everywhere] - Policy-Based Configuration Management for the
     Data-Driven-Infrastructure.
@@ -94,9 +95,17 @@ Facts.getFacts = function () {
     partout_agent_facts_module_dirname: __dirname,
     partout_agent_cwd: process.cwd(),
     partout_agent_memusage: process.memoryUsage(),
+    partout_agent_uptime: process.uptime(),
 
     platform: process.platform,
     arch: process.arch,
+
+    gid: (process.getgid ? process.getgid() : undefined),
+    uid: (process.getuid ? process.getuid() : undefined),
+    egid: (process.getegid ? process.getegid() : undefined),
+    euid: (process.geteuid ? process.geteuid() : undefined),
+
+    umask: process.umask(),
 
     node_version: process.version,
     node_versions: process.versions,
@@ -150,13 +159,51 @@ Facts.getFacts = function () {
   });
   //console.log('promises:', promises);
 
-  Q.all(promises)
-  .then(function (ar) {
-    _.forEach(ar, function (res) {
-      facts[res[0]] = res[1];
-    });
-    //console.log('facts:', facts);
-    outer_deferred.resolve(facts);
+  /*
+   * Determine details of Linux operating system from /etc/os-release
+   * add to array of promises
+   */
+  var os_deferred = Q.defer();
+  fs.exists('/etc/os-release', function (exists) {
+    if (!exists) {
+      os_deferred.resolve();
+    } else {
+      Q.nfcall(fs.readFile, '/etc/os-release')
+      .then(function (data) {
+        data = data.toString();
+        //console.log('data:', data);
+        var lines = data.toString().split(/\r?\n/);
+
+        _.forEach(lines, function (line) {
+          line = line.trim();
+          if (line && line !== '') {
+            //console.log('line:', line);
+            var parts = line.split('=');
+            //console.log('parts:', parts);
+            var l_fact = ['os_dist_' + parts[0].toLowerCase(), parts[1].replace(/["']*/g, '')];
+            console.log('l_fact:', l_fact);
+            promises.push(Q(l_fact));
+          }
+        });
+
+        os_deferred.resolve();
+      })
+      .done();
+    }
+  });
+
+  os_deferred.promise
+  .then(function () {
+
+    Q.all(promises)
+    .then(function (ar) {
+      _.forEach(ar, function (res) {
+        facts[res[0]] = res[1];
+      });
+      console.log('facts:', facts);
+      outer_deferred.resolve(facts);
+    })
+    .done();
   })
   .done();
 

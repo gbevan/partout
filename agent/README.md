@@ -1,3 +1,107 @@
+Partout Agent
+=============
+
+Prerequisites
+-------------
+
+It is preferred to have Node.js pre-installed for Partout (the alternative is that Partout will see if there is
+a suitable copy of Node.js available on the Master for download, during the bootstrap process).
+
+To prep your agent's OS with Node.js:
+
+see https://nodejs.org/en/download/package-manager/
+
+### Debian and Ubuntu based distributions:
+
+    curl -sL https://deb.nodesource.com/setup_5.x | sudo -E bash -
+    sudo apt-get install -y nodejs
+
+### RedHat/CentOS/Fedora Based distibutions:
+
+    curl --silent --location https://rpm.nodesource.com/setup_5.x | bash -
+    yum -y install nodejs
+
+### Notes
+
+We deliberately leave out build-essentials and development tools, as the Partout Agent must
+always only depend upon Pure-JavaScript modules (ie. nothing compiled).
+
+### Windows, Mac OSX, SunOS, ARM, AIX etc:
+
+See https://nodejs.org/en/download/ for installation options.
+
+Folder Layout
+-------------
+
+### Formal (production)
+
+#### Linux / Unix
+
+    /
+    |-- opt/
+    |   `-- partout/
+    |       `-- agent/
+    |           `-- bin/
+    |           `-- etc/ (? moving to /var/opt, see below)
+    |           `-- lib/
+    |               `-- modules/
+    |       `-- node/ (optionaly bootstrapped from master if not installed)
+    |-- var/
+    |   `-- opt/
+    |       `-- partout/
+    |           `-- UUID (agents unique id, given by master)
+    |           `-- manifest/ (sync'd from master)
+    |           `-- ssl/ (agent's csr, keys and signed cert)
+    |           `-- ssl_public/ (sync'd from master)
+
+#### Windows
+
+TODO
+
+### Development - Vagrant Docker
+
+#### Linux / Unix
+
+    /
+    |-- vagrant/
+    |   `-- bin/
+    |   `-- etc/
+    |   `-- lib/
+    |       `-- modules/
+    |-- var/
+    |   `-- opt/
+    |       `-- partout/
+    |           `-- UUID (agents unique id, given by master)
+    |           `-- manifest/ (sync'd from master)
+    |           `-- ssl/ (agent's csr, keys and signed cert)
+    |           `-- ssl_public/ (sync'd from master)
+
+#### Windows
+
+TODO
+
+Execution
+---------
+
+The Partout Agent must run as root / admin (windows).
+
+Bootstrapping
+-------------
+
+Visting the master api with a browser will show the command to be run to bootstrap the agent to a target node.
+
+https://master-ip:10443/
+
+If the bootstrap finds Node.js is already installed (preferred), then it will use that, otherwise it will look for
+an appropriate implementation to sync from the master to the agent, in folder:
+
+    /
+    |-- opt/
+    |   `-- node/
+    |       `-- ...
+
+COPYRIGHT
+---------
 
     Partout [Everywhere] - Policy-Based Configuration Management for the
     Data-Driven-Infrastructure.

@@ -28,6 +28,18 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+echo -e \
+"Bootstrapping:\n\n\
+'########:::::'###::::'########::'########::'#######::'##::::'##:'########:\n\
+ ##.... ##:::'## ##::: ##.... ##:... ##..::'##.... ##: ##:::: ##:... ##..::\n\
+ ##:::: ##::'##:. ##:: ##:::: ##:::: ##:::: ##:::: ##: ##:::: ##:::: ##::::\n\
+ ########::'##:::. ##: ########::::: ##:::: ##:::: ##: ##:::: ##:::: ##::::\n\
+ ##.....::: #########: ##.. ##:::::: ##:::: ##:::: ##: ##:::: ##:::: ##::::\n\
+ ##:::::::: ##.... ##: ##::. ##::::: ##:::: ##:::: ##: ##:::: ##:::: ##::::\n\
+ ##:::::::: ##:::: ##: ##:::. ##:::: ##::::. #######::. #######::::: ##::::\n\
+..:::::::::..:::::..::..:::::..:::::..::::::.......::::.......::::::..:::::\n\
+                         === PARTOUT AGENT ===\n"
+
 MYID=$(id -u)
 
 echo "============================================="
@@ -44,28 +56,40 @@ else
   cd partout || exit 1
 fi
 
-echo "Getting Node.js manifest..."
-L=$(curl -k -s "https://{{partout_master_hostname}}:{{partout_api_port}}/nodejsManifest?os=$(uname -s)&arch=$(uname -m)&bootstrap=1")
-echo "$L" | while read F
-do
-  nF=$(echo "$F" | sed 's?\([^/]*\)/[^/]*/[^/]*?\1?')
+echo "Looking for existing Node.js (in PATH)"
+NPATH=$(PATH=node/bin:$PATH which node)
 
-  D=`dirname "$nF"`
-  if [ ! -d "$D" ]
-  then
-    mkdir -p "$D" || exit 1
-  fi
+if [ "$NPATH" == "" ]
+then
+  echo "No Node.js found, will look for suitable installation from Partout Master..."
+  sleep 1
 
+  echo "Getting Node.js manifest..."
+  L=$(curl -k -s "https://{{partout_master_hostname}}:{{partout_api_port}}/nodejsManifest?os=$(uname -s)&arch=$(uname -m)&bootstrap=1")
+  echo "$L" | while read F
+  do
+    nF=$(echo "$F" | sed 's?\([^/]*\)/[^/]*/[^/]*?\1?')
 
-  curl -k -s "https://{{partout_master_hostname}}:{{partout_api_port}}/file?file=$F" > "$nF"
+    D=`dirname "$nF"`
+    if [ ! -d "$D" ]
+    then
+      mkdir -p "$D" || exit 1
+    fi
 
-  A=$(curl -k -s "https://{{partout_master_hostname}}:{{partout_api_port}}/fileAttrs?file=$F&bootstrap=1")
-  A=`echo $A | sed 's/^0100//'`
-  chmod $A "$nF" || exit 1
-done
+    curl -k -s "https://{{partout_master_hostname}}:{{partout_api_port}}/file?file=$F" > "$nF"
 
+    A=$(curl -k -s "https://{{partout_master_hostname}}:{{partout_api_port}}/fileAttrs?file=$F&bootstrap=1")
+    A=`echo $A | sed 's/^0100//'`
+    chmod $A "$nF" || exit 1
+  done
+  NPATH="node/bin/node"  # TODO: make absolute
+fi
 
-echo "Getting Partout Agent manifest..."
+NVER=$($NPATH --version)
+echo "Using Node.js version $NVER (at $NPATH)"
+sleep 1
+
+echo "Getting Partout Agent manifest (pls be patient)..."
 L=$(curl -k -s "https://{{partout_master_hostname}}:{{partout_api_port}}/agentManifest?bootstrap=1")
 echo "$L" | while read F
 do
@@ -89,8 +113,10 @@ done
 echo "Starting Partout Agent (policies will finalise the installation)"
 cd agent || exit 1
 
-#../node/bin/node bin/partout-agent
+# node/bin/node bin/partout-agent
 
+echo "Executing Partout Agent first time run..."
+$NPATH bin/partout-agent
 
 
 echo "Completed ok"

@@ -104,6 +104,10 @@ var Common = function (db, name) {
           deferred.resolve();
         }
       })
+      .fail(function (err) {
+        console.error('Query failed for doc:', example, 'err:', err);
+        deferred.reject(err);
+      })
       .done();
       return deferred.promise;
     },
@@ -116,6 +120,10 @@ var Common = function (db, name) {
       .then(function (cursor) {
         //console.log('cursor:', cursor);
         deferred.resolve(cursor.all());
+      })
+      .fail(function (err) {
+        console.error('all() failed for collection:', self.collectionName, 'err:', err);
+        deferred.reject(err);
       })
       .done();
       return deferred.promise;
