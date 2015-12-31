@@ -39,9 +39,11 @@ function Policy(args, opts) {
     deferred = Q.defer();
   //console.log('Policy called with args:', args, 'opts:', opts);
   self.args = args;
-  self.app = opts.app;
-  if (opts.app.master) {
-    self.master = opts.app.master;
+  if (opts.app) {
+    self.app = opts.app;
+    if (opts.app.master) {
+      self.master = opts.app.master;
+    }
   }
 
   GLOBAL.P2 = P2;
