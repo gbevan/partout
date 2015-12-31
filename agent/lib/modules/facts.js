@@ -105,7 +105,7 @@ Facts.getFacts = function () {
     egid: (process.getegid ? process.getegid() : undefined),
     euid: (process.geteuid ? process.geteuid() : undefined),
 
-    umask: process.umask(),
+    umask: '0' + process.umask().toString(8),
 
     node_version: process.version,
     node_versions: process.versions,
@@ -181,7 +181,7 @@ Facts.getFacts = function () {
             var parts = line.split('=');
             //console.log('parts:', parts);
             var l_fact = ['os_dist_' + parts[0].toLowerCase(), parts[1].replace(/["']*/g, '')];
-            console.log('l_fact:', l_fact);
+            //console.log('l_fact:', l_fact);
             promises.push(Q(l_fact));
           }
         });
@@ -200,7 +200,7 @@ Facts.getFacts = function () {
       _.forEach(ar, function (res) {
         facts[res[0]] = res[1];
       });
-      console.log('facts:', facts);
+      //console.log('facts:', facts);
       outer_deferred.resolve(facts);
     })
     .done();
