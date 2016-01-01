@@ -196,7 +196,7 @@ describe('api/routes', function () {
           var m = res.body;
           //console.log('m:', m);
           should(m['node/testos/testarch/testfile']).not.be.undefined;
-          m['node/testos/testarch/testfile'].should.eql('39a1dce124bb08bc255a01261f9e8b313c18662a78efd22246e85a7507f50eb5d064be516cc7ccd24c720f0bbe25f3ca598d4138454084ac0f64994a9f548b65');
+          m['node/testos/testarch/testfile'].hash.should.eql('39a1dce124bb08bc255a01261f9e8b313c18662a78efd22246e85a7507f50eb5d064be516cc7ccd24c720f0bbe25f3ca598d4138454084ac0f64994a9f548b65');
           done();
         });
       });

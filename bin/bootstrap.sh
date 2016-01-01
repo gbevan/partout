@@ -111,12 +111,21 @@ do
 done
 
 echo "Starting Partout Agent (policies will finalise the installation)"
+if
+  echo "$NPATH" | grep "^/" > /dev/null
+then
+  :
+else
+  NPATH=$(pwd)/$NPATH
+fi
+
 cd agent || exit 1
 
 # node/bin/node bin/partout-agent
 
 echo "Executing Partout Agent first time run..."
-$NPATH bin/partout-agent
+echo "  Running: $NPATH bin/partout-agent"
+$NPATH bin/partout-agent || exit 1
 
 
 echo "Completed ok"
