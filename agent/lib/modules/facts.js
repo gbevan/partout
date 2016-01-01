@@ -28,7 +28,9 @@ var _ = require('lodash'),
   os = require('os'),
   fs = require('fs'),
   exec = require('child_process').exec,
-  Q = require('q');
+  Q = require('q'),
+  cfg = new (require('../../etc/partout_agent.conf.js'))(),
+  path = require('path');
 
 Q.longStackSupport = true;
 
@@ -85,13 +87,14 @@ Facts.getFacts = function () {
     return deferred.promise;
   }
 
+  var UUIDFile = path.join(cfg.PARTOUT_VARDIR, 'UUID');
+
   var facts = {
 
     /***************************************
      * Gather facts about this agent system
      */
-
-    partout_agent_uuid: (fs.existsSync('etc/UUID') ? fs.readFileSync('etc/UUID').toString() : ''),
+    partout_agent_uuid: (fs.existsSync(UUIDFile) ? fs.readFileSync(UUIDFile).toString() : ''),
     partout_agent_facts_module_dirname: __dirname,
     partout_agent_cwd: process.cwd(),
     partout_agent_memusage: process.memoryUsage(),
