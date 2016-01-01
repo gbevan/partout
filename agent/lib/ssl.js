@@ -34,10 +34,10 @@ var expect = require('expect'),
 /**
  * @constructor
  */
-var Ssl = function () {
+var Ssl = function (cfg) {
   var self = this;
 
-  self.PARTOUT_AGENT_SSL_DIR = './etc/ssl';
+  self.PARTOUT_AGENT_SSL_DIR = cfg.PARTOUT_AGENT_SSL_DIR;
   self.PARTOUT_SSL_AGENT_PREFIX = 'agent';
 
   self.setFileNames();

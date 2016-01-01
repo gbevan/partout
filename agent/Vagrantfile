@@ -36,11 +36,12 @@ apt-get install -y nodejs; \
 "
 #apt-get install -y build-essential; # disabled to ensure pure-javascript in agent
 
-CENTOS_PROVISION = "yum clean all && yum swap fakesystemd systemd && \
-yum update && \
+CENTOS_PROVISION = "yum clean all && yum swap -y fakesystemd systemd && \
+yum update -y && \
 yum install -y net-tools; \
 curl --silent --location https://rpm.nodesource.com/setup_5.x | bash -; \
-yum -y install -y nodejs; \
+yum install -y nodejs;
+echo -e 'export TERM=vt100\nexport LANG=C\nexport LC_ALL=C' > /etc/profile.d/dockenv.sh; \
 "
 #yum -y install -y gcc-c++ make; # disabled to ensure pure-javascript in agent
 
@@ -48,6 +49,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   config.vm.usable_port_range = 2300..2350
   config.vm.provider "docker"
+
+  config.vm.synced_folder ".", "/vagrant", disabled: true
+  config.vm.synced_folder ".", "/opt/partout", mount_options: ["ro"]   # ro is being ignored vagrant-1.7.2/1.8.1
 
   config.vm.define "ubuntu14", primary: true do |u14|
     u14.vm.provision "shell", inline: UBUNTU_PROVISION

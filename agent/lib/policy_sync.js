@@ -102,28 +102,37 @@ Policy_Sync.prototype.get_master_cert = function () {
   return deferred.promise;
 };
 
+/**
+ * get a file from the master's REST API
+ * @param {String}   srcfile    Source filename (from manifest key)
+ * @param {String}   tgtrelname Optional relative file name to save the file contents to
+ * @param {Function} cb         callback(err)
+ */
+Policy_Sync.prototype.get_file = function (srcfile, tgtrelname, cb) {
+  var self = this;
+  if (typeof(tgtrelname) === 'function') {
+    cb = tgtrelname;
+    tgtrelname = srcfile;
+  }
+  var dir = path.dirname(tgtrelname);
 
-Policy_Sync.prototype.get_file = function (file, cb) {
-  var self = this,
-    dir = path.dirname(file),
-    base_file = path.basename(file);
-
-  self.app.master.get('/file?file=' + file)
+  self.app.master.get('/file?file=' + srcfile)
   .then(function (obj) {
     var buffer = obj.data;
     mkdirp(dir, function (err) {
       if (err) {
         console.error(err);
       }
-      fs.writeFile(file, buffer, cb);
+      fs.writeFile(tgtrelname, buffer, cb);
     });
   })
   .done();
 };
 
-Policy_Sync.prototype.sync = function (folder) {
+Policy_Sync.prototype.sync = function (srcfolder, destfolder) {
   var self = this,
     outer_deferred = Q.defer();
+  //console.log('syncing srcfolder:', srcfolder, 'destfolder:', destfolder);
 
   self.accepted_master_fingerprint = '';
   //console.log('get server cert');
@@ -185,40 +194,43 @@ Policy_Sync.prototype.sync = function (folder) {
   })
   .then(function () {
 
-    console.info('syncing:', folder);
+    console.info('syncing from:', srcfolder, 'to:', destfolder);
     //self.get_manifest(function (manifest) {
     self.app.master.get('/manifest')
     .then(function (obj) {
       var manifest = obj.data;
-      console.info('manifest:', manifest);
+      //console.info('manifest:', manifest);
 
       // Get hashWalk of local manifest
-      utils.hashWalk(folder, function (local_manifest) {
+      utils.hashWalk(destfolder, function (local_manifest) {
         //console.log('local_manifest:', local_manifest);
 
         var files = Object.keys(manifest),
           local_files = Object.keys(local_manifest),
           tasks = [];
+
         //console.log('files:', files);
 
-        _.each(files, function (file) {
+        _.each(files, function (srcfile) {
           tasks.push(function (done) {
-            //console.log('file:', file, 'hash:', manifest[file]);
+            var srcrelname = manifest[srcfile].relname,
+              destfile = path.join(self.app.cfg.PARTOUT_AGENT_MANIFEST_DIR, srcrelname);
+            //console.log('srcfile:', srcfile, 'relname:', srcrelname, 'hash:', manifest[srcfile]);
 
-            if (!local_manifest[file]) {
-              console.log('syncing new file:', file);
+            if (!local_manifest[destfile]) {
+              console.info('syncing new file:', destfile);
               // create it
-              self.get_file(file, function (err) {
+              self.get_file(srcfile, destfile, function (err) {
                 if (err) {
                   console.error(err);
                 }
                 done();
               });
 
-            } else if (local_manifest[file] !== manifest[file]) {
-              console.log('syncing changed file:', file, local_manifest[file], '->', manifest[file]);
+            } else if (local_manifest[destfile].hash !== manifest[srcfile].hash) {
+              console.info('syncing changed file:', srcrelname, local_manifest[destfile].hash, '->', manifest[srcfile].hash);
               // replace it
-              self.get_file(file, function (err) {
+              self.get_file(srcfile, destfile, function (err) {
                 if (err) {
                   console.error(err);
                 }
@@ -230,11 +242,18 @@ Policy_Sync.prototype.sync = function (folder) {
           });
         });
 
+        // transpose manifest into key by relname
+        var relmanifest = _.mapKeys(manifest, function (v, k) {
+          return path.join(self.app.cfg.PARTOUT_AGENT_MANIFEST_DIR, v.relname);
+        });
+        //console.log('relmanifest:', relmanifest);
+
+
         _.each(local_files, function (file) {
           tasks.push(function (done) {
-            if (!manifest[file]) {
+            if (!relmanifest[file]) {
               // delete local file
-              console.log('removing file:', file);
+              console.info('removing file:', file);
               fs.unlink(file, function (err) {
                 if (err) {
                   console.error(err);

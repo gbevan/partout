@@ -42,7 +42,7 @@ var console = require('better-console'),
   Q = require('q'),
   utils = new (require('./lib/utils'))(),
   cfg = new (require('./etc/partout_agent.conf.js'))(),
-  ssl = new (require('./lib/ssl'))(),
+  ssl = new (require('./lib/ssl'))(cfg),
   privateKeyFile = ssl.agentPrivateKeyFile,
   publicKeyFile = ssl.agentPublicKeyFile,
   csrFile = ssl.agentCsrFile,
@@ -51,7 +51,7 @@ var console = require('better-console'),
 
 Q.longStackSupport = true;
 
-var MYUUID_FILE = 'etc/UUID';
+var MYUUID_FILE = path.join(cfg.PARTOUT_VARDIR, 'UUID');
 var MYUUID = (fs.existsSync(MYUUID_FILE) ? fs.readFileSync(MYUUID_FILE).toString() : '');
 
 var _sendCsr = function (master) {
@@ -202,14 +202,15 @@ var serve = function (args, master) {
   app.poll_manifest_every = 6;
   app.poll_manifest_splay_secs = 30;
   app.apply_count = 0;
-  app.apply_site_p2 = 'etc/manifest/site.p2';
+  app.apply_site_p2 = cfg.PARTOUT_AGENT_MANIFEST_SITE_P2;
   app.https = https;
-  app.PARTOUT_AGENT_SSL_PUBLIC = './etc/ssl_public';
+  app.PARTOUT_AGENT_SSL_PUBLIC = cfg.PARTOUT_AGENT_SSL_PUBLIC;
 
   app.clientCert = sslCert;
   app.clientKey = sslKey;
 
   app.master = master;
+  app.cfg = cfg;
   app.sendevent = function (o, cb) {
     return app.master.sendevent(o, cb);
   };
@@ -270,7 +271,7 @@ var serve = function (args, master) {
     if ((app.apply_count++ % app.poll_manifest_every) === 0) {
 
       setTimeout(function () {
-        policy_sync.sync('etc/manifest')
+        policy_sync.sync(cfg.PARTOUT_MASTER_MANIFEST_DIR, cfg.PARTOUT_AGENT_MANIFEST_DIR)
         .then(function () {
           //console.log('sync done');
 
@@ -335,25 +336,30 @@ module.exports = function (opts) {
     apply({}, {daemon: false, showfacts: true});
 
   } else if (opts.serve) {
-    var master = new Master(cfg, https);
+    // Ensure var path exists
+    Q.nfcall(utils.ensurePath, cfg.PARTOUT_VARDIR)
+    .then(function () {
+      var master = new Master(cfg, https);
 
-    // Start a keep-alive - for handling Agent CSR signing delay
-    var reexec = function () {
-      process.nextTick(function () {
-        checkCert(opts.args, master)
-        .then(function (result) {
-          if (result) {
-            serve(opts.args, master);
-          } else {
-            setTimeout(function () {
-              reexec();
-            }, 60 * 1000); // TODO: Splay timing
-          }
-        })
-        .done();
-      });
-    };
-    reexec();
+      // Start a keep-alive - for handling Agent CSR signing delay
+      var reexec = function () {
+        process.nextTick(function () {
+          checkCert(opts.args, master)
+          .then(function (result) {
+            if (result) {
+              serve(opts.args, master);
+            } else {
+              setTimeout(function () {
+                reexec();
+              }, 60 * 1000); // TODO: Splay timing
+            }
+          })
+          .done();
+        });
+      };
+      reexec();
+    })
+    .done();
 
   } else {
     throw new Error('Unrecognised directive:' + JSON.stringify(opts));

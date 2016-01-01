@@ -79,12 +79,13 @@ Utils.prototype.hashFileSync = function (f) {
  * hidden files (.*) are filtered out.
  * @param {String} folder   folder to hash
  * @param {RegExp} excludere regexp to exclude matches (optional)
- * @param {Function} callback callback(manifest), where manifest is {filename:sha512 hex hash of file}
+ * @param {Function} callback callback(manifest), where manifest is {filename:{hash:sha512 hex hash of file, relname:string}
  */
 Utils.prototype.hashWalk = function (folder, excludere, cb) {
   var self = this,
     walker = walk.walk(folder),
-    manifest = {};
+    manifest = {},
+    folder_re = new RegExp('^' + folder + '/');
 
   if (!cb) {
     if (typeof(excludere) === 'function') {
@@ -98,7 +99,8 @@ Utils.prototype.hashWalk = function (folder, excludere, cb) {
       next();
       return;
     }
-    var f = path.join(root, fstats.name);
+    var f = path.join(root, fstats.name),
+      relname = f.replace(folder_re, '');
 
     if (excludere && f.match(excludere)) {
       next();
@@ -106,7 +108,14 @@ Utils.prototype.hashWalk = function (folder, excludere, cb) {
     }
 
     self.hashFile(f, function (hash) {
-      manifest[f] = hash;
+      //manifest[f] = {
+      manifest[f] = {
+        hash: hash,
+        root: root,
+        file: fstats.name,
+        relname: relname,
+        fullname: f
+      };
       next();
     });
   });
