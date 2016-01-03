@@ -50,6 +50,21 @@ p2
   });
 });
 
+p2
+.select(function (f) {
+  //console.log('in p2 facts:', f);
+  if (f.os_dist_id_like.match(/(debian|rhel)/i)) {
+    return true;
+  }
+  return false;
+})
+/*
+.package('mariadb-server', { ensure: 'absent' })
+.package('mariadb-server');
+*/
+.package('mariadb-server', { ensure: 'latest' });
+
+
 p2.end(function () {
   console.log('*** POLICY FINI (in site.pp) ***\n\n');
 });

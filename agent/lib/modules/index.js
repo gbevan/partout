@@ -29,25 +29,40 @@ var _ = require('lodash'),
   modules = _.remove(
     fs.readdirSync(path.dirname(module.filename)), // TODO: walk?
     function (m) {
-      return m.match(/\.js$/) !== null && m !== 'index.js';
+      return m.match(/\.js$/) !== null && m !== 'index.js' && m != 'facts.js';
     }
   ),
-  Q = require('q');
+  Q = require('q'),
+  nimble = require('nimble');
 
 Q.longStackSupport = true;
+
+modules.unshift('facts.js');
 
 module.exports = function (facts) {
   // dynamically load modules
   var _exports = {},
     deferred = Q.defer(),
-    facts_promises = [];
+    facts_promises = [],
+    facts_funcs = [];
 
   _.every(modules, function (m) {
     m = './' + m;
     var M = require(m);
 
     if (facts && M.getFacts) {
-      facts_promises.push(M.getFacts());
+      //facts_promises.push(M.getFacts());
+      facts_funcs.push(function (done) {
+        //console.log('module name:', M.getName());
+        M.getFacts(facts)
+        .then(function (m_facts) {
+          if (m_facts) {
+            _.merge(facts, m_facts);
+          }
+          done();
+        })
+        .done();
+      });
     }
     _exports[M.getName()] = M;
     return true;
@@ -57,6 +72,13 @@ module.exports = function (facts) {
     deferred.resolve(_exports);
   }
 
+  facts_funcs.push(function (done) {
+    deferred.resolve(_exports);
+    done();
+  });
+  nimble.series(facts_funcs);
+
+  /*
   Q.all(facts_promises)
   .then(function (ar_facts) {
     _.forEach(ar_facts, function (mFacts) {
@@ -70,6 +92,6 @@ module.exports = function (facts) {
     //console.log('merged facts:', facts);
     deferred.resolve(_exports);
   });
-
+  */
   return deferred.promise;
 };

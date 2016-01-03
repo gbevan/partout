@@ -160,7 +160,9 @@ var P2 = function () {
       i;
     var select = self._node_select;
 
+
     if (typeof (select) === 'function') {
+      //console.log('in ifNode facts:', self.facts);
       if (select(self.facts)) {
         console.log('function returning true');
         return true;
@@ -168,7 +170,7 @@ var P2 = function () {
       return false;
 
     } else if (select instanceof RegExp) {
-      console.log('in RegExp:');
+      //console.log('in RegExp:');
       if (os.hostname().match(select)) {
         console.log('RegExp match');
         return true;
@@ -320,7 +322,7 @@ var P2 = function () {
    */
   self._impl.push_action = function (action) {
     self._impl.steps.push(function (nimblecb) {
-      action(function (o) {
+      action.call(self, function (o) {
         //console.log('o:', o);
         if (o && o.msg && o.msg.length > 0) {
           self._impl.sendevent(o);

@@ -47,7 +47,7 @@ var console = require('better-console'),
  *   | Operand    | Type    | Description                            |
  *   |:-----------|---------|:---------------------------------------|
  *   | path       | String  | File path, overrides title             |
- *   | ensure     | Boolean | Present, absent, file, directory, link |
+ *   | ensure     | String  | Present, absent, file, directory, link |
  *   | content    | String  | Content of file                        |
  * ---
  * also supports:

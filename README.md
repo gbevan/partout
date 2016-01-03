@@ -67,11 +67,13 @@ Anatomy of a Module
 
 * May optionally provide method getFacts() which will be called prior to P2 policy executions, to pre-gather facts. e.g.:
 
-    Exec.getFacts = function () {
+    Exec.getFacts = function (facts_so_far) {
       var facts = {};
       facts.exec_loaded = true;
       return facts;
     };
+
+  The passed facts_so_far parameter holds all the facts that have been gathered so far.  The facts.js module runs before all other modules to ensure it's facts are available.
 
 * The module's constructor is called with the parameters passed from the P2 policy, e.g.:
 

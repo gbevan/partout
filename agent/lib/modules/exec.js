@@ -2,7 +2,7 @@
     Partout [Everywhere] - Policy-Based Configuration Management for the
     Data-Driven-Infrastructure.
 
-    Copyright (C) 2015  Graham Lee Bevan <graham.bevan@ntlworld.com>
+    Copyright (C) 2015-2016  Graham Lee Bevan <graham.bevan@ntlworld.com>
 
     This file is part of Partout.
 
@@ -27,7 +27,8 @@ var console = require('better-console'),
   _ = require('lodash'),
   os = require('os'),
   fs = require('fs'),
-  exec = require('child_process').exec;
+  exec = require('child_process').exec,
+  Q = require('q');
 
 /**
  * @constructor
@@ -184,10 +185,14 @@ Exec.getName = function () { return 'exec'; };
  * @return {String} name of module or a deferred promise
  */
 Exec.getFacts = function () {
-  var facts = {};
+  var facts = {},
+    deferred = Q.defer();
+
   facts.exec_loaded = true;
   //facts.THIS_IS_WORKING = true;
-  return facts;
+  deferred.resolve(facts);
+
+  return deferred.promise;
 };
 
 module.exports = Exec;
