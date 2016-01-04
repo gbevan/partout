@@ -64,6 +64,7 @@ module.exports = function (facts) {
         .done();
       });
     }
+    console.log(m);
     _exports[M.getName()] = M;
     return true;
   });

@@ -91,7 +91,10 @@ Anatomy of a Module
       var self = this;  // self is parents _impl
       ...
 
-  The ```this``` object is the P2 _impl object that provides the DSL.
+      return self;
+    };
+
+  The ```this``` (saved as ```self``` here) object is the P2 _impl object that provides the DSL, and MUST be returned by the constructor, as this passes on the DSL _impl for the next directive in the P2 policy.
 
 * All actions initiated by the module's constructor MUST be pushed on the P2 _impl stack for serialised execution using the provided push_action() method, e.g.:
 

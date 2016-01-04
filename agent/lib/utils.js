@@ -29,7 +29,11 @@ var console = require('better-console'),
   fs = require('fs'),
   crypto = require('crypto'),
   mkdirp = require('mkdirp'),
-  Q = require('q');
+  Q = require('q'),
+  exec = require('child_process').exec,
+  _ = require('lodash');
+
+Q.longStackSupport = true;
 
 /**
  * Common utils
@@ -145,6 +149,38 @@ Utils.prototype.pExists = function (file) {
   fs.exists(file, function (exists) {
     deferred.resolve(exists);
   });
+  return deferred.promise;
+};
+
+/**
+ * Execute a shell command and return the results in an array of lines
+ * @param {String}  cmd Command to run
+ * @returns {Promise} with err, lines, stderr
+ */
+Utils.prototype.execToArray = function (cmd) {
+  var deferred = Q.defer();
+
+  Q.nfcall(exec, cmd)
+  .then(function (res) {
+    var stdout = res[0],
+      stderr = res[1];
+    console.log('stdout:', stdout);
+    var lines = stdout.split(/\r?\n/),
+      ret_lines = [];
+    _.forEach(lines, function (line) {
+      line = line.trim();
+      if (line !== '') {
+        ret_lines.push(line);
+      }
+    });
+    deferred.resolve(ret_lines);
+  })
+  .fail(function (err, stderr) {
+    console.error('execToArray() failed cmd:', cmd);
+    deferred.reject(err, stderr);
+  })
+  .done();
+
   return deferred.promise;
 };
 
