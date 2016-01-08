@@ -95,31 +95,78 @@ Service.getFacts = function (facts_so_far) {
   if (facts_so_far.os_dist_id_like.match(/debian/i)) {
     // Debian-like OS's
     utils.execToArray('initctl list')
-    .then(function (upstart_lines) {
+    .then(function (res) {
+      var upstart_lines = res.outlines;
       _.forEach(upstart_lines, function (up_line) {
         var up_m = up_line.match(/^(.*)\s+(stop|start)\/(waiting|starting|pre-start|spawned|post-start|running|pre-stop|stopping|killed|post-stop)/);
         if (up_m) {
-          var up_name = up_m[0],
-            up_status = up_m[2];
-          services[up_name] = up_status;
+          var up_name = up_m[1],
+            up_desired = up_m[2],
+            up_status = up_m[3];
+          services[up_name] = {
+            desired: up_desired,
+            actual: up_status,
+            provider: 'upstart'
+          };
         }
       });
 
       utils.execToArray('service --status-all 2>&1')
-      .then(function (sysv_lines) {
-        _.forEach(sysv_lines, function (sysv_line) {
-          var sysv_m = sysv_line.match(/^\s*\[\s*(\+|\-|\?)\s*\]\s*(.*)/);
-          if (sysv_m) {
-            var sysv_name = sysv_m[2],
-              sysv_status = sysv_m[1];
-            sysv_status = (sysv_status === '+' ? 'running' : (sysv_status === '-' ? 'stopped' : 'unknown'));
-            if (!services[sysv_name]) {
-              services[sysv_name] = sysv_status;
-            }
+      .then(function (res) {
+        var sysv_lines = res.outlines;
+
+        // get Runlevel
+        utils.execToArray('/sbin/runlevel')
+        .then(function (res) {
+          console.log('res:', res);
+          var lines = res.outlines
+          var line = lines[0],
+            flds = line.split(/\s+/),
+            runlevel = flds[1];
+
+          // get list of file links in /etc/rc?.d/
+          var sysv_deferred = Q.defer();
+          if (res.rc === 0) {
+            Q.nfcall(fs.readdir, '/etc/rc' + runlevel + '.d/')
+            .then(function (files) {
+              var file_hash = {};
+
+              files.forEach(function (e) {
+                var me = e.match(/^S\d+(.*)/);
+                if (me) {
+                  file_hash[me[1]] = true;
+                }
+              });
+              sysv_deferred.resolve(file_hash);
+            })
+            .done();
+          } else {
+            sysv_deferred.resolve();
           }
+          sysv_deferred.promise
+          .then(function (file_hash) {
+            _.forEach(sysv_lines, function (sysv_line) {
+              var sysv_m = sysv_line.match(/^\s*\[\s*(\+|\-|\?)\s*\]\s*(.*)/);
+              if (sysv_m) {
+                var sysv_name = sysv_m[2],
+                  sysv_status = sysv_m[1];
+                sysv_status = (sysv_status === '+' ? 'running' : (sysv_status === '-' ? 'stopped' : 'unknown'));
+                if (!services[sysv_name]) {
+                  /*
+                   * determine desired status from runlevel and sysv startscript
+                   */
+                  services[sysv_name] = {
+                    desired: (!file_hash ? 'unknown' : (file_hash[sysv_name] ? 'start' : 'stop')),
+                    actual: sysv_status,
+                    provider: 'sysv'
+                  };
+                }
+              }
+            });
+            facts.services = services;
+            deferred.resolve(facts);
+          });
         });
-        facts.services = services;
-        deferred.resolve(facts);
       })
       .done();
     })

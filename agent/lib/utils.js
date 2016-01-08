@@ -160,26 +160,28 @@ Utils.prototype.pExists = function (file) {
 Utils.prototype.execToArray = function (cmd) {
   var deferred = Q.defer();
 
-  Q.nfcall(exec, cmd)
-  .then(function (res) {
-    var stdout = res[0],
-      stderr = res[1];
+  exec(cmd, function (err, stdout, stderr) {
+    console.log('stderr:', stderr);
     console.log('stdout:', stdout);
+
     var lines = stdout.split(/\r?\n/),
       ret_lines = [];
+
     _.forEach(lines, function (line) {
       line = line.trim();
       if (line !== '') {
         ret_lines.push(line);
       }
     });
-    deferred.resolve(ret_lines);
-  })
-  .fail(function (err, stderr) {
-    console.error('execToArray() failed cmd:', cmd);
-    deferred.reject(err, stderr);
-  })
-  .done();
+
+    deferred.resolve({
+      outlines: ret_lines,
+      stdout: stdout,
+      stderr: stderr,
+      err: err,
+      rc: (err ? err.code: 0)
+    });
+  });
 
   return deferred.promise;
 };
