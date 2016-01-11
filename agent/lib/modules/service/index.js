@@ -53,8 +53,12 @@ var Service = function (title, opts, command_complete_cb) {
 
   return self;
 };
+Service.filename = module.filename;
 
 Service.getName = function () { return 'service'; };
-Service.getFacts = Provider.getFacts;
+Service.getFacts = function (facts) {
+  var self = this;
+  return Provider.getFacts.call(self, facts);
+};
 
 module.exports = Service;

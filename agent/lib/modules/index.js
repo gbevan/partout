@@ -76,6 +76,7 @@ module.exports = function (facts) {
         //console.log('module name:', M.getName());
         M.getFacts(facts)
         .then(function (m_facts) {
+          //console.log('module returned facts:', m_facts);
           if (m_facts) {
             _.merge(facts, m_facts);
           }

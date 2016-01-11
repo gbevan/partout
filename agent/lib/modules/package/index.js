@@ -26,17 +26,39 @@
 var Provider = require('../../provider'),
     console = require('better-console');
 
-var Facts = function () {
+var Package = function (title, opts, command_complete_cb) {
   var self = this;  // self is p2 _impl DSL
+
+  if (typeof (opts) === 'function') {
+    command_complete_cb = opts;
+    opts = {};
+  }
+
+  if (!opts) {
+    opts = {};
+  }
+
+  console.warn('package b4 ifNode');
+  if (!self.ifNode()) {
+    return self;
+  }
+  console.warn('package after ifNode passed');
+
+  self.push_action(function (next_step_callback) {
+    var self = this;
+    console.warn('package index.js b4 runAction.call');
+    Provider.runAction.call(self, next_step_callback, [title, opts, command_complete_cb]);
+
+  }); // push action
 
   return self;
 };
-Facts.filename = module.filename;
+Package.filename = module.filename;
 
-Facts.getName = function () { return 'Facts'; };
-Facts.getFacts = function (facts) {
+Package.getName = function () { return 'package'; };
+Package.getFacts = function (facts) {
   var self = this;
   return Provider.getFacts.call(self, facts);
 };
 
-module.exports = Facts;
+module.exports = Package;

@@ -27,7 +27,6 @@ var Q = require('q'),
     fs = require('fs'),
     os = require('os'),
     path = require('path'),
-    mydir = path.dirname(module.parent.filename),
     console = require('better-console');
 
 /**
@@ -35,8 +34,10 @@ var Q = require('q'),
  * @param   {object}  facts Discovered facts.
  * @returns {Promise} promise resolves to module loaded.
  */
-var getProvider = function (facts) {
-  var deferred = Q.defer();
+var getProvider = function (facts, filename) {
+  var deferred = Q.defer(),
+      mydir = path.dirname(filename);
+  //console.warn('getProvider mydir:', mydir);
 
   // Get some early facts for provider search
 
@@ -121,17 +122,20 @@ Provider.runAction = function (next_step_callback, args) {
  * @returns {Promise} Promise Resolves to facts discovered by this module.
  */
 Provider.getFacts = function (facts_so_far) {
-  var deferred = Q.defer(),
-    facts = {};
+  //console.warn('getFacts self:', this);
+
+  var self = this,  // self is calling module
+      deferred = Q.defer(),
+      facts = {};
 
   var save_os_type = facts_so_far.os_type;
 
-  getProvider(facts_so_far)
+  getProvider(facts_so_far, self.filename)
   .then(function (PM) {
     //console.log('Provider getFacts resolved PM (try 1):', PM);
     if (!save_os_type) {
       // Run again as the first one was
-      getProvider(facts_so_far)
+      getProvider(facts_so_far, self.filename)
       .then(function (PM) {
         //console.log('Provider getFacts resolved PM (try 2):', PM);
         deferred.resolve(PM.getFacts(facts_so_far));

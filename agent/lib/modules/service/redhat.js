@@ -48,14 +48,14 @@ Service.getFacts = function (facts_so_far) {
     services = {},
     deferred = Q.defer(),
     cmd = '';
-  console.log('redhat getFacts()');
+  //console.log('redhat getFacts()');
 
   //utils.execToArray('/usr/bin/gdbus call --system --dest org.freedesktop.systemd1 --object-path /org/freedesktop/systemd1 --method org.freedesktop.systemd1.Manager.ListUnits')
   utils.execToArray('/usr/bin/systemctl list-units *.service | grep "\.service"')
   .then(function (res) {
-    console.log('res:', res);
+    //console.log('res:', res);
     var u_lines = res.outlines;
-    console.log('u_lines:', u_lines);
+    //console.log('u_lines:', u_lines);
 
     /*
      * parse each line for status
