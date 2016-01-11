@@ -161,8 +161,8 @@ Utils.prototype.execToArray = function (cmd) {
   var deferred = Q.defer();
 
   exec(cmd, function (err, stdout, stderr) {
-    console.log('stderr:', stderr);
-    console.log('stdout:', stdout);
+    //console.log('stderr:', stderr);
+    //console.log('stdout:', stdout);
 
     var lines = stdout.split(/\r?\n/),
       ret_lines = [];

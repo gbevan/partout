@@ -56,6 +56,12 @@ else
   cd partout || exit 1
 fi
 
+C='curl -k -s'
+if [ "$CWEB" == "wget" ]
+then
+  C='wget --no-check-certificate -qO-'
+fi
+
 echo "Looking for existing Node.js (in PATH)"
 NPATH=$(PATH=node/bin:$PATH which node)
 
@@ -65,7 +71,7 @@ then
   sleep 1
 
   echo "Getting Node.js manifest..."
-  L=$(curl -k -s "https://{{partout_master_hostname}}:{{partout_api_port}}/nodejsManifest?os=$(uname -s)&arch=$(uname -m)&bootstrap=1")
+  L=$(${C}  "https://{{partout_master_hostname}}:{{partout_api_port}}/nodejsManifest?os=$(uname -s)&arch=$(uname -m)&bootstrap=1")
   echo "$L" | while read F
   do
     nF=$(echo "$F" | sed 's?\([^/]*\)/[^/]*/[^/]*?\1?')
@@ -76,9 +82,9 @@ then
       mkdir -p "$D" || exit 1
     fi
 
-    curl -k -s "https://{{partout_master_hostname}}:{{partout_api_port}}/file?file=$F" > "$nF"
+    ${C}  "https://{{partout_master_hostname}}:{{partout_api_port}}/file?file=$F" > "$nF"
 
-    A=$(curl -k -s "https://{{partout_master_hostname}}:{{partout_api_port}}/fileAttrs?file=$F&bootstrap=1")
+    A=$(${C}  "https://{{partout_master_hostname}}:{{partout_api_port}}/fileAttrs?file=$F&bootstrap=1")
     A=`echo $A | sed 's/^0100//'`
     chmod $A "$nF" || exit 1
   done
@@ -90,7 +96,7 @@ echo "Using Node.js version $NVER (at $NPATH)"
 sleep 1
 
 echo "Getting Partout Agent manifest (pls be patient)..."
-L=$(curl -k -s "https://{{partout_master_hostname}}:{{partout_api_port}}/agentManifest?bootstrap=1")
+L=$(${C}  "https://{{partout_master_hostname}}:{{partout_api_port}}/agentManifest?bootstrap=1")
 echo "$L" | while read F
 do
   echo $F | grep "agent/bin"
@@ -103,9 +109,9 @@ do
 
   HF=$(echo "$F" | sed -e 's/%/%25/g' -e 's/#/%23/g' -e 's/,/%2C/g' -e 's/ /%20/g')
 
-  curl -k -s "https://{{partout_master_hostname}}:{{partout_api_port}}/file?file=$HF" > "$F"
+  ${C}  "https://{{partout_master_hostname}}:{{partout_api_port}}/file?file=$HF" > "$F"
 
-  A=$(curl -k -s "https://{{partout_master_hostname}}:{{partout_api_port}}/fileAttrs?file=$HF&bootstrap=1")
+  A=$(${C}  "https://{{partout_master_hostname}}:{{partout_api_port}}/fileAttrs?file=$HF&bootstrap=1")
   A=`echo $A | sed 's/^0100//'`
   chmod $A "$F" || exit 1
 done

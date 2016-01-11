@@ -161,7 +161,13 @@ var P2 = function () {
     var select = self._node_select;
 
 
-    if (typeof (select) === 'function') {
+    if (select === undefined) {
+      return true;
+    }
+    if (typeof (select) === 'boolean') {
+      return select;
+
+    } else if (typeof (select) === 'function') {
       //console.log('in ifNode facts:', self.facts);
       if (select(self.facts)) {
         console.log('function returning true');
@@ -322,8 +328,9 @@ var P2 = function () {
    */
   self._impl.push_action = function (action) {
     self._impl.steps.push(function (nimblecb) {
+      console.warn('Executing a step');
       action.call(self, function (o) {
-        //console.log('o:', o);
+        console.log('o:', o);
         if (o && o.msg && o.msg.length > 0) {
           self._impl.sendevent(o);
         }

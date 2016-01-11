@@ -14,7 +14,7 @@
   </pre>
   <p>or</p>
   <pre>
-    bash <(wget --no-check-certificate -q0- "https://{{master_hostname}}:{{master_api_port}}/bootstrap?os=$(uname -s)")
+    CWEB=wget bash <(wget --no-check-certificate -qO- "https://{{master_hostname}}:{{master_api_port}}/bootstrap?os=$(uname -s)")
   </pre>
 </body>
 

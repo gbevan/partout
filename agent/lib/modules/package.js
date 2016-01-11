@@ -121,6 +121,7 @@ var Package = function(title, opts, command_complete_cb) {
       } else if (opts.ensure === 'latest') {
         // LATEST
         if (self.facts.os_dist_id_like.match(/debian/i)) {
+          // TODO: check if newer version available for update.
           exec('apt-get update && apt-get upgrade -y ' + opts.name, function (err, stdout, stderr) {
             if (err) {
               console.error('apt-get upgrade failed:', err, stderr);

@@ -197,11 +197,20 @@ Facts.getFacts = function () {
 
   os_deferred.promise
   .then(function () {
+    facts.os_family = 'unknown';
 
     Q.all(promises)
     .then(function (ar) {
       _.forEach(ar, function (res) {
         facts[res[0]] = res[1];
+
+        if (res[0] === 'os_dist_id_like') {
+          if (res[1].match(/rhel/)) {
+            facts.os_family = 'redhat';
+          } else {
+            facts.os_family = res[1];
+          }
+        }
       });
       //console.log('facts:', facts);
       outer_deferred.resolve(facts);

@@ -2,7 +2,7 @@
     Partout [Everywhere] - Policy-Based Configuration Management for the
     Data-Driven-Infrastructure.
 
-    Copyright (C) 2015  Graham Lee Bevan <graham.bevan@ntlworld.com>
+    Copyright (C) 2015-2016  Graham Lee Bevan <graham.bevan@ntlworld.com>
 
     This file is part of Partout.
 
@@ -26,14 +26,33 @@
 var _ = require('lodash'),
   fs = require('fs'),
   path = require('path'),
-  modules = _.remove(
-    fs.readdirSync(path.dirname(module.filename)), // TODO: walk?
-    function (m) {
-      return m.match(/\.js$/) !== null && m !== 'index.js' && m != 'facts.js';
-    }
-  ),
+  mydir = path.dirname(module.filename),
   Q = require('q'),
   nimble = require('nimble');
+
+/**
+ * get list of modules (either .js or folders.
+ */
+var modules_top = _.remove(
+    fs.readdirSync(mydir), // TODO: walk?
+    function (m) {
+      var f = path.join(mydir, m),
+        isDir = fs.statSync(f).isDirectory();
+      if (isDir) {
+        return m != 'facts';
+      } else {
+        return m.match(/\.js$/) !== null && m !== 'index.js' && m != 'facts.js';
+      }
+    }
+  );
+
+var modules = modules_top.map(function (m) {
+  if (m.match(/\.js$/)) {
+    return m;
+  } else {
+    return path.join(m, 'index.js');
+  }
+});
 
 Q.longStackSupport = true;
 
@@ -47,11 +66,12 @@ module.exports = function (facts) {
     facts_funcs = [];
 
   _.every(modules, function (m) {
+    console.log('module file:', m);
     m = './' + m;
     var M = require(m);
+    console.log('M name:', M.getName());
 
     if (facts && M.getFacts) {
-      //facts_promises.push(M.getFacts());
       facts_funcs.push(function (done) {
         //console.log('module name:', M.getName());
         M.getFacts(facts)
@@ -64,7 +84,7 @@ module.exports = function (facts) {
         .done();
       });
     }
-    console.log(m);
+    //console.log('exporting module:', m);
     _exports[M.getName()] = M;
     return true;
   });
@@ -79,20 +99,5 @@ module.exports = function (facts) {
   });
   nimble.series(facts_funcs);
 
-  /*
-  Q.all(facts_promises)
-  .then(function (ar_facts) {
-    _.forEach(ar_facts, function (mFacts) {
-      if (facts) {
-        //console.log(_o.name, 'facts:', _o.facts);
-        if (mFacts) {
-          _.merge(facts, mFacts);
-        }
-      }
-    });
-    //console.log('merged facts:', facts);
-    deferred.resolve(_exports);
-  });
-  */
   return deferred.promise;
 };
