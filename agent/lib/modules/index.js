@@ -56,7 +56,7 @@ var modules = modules_top.map(function (m) {
 
 Q.longStackSupport = true;
 
-modules.unshift('facts.js');
+modules.unshift('facts/index.js');
 
 module.exports = function (facts) {
   // dynamically load modules
@@ -66,10 +66,10 @@ module.exports = function (facts) {
     facts_funcs = [];
 
   _.every(modules, function (m) {
-    console.log('module file:', m);
+    //console.log('module file:', m);
     m = './' + m;
     var M = require(m);
-    console.log('M name:', M.getName());
+    //console.log('M name:', M.getName());
 
     if (facts && M.getFacts) {
       facts_funcs.push(function (done) {

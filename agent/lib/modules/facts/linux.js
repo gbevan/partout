@@ -29,37 +29,16 @@ var _ = require('lodash'),
   fs = require('fs'),
   exec = require('child_process').exec,
   Q = require('q'),
-  cfg = new (require('../../etc/partout_agent.conf.js'))(),
+  cfg = new (require('../../../etc/partout_agent.conf.js'))(),
   path = require('path');
 
 Q.longStackSupport = true;
 
-/**
- * @constructor
- * @description
- * Facts module
- * ============
- *
- * built-in module for gathering core facts.
- */
+var Facts = function () {
 
-var Facts = function (cb) {
-  var self = this;  // self is parents _impl
-
-  return self;
 };
 
-/**
- * Return this module's name
- * @return {String} name of module
- */
-Facts.getName = function () { return 'Facts'; };
-
-/**
- * Return this module's discovered facts
- * @return {String} name of module
- */
-Facts.getFacts = function () {
+Facts.getFacts = function (facts_so_far) {
   var outer_deferred = Q.defer();
 
   function tryRead(file) {
@@ -219,8 +198,6 @@ Facts.getFacts = function () {
   })
   .done();
 
-  //console.log('facts:', facts);
-  //return facts;
   return outer_deferred.promise;
 };
 

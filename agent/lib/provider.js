@@ -25,6 +25,7 @@
 
 var Q = require('q'),
     fs = require('fs'),
+    os = require('os'),
     path = require('path'),
     mydir = path.dirname(module.parent.filename),
     console = require('better-console');
@@ -37,17 +38,28 @@ var Q = require('q'),
 var getProvider = function (facts) {
   var deferred = Q.defer();
 
+  // Get some early facts for provider search
+
   // Provider search list
-  var srchJsList = [
-    path.join(mydir, facts.dist_id + '.js'),         // (1) Operating System Specific Provider?
-    path.join(mydir, facts.os_family + '.js'), // (2) Operating System Family Provider?
-    path.join(mydir, facts.os_type + '.js')          // (3) Operating System Type Provider?
-  ];
+  // (1) Operating System Specific Provider?
+  // (2) Operating System Family Provider?
+  // (3) Operating System Type Provider?
+  var srchJsList = [facts.os_dist_id, facts.os_family, os.type().toLowerCase()];
+
+  //console.log('srchJsList b4:', srchJsList);
+  srchJsList = srchJsList.map(function (e) {
+    if (!e) {
+      return undefined;
+    }
+    return path.join(mydir, e.toLowerCase() + '.js');
+  });
+  srchJsList = srchJsList.filter(function (e) { return e !== undefined; });
+  //console.log('srchJsList after:', srchJsList);
 
   var promises = [];
   srchJsList.forEach(function (js) {
     promises.push(function (js) {
-      console.log('check for provider:', js);
+      //console.log('check for provider:', js);
       var inner_deferred = Q.defer();
       fs.exists(js, function (exists) {
         if (exists) {
@@ -63,7 +75,7 @@ var getProvider = function (facts) {
 
   Q.all(promises)
   .done(function (arr_p) {
-    console.log('arr_p:', arr_p);
+    //console.log('arr_p:', arr_p);
     var M;
     arr_p.forEach(function (p) {
       if (!M && p) {
@@ -93,11 +105,9 @@ var Provider = function () {
 Provider.runAction = function (next_step_callback, args) {
   var self = this;  // self is _impl
 
-  //console.warn('Provider runAction called args:', args, 'facts:', self.facts);
-
   getProvider(self.facts)
   .then(function (PM) {
-    console.log('Provider runAction resolved PM:', PM);
+    //console.log('Provider runAction resolved PM:', PM);
     console.warn('next_step_callback:', next_step_callback);
     args.unshift(next_step_callback);
     PM.runAction.apply(self, args);
@@ -113,13 +123,25 @@ Provider.runAction = function (next_step_callback, args) {
 Provider.getFacts = function (facts_so_far) {
   var deferred = Q.defer(),
     facts = {};
-  //console.log('Provider getFacts() os family:', facts_so_far.os_dist_id_like);
+
+  var save_os_type = facts_so_far.os_type;
 
   getProvider(facts_so_far)
   .then(function (PM) {
-    console.log('Provider getFacts resolved PM:', PM);
-    deferred.resolve(PM.getFacts(facts_so_far));
-  });
+    //console.log('Provider getFacts resolved PM (try 1):', PM);
+    if (!save_os_type) {
+      // Run again as the first one was
+      getProvider(facts_so_far)
+      .then(function (PM) {
+        //console.log('Provider getFacts resolved PM (try 2):', PM);
+        deferred.resolve(PM.getFacts(facts_so_far));
+      })
+      .done();
+    } else {
+      deferred.resolve(PM.getFacts(facts_so_far));
+    }
+  })
+  .done();
 
   return deferred.promise;
 };
