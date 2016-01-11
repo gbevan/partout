@@ -263,7 +263,7 @@ Package.getFacts = function (facts_so_far) {
           var name_arch = fields[0].split(/\./);
           var p_obj = {
             name: name_arch[0],
-            version: fields[2],
+            version: fields[1],
             arch: name_arch[1]
           };
           //facts['package:' + fields[1]] = p_obj;
