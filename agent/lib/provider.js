@@ -79,11 +79,13 @@ var getProvider = function (facts, filename) {
     //console.log('arr_p:', arr_p);
     var M;
     arr_p.forEach(function (p) {
+      //console.log('p:', p);
       if (!M && p) {
         M = p;
       }
     });
     if (M) {
+      //console.log('getProvider resolving M:', M.runAction);
       deferred.resolve(M);
     } else {
       console.error('Provider not found for this OS');
@@ -103,13 +105,15 @@ var Provider = function () {
 };
 
 // run action (from P2 directive)
-Provider.runAction = function (next_step_callback, args) {
+Provider.runAction = function (caller_filename, next_step_callback, args) {
   var self = this;  // self is _impl
+  //console.log('runAction filename:', caller_filename);
+  //console.log('args:', args);
 
-  getProvider(self.facts)
+  getProvider(self.facts, caller_filename)
   .then(function (PM) {
     //console.log('Provider runAction resolved PM:', PM);
-    console.warn('next_step_callback:', next_step_callback);
+    //console.warn('next_step_callback:', next_step_callback);
     args.unshift(next_step_callback);
     PM.runAction.apply(self, args);
   })
@@ -121,7 +125,7 @@ Provider.runAction = function (next_step_callback, args) {
  * @param   {object}  facts_so_far Facts discovered so far by P2
  * @returns {Promise} Promise Resolves to facts discovered by this module.
  */
-Provider.getFacts = function (facts_so_far) {
+Provider.getFacts = function (caller_filename, facts_so_far) {
   //console.warn('getFacts self:', this);
 
   var self = this,  // self is calling module
@@ -130,12 +134,12 @@ Provider.getFacts = function (facts_so_far) {
 
   var save_os_type = facts_so_far.os_type;
 
-  getProvider(facts_so_far, self.filename)
+  getProvider(facts_so_far, caller_filename)
   .then(function (PM) {
     //console.log('Provider getFacts resolved PM (try 1):', PM);
     if (!save_os_type) {
       // Run again as the first one was
-      getProvider(facts_so_far, self.filename)
+      getProvider(facts_so_far, caller_filename)
       .then(function (PM) {
         //console.log('Provider getFacts resolved PM (try 2):', PM);
         deferred.resolve(PM.getFacts(facts_so_far));

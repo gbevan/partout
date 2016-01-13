@@ -129,7 +129,7 @@ var P2 = function () {
    */
   self._impl.end = function (cb) {
     var self = this;
-    console.log('end steps:', self.steps);
+    //console.log('end steps:', self.steps);
     nimble.series(self.steps, function () {
       if (cb) {
         cb();
@@ -328,9 +328,9 @@ var P2 = function () {
    */
   self._impl.push_action = function (action) {
     self._impl.steps.push(function (nimblecb) {
-      console.warn('Executing a step');
+      //console.warn('Executing a step');
       action.call(self, function (o) {
-        console.log('o:', o);
+        //console.log('o:', o);
         if (o && o.msg && o.msg.length > 0) {
           self._impl.sendevent(o);
         }

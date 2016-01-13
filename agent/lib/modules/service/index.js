@@ -47,18 +47,17 @@ var Service = function (title, opts, command_complete_cb) {
   self.push_action(function (next_step_callback) {
     var self = this;
     console.warn('service index.js b4 runAction.call');
-    Provider.runAction.call(self, next_step_callback, [title, opts, command_complete_cb]);
+    Provider.runAction.call(self, module.filename, next_step_callback, [title, opts, command_complete_cb]);
 
   }); // push action
 
   return self;
 };
-Service.filename = module.filename;
 
 Service.getName = function () { return 'service'; };
 Service.getFacts = function (facts) {
   var self = this;
-  return Provider.getFacts.call(self, facts);
+  return Provider.getFacts.call(self, module.filename, facts);
 };
 
 module.exports = Service;

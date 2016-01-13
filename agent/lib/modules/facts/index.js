@@ -28,15 +28,13 @@ var Provider = require('../../provider'),
 
 var Facts = function () {
   var self = this;  // self is p2 _impl DSL
-
   return self;
 };
-Facts.filename = module.filename;
 
 Facts.getName = function () { return 'Facts'; };
 Facts.getFacts = function (facts) {
   var self = this;
-  return Provider.getFacts.call(self, facts);
+  return Provider.getFacts.call(self, module.filename, facts);
 };
 
 module.exports = Facts;
