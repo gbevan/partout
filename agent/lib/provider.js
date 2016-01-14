@@ -106,7 +106,8 @@ var Provider = function () {
 
 // run action (from P2 directive)
 Provider.runAction = function (caller_filename, next_step_callback, args) {
-  var self = this;  // self is _impl
+  var self = this,  // self is _impl
+      opts = args[1];
   //console.log('runAction filename:', caller_filename);
   //console.log('args:', args);
 

@@ -48,7 +48,8 @@ var Package = function (title, opts, command_complete_cb) {
   //console.warn('package after ifNode passed');
 
   self.push_action(function (next_step_callback) {
-    var self = this;
+    var self = this;  // self is _impl
+    //console.log('package b4 runAction self:', self);
     //console.warn('package index.js b4 runAction.call');
     Provider.runAction.call(self, module.filename, next_step_callback, [title, opts, command_complete_cb]);
 

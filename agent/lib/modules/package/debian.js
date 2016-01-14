@@ -58,7 +58,7 @@ var Package = function () {
  */
 
 Package.runAction = function (next_step_callback, title, opts, command_complete_cb) {
-  var self = this;
+  var self = this;  // self is _impl
   //console.log('package action self:', self);
   //console.log('package action called next_step_callback:', next_step_callback);
 
