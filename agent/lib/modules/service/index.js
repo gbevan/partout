@@ -24,9 +24,16 @@
 'use strict';
 
 var Provider = require('../../provider'),
-    console = require('better-console');
+    console = require('better-console'),
+    u = require('util');
 
-var Service = function (title, opts, command_complete_cb) {
+var Service = function () {
+  var self = this;
+};
+
+u.inherits(Service, Provider);
+
+Service.prototype.addStep = function (_impl, title, opts, command_complete_cb) {
   var self = this;  // self is p2 _impl DSL
 
   if (typeof (opts) === 'function') {
@@ -38,26 +45,25 @@ var Service = function (title, opts, command_complete_cb) {
     opts = {};
   }
 
-  console.warn('service b4 ifNode');
-  if (!self.ifNode()) {
+  //console.warn('service b4 ifNode');
+  if (!_impl.ifNode()) {
     return self;
   }
-  console.warn('service after ifNode passed');
+  //console.warn('service after ifNode passed');
 
-  self.push_action(function (next_step_callback) {
-    var self = this;
-    console.warn('service index.js b4 runAction.call');
-    Provider.runAction.call(self, module.filename, next_step_callback, [title, opts, command_complete_cb]);
+  _impl.push_action(function (next_step_callback) {
+    //var self = this;
+    self.runAction(_impl, module.filename, next_step_callback, [title, opts, command_complete_cb]);
 
   }); // push action
 
-  return self;
+  //return self;
 };
 
 Service.getName = function () { return 'service'; };
-Service.getFacts = function (facts) {
+Service.prototype.getFacts = function (facts) {
   var self = this;
-  return Provider.getFacts.call(self, module.filename, facts);
+  return self._getFacts(module.filename, facts);
 };
 
 module.exports = Service;

@@ -89,9 +89,11 @@ Policy.prototype.apply = function () {
     //GLOBAL.p2 = new P2();
     new P2()
     .then(function (p2) {
+      //console.log('policy p2:', p2);
       GLOBAL.p2 = p2;
       GLOBAL.P2 = P2;
 
+      //console.log('policy abs_a:', abs_a);
       var p = require(abs_a);
 
       console.log('### END OF APPLY ################################');

@@ -72,10 +72,13 @@ var console = require('better-console'),
  *   - unless
  */
 
-var Exec = function (cmd, opts, command_complete_cb) {
-  var self = this;  // self is parents _impl
+var Exec = function () {
+  var self = this;
   //console.log('Exec called self:', self);
+};
 
+Exec.prototype.addStep = function (_impl, cmd, opts, command_complete_cb) {
+  var self = this;
   var _watch_state = self._watch_state;
 
   if (!opts) {
@@ -87,12 +90,12 @@ var Exec = function (cmd, opts, command_complete_cb) {
     opts = {};
   }
 
-  if (!self.ifNode()) {
+  if (!_impl.ifNode()) {
     return self;
   }
 
   //console.log('Queing on node "' + node + '", cmd:', cmd);
-  self.push_action(function (next_step_callback) {
+  _impl.push_action(function (next_step_callback) {
 
     console.log('Exec on node "' + os.hostname() + '", cmd:', cmd, ', opts:', JSON.stringify(opts));
 
@@ -100,8 +103,8 @@ var Exec = function (cmd, opts, command_complete_cb) {
       console.log('Exec: inWatch:', inWatch, '_watch_state:', _watch_state, 'GLOBAL.p2_agent_opts.daemon:', GLOBAL.p2_agent_opts.daemon);
       if (/*!inWatch && */_watch_state && GLOBAL.p2_agent_opts.daemon) {
         console.log('>>> Exec: Starting watcher on file:', opts.creates);
-        self.P2_unwatch(opts.creates);
-        self.P2_watch(opts.creates, function (watcher_cb) {
+        _impl.P2_unwatch(opts.creates);
+        _impl.P2_watch(opts.creates, function (watcher_cb) {
           console.log('watcher triggered. file:', opts.creates, 'this:', this);
 
           fs.exists(opts.creates, function (exists) {
@@ -171,7 +174,7 @@ var Exec = function (cmd, opts, command_complete_cb) {
     }
 
   }); // push
-  return self;
+  //return self;
 };
 
 /**
@@ -184,7 +187,7 @@ Exec.getName = function () { return 'exec'; };
  * Return this module's discovered facts
  * @return {String} name of module or a deferred promise
  */
-Exec.getFacts = function () {
+Exec.prototype.getFacts = function () {
   var facts = {},
     deferred = Q.defer();
 

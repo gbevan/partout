@@ -26,11 +26,12 @@
 /*global p2 */
 
 var console = require('better-console'),
-  _ = require('lodash'),
-  os = require('os'),
-  fs = require('fs'),
-  utils = new (require('../utils'))(),
-  Mustache = require('mustache');
+    _ = require('lodash'),
+    os = require('os'),
+    fs = require('fs'),
+    utils = new (require('../utils'))(),
+    Mustache = require('mustache'),
+    Q = require('q');
   //exec = require('child_process').exec;
 
 /**
@@ -57,9 +58,13 @@ var console = require('better-console'),
  *
  */
 
-var File = function (title, opts, cb) {
-  var self = this;  // self is parents _impl
+var File = function () {
+  var self = this;
   //console.log('file self:', self);
+};
+
+File.prototype.addStep = function (_impl, title, opts, cb) {
+  var self = this;
   //console.log('file watch_state on push:', self._watch_state);
   var _watch_state = self._watch_state;
   //console.log('file self.steps:', self.steps);
@@ -161,7 +166,7 @@ var File = function (title, opts, cb) {
             console.warn('Creating file', file);
 
             // Unwatch and force new watcher
-            self.P2_unwatch(file);
+            _impl.P2_unwatch(file);
             inWatch = false;
 
             fd = fs.openSync(file, 'w');
@@ -183,7 +188,7 @@ var File = function (title, opts, cb) {
             console.warn('Creating file', file);
 
             // Unwatch and force new watcher
-            self.P2_unwatch(file);
+            _impl.P2_unwatch(file);
             inWatch = false;
 
             fd = fs.openSync(file, 'w');
@@ -270,7 +275,7 @@ var File = function (title, opts, cb) {
 
       if (!inWatch && _watch_state && GLOBAL.p2_agent_opts.daemon) {
         console.log('>>> Starting watcher on file:', file);
-        self.P2_watch(file, function (cb) {
+        _impl.P2_watch(file, function (cb) {
           console.log('watcher triggered. file:', file, 'this:', this);
 
           action (cb, true);
@@ -289,11 +294,11 @@ var File = function (title, opts, cb) {
   };
 
   //self.steps.push(action);
-  if (self.ifNode()) {
-    self.push_action(action);
+  if (_impl.ifNode()) {
+    _impl.push_action(action);
   }
 
-  return self;
+  //return self;
 };
 
 /**
@@ -301,5 +306,14 @@ var File = function (title, opts, cb) {
  * @return {String} name of module
  */
 File.getName = function () { return 'file'; };
+
+File.prototype.getFacts = function () {
+  var facts = {},
+      deferred = Q.defer();
+  facts.file_loaded = true;
+  deferred.resolve(facts);
+
+  return deferred.promise;
+};
 
 module.exports = File;
