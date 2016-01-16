@@ -2,13 +2,20 @@
 'use strict';
 /*global p2*/
 
+//console.log('site.p2:', p2);
 p2
 .node('XXXXX')
 .exec('echo THIS SHOULDNT RUN')
 .node('officepc.net')
-.exec('echo THIS SHOULD RUN')
+.exec('echo THIS SHOULD RUN on officepc')
 .exec('sleep 1; id')
-.exec('id -u');
+.exec('id -u')
+
+.node(function (f) { return f.os_family === 'debian'; })
+.exec('echo THIS SHOULD ONLY DISPLAY ON DEBIAN')
+
+.node(function (f) { return f.os_family === 'redhat'; })
+.exec('echo THIS SHOULD ONLY DISPLAY ON REDHAT');
 
 p2
 .node('officepc.net')

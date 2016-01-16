@@ -24,17 +24,21 @@
 'use strict';
 
 var Provider = require('../../provider'),
-    console = require('better-console');
+    console = require('better-console'),
+    u = require('util');
 
 var Facts = function () {
-  var self = this;  // self is p2 _impl DSL
-  return self;
+  var self = this;  // self is p2 _impl DSL ????
+  return self;    // ????
 };
 
+u.inherits(Facts, Provider);
+
 Facts.getName = function () { return 'Facts'; };
-Facts.getFacts = function (facts) {
+Facts.prototype.getFacts = function (facts) {
   var self = this;
-  return Provider.getFacts.call(self, module.filename, facts);
+  //console.log('Facts self:', self, '_getFacts:', self._getFacts);
+  return self._getFacts(module.filename, facts);
 };
 
 module.exports = Facts;

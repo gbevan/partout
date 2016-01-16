@@ -37,7 +37,7 @@ var Service = function () {
 
 };
 
-Service.runAction = function (next_step_callback, title, opts, command_complete_cb) {
+Service.runAction = function (_impl, next_step_callback, title, opts, command_complete_cb) {
   var self = this;  // self is _impl
 
   console.warn('IN RUNACTION');
@@ -46,10 +46,11 @@ Service.runAction = function (next_step_callback, title, opts, command_complete_
 };
 
 Service.getFacts = function (facts_so_far) {
-  var facts = {},
-    services = {},
-    deferred = Q.defer(),
-    cmd = '';
+  var self = this,
+      facts = {},
+      services = {},
+      deferred = Q.defer(),
+      cmd = '';
 
   utils.execToArray('initctl list')
   .then(function (res) {

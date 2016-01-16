@@ -170,7 +170,7 @@ var P2 = function () {
     } else if (typeof (select) === 'function') {
       //console.log('in ifNode facts:', self.facts);
       if (select(self.facts)) {
-        console.log('function returning true');
+        //console.log('function returning true');
         return true;
       }
       return false;
@@ -178,7 +178,7 @@ var P2 = function () {
     } else if (select instanceof RegExp) {
       //console.log('in RegExp:');
       if (os.hostname().match(select)) {
-        console.log('RegExp match');
+        //console.log('RegExp match');
         return true;
       }
 
@@ -191,15 +191,15 @@ var P2 = function () {
       for (i in self.nodes) {
         if (self.nodes.hasOwnProperty(i)) {
           var node = self.nodes[i];
-          console.log('node:', node, 'hostname:', os.hostname());
+          //console.log('node:', node, 'hostname:', os.hostname());
           if (os.hostname() === node) {
-            console.log('node match');
+            //console.log('node match');
             return true;
           }
         }
       }
     }
-    console.log('node no match');
+    //console.log('node no match');
     //console.log('init_impl:', init_impl);
     //process.exit(0);
     //return null;
@@ -288,7 +288,7 @@ var P2 = function () {
    * @memberof P2
    */
   self._impl.sendevent = function (o) {
-    console.log('sendevent, app:', GLOBAL.p2_agent_opts.app);
+    //console.log('sendevent, app:', GLOBAL.p2_agent_opts.app);
     GLOBAL.p2_agent_opts.app.sendevent(o);
     /*
     var app = GLOBAL.p2_agent_opts.app,
@@ -377,8 +377,20 @@ var P2 = function () {
 
     // Link modules
     _.each(Object.keys(_modules), function (m) {
-      //console.log('m:', m);
-      self[m] = self._impl[m] = _modules[m];
+      //console.log('p2 m:', m);
+      self[m] = self._impl[m] = function () {
+        var _impl = this,
+          args = [];
+
+        args.push(_impl);
+        for (var i = 0; i < arguments.length; i++) {
+          args.push(arguments[i]);
+        }
+
+        var c = new _modules[m]();
+        c.addStep.apply(c, args);
+        return _impl;
+      };
 
       // Dummy impl for excluded nodes
       empty_impl[m] = function () { return this; };

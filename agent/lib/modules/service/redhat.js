@@ -37,17 +37,18 @@ var Service = function () {
 
 };
 
-Service.runAction = function (next_step_callback, title, opts, command_complete_cb) {
+Service.runAction = function (_impl, next_step_callback, title, opts, command_complete_cb) {
   var self = this;  // self is _impl
 
   next_step_callback(); // when finished
 };
 
 Service.getFacts = function (facts_so_far) {
-  var facts = {},
-    services = {},
-    deferred = Q.defer(),
-    cmd = '';
+  var self = this,
+      facts = {},
+      services = {},
+      deferred = Q.defer(),
+      cmd = '';
   //console.log('redhat getFacts()');
 
   //utils.execToArray('/usr/bin/gdbus call --system --dest org.freedesktop.systemd1 --object-path /org/freedesktop/systemd1 --method org.freedesktop.systemd1.Manager.ListUnits')

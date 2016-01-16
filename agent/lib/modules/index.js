@@ -68,13 +68,14 @@ module.exports = function (facts) {
   _.every(modules, function (m) {
     //console.log('module file:', m);
     m = './' + m;
-    var M = require(m);
+    var M = require(m),
+        C = new M();
     //console.log('M name:', M.getName());
 
-    if (facts && M.getFacts) {
+    if (facts && C.getFacts) {
       facts_funcs.push(function (done) {
         //console.log('module name:', M.getName());
-        M.getFacts(facts)
+        C.getFacts(facts)
         .then(function (m_facts) {
           //console.log('module returned facts:', m_facts);
           if (m_facts) {

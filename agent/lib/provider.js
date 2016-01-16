@@ -30,11 +30,22 @@ var Q = require('q'),
     console = require('better-console');
 
 /**
+ * Provider constructor - to be inherited by other modules.
+ * @constructor
+ * @returns {object} n/a
+ */
+var Provider = function () {
+  var self = this;
+  return self;
+};
+
+/**
  * getProvider module spcecifc to operating system, os flavour or os type
  * @param   {object}  facts Discovered facts.
  * @returns {Promise} promise resolves to module loaded.
  */
-var getProvider = function (facts, filename) {
+Provider.prototype.getProvider = function (facts, filename) {
+  var self = this;
   var deferred = Q.defer(),
       mydir = path.dirname(filename);
   //console.warn('getProvider mydir:', mydir);
@@ -96,38 +107,34 @@ var getProvider = function (facts, filename) {
   return deferred.promise;
 };
 
-/**
- * Provider constructor - to be inherited by other modules.
- * @returns {object} n/a
- */
-var Provider = function () {
-  return {};
-};
+
 
 // run action (from P2 directive)
-Provider.runAction = function (caller_filename, next_step_callback, args) {
-  var self = this,  // self is _impl
+Provider.prototype.runAction = function (_impl, caller_filename, next_step_callback, args) {
+  var self = this,
       opts = args[1];
+  //console.log('provider runAction self:', self);
   //console.log('runAction filename:', caller_filename);
-  //console.log('args:', args);
 
-  getProvider(self.facts, caller_filename)
+  self.getProvider(_impl.facts, caller_filename)
   .then(function (PM) {
     //console.log('Provider runAction resolved PM:', PM);
     //console.warn('next_step_callback:', next_step_callback);
     args.unshift(next_step_callback);
+    args.unshift(_impl);
     PM.runAction.apply(self, args);
   })
   .done();
 };
 
 /**
- * getFacts() wrapper for provided modules.
+ * _getFacts() wrapper for provided modules.
  * @param   {object}  facts_so_far Facts discovered so far by P2
  * @returns {Promise} Promise Resolves to facts discovered by this module.
  */
-Provider.getFacts = function (caller_filename, facts_so_far) {
+Provider.prototype._getFacts = function (caller_filename, facts_so_far) {
   //console.warn('getFacts self:', this);
+  //console.log('provider getFacts arguments:', arguments);
 
   var self = this,  // self is calling module
       deferred = Q.defer(),
@@ -135,12 +142,16 @@ Provider.getFacts = function (caller_filename, facts_so_far) {
 
   var save_os_type = facts_so_far.os_type;
 
-  getProvider(facts_so_far, caller_filename)
+  self.getProvider(facts_so_far, caller_filename)
   .then(function (PM) {
+    if (!PM) {
+      deferred.resolve();
+      return;
+    }
     //console.log('Provider getFacts resolved PM (try 1):', PM);
     if (!save_os_type) {
       // Run again as the first one was
-      getProvider(facts_so_far, caller_filename)
+      self.getProvider(facts_so_far, caller_filename)
       .then(function (PM) {
         //console.log('Provider getFacts resolved PM (try 2):', PM);
         deferred.resolve(PM.getFacts(facts_so_far));

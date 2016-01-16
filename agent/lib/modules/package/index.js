@@ -24,10 +24,18 @@
 'use strict';
 
 var Provider = require('../../provider'),
-    console = require('better-console');
+    console = require('better-console'),
+    u = require('util');
 
-var Package = function (title, opts, command_complete_cb) {
-  var self = this;  // self is p2 _impl DSL
+var Package = function () {
+  var self = this;
+};
+
+u.inherits(Package, Provider);
+
+Package.prototype.addStep = function (_impl, title, opts, command_complete_cb) {
+  //console.log('package addStep arguments:', arguments);
+  var self = this;
 
   if (typeof (opts) === 'function') {
     command_complete_cb = opts;
@@ -42,26 +50,25 @@ var Package = function (title, opts, command_complete_cb) {
   opts.name = (opts.name ? opts.name : title);
 
   //console.warn('package b4 ifNode');
-  if (!self.ifNode()) {
+  if (!_impl.ifNode()) {
     return self;
   }
   //console.warn('package after ifNode passed');
 
-  self.push_action(function (next_step_callback) {
-    var self = this;  // self is _impl
-    //console.log('package b4 runAction self:', self);
+  _impl.push_action(function (next_step_callback) {
+    //var self = this;
     //console.warn('package index.js b4 runAction.call');
-    Provider.runAction.call(self, module.filename, next_step_callback, [title, opts, command_complete_cb]);
+    self.runAction(_impl, module.filename, next_step_callback, [title, opts, command_complete_cb]);
 
   }); // push action
 
-  return self;
+  //return self;
 };
 
 Package.getName = function () { return 'package'; };
-Package.getFacts = function (facts) {
+Package.prototype.getFacts = function (facts) {
   var self = this;
-  return Provider.getFacts.call(self, module.filename, facts);
+  return self._getFacts(module.filename, facts);
 };
 
 module.exports = Package;

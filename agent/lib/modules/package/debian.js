@@ -57,8 +57,9 @@ var Package = function () {
  *
  */
 
-Package.runAction = function (next_step_callback, title, opts, command_complete_cb) {
-  var self = this;  // self is _impl
+Package.runAction = function (_impl, next_step_callback, title, opts, command_complete_cb) {
+  var self = this;
+  //console.log('package debian arguments:', arguments);
   //console.log('package action self:', self);
   //console.log('package action called next_step_callback:', next_step_callback);
 
@@ -69,13 +70,13 @@ Package.runAction = function (next_step_callback, title, opts, command_complete_
   if (opts.ensure.match(/^(present|installed|latest)$/)) {
     console.log('ensure present');
 
-    if (!self.facts.installed_packages[opts.name]) {
+    if (!_impl.facts.installed_packages[opts.name]) {
 
       exec('apt-get update && apt-get install -y ' + opts.name, function (err, stdout, stderr) {
         if (err) {
           console.error('apt-get install failed:', err, stderr);
         } else {
-          self.facts.installed_packages[opts.name] = {};  // next facts run will populate
+          _impl.facts.installed_packages[opts.name] = {};  // next facts run will populate
         }
         if (command_complete_cb) command_complete_cb(err, stdout, stderr);
         next_step_callback({
@@ -103,9 +104,9 @@ Package.runAction = function (next_step_callback, title, opts, command_complete_
 
   } else if (opts.ensure.match(/^(absent|purged)$/)) {
     // ABSENT / PURGED
-    console.log('ensure absent pkg inst:', self.facts.installed_packages[opts.name]);
+    console.log('ensure absent pkg inst:', _impl.facts.installed_packages[opts.name]);
 
-    if (self.facts.installed_packages[opts.name]) {
+    if (_impl.facts.installed_packages[opts.name]) {
 
       console.log('ensure absent on debian');
       exec('apt-get purge -y ' + opts.name, function (err, stdout, stderr) {
