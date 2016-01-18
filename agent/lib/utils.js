@@ -165,7 +165,15 @@ Utils.prototype.execToArray = function (cmd) {
     //console.log('stdout:', stdout);
 
     if (err) {
-      deferred.reject(err);
+      //deferred.reject(err);
+      deferred.reject({
+        cmd: cmd,
+        outlines: [],
+        stdout: stdout,
+        stderr: stderr,
+        err: err,
+        rc: (err ? err.code : -1)
+      });
       return;
     }
 
@@ -180,11 +188,12 @@ Utils.prototype.execToArray = function (cmd) {
     });
 
     deferred.resolve({
+      cmd: cmd,
       outlines: ret_lines,
       stdout: stdout,
       stderr: stderr,
       err: err,
-      rc: (err ? err.code: 0)
+      rc: (err ? err.code : 0)
     });
   });
 
