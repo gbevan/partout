@@ -358,6 +358,7 @@ var P2 = function () {
 
   module_promise
   .then(function (_modules) {
+    //console.log('p2 facts:', self.facts);
     self._impl.facts = self.facts;
     if (GLOBAL.p2) {
       GLOBAL.p2.facts = self.facts;

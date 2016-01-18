@@ -79,6 +79,10 @@ Service.getFacts = function (facts_so_far) {
     });
     deferred.resolve({services: services});
   })
+  .fail(function (err) {
+    console.error('Service getFacts failed:', err, '\n', err.stacktrace);
+    deferred.resolve();
+  })
   .done();
 
   return deferred.promise;

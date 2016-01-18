@@ -123,8 +123,15 @@ Service.getFacts = function (facts_so_far) {
           });
           facts.services = services;
           deferred.resolve(facts);
-        });
-      });
+        })
+        .done();
+      })
+      .fail(function (err) {
+        console.error('failed to get runlevel:', err);
+        facts.services = services;
+        deferred.resolve(facts);
+      })
+      .done();
     })
     .done();
   })

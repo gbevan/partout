@@ -33,6 +33,25 @@ var Package = function () {
 
 u.inherits(Package, Provider);
 
+Package.prototype._getDefaultProvider = function (facts, opts) {
+  var self = this;
+
+  if (!opts) {
+    opts = {};
+  }
+
+  // Choose default providers (if not manually provided in policy)
+  if (!opts.provider) {
+    if (facts.os_family === 'debian') {
+      opts.provider = 'apt';
+
+    } else if (facts.os_family === 'redhat') {
+      opts.provider = 'yum';
+    }
+  }
+  self.provider = opts.provider;
+};
+
 Package.prototype.addStep = function (_impl, title, opts, command_complete_cb) {
   //console.log('package addStep arguments:', arguments);
   var self = this;
@@ -48,6 +67,8 @@ Package.prototype.addStep = function (_impl, title, opts, command_complete_cb) {
 
   opts.ensure = (opts.ensure ? opts.ensure : 'present');
   opts.name = (opts.name ? opts.name : title);
+
+  self._getDefaultProvider(_impl.facts, opts);
 
   //console.warn('package b4 ifNode');
   if (!_impl.ifNode()) {
@@ -68,6 +89,7 @@ Package.prototype.addStep = function (_impl, title, opts, command_complete_cb) {
 Package.getName = function () { return 'package'; };
 Package.prototype.getFacts = function (facts) {
   var self = this;
+  self._getDefaultProvider(facts);
   return self._getFacts(module.filename, facts);
 };
 

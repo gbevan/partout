@@ -47,16 +47,21 @@ var Provider = function () {
 Provider.prototype.getProvider = function (facts, filename) {
   var self = this;
   var deferred = Q.defer(),
-      mydir = path.dirname(filename);
+      mydir = path.dirname(filename),
+      srchJsList = [];
   //console.warn('getProvider mydir:', mydir);
 
   // Get some early facts for provider search
-
-  // Provider search list
-  // (1) Operating System Specific Provider?
-  // (2) Operating System Family Provider?
-  // (3) Operating System Type Provider?
-  var srchJsList = [facts.os_dist_id, facts.os_family, os.type().toLowerCase()];
+  //console.log('provider getProvider self.provider:', self.provider);
+  if (self.provider) {
+    srchJsList.push(self.provider);
+  } else {
+    // Provider search list
+    // (1) Operating System Specific Provider?
+    // (2) Operating System Family Provider?
+    // (3) Operating System Type Provider?
+    srchJsList = [facts.os_dist_id, facts.os_family, os.type().toLowerCase()];
+  }
 
   //console.log('srchJsList b4:', srchJsList);
   srchJsList = srchJsList.map(function (e) {

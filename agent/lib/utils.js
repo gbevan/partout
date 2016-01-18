@@ -164,6 +164,11 @@ Utils.prototype.execToArray = function (cmd) {
     //console.log('stderr:', stderr);
     //console.log('stdout:', stdout);
 
+    if (err) {
+      deferred.reject(err);
+      return;
+    }
+
     var lines = stdout.split(/\r?\n/),
       ret_lines = [];
 

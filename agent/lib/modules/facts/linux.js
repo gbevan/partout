@@ -39,6 +39,7 @@ var Facts = function () {
 };
 
 Facts.getFacts = function (facts_so_far) {
+  //console.log('Facts getFacts()');
   var outer_deferred = Q.defer();
 
   function tryRead(file) {

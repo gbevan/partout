@@ -2,7 +2,7 @@
     Partout [Everywhere] - Policy-Based Configuration Management for the
     Data-Driven-Infrastructure.
 
-    Copyright (C) 2015-2016  Graham Lee Bevan <graham.bevan@ntlworld.com>
+    Copyright (C) 2016  Graham Lee Bevan <graham.bevan@ntlworld.com>
 
     This file is part of Partout.
 
@@ -24,17 +24,15 @@
 'use strict';
 
 var console = require('better-console'),
-  _ = require('lodash'),
-  os = require('os'),
-  fs = require('fs'),
-  exec = require('child_process').exec,
-  Q = require('q');
+    _ = require('lodash'),
+    os = require('os'),
+    fs = require('fs'),
+    exec = require('child_process').exec,
+    Q = require('q'),
+    assert = require('assert'),
+    u = require('util');
 
 Q.longStackSupport = true;
-
-var Package = function () {
-
-};
 
 /**
  * @description
@@ -56,25 +54,61 @@ var Package = function () {
  *   | ensure     | String  | present/installed, absent/purged, latest (default is present) |
  *
  */
+var Package = function () {
+
+};
+
+/**
+ * Get the current state of a package
+ * @param   {String} name Name of package
+ * @returns {Object} Undefined if not installed, otherwise {name:..., version:..., status:'installed'}
+ */
+Package.getStatus = function (name) {
+  assert(name !== undefined);
+  assert(u.isString(name));
+  assert(name !== '');
+
+  var self = this,
+      deferred = Q.defer(),
+      cmd = 'rpm -q --queryformat \'%{NAME} %{VERSION}-%{RELEASE}\' ' + name;
+
+  exec(cmd, function (err, stdout, stderr) {
+    if (err) {
+      if (err.code !== 1) {
+        console.error('exec of ' + cmd + ' failed:', err, stderr);
+      }
+      deferred.resolve();
+    } else {
+      var line = stdout.trim();
+      if (line === '') {
+        deferred.resolve();
+      }
+
+      var fields = line.split(/\s+/, 2);
+      deferred.resolve({name: name, version: fields[1], status: 'installed'});
+    }
+  });
+
+  return deferred.promise;
+}
 
 Package.runAction = function (_impl, next_step_callback, title, opts, command_complete_cb) {
   var self = this;
-  //console.log('package debian arguments:', arguments);
   //console.log('package action self:', self);
+  //console.log('package redhat arguments:', arguments);
   //console.log('package action called next_step_callback:', next_step_callback);
 
-  // fix env for non-interactive apt commands
-  process.env.DEBIAN_FRONTEND = "noninteractive";
-
   // PRESENT / INSTALLED / LATEST
+  // TODO: Rewrite for RPM
+  /*
   if (opts.ensure.match(/^(present|installed|latest)$/)) {
     console.log('ensure present');
 
     if (!_impl.facts.installed_packages[opts.name]) {
 
-      exec('apt-get update && apt-get install -y ' + opts.name, function (err, stdout, stderr) {
+      exec('yum -y install -y ' + opts.name, function (err, stdout, stderr) {
         if (err) {
-          console.error('apt-get install failed:', err, stderr);
+          console.error('yum install failed:', err, stderr);
         } else {
           _impl.facts.installed_packages[opts.name] = {};  // next facts run will populate
         }
@@ -88,10 +122,9 @@ Package.runAction = function (_impl, next_step_callback, title, opts, command_co
 
     } else if (opts.ensure === 'latest') {
       // LATEST
-      // TODO: check if newer version available for update.
-      exec('apt-get update && apt-get upgrade -y ' + opts.name, function (err, stdout, stderr) {
+      exec('yum -y update ' + opts.name, function (err, stdout, stderr) {
         if (err) {
-          console.error('apt-get upgrade failed:', err, stderr);
+          console.error('yum update failed:', err, stderr);
         }
         if (command_complete_cb) command_complete_cb(err, stdout, stderr);
         next_step_callback({
@@ -108,12 +141,11 @@ Package.runAction = function (_impl, next_step_callback, title, opts, command_co
 
     if (_impl.facts.installed_packages[opts.name]) {
 
-      console.log('ensure absent on debian');
-      exec('apt-get purge -y ' + opts.name, function (err, stdout, stderr) {
+      exec('yum -y erase ' + opts.name, function (err, stdout, stderr) {
         if (err) {
-          console.error('apt-get purge failed:', err, stderr);
+          console.error('yum erase failed:', err, stderr);
         } else {
-          delete self.facts.installed_packages[opts.name];
+          delete _impl.facts.installed_packages[opts.name];
         }
         if (command_complete_cb) command_complete_cb(err, stdout, stderr);
         next_step_callback({
@@ -132,6 +164,8 @@ Package.runAction = function (_impl, next_step_callback, title, opts, command_co
     console.error('package module does not support ensure option value of:', opts.ensure);
     next_step_callback();
   }
+  */
+  next_step_callback();
 };
 
 Package.getFacts = function (facts_so_far) {
@@ -144,10 +178,11 @@ Package.getFacts = function (facts_so_far) {
 
   // get installed packages for this OS
 
-  // Debian-like OS's
-  exec('dpkg -l | tail -n +6', function (err, stdout, stderr) {
+  // RedHat-like OS's
+  var cmd = "rpm -qa --queryformat '%{NAME} %{VERSION}-%{RELEASE} %{ARCH}\n'"
+  exec(cmd, function (err, stdout, stderr) {
     if (err) {
-      console.log('exec of dpkg -l failed:', err, stderr);
+      console.log('exec of ' + cmd + ' failed:', err, stderr);
       deferred.resolve({});
     } else {
       //console.log('stdout:', stdout);
@@ -157,15 +192,16 @@ Package.getFacts = function (facts_so_far) {
         if (line === '') {
           return;
         }
-        var fields = line.split(/\s+/, 4);
+
+        var fields = line.split(/\s+/, 3);
         //console.log('fields:', fields);
+
         var p_obj = {
-          name: fields[1],
-          version: fields[2],
-          arch: fields[3]
+          name: fields[0],
+          version: fields[1],
+          arch: fields[2]
         };
-        //facts['package:' + fields[1]] = p_obj;
-        packages[fields[1]] = p_obj;
+        packages[fields[0]] = p_obj;
       });
       facts.installed_packages = packages;
 
