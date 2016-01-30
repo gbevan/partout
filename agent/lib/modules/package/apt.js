@@ -36,7 +36,8 @@ var console = require('better-console'),
 Q.longStackSupport = true;
 
 /**
- * @description
+ * Apt provider for the Packeg module.
+ *
  * Package module
  * ==============
  *
@@ -53,6 +54,7 @@ Q.longStackSupport = true;
  *   |:-----------|---------|:-----------------------------------------------------------|
  *   | name       | String  | Package name to install (defaults to title) |
  *   | ensure     | String  | present/installed, absent/purged, latest (default is present) |
+ *   | provider   | String  | Override backend provider e.g.: apt, yum, rpm, etc |
  *
  */
 var Package = function () {
@@ -109,12 +111,12 @@ Package.runAction = function (_impl, next_step_callback, title, opts, command_co
 
   // fix env for non-interactive apt commands
   process.env.DEBIAN_FRONTEND = "noninteractive";
-  process.env.APT_LISTBUGS_FRONTEND = "none"
-  process.env.APT_LISTCHANGES_FRONTEND = "none"
+  process.env.APT_LISTBUGS_FRONTEND = "none";
+  process.env.APT_LISTCHANGES_FRONTEND = "none";
 
   Package.getStatus.call(self, opts.name)
   .then(function (current_state) {
-    //console.log('current_state:', current_state);
+    console.log(opts.name, 'b4 ensure current_state:', current_state, 'ensure:', opts.ensure);
     // PRESENT / INSTALLED / LATEST
     if (opts.ensure.match(/^(present|installed|latest)$/)) {
       //console.log('ensure present');
@@ -153,10 +155,14 @@ Package.runAction = function (_impl, next_step_callback, title, opts, command_co
         } else {
           next_step_callback();
         }
+
+      } else {
+        next_step_callback();
       }
 
     } else if (opts.ensure.match(/^(absent|purged)$/)) {
       // ABSENT / PURGED
+      console.log('current_state:', current_state);
 
       if (current_state) {
         console.info('Removing package:', opts.name);

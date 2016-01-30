@@ -56,7 +56,10 @@ Facts.getFacts = function (facts_so_far) {
           deferred.resolve([factname, data.toString().trim()]);
         })
         .fail(function (err) {
-          console.error('reading file', filename, 'failed:', err.message);
+          //console.log('err:', err);
+          if (err.code !== 'EACCES') {
+            console.error('reading file', filename, 'failed:', err.message);
+          }
           deferred.resolve([factname, null]);
         })
         .done();
