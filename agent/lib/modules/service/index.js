@@ -33,6 +33,25 @@ var Service = function () {
 
 u.inherits(Service, Provider);
 
+Service.prototype._getDefaultProvider = function (facts, opts) {
+  var self = this;
+
+  if (!opts) {
+    opts = {};
+  }
+
+  // Choose default providers (if not manually provided in policy)
+  if (!opts.provider) {
+    if (facts.os_family === 'debian') {
+      opts.provider = 'debian';
+
+    } else if (facts.os_family === 'redhat') {
+      opts.provider = 'redhat';
+    }
+  }
+  self.provider = opts.provider;
+};
+
 Service.prototype.addStep = function (_impl, title, opts, command_complete_cb) {
   var self = this;  // self is p2 _impl DSL
 
@@ -44,6 +63,10 @@ Service.prototype.addStep = function (_impl, title, opts, command_complete_cb) {
   if (!opts) {
     opts = {};
   }
+  opts.ensure = (opts.ensure ? opts.ensure : 'stopped');
+  opts.name = (opts.name ? opts.name : title);
+
+  self._getDefaultProvider(_impl.facts, opts);
 
   //console.warn('service b4 ifNode');
   if (!_impl.ifNode()) {

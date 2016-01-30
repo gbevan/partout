@@ -64,7 +64,6 @@ Package.prototype.addStep = function (_impl, title, opts, command_complete_cb) {
   if (!opts) {
     opts = {};
   }
-
   opts.ensure = (opts.ensure ? opts.ensure : 'present');
   opts.name = (opts.name ? opts.name : title);
 

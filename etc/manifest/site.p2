@@ -71,10 +71,10 @@ p2
 .package('mariadb-server', { ensure: 'latest' })
 
 .select(function (f) { return f.os_family === 'debian'; })
-.exec('echo "BEFORE APTITUDE"')
-.package('aptitude')   // chaining isnt working from here!!!
-.exec('echo "CHAINING OK"')
-.package('mariadb-server', { ensure: 'absent' });
+//.exec('echo "BEFORE APTITUDE"')
+.package('aptitude');   // chaining isnt working from here!!!
+//.exec('echo "CHAINING OK"')
+//.package('mariadb-server', { ensure: 'absent' });
 
 p2
 .select(true)

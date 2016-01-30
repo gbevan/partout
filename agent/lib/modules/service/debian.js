@@ -67,12 +67,11 @@ var Service = function () {
 Service.runAction = function (_impl, next_step_callback, title, opts, command_complete_cb) {
   var self = this;
 
-  console.warn('IN RUNACTION');
+  console.warn('IN RUNACTION Service Debian');
 
   next_step_callback(); // when finished
 };
 
-// TODO: Plot path through quagmire of startup methods...
 
 /**
  * Get Service Facts for Debian

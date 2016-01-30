@@ -116,7 +116,7 @@ Package.runAction = function (_impl, next_step_callback, title, opts, command_co
 
   Package.getStatus.call(self, opts.name)
   .then(function (current_state) {
-    console.log(opts.name, 'b4 ensure current_state:', current_state, 'ensure:', opts.ensure);
+    //console.log(opts.name, 'b4 ensure current_state:', current_state, 'ensure:', opts.ensure);
     // PRESENT / INSTALLED / LATEST
     if (opts.ensure.match(/^(present|installed|latest)$/)) {
       //console.log('ensure present');
@@ -140,7 +140,7 @@ Package.runAction = function (_impl, next_step_callback, title, opts, command_co
       } else if (opts.ensure === 'latest') {
         // LATEST
         if (current_state.version !== current_state.candidate) {
-          console.info('Upgrading package:', opts.name);
+          //console.info('Upgrading package:', opts.name);
           exec('apt-get upgrade -y ' + opts.name, function (err, stdout, stderr) {
             if (err) {
               console.error('apt-get upgrade failed:', err, stderr);
@@ -162,7 +162,7 @@ Package.runAction = function (_impl, next_step_callback, title, opts, command_co
 
     } else if (opts.ensure.match(/^(absent|purged)$/)) {
       // ABSENT / PURGED
-      console.log('current_state:', current_state);
+      //console.log('current_state:', current_state);
 
       if (current_state) {
         console.info('Removing package:', opts.name);
