@@ -78,7 +78,9 @@ p2
 
 p2
 .select(true)
-.service('test-service');
+.service('cron')
+.service('cron', {ensure: 'stopped'})
+.service('cron', {ensure: 'running'});
 
 
 p2.end(function () {

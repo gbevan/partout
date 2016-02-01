@@ -200,4 +200,13 @@ Utils.prototype.execToArray = function (cmd) {
   return deferred.promise;
 };
 
+/**
+ * Promisified exec
+ * @param   {string} cmd Command to execute
+ * @returns {object} Promise
+ */
+Utils.prototype.pExec = function (cmd) {
+  return Q.nfcall(exec, cmd);
+};
+
 module.exports = Utils;

@@ -23,11 +23,24 @@
 /*jslint node: true, nomen: true */
 'use strict';
 
-var Provider = require('../../provider'),
-    console = require('better-console'),
+var console = require('better-console'),
+    _ = require('lodash'),
+    os = require('os'),
+    fs = require('fs'),
+    exec = require('child_process').exec,
+    Q = require('q'),
+    utils = new(require('../../utils'))(),
     u = require('util');
 
+Q.longStackSupport = true;
+
+Q.onerror = function (err) {
+  console.error(err);
+};
+
 /**
+ * Debian provider for the Service module.
+ *
  * Service module
  * ==============
  *
@@ -47,68 +60,8 @@ var Provider = require('../../provider'),
  *   | enable     | Boolean | true, false |
  *   | provider   | String  | Override backend provider e.g.: debian, redhat, etc |
  */
-
 var Service = function () {
-  var self = this;
-};
 
-u.inherits(Service, Provider);
-
-Service.prototype._getDefaultProvider = function (facts, opts) {
-  var self = this;
-
-  if (!opts) {
-    opts = {};
-  }
-
-  // Choose default providers (if not manually provided in policy)
-  if (!opts.provider) {
-    if (facts.os_family === 'debian') {
-      opts.provider = 'debian';
-
-    } else if (facts.os_family === 'redhat') {
-      opts.provider = 'redhat';
-    }
-  }
-  self.provider = opts.provider;
-};
-
-Service.prototype.addStep = function (_impl, title, opts, command_complete_cb) {
-  var self = this;  // self is p2 _impl DSL
-
-  if (typeof (opts) === 'function') {
-    command_complete_cb = opts;
-    opts = {};
-  }
-
-  if (!opts) {
-    opts = {};
-  }
-  opts.name = (opts.name ? opts.name : title);
-  opts.ensure = (opts.ensure ? opts.ensure : 'stopped');
-  opts.enable = (opts.ensure === undefined ? opts.ensure : false);
-
-  self._getDefaultProvider(_impl.facts, opts);
-
-  //console.warn('service b4 ifNode');
-  if (!_impl.ifNode()) {
-    return self;
-  }
-  //console.warn('service after ifNode passed');
-
-  _impl.push_action(function (next_step_callback) {
-    //var self = this;
-    self.runAction(_impl, module.filename, next_step_callback, [title, opts, command_complete_cb]);
-
-  }); // push action
-
-  //return self;
-};
-
-Service.getName = function () { return 'service'; };
-Service.prototype.getFacts = function (facts) {
-  var self = this;
-  return self._getFacts(module.filename, facts);
 };
 
 module.exports = Service;

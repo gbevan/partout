@@ -90,7 +90,7 @@ Package.getStatus = function (name) {
   });
 
   return deferred.promise;
-}
+};
 
 Package.runAction = function (_impl, next_step_callback, title, opts, command_complete_cb) {
   var self = this;
@@ -179,7 +179,7 @@ Package.getFacts = function (facts_so_far) {
   // get installed packages for this OS
 
   // RedHat-like OS's
-  var cmd = "rpm -qa --queryformat '%{NAME} %{VERSION}-%{RELEASE} %{ARCH}\n'"
+  cmd = "rpm -qa --queryformat '%{NAME} %{VERSION}-%{RELEASE} %{ARCH}\n'";
   exec(cmd, function (err, stdout, stderr) {
     if (err) {
       console.log('exec of ' + cmd + ' failed:', err, stderr);
