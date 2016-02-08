@@ -36,6 +36,7 @@ var console = require('better-console'),
   readline = require('readline');
 
 /**
+ * @class
  * Policy Syncronisation
  * @param {object} app Parent application (Express)
  */

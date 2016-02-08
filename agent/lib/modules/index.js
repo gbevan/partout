@@ -30,7 +30,7 @@ var _ = require('lodash'),
   Q = require('q'),
   nimble = require('nimble');
 
-/**
+/*
  * get list of modules (either .js or folders.
  */
 var modules_top = _.remove(

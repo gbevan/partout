@@ -62,10 +62,19 @@ var banner = "\n\
 ..:::::::::..:::::..::..:::::..:::::..::::::.......::::.......::::::..:::::\n\
 ";
 
+/**
+ * Partout Master App provider
+ * @class
+ */
+var App = function () {
+
+};
+
 
 /**
  * Connect to the Partout Arango database, creating it if it doesnt
  * exist. Set as active database.
+ * @memberof App
  */
 var connectDb = function () {
   var deferred = Q.defer();
@@ -99,6 +108,7 @@ var connectDb = function () {
 
 /**
  * Initialise partout server database
+ * @memberof App
  */
 var init = function () {
   var deferred = Q.defer();
@@ -129,6 +139,7 @@ var init = function () {
 
 /**
  * Serve the Partout Master API and UI engine
+ * @memberof App
  */
 var serve = function () {
   /**
@@ -197,6 +208,12 @@ var serve = function () {
         /****************************
          * Start Master API Server
          */
+
+        /**
+         * Express app for the Master API
+         * @class appApi
+         * @memberof App
+         */
         var appApi = express(),
           optionsApi = {
             key: fs.readFileSync(ca.masterApiPrivateKeyFile),
@@ -243,6 +260,12 @@ var serve = function () {
 
         /****************************
          * Start Master UI Server
+         */
+
+        /**
+         * Express app for the Master UI
+         * @class appUi
+         * @memberof App
          */
         var appUi = express(),
           optionsUi = {

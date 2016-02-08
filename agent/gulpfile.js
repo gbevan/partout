@@ -37,8 +37,8 @@ gulp.task('watch-mocha', function () {
 });
 
 gulp.task('docs', function (cb) {
-  del(['./jsdocs'])
-  .gulp.src(['./app.js', 'lib/**/*.*', 'etc/**/*.p2', './README.md'])
+  del(['./jsdocs/**']);
+  gulp.src(['./app.js', 'lib/**/*.*', 'etc/**/*.p2', './README.md'])
     .pipe(jsdoc(
     {
       opts: {

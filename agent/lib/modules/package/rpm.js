@@ -34,26 +34,6 @@ var console = require('better-console'),
 
 Q.longStackSupport = true;
 
-/**
- * @description
- * Package module
- * ==============
- *
- *    p2.package(
- *      'title or pkg name',
- *      options,
- *      function (err, stdout, stderr) {
- *        ... to be called after exec of pkg command ...
- *      }
- *    )
- *
- * Options:
- *   | Operand    | Type    | Description                                                |
- *   |:-----------|---------|:-----------------------------------------------------------|
- *   | name       | String  | Package name to install (defaults to title) |
- *   | ensure     | String  | present/installed, absent/purged, latest (default is present) |
- *
- */
 var Package = function () {
 
 };

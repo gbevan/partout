@@ -3,11 +3,12 @@
 
 /*global */
 var gulp = require('gulp'),
-  mocha = require('gulp-mocha'),
-  gulpLoadPlugins = require('gulp-load-plugins'),
-  gutil = require('gulp-util'),
-  plugins = gulpLoadPlugins(),
-  jsdoc = require('gulp-jsdoc3');
+    mocha = require('gulp-mocha'),
+    gulpLoadPlugins = require('gulp-load-plugins'),
+    gutil = require('gulp-util'),
+    plugins = gulpLoadPlugins(),
+    jsdoc = require('gulp-jsdoc3'),
+    del = require('del');
 
 /*
  * Currently env does not determine the arangodb being selected here, as all
@@ -41,6 +42,7 @@ gulp.task('watch-mocha', function () {
 });
 
 gulp.task('docs', function (cb) {
+  del(['./jsdocs/**']);
   gulp.src(['./app.js', 'lib/**/*.js', 'etc/**/*.p2', './README.md'])
   .pipe(jsdoc(
     {

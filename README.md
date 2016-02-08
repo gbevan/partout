@@ -122,7 +122,7 @@ Anatomy of a Module
 DEVELOPMENT
 -----------
 
-### LXC
+### LXD/LXC
 
 #### Ubuntu
 ```bash

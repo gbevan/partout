@@ -51,7 +51,11 @@ function Policy(args, opts) {
   new P2()
   .then(function (p2) {
     //console.log('p2:', p2);
+
+    /** @global */
     GLOBAL.p2 = p2;
+
+    /** @global */
     GLOBAL.p2_agent_opts = self.opts = opts;
 
     // Post facts to master

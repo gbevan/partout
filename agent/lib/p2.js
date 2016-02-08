@@ -46,6 +46,7 @@ var init_impl = function _impl() {  },
  * @function
  * @param file {String} file name / path
  * @param cb {Function} callback(callback({module:..., object:..., msg:...}), event, filename)
+ * @memberof P2
  */
 var P2_watch = function (file, cb) {
   //console.log('P2_watch() this:', this);

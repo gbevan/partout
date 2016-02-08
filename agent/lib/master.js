@@ -32,7 +32,7 @@ var path = require('path'),
 Q.longStackSupport = true;
 
 /**
- * @constuctor
+ * @class
  * @param {Object} cfg   from partout_agent.conf.js
  * @param {object} https https server
  */

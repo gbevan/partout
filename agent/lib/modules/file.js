@@ -52,11 +52,19 @@ var console = require('better-console'),
  *   | ensure      | String  | Present, absent, file, directory, link |
  *   | content     | String  | Content of file, can be object containing {file: 'filaname'} or {template: 'template file'} |
  *   | is_template | Boolean | Content is a template                  |
+ *   | mode        | String  | Octal file mode                        |
  *
  *   Templates use the [Mustache](https://www.npmjs.com/package/mustache) templating library.
  *
  * ---
  * also supports:
+ *
+ * Watches for real-time reapplication of policy when a file object is changed
+ *
+ *     .watch(true)
+ *     .file('your_file_to_watch', {ensure: 'file', content: 'template_file'})
+ *     .watch(false)
+ *     ...
  *
  * ---
  * TODO: remaining support
