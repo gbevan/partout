@@ -12,14 +12,16 @@ To prep your agent's OS with Node.js:
 see https://nodejs.org/en/download/package-manager/
 
 ### Debian and Ubuntu based distributions:
-
+```bash
     curl -sL https://deb.nodesource.com/setup_5.x | sudo -E bash -
     sudo apt-get install -y nodejs
+```
 
 ### RedHat/CentOS/Fedora Based distibutions:
-
+```bash
     curl --silent --location https://rpm.nodesource.com/setup_5.x | bash -
     yum -y install nodejs
+```
 
 ### Notes
 
@@ -102,11 +104,11 @@ an appropriate implementation to sync from the master to the agent, in folder:
 
 COPYRIGHT
 ---------
-
+   ```
     Partout [Everywhere] - Policy-Based Configuration Management for the
     Data-Driven-Infrastructure.
 
-    Copyright (C) 2015  Graham Lee Bevan <graham.bevan@ntlworld.com>
+    Copyright (C) 2015-2016  Graham Lee Bevan <graham.bevan@ntlworld.com>
 
     This file is part of Partout.
 
@@ -122,3 +124,4 @@ COPYRIGHT
 
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+```

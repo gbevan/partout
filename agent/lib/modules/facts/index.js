@@ -27,6 +27,11 @@ var Provider = require('../../provider'),
     console = require('better-console'),
     u = require('util');
 
+/**
+ * @module Facts
+ *
+ * @description Facts gathering module
+ */
 var Facts = function () {
   var self = this;  // self is p2 _impl DSL ????
   return self;    // ????
@@ -34,7 +39,17 @@ var Facts = function () {
 
 u.inherits(Facts, Provider);
 
+/**
+ * Get module name
+ * @returns {string} Name of module
+ */
 Facts.getName = function () { return 'Facts'; };
+
+/**
+ * Calls _getFacts() in heritied from Provider.
+ * @param   {object} facts Facts so far
+ * @returns {object} Promise for facts
+ */
 Facts.prototype.getFacts = function (facts) {
   var self = this;
   //console.log('Facts self:', self, '_getFacts:', self._getFacts);

@@ -203,4 +203,23 @@ Service.getStatus = function (name) {
   return deferred.promise;
 };
 
+/**
+ * Set sysv service to enabled
+ * @param   {string} name Service name
+ * @returns {object} Promise
+ */
+Service.setEnabled = function (name) {
+  return utils.pExec('/usr/sbin/update-rc.d ' + name + ' enabled');
+};
+
+/**
+ * Set sysv service to disabled
+ * @param   {string} name Service name
+ * @returns {object} Promise
+ */
+Service.setDisabled = function (name) {
+  return utils.pExec('/usr/sbin/update-rc.d ' + name + ' disabled');
+};
+
+
 module.exports = Service;

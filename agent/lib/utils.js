@@ -209,4 +209,16 @@ Utils.prototype.pExec = function (cmd) {
   return Q.nfcall(exec, cmd);
 };
 
+Utils.prototype.vetOps = function (module, opts, validopts) {
+  var ok = true;
+  _.forEach(opts, function (v, k) {
+    if (!validopts[k]) {
+      var err = new Error('[' + module + '] Invalid option: ' + k);
+      console.error(err);
+      ok = false;
+    }
+  });
+  return ok;
+};
+
 module.exports = Utils;

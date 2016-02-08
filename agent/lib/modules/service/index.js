@@ -25,21 +25,28 @@
 
 var Provider = require('../../provider'),
     console = require('better-console'),
-    u = require('util');
+    u = require('util'),
+    utils = new (require('../../utils.js'))();
 
 /**
+ * @module Service
+ *
+ * @description
  * Service module
  * ==============
  *
- *  p2.service(
- *    'title',
- *    options,
- *    function (err) {
- *      ... to be called after applying any action ...
- *    }
- *  )
+ * Manage System Services
+ *
+ *     p2.service(
+ *       'title',
+ *       options,
+ *       function (err) {
+ *          ... to be called after applying any action ...
+ *       }
+ *     )
  *
  * Options:
+ *
  *   | Operand    | Type    | Description                                                |
  *   |:-----------|---------|:-----------------------------------------------------------|
  *   | name       | String  | Name of the service to manage (defaults to title) |
@@ -86,7 +93,15 @@ Service.prototype.addStep = function (_impl, title, opts, command_complete_cb) {
   }
   opts.name = (opts.name ? opts.name : title);
   opts.ensure = (opts.ensure ? opts.ensure : 'stopped');
-  opts.enable = (opts.ensure === undefined ? opts.ensure : false);
+  opts.enabled = (opts.enabled !== undefined ? opts.enabled : (opts.ensure === 'running' ? true : false));
+
+  if (!utils.vetOps('Service', opts, {
+    name: true,
+    ensure: true,
+    enabled: true
+  }) ) {
+    return self;
+  }
 
   self._getDefaultProvider(_impl.facts, opts);
 

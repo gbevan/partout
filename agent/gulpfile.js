@@ -3,11 +3,12 @@
 
 /*global */
 var gulp = require('gulp'),
-  mocha = require('gulp-mocha'),
-  gulpLoadPlugins = require('gulp-load-plugins'),
-  gutil = require('gulp-util'),
-  plugins = gulpLoadPlugins(),
-  jsdoc = require('gulp-jsdoc');
+    mocha = require('gulp-mocha'),
+    gulpLoadPlugins = require('gulp-load-plugins'),
+    gutil = require('gulp-util'),
+    plugins = gulpLoadPlugins(),
+    jsdoc = require('gulp-jsdoc3'),
+    del = require('del');
 
 var env = process.env.NODE_ENV || 'development';
 console.log('Invoking gulp -', env);
@@ -35,23 +36,30 @@ gulp.task('watch-mocha', function () {
   gulp.watch(['app.js', 'lib/**', 'test/**'], ['mocha']);
 });
 
-gulp.task('docs', function () {
-  gulp.src(['./app.js', 'lib/**/*.js', 'etc/**/*.p2', './README.md'])
+gulp.task('docs', function (cb) {
+  del(['./jsdocs'])
+  .gulp.src(['./app.js', 'lib/**/*.*', 'etc/**/*.p2', './README.md'])
     .pipe(jsdoc(
-    './jsdocs',
     {
-      path: 'ink-docstrap',
-      systemName      : 'Partout Agent',
-      footer          : 'Partout Agent',
-      copyright       : 'Copyright 2015 Graham Lee Bevan <graham.bevan@ntlworld.com>',
-      navType         : 'vertical',
-      theme           : 'cerulean',
-      linenums        : true,
-      collapseSymbols : false,
-      inverseNav      : false
+      opts: {
+        destination: './jsdocs'
+      },
+      plugins: [
+        'plugins/markdown'
+      ],
+      templates: {
+        "cleverLinks": false,
+        "monospaceLinks": false,
+        "default": {
+          "outputSourceFiles": true
+        },
+        "path": "ink-docstrap",
+        "theme": "cerulean",
+        "navType": "vertical",
+        "linenums": true,
+        "dateFormat": "MMMM Do YYYY, h:mm:ss a"
+      }
     },
-    {
-      plugins         : ['plugins/markdown']
-    }
+    cb
   ));
 });

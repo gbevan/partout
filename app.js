@@ -63,7 +63,7 @@ var banner = "\n\
 ";
 
 
-/*
+/**
  * Connect to the Partout Arango database, creating it if it doesnt
  * exist. Set as active database.
  */
@@ -127,7 +127,9 @@ var init = function () {
   return deferred.promise;
 };
 
-
+/**
+ * Serve the Partout Master API and UI engine
+ */
 var serve = function () {
   /**
    * Partout application server
@@ -314,7 +316,11 @@ module.exports = function (opts) {
           for (var i in csrList) {
             var csrObj = ca.pki.certificationRequestFromPem(csrList[i].csr);
             var fingerprint = ca.pki.getPublicKeyFingerprint(csrObj.publicKey, {encoding: 'hex', delimiter: ':'});
-            console.warn('   ' + csrList[i]._key + ' : ' + csrList[i].status + ' : ' + fingerprint + ' : ' + csrList[i].lastSeen);
+            if (csrList[i].status === 'unsigned') {
+              console.warn('   ' + csrList[i]._key + ' : ' + csrList[i].status + ' : ' + fingerprint + ' : ' + csrList[i].lastSeen);
+            } else {
+              console.info('   ' + csrList[i]._key + ' : ' + csrList[i].status + ' : ' + fingerprint + ' : ' + csrList[i].lastSeen);
+            }
           }
         })
         .fail(function (err) {

@@ -33,8 +33,8 @@ Q.longStackSupport = true;
 
 /**
  * @constuctor
- * @param {Object} cfg from partout_agent.conf.js
- * @param {Object} instance of https from app
+ * @param {Object} cfg   from partout_agent.conf.js
+ * @param {object} https https server
  */
 var Master = function (cfg, https) {
   var self = this;

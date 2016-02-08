@@ -35,7 +35,8 @@ var console = require('better-console'),
   //exec = require('child_process').exec;
 
 /**
- * @constructor
+ * @module File
+ *
  * @description
  * File module
  * ===========
@@ -45,11 +46,15 @@ var console = require('better-console'),
  *
  * Options:
  *
- *   | Operand    | Type    | Description                            |
- *   |:-----------|---------|:---------------------------------------|
- *   | path       | String  | File path, overrides title             |
- *   | ensure     | String  | Present, absent, file, directory, link |
- *   | content    | String  | Content of file                        |
+ *   | Operand     | Type    | Description                            |
+ *   |:------------|---------|:---------------------------------------|
+ *   | path        | String  | File path, overrides title             |
+ *   | ensure      | String  | Present, absent, file, directory, link |
+ *   | content     | String  | Content of file, can be object containing {file: 'filaname'} or {template: 'template file'} |
+ *   | is_template | Boolean | Content is a template                  |
+ *
+ *   Templates use the [Mustache](https://www.npmjs.com/package/mustache) templating library.
+ *
  * ---
  * also supports:
  *
@@ -57,7 +62,6 @@ var console = require('better-console'),
  * TODO: remaining support
  *
  */
-
 var File = function () {
   var self = this;
   //console.log('file self:', self);

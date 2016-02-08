@@ -123,4 +123,23 @@ Service.getFacts = function (facts_so_far) {
   return deferred.promise;
 };
 
+/**
+ * Set upstart service to enabled
+ * @param   {string} name Service name
+ * @returns {object} Promise
+ */
+Service.setEnabled = function (name) {
+  return Q.nfcall(fs.unlink, '/etc/init/' + name + '.override');
+};
+
+/**
+ * Set upstart service to disabled
+ * @param   {string} name Service name
+ * @returns {object} Promise
+ */
+Service.setDisabled = function (name) {
+  return Q.nfcall(fs.writeFile, '/etc/init/' + name + '.override', 'manual\n');
+};
+
+
 module.exports = Service;

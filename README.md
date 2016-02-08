@@ -11,7 +11,7 @@ Modules
 ### facts
 Takes no parameters and is called internally before any other modules, to gather facts about the target system.
 
-If any module contains a method called getFacts, it will be called during fact discover, prior to module execution.
+If any module contains a method called getFacts, it will be called during fact discovery, prior to module execution.
 
 ### exec
 Execute commands.
@@ -32,9 +32,9 @@ Anatomy of a Module
 -------------------
 
 * The constructor must be documented using jsdoc, with details of how the module isused. e.g.:
-
+```javascript
     /**
-     @constructor
+     * @constructor
      * @description
      * Exec module
      * ===========
@@ -60,23 +60,26 @@ Anatomy of a Module
      *   | gid        | Number | Sets the group identity of the process. (See setgid(2).) |
      * ...
      */
+```
 
 * Must provide method getName() which simply returns the P2 DSL command name, e.g.:
-
+```javascript
     Exec.getName = function () { return 'exec'; };
+```
 
 * May optionally provide method getFacts() which will be called prior to P2 policy executions, to pre-gather facts. e.g.:
-
+```javascript
     Exec.getFacts = function (facts_so_far) {
       var facts = {};
       facts.exec_loaded = true;
       return facts;
     };
+```
 
   The passed facts_so_far parameter holds all the facts that have been gathered so far.  The facts.js module runs before all other modules to ensure it's facts are available.
 
 * The module's constructor is called with the parameters passed from the P2 policy, e.g.:
-
+```javascript
     p2
     .exec('runthis_cmd > newfile', {
       creates: 'newfile'
@@ -84,15 +87,17 @@ Anatomy of a Module
       ... called when cmd has been run ...
     })
     ...
+```
 
   The constructor in this case looks like this:
-
+```javascript
     var Exec = function (cmd, opts, command_complete_cb) {
       var self = this;  // self is parents _impl
       ...
 
       return self;
     };
+```
 
   The ```this``` (saved as ```self``` here) object is the P2 _impl object that provides the DSL, and MUST be returned by the constructor, as this passes on the DSL _impl for the next directive in the P2 policy.
 
@@ -101,20 +106,49 @@ Anatomy of a Module
       self.push_action(function (next_step_callback) {
 
   The next_step_callback() is called to allow P2 DSL to move onto it's next serialised action for the policy.  It can be used to send a notification event back to the master on completion of this action, e.g.:
-
+```javascript
       next_step_callback({
         module: 'exec',
         object: opts.creates,
         msg: 'target (re)created'
       });
+```
 
   *NB: Be mindful that, even though actions are executed in a serialised manner by P2, they are actually being executed asyncronously and require that the next_step_callback() be called to move P2 onto the next action (or completion).
 
 * If you need to do template expansion, use the provided Mustache library.
 
+
+DEVELOPMENT
+-----------
+
+### LXC
+
+#### Ubuntu
+```bash
+$ lxc launch images:ubuntu/trusty/amd64 ubuntu
+$ lxc exec ubuntu bash
+$ lxc config device add ubuntu partout disk path=/opt/partout/agent source=/home/bev/Documents/Brackets/partout/agent
+```
+
+#### CentOS
+```bash
+$ lxc launch images:centos/7/amd64 centos7
+$ lxc exec centos7 bash
+$ lxc config device add centos7 partout disk path=/opt/partout/agent source=/home/bev/Documents/Brackets/partout/agent
+$ lxc exec centos7 bash
+root@centos7 $ /etc/init.d/network start
+root@centos7 $ yum install -y net-tools
+root@centos7 $ curl --silent --location https://rpm.nodesource.com/setup_5.x | bash -
+root@centos7 $ yum -y install nodejs
+
+```
+
+----
+
 COPYRIGHT
 ---------
-
+   ```
     Partout [Everywhere] - Policy-Based Configuration Management for the
     Data-Driven-Infrastructure.
 
@@ -134,3 +168,4 @@ COPYRIGHT
 
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+```

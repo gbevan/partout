@@ -31,7 +31,8 @@ var console = require('better-console'),
   Q = require('q');
 
 /**
- * @constructor
+ * @module Exec
+ *
  * @description
  * Exec module
  * ===========

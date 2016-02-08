@@ -25,7 +25,35 @@
 
 var Provider = require('../../provider'),
     console = require('better-console'),
-    u = require('util');
+    u = require('util'),
+    utils = new (require('../../utils.js'))();
+
+/**
+ * @module Package
+ *
+ * @description
+ * Package module
+ * ==============
+ *
+ * Manage System Packages
+ *
+ *     p2.package(
+ *       'title or pkg name',
+ *       options,
+ *       function (err, stdout, stderr) {
+ *         ... to be called after exec of pkg command ...
+ *       }
+ *     )
+ *
+ * Options:
+ *
+ *   | Operand    | Type    | Description                                                |
+ *   |:-----------|---------|:-----------------------------------------------------------|
+ *   | name       | String  | Package name to install (defaults to title) |
+ *   | ensure     | String  | present/installed, absent/purged, latest (default is present) |
+ *   | provider   | String  | Override backend provider e.g.: apt, yum, rpm, etc |
+ *
+ */
 
 var Package = function () {
   var self = this;
@@ -66,6 +94,13 @@ Package.prototype.addStep = function (_impl, title, opts, command_complete_cb) {
   }
   opts.ensure = (opts.ensure ? opts.ensure : 'present');
   opts.name = (opts.name ? opts.name : title);
+
+  if (!utils.vetOps('Package', opts, {
+    name: true,
+    ensure: true
+  }) ) {
+    return self;
+  }
 
   self._getDefaultProvider(_impl.facts, opts);
 

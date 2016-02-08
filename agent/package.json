@@ -9,7 +9,6 @@
     "better-console": "^0.2.4",
     "express": "^4.13.1",
     "forever": "^0.15.1",
-    "ink-docstrap": "^0.5.2",
     "lodash": "^3.10.0",
     "mkdirp": "^0.5.1",
     "morgan": "^1.6.1",
@@ -21,13 +20,16 @@
     "walk": "^2.3.9"
   },
   "devDependencies": {
+    "del": "^2.2.0",
     "expect": "^1.9.0",
     "gulp": "^3.9.0",
-    "gulp-jsdoc": "^0.1.4",
+    "gulp-jsdoc3": "^0.1.0",
     "gulp-load-plugins": "^0.10.0",
     "gulp-mocha": "^2.1.1",
     "gulp-nodemon": "^2.0.3",
     "gulp-util": "^3.0.5",
+    "ink-docstrap": "^0.5.2",
+    "jsdoc": "^3.4.0",
     "should": "^6.0.3",
     "should-sinon": "0.0.1",
     "sinon": "^1.14.1"

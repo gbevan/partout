@@ -35,6 +35,10 @@ var console = require('better-console'),
   forge = require('node-forge'),
   readline = require('readline');
 
+/**
+ * Policy Syncronisation
+ * @param {object} app Parent application (Express)
+ */
 var Policy_Sync = function (app) {
   var self = this;
 

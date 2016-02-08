@@ -7,7 +7,7 @@ var gulp = require('gulp'),
   gulpLoadPlugins = require('gulp-load-plugins'),
   gutil = require('gulp-util'),
   plugins = gulpLoadPlugins(),
-  jsdoc = require('gulp-jsdoc');
+  jsdoc = require('gulp-jsdoc3');
 
 /*
  * Currently env does not determine the arangodb being selected here, as all
@@ -40,23 +40,29 @@ gulp.task('watch-mocha', function () {
   gulp.watch(['app.js', 'lib/**', 'etc/*.js', 'agent/lib/*.js', 'test/**'], ['mocha']);
 });
 
-gulp.task('docs', function () {
+gulp.task('docs', function (cb) {
   gulp.src(['./app.js', 'lib/**/*.js', 'etc/**/*.p2', './README.md'])
   .pipe(jsdoc(
-    './jsdocs',
     {
-      path: 'ink-docstrap',
-      systemName      : 'Partout',
-      footer          : 'Partout',
-      copyright       : 'Copyright 2015 Graham Lee Bevan <graham.bevan@ntlworld.com>',
-      navType         : 'vertical',
-      theme           : 'cerulean',
-      linenums        : true,
-      collapseSymbols : false,
-      inverseNav      : false
+      opts: {
+        destination: './jsdocs'
+      },
+      plugins: [
+        'plugins/markdown'
+      ],
+      templates: {
+        "cleverLinks": false,
+        "monospaceLinks": false,
+        "default": {
+          "outputSourceFiles": true
+        },
+        "path": "ink-docstrap",
+        "theme": "cerulean",
+        "navType": "vertical",
+        "linenums": true,
+        "dateFormat": "MMMM Do YYYY, h:mm:ss a"
+      }
     },
-    {
-      plugins         : ['plugins/markdown']
-    }
+    cb
   ));
 });
