@@ -122,26 +122,56 @@ Anatomy of a Module
 DEVELOPMENT
 -----------
 
-### LXD/LXC
+### LXD/LXC Agents
 
-#### Ubuntu
+*NB: Guests using systemd are not currently supported.
+
+#### Ubuntu Trusty
 ```bash
 $ lxc launch images:ubuntu/trusty/amd64 ubuntu
-$ lxc exec ubuntu bash
 $ lxc config device add ubuntu partout disk path=/opt/partout/agent source=/home/bev/Documents/Brackets/partout/agent
+$ lxc exec ubuntu bash
 ```
 
-#### CentOS
+#### CentOS 6
 ```bash
-$ lxc launch images:centos/7/amd64 centos7
-$ lxc exec centos7 bash
-$ lxc config device add centos7 partout disk path=/opt/partout/agent source=/home/bev/Documents/Brackets/partout/agent
-$ lxc exec centos7 bash
-root@centos7 $ /etc/init.d/network start
-root@centos7 $ yum install -y net-tools
-root@centos7 $ curl --silent --location https://rpm.nodesource.com/setup_5.x | bash -
-root@centos7 $ yum -y install nodejs
+$ lxc launch images:centos/6/amd64 centos6
+$ lxc config device add centos6 partout disk path=/opt/partout/agent source=/home/bev/Documents/Brackets/partout/agent
+$ lxc exec centos6 bash
+root@centos6 $ curl --silent --location https://rpm.nodesource.com/setup_5.x | bash -
+root@centos6 $ yum -y install nodejs
 
+```
+
+### NFS Agents from Git Sandbox
+
+Prereqs (Debian/Ubuntu):
+```bash
+# apt-get install -y nfs-client
+# curl -sL https://deb.nodesource.com/setup_5.x | sudo -E bash -
+# sudo apt-get install -y nodejs
+```
+
+Prereqs (RedHat/CentOS):
+```bash
+# curl --silent --location https://rpm.nodesource.com/setup_5.x | bash -
+# yum -y install nodejs
+```
+
+/etc/exports:
+```bash
+/home/????/Documents/Brackets/partout/agent  172.16.0.0/16(ro)
+```
+
+On OpenStack guests:
+```bash
+# mkdir -p /opt/partout/agent
+# mount -a
+```
+
+/etc/fstab:
+```bash
+??????:/home/????/Documents/Brackets/partout/agent  /opt/partout/agent nfs defaults,ro,intr 0 0
 ```
 
 ----

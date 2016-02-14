@@ -221,4 +221,26 @@ Utils.prototype.vetOps = function (module, opts, validopts) {
   return ok;
 };
 
+/**
+ * Module callback on completion of runAction() to continue to next step
+ * @param {function} next_step_callback Next Step Callback in DSL
+ * @param {object}   facts              _impl.facts
+ * @param {object}   o                  Object with this event details: module:, object:, msg:.
+ */
+Utils.prototype.callbackEvent = function (next_step_callback, facts, o) {
+  next_step_callback({
+    agent_uuid: facts.partout_agent_uuid,
+    hostname: facts.os_hostname,
+    arch: facts.arch,
+    platform: facts.platform,
+    os_release: facts.os_release,
+    os_family: facts.os_family,
+    os_dist_name: facts.os_dist_name,
+    os_dist_version_id: facts.os_dist_version_id,
+    module: o.module,
+    object: o.object,
+    msg: o.msg
+  });
+};
+
 module.exports = Utils;

@@ -112,11 +112,22 @@ Package.runAction = function (_impl, next_step_callback, title, opts, command_co
             _impl.facts.installed_packages[opts.name] = {};  // next facts run will populate
           }
           if (command_complete_cb) command_complete_cb(err, stdout, stderr);
-          next_step_callback({
+
+          utils.callbackEvent(next_step_callback, _impl.facts, {
             module: 'package',
             object: opts.name,
             msg: 'install ' + (err ? err : 'ok')
           });
+
+          /*
+          next_step_callback({
+            agent_uuid: _impl.facts.partout_agent_uuid,
+            hostname: _impl.facts.os_hostname,
+            module: 'package',
+            object: opts.name,
+            msg: 'install ' + (err ? err : 'ok')
+          });
+          */
         });
 
       } else if (opts.ensure === 'latest') {
