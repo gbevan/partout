@@ -144,14 +144,14 @@ Service.runAction = function (_impl, next_step_callback, title, opts, command_co
           utils.pExec(cmd)
           .fail(function (err) {
             console.error('Service command failed: ', cmd);
-            next_step_callback({
+            utils.callbackEvent(next_step_callback, _impl.facts, {
               module: 'service',
               object: opts.name,
               msg: 'stop failed: ' + err
             });
           })
           .done(function () {
-            next_step_callback({
+            utils.callbackEvent(next_step_callback, _impl.facts, {
               module: 'service',
               object: opts.name,
               msg: 'stopped'
@@ -167,14 +167,14 @@ Service.runAction = function (_impl, next_step_callback, title, opts, command_co
           utils.pExec(cmd)
           .fail(function (err) {
             console.error('Service command failed: ', cmd);
-            next_step_callback({
+            utils.callbackEvent(next_step_callback, _impl.facts, {
               module: 'service',
               object: opts.name,
               msg: 'start failed: ' + err
             });
           })
           .done(function () {
-            next_step_callback({
+            utils.callbackEvent(next_step_callback, _impl.facts, {
               module: 'service',
               object: opts.name,
               msg: 'started'

@@ -29,7 +29,8 @@ var console = require('better-console'),
     fs = require('fs'),
     exec = require('child_process').exec,
     Q = require('q'),
-    rpm = require('./rpm');
+    rpm = require('./rpm'),
+    utils = new (require('../../utils'))();
 
 Q.longStackSupport = true;
 
@@ -62,7 +63,7 @@ Package.runAction = function (_impl, next_step_callback, title, opts, command_co
             _impl.facts.installed_packages[opts.name] = {};  // next facts run will populate
           }
           if (command_complete_cb) command_complete_cb(err, stdout, stderr);
-          next_step_callback({
+          utils.callbackEvent(next_step_callback, _impl.facts, {
             module: 'package',
             object: opts.name,
             msg: 'install ' + (err ? err : 'ok')
@@ -84,7 +85,7 @@ Package.runAction = function (_impl, next_step_callback, title, opts, command_co
                 console.error('yum update failed:', err, stderr);
               }
               if (command_complete_cb) command_complete_cb(err, stdout, stderr);
-              next_step_callback({
+              utils.callbackEvent(next_step_callback, _impl.facts, {
                 module: 'package',
                 object: opts.name,
                 msg: 'upgrade ' + (err ? err : 'ok')
@@ -109,7 +110,7 @@ Package.runAction = function (_impl, next_step_callback, title, opts, command_co
             delete _impl.facts.installed_packages[opts.name];
           }
           if (command_complete_cb) command_complete_cb(err, stdout, stderr);
-          next_step_callback({
+          utils.callbackEvent(next_step_callback, _impl.facts, {
             module: 'package',
             object: opts.name,
             msg: 'uninstall ' + (err ? err : 'ok')

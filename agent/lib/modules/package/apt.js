@@ -113,21 +113,13 @@ Package.runAction = function (_impl, next_step_callback, title, opts, command_co
           }
           if (command_complete_cb) command_complete_cb(err, stdout, stderr);
 
+          // TODO: EXTEND USAGE...
           utils.callbackEvent(next_step_callback, _impl.facts, {
             module: 'package',
             object: opts.name,
             msg: 'install ' + (err ? err : 'ok')
           });
 
-          /*
-          next_step_callback({
-            agent_uuid: _impl.facts.partout_agent_uuid,
-            hostname: _impl.facts.os_hostname,
-            module: 'package',
-            object: opts.name,
-            msg: 'install ' + (err ? err : 'ok')
-          });
-          */
         });
 
       } else if (opts.ensure === 'latest') {
@@ -139,7 +131,8 @@ Package.runAction = function (_impl, next_step_callback, title, opts, command_co
               console.error('apt-get upgrade failed:', err, stderr);
             }
             if (command_complete_cb) command_complete_cb(err, stdout, stderr);
-            next_step_callback({
+
+            utils.callbackEvent(next_step_callback, _impl.facts, {
               module: 'package',
               object: opts.name,
               msg: 'upgrade ' + (err ? err : 'ok')
@@ -167,7 +160,7 @@ Package.runAction = function (_impl, next_step_callback, title, opts, command_co
             delete _impl.facts.installed_packages[opts.name];
           }
           if (command_complete_cb) command_complete_cb(err, stdout, stderr);
-          next_step_callback({
+          utils.callbackEvent(next_step_callback, _impl.facts, {
             module: 'package',
             object: opts.name,
             msg: 'uninstall ' + (err ? err : 'ok')
