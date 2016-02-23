@@ -24,32 +24,59 @@
 'use strict';
 
 var console = require('better-console'),
-    Q = require('q');
+    Q = require('q'),
+    u = require('util');
 
 /**
  * P2M DSL - inherited by all DSL based modules.
  * @constructor
  */
 var P2M = function () {
-
+  //this.classname = 'P2M';
+  var self = this;
+  self._name = 'MISSING NAME';
+  self._actionFn = function () {};
 };
+
+/*
+P2M.prototype.getClassName = function () {
+  return this.classname;
+};
+*/
 
 /*
  * Wrap methods
  * ============
+ * called from P2.
  */
 
 /**
- * Return module name to module importer
- * @returns {string} module name
+ * Called from p2, return module name to module importer
  * @private
+ * @returns {string} module name
  */
 P2M.prototype.getName = function() {
   var self = this;
-  return self.name;
+  if (!self._name) {
+    throw new Error('module name not specified');
+  }
+  return self._name;
 };
 
+P2M.prototype.getActionFn = function () {
+  var self = this;
+  return self._actionFn;
+}
 
+/*
+P2M.prototype.addStep = function () {
+  var self = this;
+
+  if (self._addStep) {
+
+  }
+};
+*/
 
 /*
  * DSL Commands
@@ -63,10 +90,7 @@ P2M.prototype.getName = function() {
  */
 P2M.prototype.name = function (name) {
   var self = this;
-  console.log('P2M name:', name);
-
-  self.name = name;
-
+  self._name = name;
   return self;
 };
 
@@ -78,6 +102,59 @@ P2M.prototype.name = function (name) {
  * @instance
  */
 P2M.prototype.module_name = P2M.prototype.name;
+
+
+P2M.prototype.action = function (fn) {
+  var self = this;
+  self._actionFn = fn
+
+  /**
+   * Called from p2, add an action step
+   * @param {object}   _impl p2 dsl object
+   * @param {string}   title title
+   * @param {object}   opts  options
+   * @param {function} cb    callback to DSL
+   */
+  self.addStep = function (_impl, title, opts, cb) {
+
+    if (!opts) {
+      opts = {};
+    }
+
+    if (typeof (opts) === 'function') {
+      cb = opts;
+      opts = {};
+    }
+
+    if (_impl.ifNode()) {
+      _impl.push_action(function (nextStepCb, inWatchFlag) {
+        var deferred = Q.defer();
+
+        //fn.call(this, {
+        fn({
+          deferred: deferred,
+          inWatchFlag: inWatchFlag,
+          _impl: _impl,
+          title: title,
+          opts: opts,
+          cb: cb
+        });
+
+        deferred.promise
+        .fail(function (err) {
+          console.error(u.format('error: module %s err: %s', self.name, err));
+        })
+        .then(nextStepCb) // move to next policy directive in p2
+        .done();
+       });
+    }
+
+  };
+
+  return self;
+};
+
+
 
 /**
  * P2M DSL: provide function to gather facts for this module
@@ -97,5 +174,20 @@ P2M.prototype.facts = function (fn) {
 
   return self;
 };
+
+
+P2M.Module = function (deffn) {
+  var M = function () {
+    M.super_.call(this);
+
+    deffn.apply(this);
+    //console.log('P2M.Module this:', u.inspect(this, {colors: true, depth:3}));
+  };
+
+  u.inherits(M, P2M);
+
+  return M;
+};
+
 
 module.exports = P2M;

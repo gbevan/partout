@@ -40,7 +40,7 @@ var console = require('better-console'),
   Policy_Sync = require('./lib/policy_sync'),
   querystring = require('querystring'),
   Q = require('q'),
-  utils = new (require('./lib/utils'))(),
+  pfs = new (require('./lib/pfs'))(),
   cfg = new (require('./etc/partout_agent.conf.js'))(),
   ssl = new (require('./lib/ssl'))(cfg),
   privateKeyFile = ssl.agentPrivateKeyFile,
@@ -110,10 +110,10 @@ var checkCert = function (args, master) {
 
   //var master = new Master(cfg, https);
 
-  utils.pExists(certFile)
+  pfs.pExists(certFile)
   .then(function (cert_exists) {
     if (!cert_exists) {
-      utils.pExists(csrFile)
+      pfs.pExists(csrFile)
       .then(function (csr_exists) {
         if (!csr_exists) {
 
@@ -337,7 +337,7 @@ module.exports = function (opts) {
 
   } else if (opts.serve) {
     // Ensure var path exists
-    Q.nfcall(utils.ensurePath, cfg.PARTOUT_VARDIR)
+    Q.nfcall(pfs.ensurePath, cfg.PARTOUT_VARDIR)
     .then(function () {
       var master = new Master(cfg, https);
 

@@ -25,7 +25,8 @@
 
 var console = require('better-console'),
   _ = require('lodash'),
-  utils = new (require('./utils'))(),
+  //utils = new (require('./utils'))(),
+  pfs = new (require('./pfs'))(),
   path = require('path'),
   mkdirp = require('mkdirp'),
   fs = require('fs'),
@@ -57,7 +58,7 @@ Policy_Sync.prototype.load_master_fingerprint = function () {
     deferred = Q.defer(),
     fp = path.join(self.app.PARTOUT_AGENT_SSL_PUBLIC, 'master_fingerprint.dat');
 
-  utils.pExists(fp)
+  pfs.pExists(fp)
   .then(function (exists) {
     if (exists) {
       Q.nfcall(fs.readFile, fp)
@@ -202,12 +203,16 @@ Policy_Sync.prototype.sync = function (srcfolder, destfolder) {
     console.info('syncing from:', srcfolder, 'to:', destfolder);
     //self.get_manifest(function (manifest) {
     self.app.master.get('/manifest')
+    .fail(function (err) {
+      console.error('Sync failed, err:', err);
+      outer_deferred.reject(err);
+    })
     .then(function (obj) {
       var manifest = obj.data;
       //console.info('manifest:', manifest);
 
       // Get hashWalk of local manifest
-      utils.hashWalk(destfolder, function (local_manifest) {
+      pfs.hashWalk(destfolder, function (local_manifest) {
         //console.log('local_manifest:', local_manifest);
 
         var files = Object.keys(manifest),

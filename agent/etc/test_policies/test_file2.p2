@@ -1,0 +1,104 @@
+/*jslint node: true */
+/*jshint -W115 */
+'use strict';
+/*global p2, P2*/
+
+//new P2()
+p2
+.select(/(^office|^ub1)/)
+
+.file2('/tmp/testpresent', {ensure: 'absent'})
+.file2('/tmp/testlink', {ensure: 'absent'})
+.file2('/tmp/testlink1', {ensure: 'absent'})
+.file2('/tmp/testlink2', {ensure: 'absent'})
+.file2('/tmp/testlink3', {ensure: 'absent'})
+.file2('/tmp/testlink4', {ensure: 'absent'})
+.file2('/tmp/testdir', {ensure: 'absent'})
+.file2('/tmp/testfile', {ensure: 'absent'})
+.file2('/tmp/testcontent', {ensure: 'absent'})
+.file2('/tmp/testtemplate', {ensure: 'absent'})
+.file2('/tmp/testmode1', {ensure: 'absent'})
+.file2('/tmp/testmode2', {ensure: 'absent'})
+.file2('/tmp/testmode3', {ensure: 'absent'})
+.file2('/tmp/testmode4', {ensure: 'absent'})
+
+.file2('/tmp/testpresent', {ensure: 'present'})
+.file2('/tmp/testlink', {ensure: 'link', target: '/tmp/testtarget'})
+.file2('/tmp/testdir', {ensure: 'directory'})
+.file2('/tmp/testfile', {ensure: 'file'})
+
+.file2('/tmp/testcontent', {
+  ensure: 'present',
+  content: 'This is\n\tan example\n\t\tfile...\n'
+})
+
+.file2('/tmp/testcontent', {
+  ensure: 'file',
+  content: 'This is\n\tan example\n\t\tfile #2...\n'
+})
+
+.file2('/tmp/testcontent', {
+  ensure: 'file',
+  content: 'This is\n\tan example\n\t\tfile #2...\n'
+})
+
+.file2('/tmp/testcontent', {
+  ensure: 'file',
+  content: 'This is \nTemplate: \nPlatform:\t{{platform}}\narch:\t{{arch}}\nos_release:\t{{os_release}}\n'
+})
+
+.file2('/tmp/testtemplate', {
+  ensure: 'file',
+  content: 'This is \nTemplate: \nPlatform:\t{{platform}}\narch:\t{{arch}}\nos_release:\t{{os_release}}\n',
+  is_template: true
+})
+
+
+/**************************************
+ * Test mode:
+ */
+.file2('/tmp/testmode1', {
+  ensure: 'file',
+  mode: '0111'
+})
+
+.file2('/tmp/testmode2', {
+  ensure: 'file',
+  mode: '0222'
+})
+
+.file2('/tmp/testmode4', {
+  ensure: 'file',
+  mode: '0444'
+})
+
+
+/**************************************
+ * Test content: file for content
+ */
+.file2('/tmp/testfile3', {
+  ensure: 'file',
+  content: {file: '/tmp/testcontent'}
+})
+
+/**************************************
+ * Test content: template for content
+ */
+.file2('/tmp/testfile4', {
+  ensure: 'file',
+  content: {template: '/tmp/testcontent'}
+})
+
+/**************************************
+ * Test watch
+ */
+.watch(true)
+.file2('/tmp/testwatch1', {
+  ensure: 'file',
+  content: {template: '/tmp/testcontent'}
+})
+.watch(false)
+
+
+
+.end();
