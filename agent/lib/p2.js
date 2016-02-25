@@ -49,17 +49,18 @@ var init_impl = function _impl() {  },
  * @param cb {Function} callback(callback({module:..., object:..., msg:...}), event, filename)
  * @memberof P2
  */
-var P2_watch = function (file, cb) {
+var P2_watch = function (file, watch_action_fn) {
   //console.log('P2_watch() this:', this);
   var self = this;  // is _impl
 
 
+  // called when file object changed
   function queue_event (event, filename) {
     console.log('queue_event() event:', event, 'filename:', filename);
     var qlen = self._watch_event_cb_list.length;
     //self._watch_event_cb_list.push(cb);
     self._watch_event_cb_list.push(function (nimblecb) {
-      cb(
+      watch_action_fn(
         function (o) {
           //console.log('o:', o);
           if (o && o.msg && o.msg.length > 0) {
@@ -291,7 +292,7 @@ var P2 = function () {
    */
   self._impl.sendevent = function (o) {
     //console.log('sendevent, p2_agent_opts:', u.inspect(GLOBAL.p2_agent_opts, {colors: true, depth: 3}));
-    if (GLOBAL.p2_agent_opts.app) {
+    if (o && GLOBAL.p2_agent_opts.app) {
       GLOBAL.p2_agent_opts.app.sendevent(o);
     }
     /*
