@@ -34,12 +34,13 @@ var console = require('better-console'),
   fs = require('fs'),
   EventEmitter = require('events').EventEmitter,
   querystring = require('querystring'),
-  Q = require('q');
+  Q = require('q'),
+  u = require('util');
 
 Q.longStackSupport = true;
 
 var init_impl = function _impl() {  },
-  empty_impl = Object.create(init_impl);
+    empty_impl = Object.create(init_impl);
 
 /**
  * Set a watcher on a filesystem object
@@ -48,17 +49,18 @@ var init_impl = function _impl() {  },
  * @param cb {Function} callback(callback({module:..., object:..., msg:...}), event, filename)
  * @memberof P2
  */
-var P2_watch = function (file, cb) {
+var P2_watch = function (file, watch_action_fn) {
   //console.log('P2_watch() this:', this);
   var self = this;  // is _impl
 
 
+  // called when file object changed
   function queue_event (event, filename) {
     console.log('queue_event() event:', event, 'filename:', filename);
     var qlen = self._watch_event_cb_list.length;
     //self._watch_event_cb_list.push(cb);
     self._watch_event_cb_list.push(function (nimblecb) {
-      cb(
+      watch_action_fn(
         function (o) {
           //console.log('o:', o);
           if (o && o.msg && o.msg.length > 0) {
@@ -289,8 +291,10 @@ var P2 = function () {
    * @memberof P2
    */
   self._impl.sendevent = function (o) {
-    //console.log('sendevent, app:', GLOBAL.p2_agent_opts.app);
-    GLOBAL.p2_agent_opts.app.sendevent(o);
+    //console.log('sendevent, p2_agent_opts:', u.inspect(GLOBAL.p2_agent_opts, {colors: true, depth: 3}));
+    if (o && GLOBAL.p2_agent_opts.app) {
+      GLOBAL.p2_agent_opts.app.sendevent(o);
+    }
     /*
     var app = GLOBAL.p2_agent_opts.app,
       post_data = querystring.stringify(o),
@@ -377,10 +381,14 @@ var P2 = function () {
       }
     };
 
-    // Link modules
+    // Link modules as DSL commands
     _.each(Object.keys(_modules), function (m) {
       //console.log('p2 m:', m);
-      self[m] = self._impl[m] = function () {
+
+      /*
+       * Create DSL Command of this module
+       */
+      self[m] = self._impl[m] = function () {  // command execution
         var _impl = this,
           args = [];
 
@@ -388,9 +396,15 @@ var P2 = function () {
         for (var i = 0; i < arguments.length; i++) {
           args.push(arguments[i]);
         }
+        //console.log('p2 dsl args:', u.inspect(args, {colors: true, depth: 2}));
 
         var c = new _modules[m]();
-        c.addStep.apply(c, args);
+        //console.log('p2 m:', _modules[m].prototype);
+        if (c.addStep) {
+          c.addStep.apply(c, args);
+        } else {
+          console.error(u.format('module %s has no addStep/action method, action ignored', m));
+        }
         return _impl;
       };
 

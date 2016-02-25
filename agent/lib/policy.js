@@ -26,6 +26,7 @@
 /*global GLOBAL, p2 */
 var console = require('better-console'),
   _ = require('lodash'),
+  P2M = require('./p2m'),
   P2 = require('./p2'),
   path = require('path'),
   Q = require('q');
@@ -46,6 +47,7 @@ function Policy(args, opts) {
     }
   }
 
+  //GLOBAL.P2M = P2M;
   GLOBAL.P2 = P2;
   //GLOBAL.p2 = new P2();
   new P2()
@@ -95,6 +97,7 @@ Policy.prototype.apply = function () {
     .then(function (p2) {
       //console.log('policy p2:', p2);
       GLOBAL.p2 = p2;
+      //GLOBAL.P2M = P2M;
       GLOBAL.P2 = P2;
 
       //console.log('policy abs_a:', abs_a);

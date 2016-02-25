@@ -87,7 +87,9 @@ module.exports = function (facts) {
       });
     }
     //console.log('exporting module:', m);
-    _exports[M.getName()] = M;
+    _exports[
+      (C.getName ? C.getName() : M.getName())
+    ] = M;
     return true;
   });
 

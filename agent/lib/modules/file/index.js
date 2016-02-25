@@ -2,7 +2,7 @@
     Partout [Everywhere] - Policy-Based Configuration Management for the
     Data-Driven-Infrastructure.
 
-    Copyright (C) 2015  Graham Lee Bevan <graham.bevan@ntlworld.com>
+    Copyright (C) 2016 Graham Lee Bevan <graham.bevan@ntlworld.com>
 
     This file is part of Partout.
 
@@ -21,18 +21,19 @@
 */
 
 /*jslint node: true, nomen: true, vars: true*/
+/*global p2 */
 'use strict';
 
-/*global p2 */
-
 var console = require('better-console'),
+    u = require('util'),
+    P2M = require('../../p2m'),
     _ = require('lodash'),
     os = require('os'),
     fs = require('fs'),
-    utils = new (require('../utils'))(),
+    utils = new (require('../../utils'))(),
+    pfs = new (require('../../pfs'))(),
     Mustache = require('mustache'),
     Q = require('q');
-  //exec = require('child_process').exec;
 
 /**
  * @module File
@@ -53,6 +54,9 @@ var console = require('better-console'),
  *   | content     | String  | Content of file, can be object containing {file: 'filaname'} or {template: 'template file'} |
  *   | is_template | Boolean | Content is a template                  |
  *   | mode        | String  | Octal file mode                        |
+ *   | owner       | String  | Owner of this file object              |
+ *   | group       | String  | Group owner of this file object        |
+ *   | watch       | Boolean | Watch this file object for changes and reapply policy |
  *
  *   Templates use the [Mustache](https://www.npmjs.com/package/mustache) templating library.
  *
@@ -68,90 +72,45 @@ var console = require('better-console'),
  *
  * ---
  * TODO: remaining support
+ *  Owner, Group
  *
  */
-var File = function () {
+
+var File = P2M.Module(function () {
   var self = this;
-  //console.log('file self:', self);
-};
 
-File.prototype.addStep = function (_impl, title, opts, cb) {
-  var self = this;
-  //console.log('file watch_state on push:', self._watch_state);
-  var _watch_state = self._watch_state;
-  //console.log('file self.steps:', self.steps);
-
-  if (!opts) {
-    opts = {};
-  }
-
-  if (typeof (opts) === 'function') {
-    cb = opts;
-    opts = {};
-  }
-
-  /********************
-   * Extensions to p2
+  /*
+   * module definition using P2M DSL
    */
 
-  /********************
-   * internal methods
-   */
+  self
 
-  /**
-   * ensure contents match
-   * @param {String} file file name
-   * @param {String} data file content (can be a template)
-   * @param {Boolean} is_template is this a template
-   */
-  function _ensure_content(file, data, is_template) {
-    var f_hash = utils.hashFileSync(file),
-      record = '';
+  ////////////////////
+  // Name this module
+  .name('file')
 
-    //console.log('_ensure_content file:', file, ' data:', data);
+  ////////////////
+  // Gather facts
+  .facts(function (deferred, facts_so_far) {
+    var facts = {
+      file_loaded: true
+    };
+    deferred.resolve(facts);
+  })
 
-    if (typeof(data) === 'object') {
-      if (data.file) {
-        return _ensure_file(file, data.file, is_template);
+  //////////////////
+  // Action handler
+  .action(function (args) {
+    //console.log('File action args:', args);
 
-      } else if (data.template) {
-        return _ensure_file(file, data.template, true);
-      }
-    }
+    // TODO: Fix use of Sync methods
 
-    if (is_template) {
-      //console.log('+++ template: p2.facts:', p2.facts, 'p2:', p2, 'self:', self, 'self.facts:', self.facts);
-      data = Mustache.render(data, p2.facts);
-    }
-
-    var d_hash = utils.hash(data);
-    console.log('File: comparing file hash:', f_hash, '-> content hash:', d_hash);
-    if (f_hash != d_hash) {
-      //console.warn('File: updating file content:\n' + data);
-      fs.writeFileSync(file, data);
-      record += 'Content Replaced. ';
-    }
-
-    return record;
-  }
-
-  /**
-   * ensure file matches
-   * @param {String} file file name
-   * @param {String} srcfile source file (can be a template)
-   * @param {Boolean} is_template is this a template
-   */
-  function _ensure_file(file, srcfile, is_template) {
-    console.log('_ensure_file(' + file + ',', srcfile + ')');
-    var data = fs.readFileSync(srcfile).toString();
-    console.log('data:', data);
-    return _ensure_content(file, data, is_template);
-  }
-
-  /********************
-   * push actions
-   */
-  var action = function (callback, inWatch) {
+    var deferred = args.deferred,
+        inWatchFlag = args.inWatchFlag,
+        _impl = args._impl,
+        title = args.title,
+        opts = args.opts,
+        cb = args.cb; // cb is policy provided optional call back on completion
 
     var file = title,
       msg,
@@ -160,39 +119,22 @@ File.prototype.addStep = function (_impl, title, opts, cb) {
     if (opts.path) {
       file = opts.path;
     }
-    console.log('-------------------------------------------');
-    //console.log('File on node "' + os.hostname() + '", file:', title, ', opts:', JSON.stringify(opts), 'watch_state:', _watch_state, 'self:', self);
+
+    var _watch_state = (opts.watch ? true : _impl._watch_state);
 
     fs.lstat(file, function (err, stats) {
       var fd,
         mode_prefix = '';
 
-      console.warn('err:', err, 'stats:', stats);
+      if (err) {
+        console.error('err:', err);
+      } else {
+        console.log('stats:', stats);
+      }
 
       if (opts.ensure) {
         switch (opts.ensure) {
         case 'present':
-          mode_prefix = '100';
-
-          if (err && err.code === 'ENOENT') {
-            console.warn('Creating file', file);
-
-            // Unwatch and force new watcher
-            _impl.P2_unwatch(file);
-            inWatch = false;
-
-            fd = fs.openSync(file, 'w');
-            fs.closeSync(fd);
-            record += 'Created file. ';
-            console.log('record:', record);
-          }
-          //console.log('**** content:', typeof(opts.content));
-          if (opts.content !== undefined) {
-            record += _ensure_content(file, opts.content, opts.is_template);
-          }
-
-          break;
-
         case 'file':
           mode_prefix = '100';
 
@@ -201,7 +143,7 @@ File.prototype.addStep = function (_impl, title, opts, cb) {
 
             // Unwatch and force new watcher
             _impl.P2_unwatch(file);
-            inWatch = false;
+            inWatchFlag = false;
 
             fd = fs.openSync(file, 'w');
             fs.closeSync(fd);
@@ -210,7 +152,7 @@ File.prototype.addStep = function (_impl, title, opts, cb) {
           }
           //console.log('**** content:', typeof(opts.content));
           if (opts.content !== undefined) {
-            record += _ensure_content(file, opts.content, opts.is_template);
+            record += self._ensure_content(file, opts.content, opts.is_template);
           }
           break;
 
@@ -226,12 +168,12 @@ File.prototype.addStep = function (_impl, title, opts, cb) {
               record += 'Deleted file. ';
             }
           }
-          callback({
+          deferred.resolve({
             module: 'file',
             object: file,
             msg: record
           });
-          return;
+          return; // no need to watch, so return now
 
         case 'directory':
           mode_prefix = '040';
@@ -285,47 +227,103 @@ File.prototype.addStep = function (_impl, title, opts, cb) {
         }
       }
 
-      if (!inWatch && _watch_state && GLOBAL.p2_agent_opts.daemon) {
+      if (!inWatchFlag && _watch_state && GLOBAL.p2_agent_opts.daemon) {
         console.log('>>> Starting watcher on file:', file);
-        _impl.P2_watch(file, function (cb) {
+        _impl.P2_watch(file, function (next_event_cb) {
           console.log('watcher triggered. file:', file, 'this:', this);
+          var watch_action_deferred = Q.defer();
 
-          action (cb, true);
+          //self.action (cb, true);
+          (self.getActionFn()) ({
+            deferred: watch_action_deferred,
+            inWatchFlag: true,
+            _impl: _impl,
+            title: title,
+            opts: opts,
+            cb: function () {}  // dummy cb
+          });
+
+          watch_action_deferred.promise
+          .then(function (o) {
+            console.log('file watch o:', o);
+            _impl.sendevent(o);
+            next_event_cb();
+          })
+          .done();
+
         });
       }
 
-      // TODO: pass updated status to callback
-      callback({
-        module: 'file',
-        object: file,
-        msg: record
-      });
+      // pass updated status to caller (p2 steps) with optional event data
+      var o = undefined;
+      if (record && record !== '') {
+        o = {
+          module: 'file',
+          object: file,
+          msg: record
+        };
+      }
+      deferred.resolve(o);
 
     }); // fs.stat
 
-  };
 
-  //self.steps.push(action);
-  if (_impl.ifNode()) {
-    _impl.push_action(action);
+
+  }) // .action ()
+  ;
+
+});
+
+/**
+ * ensure contents match
+ * @param {String} file file name
+ * @param {String} data file content (can be a template)
+ * @param {Boolean} is_template is this a template
+ */
+File.prototype._ensure_content = function (file, data, is_template) {
+  var self = this,
+      f_hash = pfs.hashFileSync(file),
+      record = '';
+
+  //console.log('_ensure_content file:', file, ' data:', data);
+
+  if (typeof(data) === 'object') {
+    if (data.file) {
+      return self._ensure_file(file, data.file, is_template);
+
+    } else if (data.template) {
+      return self._ensure_file(file, data.template, true);
+    }
   }
 
-  //return self;
+  if (is_template) {
+    //console.log('+++ template: p2.facts:', p2.facts, 'p2:', p2, 'self:', self, 'self.facts:', self.facts);
+    data = Mustache.render(data, p2.facts);
+  }
+
+  var d_hash = pfs.hash(data);
+  console.log('File: comparing file hash:', f_hash, '-> content hash:', d_hash);
+  if (f_hash != d_hash) {
+    //console.warn('File: updating file content:\n' + data);
+    fs.writeFileSync(file, data);
+    record += 'Content Replaced. ';
+  }
+
+  return record;
 };
 
 /**
- * Return this module's name
- * @return {String} name of module
+ * ensure file matches
+ * @param {String} file file name
+ * @param {String} srcfile source file (can be a template)
+ * @param {Boolean} is_template is this a template
  */
-File.getName = function () { return 'file'; };
-
-File.prototype.getFacts = function () {
-  var facts = {},
-      deferred = Q.defer();
-  facts.file_loaded = true;
-  deferred.resolve(facts);
-
-  return deferred.promise;
+File.prototype._ensure_file = function (file, srcfile, is_template) {
+  var self = this;
+  console.log('_ensure_file(' + file + ',', srcfile + ')');
+  var data = fs.readFileSync(srcfile).toString();
+  console.log('data:', data);
+  return self._ensure_content(file, data, is_template);
 };
 
 module.exports = File;
