@@ -3,8 +3,9 @@
 'use strict';
 /*global p2, P2*/
 
-new P2()
-.select(/^office/)
+//new P2()
+p2
+.select(/(^office|^ub1|^co7)/)
 
 .file('/tmp/testpresent', {ensure: 'absent'})
 .file('/tmp/testlink', {ensure: 'absent'})

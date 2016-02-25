@@ -83,7 +83,7 @@ var File = P2M.Module(function () {
    * module definition using P2M DSL
    */
 
-  this
+  self
 
   ////////////////////
   // Name this module
@@ -102,6 +102,8 @@ var File = P2M.Module(function () {
   // Action handler
   .action(function (args) {
     //console.log('File action args:', args);
+
+    // TODO: Fix use of Sync methods
 
     var deferred = args.deferred,
         inWatchFlag = args.inWatchFlag,
@@ -133,28 +135,6 @@ var File = P2M.Module(function () {
       if (opts.ensure) {
         switch (opts.ensure) {
         case 'present':
-          mode_prefix = '100';
-
-          if (err && err.code === 'ENOENT') {
-            console.warn('Creating file', file);
-
-            // Unwatch and force new watcher
-            _impl.P2_unwatch(file);
-            inWatchFlag = false;
-
-            fd = fs.openSync(file, 'w');
-            fs.closeSync(fd);
-            record += 'Created file. ';
-            console.log('record:', record);
-          }
-          //console.log('**** content:', typeof(opts.content));
-          if (opts.content !== undefined) {
-            //console.log('self:', self);
-            record += self._ensure_content(file, opts.content, opts.is_template);
-          }
-
-          break;
-
         case 'file':
           mode_prefix = '100';
 
@@ -193,7 +173,7 @@ var File = P2M.Module(function () {
             object: file,
             msg: record
           });
-          return;
+          return; // no need to watch, so return now
 
         case 'directory':
           mode_prefix = '040';
@@ -249,27 +229,41 @@ var File = P2M.Module(function () {
 
       if (!inWatchFlag && _watch_state && GLOBAL.p2_agent_opts.daemon) {
         console.log('>>> Starting watcher on file:', file);
-        _impl.P2_watch(file, function (cb) {
+        _impl.P2_watch(file, function (next_event_cb) {
           console.log('watcher triggered. file:', file, 'this:', this);
+          var watch_action_deferred = Q.defer();
 
           //self.action (cb, true);
           (self.getActionFn()) ({
-            deferred: deferred,
+            deferred: watch_action_deferred,
             inWatchFlag: true,
             _impl: _impl,
             title: title,
             opts: opts,
-            cb: cb
+            cb: function () {}  // dummy cb
           });
+
+          watch_action_deferred.promise
+          .then(function (o) {
+            console.log('file watch o:', o);
+            _impl.sendevent(o);
+            next_event_cb();
+          })
+          .done();
+
         });
       }
 
-      // TODO: pass updated status to callback
-      deferred.resolve({
-        module: 'file',
-        object: file,
-        msg: record
-      });
+      // pass updated status to caller (p2 steps) with optional event data
+      var o = undefined;
+      if (record && record !== '') {
+        o = {
+          module: 'file',
+          object: file,
+          msg: record
+        };
+      }
+      deferred.resolve(o);
 
     }); // fs.stat
 
