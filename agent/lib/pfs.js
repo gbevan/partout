@@ -170,6 +170,21 @@ Pfs.prototype.pClose = function (fd) {
   return Q.nfcall(fs.close, fd);
 };
 
+Pfs.prototype.pTouch = function (file) {
+  var self = this,
+      deferred = Q.defer();
+
+  self.pOpen(file, 'w')
+  .then(function (fd) {
+    self.pClose(fd)
+    .done(function () {
+      deferred.resolve();
+    });
+  });
+
+  return deferred.promise;
+};
+
 Pfs.prototype.pMkdir = function (path, mode) {
   return Q.nfcall(fs.mkdir, path, mode);
 };
@@ -192,6 +207,14 @@ Pfs.prototype.pChmod = function (path, mode) {
 
 Pfs.prototype.pChown = function (path, uid, gid) {
   return Q.nfcall(fs.chown, path, uid, gid);
+};
+
+Pfs.prototype.pReadFile = function (file, options) {
+  return Q.nfcall(fs.readFile, file, options);
+};
+
+Pfs.prototype.pWriteFile = function (file, data, options) {
+  return Q.nfcall(fs.writeFile, file, data, options);
 };
 
 module.exports = Pfs;

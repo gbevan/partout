@@ -25,7 +25,10 @@
 
 var console = require('better-console'),
     Q = require('q'),
-    u = require('util');
+    u = require('util'),
+    utils = new (require('./utils'))();
+
+Q.longStackSupport = true;
 
 /**
  * P2M DSL - inherited by all DSL based modules.
@@ -66,7 +69,7 @@ P2M.prototype.getName = function() {
 P2M.prototype.getActionFn = function () {
   var self = this;
   return self._actionFn;
-}
+};
 
 /*
 P2M.prototype.addStep = function () {
@@ -106,7 +109,7 @@ P2M.prototype.module_name = P2M.prototype.name;
 
 P2M.prototype.action = function (fn) {
   var self = this;
-  self._actionFn = fn
+  self._actionFn = fn;
 
   /**
    * Called from p2, add an action step
@@ -125,12 +128,13 @@ P2M.prototype.action = function (fn) {
       cb = opts;
       opts = {};
     }
+    utils.dlog('p2m addStep opts: %s', u.inspect(opts, {colors: true, depth: 2}));
 
     if (_impl.ifNode()) {
       _impl.push_action(function (nextStepCb, inWatchFlag) {
         var deferred = Q.defer();
 
-        //fn.call(this, {
+        utils.dlog('p2m addStep calling fn (action) title: %s opts: %s', title, u.inspect(opts, {colors: true, depth: 2}));
         fn({
           deferred: deferred,
           inWatchFlag: inWatchFlag,
@@ -144,9 +148,12 @@ P2M.prototype.action = function (fn) {
         .fail(function (err) {
           console.error(u.format('error: module %s err: %s', self.name, err));
         })
-        .then(nextStepCb) // move to next policy directive in p2
+        .then(function (o) {
+          utils.dlog('p2m addStep() action resolved with: %s', u.inspect(o, {colors: true, depth: 2}));
+          utils.callbackEvent(nextStepCb, _impl.facts, o); // move to next policy directive in p2
+        })
         .done();
-       });
+      });
     }
 
   };

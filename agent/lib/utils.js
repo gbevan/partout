@@ -21,17 +21,19 @@
 */
 
 /*jslint node: true, nomen: true, vars: true*/
+/*jshint multistr: true*/
 'use strict';
 
 var console = require('better-console'),
-  walk = require('walk'),
-  path = require('path'),
-  fs = require('fs'),
-  crypto = require('crypto'),
-  mkdirp = require('mkdirp'),
-  Q = require('q'),
-  exec = require('child_process').exec,
-  _ = require('lodash');
+    walk = require('walk'),
+    path = require('path'),
+    fs = require('fs'),
+    crypto = require('crypto'),
+    mkdirp = require('mkdirp'),
+    Q = require('q'),
+    exec = require('child_process').exec,
+    _ = require('lodash'),
+    u = require('util');
 
 Q.longStackSupport = true;
 
@@ -40,6 +42,20 @@ Q.longStackSupport = true;
  * @constructor
  */
 var Utils = function () {
+};
+
+Utils.prototype.print_banner = function () {
+  var banner = "\n\
+'########:::::'###::::'########::'########::'#######::'##::::'##:'########:\n\
+ ##.... ##:::'## ##::: ##.... ##:... ##..::'##.... ##: ##:::: ##:... ##..::\n\
+ ##:::: ##::'##:. ##:: ##:::: ##:::: ##:::: ##:::: ##: ##:::: ##:::: ##::::\n\
+ ########::'##:::. ##: ########::::: ##:::: ##:::: ##: ##:::: ##:::: ##::::\n\
+ ##.....::: #########: ##.. ##:::::: ##:::: ##:::: ##: ##:::: ##:::: ##::::\n\
+ ##:::::::: ##.... ##: ##::. ##::::: ##:::: ##:::: ##: ##:::: ##:::: ##::::\n\
+ ##:::::::: ##:::: ##: ##:::. ##:::: ##::::. #######::. #######::::: ##::::\n\
+..:::::::::..:::::..::..:::::..:::::..::::::.......::::.......::::::..:::::\n\
+";
+  console.info(banner);
 };
 
 /**
@@ -112,13 +128,13 @@ Utils.prototype.vetOps = function (module, opts, validopts) {
 };
 
 /**
- * Module callback on completion of runAction() to continue to next step
- * @param {function} next_step_callback Next Step Callback in DSL
- * @param {object}   facts              _impl.facts
- * @param {object}   o                  Object with this event details: module:, object:, msg:.
+ * Make a callback event object to be sent to the master
+ * @param   {object} facts _impl.facts
+ * @param   {object} o     {module:..., object:..., msg:...}
+ * @returns {object} Populated callback object
  */
-Utils.prototype.callbackEvent = function (next_step_callback, facts, o) {
-  next_step_callback({
+Utils.prototype.makeCallbackEvent = function (facts, o) {
+  return {
     agent_uuid: facts.partout_agent_uuid,
     hostname: facts.os_hostname,
     arch: facts.arch,
@@ -127,10 +143,39 @@ Utils.prototype.callbackEvent = function (next_step_callback, facts, o) {
     os_family: facts.os_family,
     os_dist_name: facts.os_dist_name,
     os_dist_version_id: facts.os_dist_version_id,
-    module: o.module,
-    object: o.object,
-    msg: o.msg
-  });
+    module: (o && o.module ? o.module : 'unknown'),
+    object: (o && o.object ? o.object : 'unknown'),
+    msg: (o && o.msg ? o.msg : 'Internal Agent Error> msg not provided to makeCallbackEvent() - stack:' + (new Error()).stack)
+  };
+};
+
+/**
+ * Module callback on completion of runAction() to continue to next step
+ * @param {function} next_step_callback Next Step Callback in DSL
+ * @param {object}   facts              _impl.facts
+ * @param {object}   o                  Object with this event details: module:, object:, msg:.
+ */
+Utils.prototype.callbackEvent = function (next_step_callback, facts, o) {
+  var self = this;
+  if (o) {
+    next_step_callback(self.makeCallbackEvent(facts, o));
+  } else {
+    next_step_callback();
+  }
+};
+
+Utils.prototype.vlog = function () {
+  var self = this;
+  if (GLOBAL.partout.opts.verbose) {
+    console.log('INFO:', u.format.apply(u, arguments));
+  }
+};
+
+Utils.prototype.dlog = function () {
+  var self = this;
+  if (GLOBAL.partout.opts.debug) {
+    console.log('DEBUG:', u.format.apply(u, arguments));
+  }
 };
 
 module.exports = Utils;

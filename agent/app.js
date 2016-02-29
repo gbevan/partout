@@ -24,30 +24,31 @@
 'use strict';
 
 var console = require('better-console'),
-  express = require('express'),
-  router = express.Router(),
-  https = require('https'),
-  pki = require('node-forge').pki,
-  morgan = require('morgan'),
-  logger = morgan('combined'),
-  fs = require('fs'),
-  sslKey,
-  sslCert,
-  os = require('os'),
-  path = require('path'),
-  hostName = os.hostname(),
-  Policy = require('./lib/policy'),
-  Policy_Sync = require('./lib/policy_sync'),
-  querystring = require('querystring'),
-  Q = require('q'),
-  pfs = new (require('./lib/pfs'))(),
-  cfg = new (require('./etc/partout_agent.conf.js'))(),
-  ssl = new (require('./lib/ssl'))(cfg),
-  privateKeyFile = ssl.agentPrivateKeyFile,
-  publicKeyFile = ssl.agentPublicKeyFile,
-  csrFile = ssl.agentCsrFile,
-  certFile = ssl.agentCertFile,
-  Master = require('./lib/master');
+    express = require('express'),
+    router = express.Router(),
+    https = require('https'),
+    pki = require('node-forge').pki,
+    morgan = require('morgan'),
+    logger = morgan('combined'),
+    fs = require('fs'),
+    sslKey,
+    sslCert,
+    os = require('os'),
+    path = require('path'),
+    hostName = os.hostname(),
+    Policy = require('./lib/policy'),
+    Policy_Sync = require('./lib/policy_sync'),
+    querystring = require('querystring'),
+    Q = require('q'),
+    pfs = new (require('./lib/pfs'))(),
+    cfg = new (require('./etc/partout_agent.conf.js'))(),
+    ssl = new (require('./lib/ssl'))(cfg),
+    privateKeyFile = ssl.agentPrivateKeyFile,
+    publicKeyFile = ssl.agentPublicKeyFile,
+    csrFile = ssl.agentCsrFile,
+    certFile = ssl.agentCertFile,
+    Master = require('./lib/master'),
+    utils = new (require('./lib/utils'))();
 
 Q.longStackSupport = true;
 
@@ -198,9 +199,12 @@ var serve = function (args, master) {
   app.master_hostname = cfg.partout_master_hostname;
   console.log('master_hostname:', app.master_hostname);
   app.master_port = cfg.partout_master_port;
-  app.apply_every_mins = 5;
+
+  // TODO: Move these to config file
+  app.apply_every_mins = 1; // 5
   app.poll_manifest_every = 6;
   app.poll_manifest_splay_secs = 30;
+
   app.apply_count = 0;
   app.apply_site_p2 = cfg.PARTOUT_AGENT_MANIFEST_SITE_P2;
   app.https = https;
@@ -336,6 +340,9 @@ module.exports = function (opts) {
     apply({}, {daemon: false, showfacts: true});
 
   } else if (opts.serve) {
+    console.info('Starting Partout Agent...');
+    utils.print_banner();
+
     // Ensure var path exists
     Q.nfcall(pfs.ensurePath, cfg.PARTOUT_VARDIR)
     .then(function () {

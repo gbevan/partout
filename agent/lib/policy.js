@@ -25,11 +25,12 @@
 
 /*global GLOBAL, p2 */
 var console = require('better-console'),
-  _ = require('lodash'),
-  P2M = require('./p2m'),
-  P2 = require('./p2'),
-  path = require('path'),
-  Q = require('q');
+    _ = require('lodash'),
+    P2M = require('./p2m'),
+    P2 = require('./p2'),
+    path = require('path'),
+    Q = require('q'),
+    utils = new (require('./utils'))();
 
 //GLOBAL.p2 = new P2();
 //GLOBAL.P2 = P2;
@@ -45,6 +46,10 @@ function Policy(args, opts) {
     if (opts.app.master) {
       self.master = opts.app.master;
     }
+  }
+
+  if (GLOBAL.p2) {
+    p2.P2_watchers_close();
   }
 
   //GLOBAL.P2M = P2M;
@@ -103,7 +108,7 @@ Policy.prototype.apply = function () {
       //console.log('policy abs_a:', abs_a);
       var p = require(abs_a);
 
-      console.log('### END OF APPLY ################################');
+      utils.vlog('### END OF APPLY ################################');
       deferred.resolve();
     })
     .done();

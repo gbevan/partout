@@ -25,42 +25,32 @@
 'use strict';
 
 var console = require('better-console'),
-  express = require('express'),
-  routerApi = express.Router(),
-  routerUi = express.Router(),
-  httpsApi = require('https'),
-  httpsUi = require('https'),
-  bodyParser = require('body-parser'),
-  pki = require('node-forge').pki,
-  forge = require('node-forge'),
-  morgan = require('morgan'),
-  logger = morgan('combined'),
-  compression = require('compression'),
-  fs = require('fs'),
-  keyFile = 'etc/ssl/server.key',
-  certFile = 'etc/ssl/server.crt',
-  os = require('os'),
-  hostName = os.hostname(),
-  ca = new (require('./lib/ca'))(),
-  Q = require('q'),
-  cfg = new (require('./etc/partout.conf.js'))(),
-  arangojs = require('arangojs'),
-  db = arangojs({promise: Q.promise}),
-  Csr = require('./server/controllers/csr.js'),
-  Agent = require('./server/controllers/agent.js');
+    express = require('express'),
+    routerApi = express.Router(),
+    routerUi = express.Router(),
+    httpsApi = require('https'),
+    httpsUi = require('https'),
+    bodyParser = require('body-parser'),
+    pki = require('node-forge').pki,
+    forge = require('node-forge'),
+    morgan = require('morgan'),
+    logger = morgan('combined'),
+    compression = require('compression'),
+    fs = require('fs'),
+    keyFile = 'etc/ssl/server.key',
+    certFile = 'etc/ssl/server.crt',
+    os = require('os'),
+    hostName = os.hostname(),
+    ca = new (require('./lib/ca'))(),
+    Q = require('q'),
+    cfg = new (require('./etc/partout.conf.js'))(),
+    arangojs = require('arangojs'),
+    db = arangojs({promise: Q.promise}),
+    Csr = require('./server/controllers/csr.js'),
+    Agent = require('./server/controllers/agent.js'),
+    utils = new (require('./agent/lib/utils'))();
 
 Q.longStackSupport = true;
-
-var banner = "\n\
-'########:::::'###::::'########::'########::'#######::'##::::'##:'########:\n\
- ##.... ##:::'## ##::: ##.... ##:... ##..::'##.... ##: ##:::: ##:... ##..::\n\
- ##:::: ##::'##:. ##:: ##:::: ##:::: ##:::: ##:::: ##: ##:::: ##:::: ##::::\n\
- ########::'##:::. ##: ########::::: ##:::: ##:::: ##: ##:::: ##:::: ##::::\n\
- ##.....::: #########: ##.. ##:::::: ##:::: ##:::: ##: ##:::: ##:::: ##::::\n\
- ##:::::::: ##.... ##: ##::. ##::::: ##:::: ##:::: ##: ##:::: ##:::: ##::::\n\
- ##:::::::: ##:::: ##: ##:::. ##:::: ##::::. #######::. #######::::: ##::::\n\
-..:::::::::..:::::..::..:::::..:::::..::::::.......::::.......::::::..:::::\n\
-";
 
 /**
  * Partout Master App provider
@@ -114,7 +104,7 @@ var init = function () {
   var deferred = Q.defer();
 
   console.info('Initialising...\n');
-  console.info(banner);
+  utils.print_banner();
 
   connectDb()
   .then(function () {
@@ -146,7 +136,7 @@ var serve = function () {
    * Partout application server
    */
   console.info('Welcome to:');
-  console.info(banner);
+  utils.print_banner();
 
   //console.clear();
   //console.info('--| Partout |-' + new Array(51).join('-') + '-| starting |--');

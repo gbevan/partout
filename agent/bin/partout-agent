@@ -25,18 +25,56 @@
 /*jslint node: true */
 'use strict';
 
-delete GLOBAL['p2'];
-delete GLOBAL['P2'];
+var args = require('args'),
+  options = args.Options.parse([
+    {
+      name: 'help',
+      shortName: 'h',
+      type: 'bool',
+      help: 'Show this help'
+    },
+    {
+      name: 'verbose',
+      shortName: 'v',
+      type: 'bool',
+      help: 'Show verbose messages'
+    },
+    {
+      name: 'debug',
+      shortName: 'd',
+      type: 'bool',
+      help: 'Show debugging messages'
+    }
+  ]),
+  parser = args.parser(process.argv),
+  parsed = parser.parse(options, {onPositional: 'stop'}),
+  rest = parser.getRest();
+
+if (parsed.help) {
+  console.log(options.getHelp());
+  process.exit(0);
+}
+
+if (parsed.debug) {
+  parsed.verbose = true;
+}
+
+delete GLOBAL.p2;
+delete GLOBAL.P2;
+
+// make options like verbose global
+GLOBAL.partout = {};
+GLOBAL.partout.opts = parsed;
+
 /*
  * partout-agent [apply | serve] site.json ...
  */
 
-var opts = {},
-  args = process.argv.slice(2);
+var opts = parsed;
 
-if (args.length > 0) {
-  opts[args.shift()] = true;
-  opts.args = args;
+if (rest.length > 0) {
+  opts[rest.shift()] = true;
+  opts.args = rest;
 } else {
   opts.serve = true;
   opts.apply = false;
