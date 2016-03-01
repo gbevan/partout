@@ -27,15 +27,16 @@
 /*global GLOBAL */
 
 var console = require('better-console'),
-  _ = require('lodash'),
-  nimble = require('nimble'),
-  os = require('os'),
-  exec = require('child_process').exec,
-  fs = require('fs'),
-  EventEmitter = require('events').EventEmitter,
-  querystring = require('querystring'),
-  Q = require('q'),
-  u = require('util');
+    _ = require('lodash'),
+    nimble = require('nimble'),
+    os = require('os'),
+    exec = require('child_process').exec,
+    fs = require('fs'),
+    EventEmitter = require('events').EventEmitter,
+    querystring = require('querystring'),
+    Q = require('q'),
+    u = require('util'),
+    utils = new (require('./utils'))();
 
 Q.longStackSupport = true;
 
@@ -53,18 +54,22 @@ var P2_watch = function (file, watch_action_fn) {
   //console.log('P2_watch() this:', this);
   var self = this;  // is _impl
 
+  utils.dlog('>>>>>>>>>>> P2_watch for file: %s', file);
 
   // called when file object changed
   function queue_event (event, filename) {
-    console.log('queue_event() event:', event, 'filename:', filename);
+    utils.dlog('queue_event() event:', event, 'filename:', filename);
     var qlen = self._watch_event_cb_list.length;
     //self._watch_event_cb_list.push(cb);
     self._watch_event_cb_list.push(function (nimblecb) {
       watch_action_fn(
         function (o) {
-          //console.log('o:', o);
+          utils.dlog('nimble callback wrapper o:', o);
           if (o && o.msg && o.msg.length > 0) {
             self.sendevent(o);
+            utils.dlog('************* RETURNING TO NIMBLE after actioned watch responses stack:\n' + (new Error('trc')).stack);
+          } else {
+            utils.dlog('************* RETURNING TO NIMBLE after non-actioned watch responses stack:\n' + (new Error('trc')).stack);
           }
           nimblecb();
         },
@@ -87,8 +92,12 @@ var P2_watch = function (file, watch_action_fn) {
       // NOTE: _watchers are closed in P2_watchers_close() below
       // TODO: Allow multiple watchers per object, e.g. from different modules.
       // Maybe make value a list to push handlers on to.
-      console.log('Adding to watch list, file:', file);
-      self._watchers[file] = fs.watch(file, {persistent: false}, queue_event);
+      if (self._watchers[file]) {
+        utils.vlog('Skipping request to watch file %s as watcher already exists', file);
+      } else {
+        utils.vlog('Adding to watch list, file:', file);
+        self._watchers[file] = fs.watch(file, {persistent: false}, queue_event);
+      }
     } else {
       console.warn(file, 'does not yet exist, watch ignored for now');
     }
@@ -98,7 +107,7 @@ var P2_watch = function (file, watch_action_fn) {
 var P2_unwatch = function (file) {
   var self = this;  // is _impl
   if (self._watchers[file]) {
-    console.log('P2_unwatch closing watcher for file:', file);
+    utils.dlog('<<<<<<<<<<< P2_unwatch closing watcher for file: %s', file);
     self._watchers[file].close();
     delete self._watchers[file];
   }
@@ -109,7 +118,7 @@ var P2_watchers_close = function () {
     i;
   for (i in self._watchers) {
     if (self._watchers.hasOwnProperty(i)) {
-      console.log('Closing watcher for file:', i);
+      utils.dlog('Closing watcher for file:', i);
       self._watchers[i].close();
     }
   }
@@ -250,10 +259,13 @@ var P2 = function () {
 
   self._impl._watch_trigger_listener = new EventEmitter();
   self._impl._watch_trigger_listener.on('run', function () {
-    console.log('_watch_trigger_listener() run triggered');
+    utils.dlog('_watch_trigger_listener() run triggered');
     var tmp_cb_list = self._impl._watch_event_cb_list;
     self._impl._watch_event_cb_list = [];
-    nimble.series(tmp_cb_list);
+    nimble.series(tmp_cb_list, function () {
+      utils.dlog('########### Nimble series completed on _watch_event_cb_list');
+      utils.dlog('########################################################################');
+    });
   });
 
   /**
