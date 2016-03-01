@@ -110,10 +110,8 @@ var File = P2M.Module(function () {
         title = args.title,
         opts = args.opts,
         cb = args.cb, // cb is policy provided optional call back on completion
-        errmsg = '';
-
-    var file = title,
-        msg;
+        errmsg = '',
+        file = title;
 
     if (opts.path) {
       file = opts.path;
@@ -134,154 +132,18 @@ var File = P2M.Module(function () {
 
       utils.vlog('file: %s opts %s', file, u.inspect(opts, {colors: true, depth: 3}));
 
-      if (opts.ensure) {
-        _impl.P2_unwatch(file);
-
-        switch (opts.ensure) {
-
-          // TODO: make async !!!!
-          case 'absent':
-            var absent_deferred = Q.defer();
-
-            if (!err && stats) {
-              if (stats.isDirectory()) {
-                console.warn('Deleting directory', file);
-                pfs.pRmdir(file)
-                .done(function () {
-                  absent_deferred.resolve('Deleted directory. ');
-                });
-              } else {
-                console.warn('Deleting file', file);
-                pfs.pUnlink(file)
-                .done(function () {
-                  absent_deferred.resolve('Deleted file. ');
-                });
-              }
-            } else {
-              absent_deferred.resolve(); // no action taken
-            }
-            absent_deferred.promise
-            .then(function (absent_record) {
-              utils.vlog('absent_deferred resolved:', absent_record);
-              deferred.resolve({
-                module: 'file',
-                object: file,
-                msg: absent_record
-              });
-            });
-
-            return; // no need to watch, so return now
-
-          case 'present':
-          case 'file':
-            mode_prefix = '100';
-
-            if (err && err.code === 'ENOENT') {
-              console.warn('Creating file', file);
-
-              // Unwatch and force new watcher
-              //_impl.P2_unwatch(file);
-              inWatchFlag = false;
-
-              utils.vlog('touching file:', file);
-              pfs.pTouch(file)
-              .done(function () {
-                var record = 'Created file. ';
-                utils.vlog("%s %s", record, opts.content);
-                if (opts.content !== undefined) {
-                  self._ensure_content(file, opts.content, opts.is_template)
-                  .done(function (r) {
-                    ensure_deferred.resolve(record + r);
-                  });
-                } else {
-                  ensure_deferred.resolve(record);
-                }
-              });
-            } else {
-              ensure_deferred.resolve();
-            }
-            break;
-
-          case 'directory':
-            mode_prefix = '040';
-
-            if (err && err.code === 'ENOENT') {
-              console.warn('Creating directory', file);
-              pfs.pMkdir(file)
-              .done(function () {
-                ensure_deferred.resolve('Created directory. ');
-              });
-            } else if (!stats.isDirectory()) {
-              console.error('Error:', file, 'exists and is not a directory');
-              ensure_deferred.resolve();
-            }
-            break;
-
-          case 'link':
-            mode_prefix = '120';
-
-            if (!opts.target) {
-              msg = 'Error: Link ' + file + ' requested but no target specified';
-              console.error(msg);
-              throw (new Error(msg));
-            }
-            if (err && err.code === 'ENOENT') {
-              console.warn('Creating link', file);
-              pfs.pSymlink(opts.target, file, 'file')
-              .done(function () {
-                ensure_deferred.resolve('Created link. ');
-              });
-            } else if (err) {
-              throw (err);
-
-            } else if (!stats.isDirectory()) {
-              console.error('Error:', file, 'exists and is not a link');
-              ensure_deferred.resolve();
-            }
-            break;
-
-          default:
-            msg = 'Error: ensure ' + opts.ensure + ' is not supported';
-            console.error(msg);
-            throw (new Error(msg));
-        }
-      } // if ensure
-
-      ensure_deferred.promise
+      // Handle ensure option
+      self._opt_ensure(file, opts, err, stats, _impl, inWatchFlag, deferred)
       .done(function (ensure_record) {
 
         pfs.pLstat(file)
         .done(function (stats) {
 
-          var mode_deferred = Q.defer(),
-              sent_chmod = false;
-
-          if (opts.mode && typeof(opts.mode) === 'string') {
-            if (opts.mode.match(/^0[0-9]{3}$/)) {
-              var m = parseInt(mode_prefix + opts.mode.slice(1), 8); // as octal
-              if (m !== stats.mode) {
-                console.log('File: mode', stats.mode.toString(8), 'should be', m.toString(8));
-                pfs.pChmod(file, m)
-                .done(function () {
-                  mode_deferred.resolve('Changed mode from ' + stats.mode.toString(8) + ' to ' + m.toString(8) + '. ');
-                });
-                sent_chmod = true;
-              }
-            }
-          }
-          if (!sent_chmod) {
-            mode_deferred.resolve();
-          }
-
-          // TODO: Chown
-          /*
-          var chown_deferred = Q.defer(),
-              sent_chown = false;
-          if (opts.owner)
-          */
-
-          mode_deferred.promise
+          // Handle mode option
+          self._opt_mode(file, opts, stats)
           .done(function (mode_record) {
+
+            // TODO: Chown
 
             if (!inWatchFlag && _watch_state && GLOBAL.p2_agent_opts.daemon) {
               utils.dlog('>>> Starting watcher on file:', file);
@@ -308,7 +170,7 @@ var File = P2M.Module(function () {
                     _impl.sendevent(utils.makeCallbackEvent(_impl.facts, o));
                   }
                   */
-                  next_event_cb(o); // next watch event
+                  next_event_cb(utils.makeCallbackEvent(_impl.facts, o)); // next watch event
                 })
                 .done();
 
@@ -317,15 +179,16 @@ var File = P2M.Module(function () {
 
             // pass updated status to caller (p2 steps) with optional event data
             var o,
-                record = ensure_record + mode_record;
+                record = (ensure_record || '') + (mode_record || '');
             if (record && record !== '') {
               o = {
                 module: 'file',
                 object: file,
                 msg: ensure_record + mode_record
               };
+              utils.dlog('file ensure resolve o:', o);
             }
-            deferred.resolve(o);
+            deferred.resolve(utils.makeCallbackEvent(_impl.facts, o));
 
           });
 
@@ -400,6 +263,159 @@ File.prototype._ensure_file = function (file, srcfile, is_template) {
     utils.dlog('data:', data);
     return self._ensure_content(file, data, is_template);
   });
+};
+
+File.prototype._opt_ensure = function (file, opts, err, stats, _impl, inWatchFlag, deferred) {
+  var self = this,
+      ensure_deferred = Q.defer(),
+      msg;
+
+  if (opts.ensure) {
+    _impl.P2_unwatch(file);
+
+    switch (opts.ensure) {
+
+      // TODO: make async !!!!
+      case 'absent':
+        var absent_deferred = Q.defer();
+
+        if (!err && stats) {
+          if (stats.isDirectory()) {
+            console.warn('Deleting directory', file);
+            pfs.pRmdir(file)
+            .done(function () {
+              absent_deferred.resolve('Deleted directory. ');
+            });
+          } else {
+            console.warn('Deleting file', file);
+            pfs.pUnlink(file)
+            .done(function () {
+              absent_deferred.resolve('Deleted file. ');
+            });
+          }
+        } else {
+          absent_deferred.resolve(); // no action taken
+        }
+        absent_deferred.promise
+        .then(function (absent_record) {
+          utils.vlog('absent_deferred resolved:', absent_record);
+
+          // FIXME: use utils.makeCallbackEvent(_impl.facts, o)
+          deferred.resolve(utils.makeCallbackEvent(
+            _impl.facts,
+            {
+              module: 'file',
+              object: file,
+              msg: absent_record
+            }
+          ));
+        });
+
+        // FIXME: cant just return now, as in promise
+        return; // no need to watch, so return now
+
+      case 'present':
+      case 'file':
+        if (err && err.code === 'ENOENT') {
+          console.warn('Creating file', file);
+
+          // Unwatch and force new watcher
+          //_impl.P2_unwatch(file);
+          inWatchFlag = false;
+
+          utils.vlog('touching file:', file);
+          pfs.pTouch(file)
+          .done(function () {
+            var record = 'Created file. ';
+            utils.vlog("%s %s", record, opts.content);
+            if (opts.content !== undefined) {
+              self._ensure_content(file, opts.content, opts.is_template)
+              .done(function (r) {
+                ensure_deferred.resolve(record + r);
+              });
+            } else {
+              ensure_deferred.resolve(record);
+            }
+          });
+        } else {
+          ensure_deferred.resolve();
+        }
+        break;
+
+      case 'directory':
+        if (err && err.code === 'ENOENT') {
+          console.warn('Creating directory', file);
+          pfs.pMkdir(file)
+          .done(function () {
+            ensure_deferred.resolve('Created directory. ');
+          });
+        } else if (!stats.isDirectory()) {
+          console.error('Error:', file, 'exists and is not a directory');
+          ensure_deferred.resolve();
+        }
+        break;
+
+      case 'link':
+        if (!opts.target) {
+          msg = 'Error: Link ' + file + ' requested but no target specified';
+          console.error(msg);
+          throw (new Error(msg));
+        }
+        if (err && err.code === 'ENOENT') {
+          console.warn('Creating link', file);
+          pfs.pSymlink(opts.target, file, 'file')
+          .done(function () {
+            ensure_deferred.resolve('Created link. ');
+          });
+        } else if (err) {
+          throw (err);
+
+        } else if (!stats.isDirectory()) {
+          console.error('Error:', file, 'exists and is not a link');
+          ensure_deferred.resolve();
+        }
+        break;
+
+      default:
+        msg = 'Error: ensure ' + opts.ensure + ' is not supported';
+        console.error(msg);
+        throw (new Error(msg));
+    } // switch opts.ensure
+  } else {
+    ensure_deferred.resolve(); // done nothing
+  } // if ensure
+
+  return ensure_deferred.promise;
+};  //ensure
+
+
+
+File.prototype._opt_mode = function (file, opts, stats) {
+
+  var mode_deferred = Q.defer(),
+      sent_chmod = false,
+      mode_prefix = stats.mode.toString(8).slice(0,3);
+
+  utils.dlog('_opt_mode stats:', stats);
+
+  if (opts.mode && typeof(opts.mode) === 'string') {
+    if (opts.mode.match(/^0[0-9]{3}$/)) {
+      var m = parseInt(mode_prefix + opts.mode.slice(1), 8); // as octal
+      if (m !== stats.mode) {
+        console.log('File: mode', stats.mode.toString(8), 'should be', m.toString(8));
+        pfs.pChmod(file, m)
+        .done(function () {
+          mode_deferred.resolve('Changed mode from ' + stats.mode.toString(8) + ' to ' + m.toString(8) + '. ');
+        });
+        sent_chmod = true;
+      }
+    }
+  }
+  if (!sent_chmod) {
+    mode_deferred.resolve();
+  }
+
+  return mode_deferred.promise;
 };
 
 module.exports = File;

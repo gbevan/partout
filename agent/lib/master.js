@@ -24,10 +24,12 @@
 'use strict';
 
 var path = require('path'),
-  fs = require('fs'),
-  //querystring = require('querystring'),
-  Q = require('q'),
-  _ = require('lodash');
+    fs = require('fs'),
+    //querystring = require('querystring'),
+    Q = require('q'),
+    _ = require('lodash'),
+    utils = new (require('./utils'))(),
+    u = require('util');
 
 Q.longStackSupport = true;
 
@@ -154,7 +156,7 @@ Master.prototype.post = function (path, o, cb) {
  * @returns Promise
  */
 Master.prototype.sendevent = function (o, cb) {
-  //console.warn('sendevent: data:', o);
+  utils.dlog('sendevent: data:', u.inspect(o, {colors: true, depth: 2}));
   var self = this;
   //var deferred = Q.defer();
 

@@ -134,19 +134,23 @@ Utils.prototype.vetOps = function (module, opts, validopts) {
  * @returns {object} Populated callback object
  */
 Utils.prototype.makeCallbackEvent = function (facts, o) {
-  return {
-    agent_uuid: facts.partout_agent_uuid,
-    hostname: facts.os_hostname,
-    arch: facts.arch,
-    platform: facts.platform,
-    os_release: facts.os_release,
-    os_family: facts.os_family,
-    os_dist_name: facts.os_dist_name,
-    os_dist_version_id: facts.os_dist_version_id,
-    module: (o && o.module ? o.module : 'unknown'),
-    object: (o && o.object ? o.object : 'unknown'),
-    msg: (o && o.msg ? o.msg : 'Internal Agent Error> msg not provided to makeCallbackEvent() - stack:' + (new Error()).stack)
-  };
+  if (o) {
+    return {
+      agent_uuid: facts.partout_agent_uuid,
+      hostname: facts.os_hostname,
+      arch: facts.arch,
+      platform: facts.platform,
+      os_release: facts.os_release,
+      os_family: facts.os_family,
+      os_dist_name: facts.os_dist_name,
+      os_dist_version_id: facts.os_dist_version_id,
+      module: (o && o.module ? o.module : 'unknown'),
+      object: (o && o.object ? o.object : 'unknown'),
+      msg: (o && o.msg ? o.msg : 'Internal Agent Error> msg not provided to makeCallbackEvent() - stack:' + (new Error()).stack)
+    };
+  } else {
+    return;
+  }
 };
 
 /**
