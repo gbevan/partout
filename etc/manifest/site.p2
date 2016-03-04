@@ -39,6 +39,9 @@ p2
 p2
 //.watch(true)
 .file('/tmp/testcontent', {
+  ensure: 'absent'
+})
+.file('/tmp/testcontent', {
   ensure: 'present',
   content: 'This is\n\tan example\n\t\tfile...\n{{platform}}\n',
   is_template: true,

@@ -136,8 +136,7 @@ var File = P2M.Module(function () {
       self._opt_ensure(file, opts, err, stats, _impl, inWatchFlag, deferred)
       .done(function (ensure_record) {
 
-        pfs.pLstat(file)
-        .done(function (stats) {
+        fs.lstat(file, function (err, stats) {
 
           // Handle mode option
           self._opt_mode(file, opts, stats)
@@ -165,11 +164,6 @@ var File = P2M.Module(function () {
                 watch_action_deferred.promise
                 .then(function (o) {
                   utils.dlog('file watch o:', o);
-                  /*
-                  if (o) {
-                    _impl.sendevent(utils.makeCallbackEvent(_impl.facts, o));
-                  }
-                  */
                   next_event_cb(utils.makeCallbackEvent(_impl.facts, o)); // next watch event
                 })
                 .done();
@@ -184,13 +178,13 @@ var File = P2M.Module(function () {
               o = {
                 module: 'file',
                 object: file,
-                msg: ensure_record + mode_record
+                msg: record
               };
               utils.dlog('file ensure resolve o:', o);
             }
             deferred.resolve(utils.makeCallbackEvent(_impl.facts, o));
 
-          });
+          }); // _opt_mode
 
         }); // pLstat
 
@@ -265,6 +259,17 @@ File.prototype._ensure_file = function (file, srcfile, is_template) {
   });
 };
 
+/**
+ * Handle the ensure option
+ * @param   {string}  file        filename
+ * @param   {object}  opts        file options
+ * @param   {object}  err         err from stat
+ * @param   {object}  stats       stats
+ * @param   {object}  _impl       DSL
+ * @param   {boolean} inWatchFlag flag in watch
+ * @param   {object}  deferred    Q deferred object to resolve
+ * @returns {object}  ensure_promise
+ */
 File.prototype._opt_ensure = function (file, opts, err, stats, _impl, inWatchFlag, deferred) {
   var self = this,
       ensure_deferred = Q.defer(),
@@ -277,42 +282,24 @@ File.prototype._opt_ensure = function (file, opts, err, stats, _impl, inWatchFla
 
       // TODO: make async !!!!
       case 'absent':
-        var absent_deferred = Q.defer();
-
         if (!err && stats) {
           if (stats.isDirectory()) {
             console.warn('Deleting directory', file);
             pfs.pRmdir(file)
             .done(function () {
-              absent_deferred.resolve('Deleted directory. ');
+              ensure_deferred.resolve('Deleted directory. ');
             });
           } else {
             console.warn('Deleting file', file);
             pfs.pUnlink(file)
             .done(function () {
-              absent_deferred.resolve('Deleted file. ');
+              ensure_deferred.resolve('Deleted file. ');
             });
           }
         } else {
-          absent_deferred.resolve(); // no action taken
+          ensure_deferred.resolve(); // no action taken
         }
-        absent_deferred.promise
-        .then(function (absent_record) {
-          utils.vlog('absent_deferred resolved:', absent_record);
-
-          // FIXME: use utils.makeCallbackEvent(_impl.facts, o)
-          deferred.resolve(utils.makeCallbackEvent(
-            _impl.facts,
-            {
-              module: 'file',
-              object: file,
-              msg: absent_record
-            }
-          ));
-        });
-
-        // FIXME: cant just return now, as in promise
-        return; // no need to watch, so return now
+        break;
 
       case 'present':
       case 'file':
@@ -389,28 +376,38 @@ File.prototype._opt_ensure = function (file, opts, err, stats, _impl, inWatchFla
 };  //ensure
 
 
-
+/**
+ * Handle mode option
+ * @param   {string}  file  filename
+ * @param   {object}  opts  options
+ * @param   {object}  err   err from stat
+ * @param   {object}  stats stats
+ * @returns {Promise} mode_deferred
+ */
 File.prototype._opt_mode = function (file, opts, stats) {
 
   var mode_deferred = Q.defer(),
-      sent_chmod = false,
-      mode_prefix = stats.mode.toString(8).slice(0,3);
+      sent_chmod = false;
 
   utils.dlog('_opt_mode stats:', stats);
 
-  if (opts.mode && typeof(opts.mode) === 'string') {
-    if (opts.mode.match(/^0[0-9]{3}$/)) {
-      var m = parseInt(mode_prefix + opts.mode.slice(1), 8); // as octal
-      if (m !== stats.mode) {
-        console.log('File: mode', stats.mode.toString(8), 'should be', m.toString(8));
-        pfs.pChmod(file, m)
-        .done(function () {
-          mode_deferred.resolve('Changed mode from ' + stats.mode.toString(8) + ' to ' + m.toString(8) + '. ');
-        });
-        sent_chmod = true;
+  if (stats) {
+    var mode_prefix = stats.mode.toString(8).slice(0,3);
+
+    if (opts.mode && typeof(opts.mode) === 'string') {
+      if (opts.mode.match(/^0[0-9]{3}$/)) {
+        var m = parseInt(mode_prefix + opts.mode.slice(1), 8); // as octal
+        if (m !== stats.mode) {
+          console.log('File: mode', stats.mode.toString(8), 'should be', m.toString(8));
+          pfs.pChmod(file, m)
+          .done(function () {
+            mode_deferred.resolve('Changed mode from ' + stats.mode.toString(8) + ' to ' + m.toString(8) + '. ');
+          });
+          sent_chmod = true;
+        }
       }
     }
-  }
+  } // if stats
   if (!sent_chmod) {
     mode_deferred.resolve();
   }

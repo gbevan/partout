@@ -156,11 +156,11 @@ Pfs.prototype.pExists = function (path) {
  * Promisified wrapper for fs.lstat
  * Warning err may be ENOENT if file is missing, so callback method may be more appropriate in many circumstances.
  * @param   {string} file filename
- * @returns {object} Promise
- */
+ * @returns {object} Promise resolves to
 Pfs.prototype.pLstat = function (path) {
   return Q.nfcall(fs.lstat, path);
 };
+ */
 
 Pfs.prototype.pOpen = function (path, flags, mode) {
   return Q.nfcall(fs.open, path, flags, mode);
