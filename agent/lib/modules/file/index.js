@@ -186,7 +186,7 @@ var File = P2M.Module(function () {
 
           }); // _opt_mode
 
-        }); // pLstat
+        }); // inner fs.stat
 
       }); // ensure_deferred
 
