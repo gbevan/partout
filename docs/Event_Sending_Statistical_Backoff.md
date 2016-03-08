@@ -48,7 +48,9 @@ D = Event rate divisor
 P<sup>min</sup> = Minimum floor collection period in seconds, e.g. 10 secs
 P<sup>max</sup> = Maximum collection period in seconds, whereupon the agents must implement event level aggregation
 
+<p style="font-size: 200%">
 P<sup>s</sup> = int(E<sup>m</sup> / D)
+</p>
 
 if P<sup>s</sup> < P<sup>min</sup> then P<sup>s</sup> = P<sup>min</sup>
 if P<sup>s</sup> > P<sup>max</sup> then P<sup>s</sup> = P<sup>max</sup>
@@ -77,7 +79,7 @@ if E<sup>m</sup> &ge; T<sup>uuid</sup> & < T<sup>max</sup>
 &nbsp;&nbsp;A<sup>level</sup> = 1   // aggregate at Agent UUID
 
 if E<sup>m</sup> &ge; T<sup>max</sup>
-&nbsp;&nbsp;A<sup>level</sup> = 0   // aggregate on Agent alive msgs
+&nbsp;&nbsp;A<sup>level</sup> = 0   // aggregate on Agent alive msgs (same content as level 1)
 
 
 ## Examples of Aggregated Events
@@ -130,3 +132,38 @@ e.g.:
       period_secs: 10
     }
 
+## RESTful API
+
+    POST /events JSON as above
+
+(Note: `/event` api will be deprecated.)
+
+### Events Response for Throttling
+
+The `/events` api will always respond with the current aggregate throttling settings for the agents. e.g.:
+
+    res
+    .status(500)
+    .send({
+      aggregate_period_secs: 60,
+      aggregate_level: 4,
+      notify_alive_period_secs: 60 * 60 * 24
+    });
+
+Where:
+* `aggregate_period_secs` = P<sup>s</sup>
+* `aggregate_level` = 0 - 4
+* `notify_alive_period_secs` = final fallback level, notify agent is alive (includes above aggregates counts at uuid detail level 0).
+
+## Aggregate Event Storage
+
+Data will be stored in the ArangoDB database.
+
+### Detail Levels
+
+| Period | Detail Level |
+| :----- | :----------- |
+| Current day | Raw aggregate data from agents |
+| Past 7 days | Hourly aggregates |
+| Past 31 days | Daily aggregates |
+| Past 365 days (or more) | Weekly aggregates |
