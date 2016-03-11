@@ -139,7 +139,7 @@ var File = P2M.Module(function () {
         fs.lstat(file, function (err, stats) {
 
           // Handle mode option
-          self._opt_mode(file, opts, stats)
+          self._opt_mode(file, opts, stats, _impl)
           .done(function (mode_record) {
 
             // TODO: Chown
@@ -293,7 +293,9 @@ File.prototype._opt_ensure = function (file, opts, err, stats, _impl, inWatchFla
             console.warn('Deleting file', file);
             pfs.pUnlink(file)
             .done(function () {
-              ensure_deferred.resolve('Deleted file. ');
+              _impl.qEvent({module: 'file', object: file, msg: 'Deleted file.'});
+              //ensure_deferred.resolve('Deleted file. ');
+              ensure_deferred.resolve();
             });
           }
         } else {
@@ -315,13 +317,18 @@ File.prototype._opt_ensure = function (file, opts, err, stats, _impl, inWatchFla
           .done(function () {
             var record = 'Created file. ';
             utils.vlog("%s %s", record, opts.content);
+            _impl.qEvent({module: 'file', object: file, msg: record});
+
             if (opts.content !== undefined) {
               self._ensure_content(file, opts.content, opts.is_template)
               .done(function (r) {
-                ensure_deferred.resolve(record + r);
+                _impl.qEvent({module: 'file', object: file, msg: r});
+                //ensure_deferred.resolve(record + r);
+                ensure_deferred.resolve();
               });
             } else {
-              ensure_deferred.resolve(record);
+              //ensure_deferred.resolve(record);
+              ensure_deferred.resolve();
             }
           });
         } else {
@@ -334,7 +341,8 @@ File.prototype._opt_ensure = function (file, opts, err, stats, _impl, inWatchFla
           console.warn('Creating directory', file);
           pfs.pMkdir(file)
           .done(function () {
-            ensure_deferred.resolve('Created directory. ');
+            _impl.qEvent({module: 'file', object: file, msg: 'Created directory. '});
+            ensure_deferred.resolve();
           });
         } else if (!stats.isDirectory()) {
           console.error('Error:', file, 'exists and is not a directory');
@@ -352,13 +360,15 @@ File.prototype._opt_ensure = function (file, opts, err, stats, _impl, inWatchFla
           console.warn('Creating link', file);
           pfs.pSymlink(opts.target, file, 'file')
           .done(function () {
-            ensure_deferred.resolve('Created link. ');
+            _impl.qEvent({module: 'file', object: file, msg: 'Created link. '});
+            ensure_deferred.resolve();
           });
         } else if (err) {
           throw (err);
 
         } else if (!stats.isDirectory()) {
           console.error('Error:', file, 'exists and is not a link');
+          _impl.qEvent({module: 'file', object: file, level: 'error', msg: 'Exists and is not a link'});
           ensure_deferred.resolve();
         }
         break;
@@ -382,9 +392,10 @@ File.prototype._opt_ensure = function (file, opts, err, stats, _impl, inWatchFla
  * @param   {object}  opts  options
  * @param   {object}  err   err from stat
  * @param   {object}  stats stats
+ * @param   {object}  _impl DSL
  * @returns {Promise} mode_deferred
  */
-File.prototype._opt_mode = function (file, opts, stats) {
+File.prototype._opt_mode = function (file, opts, stats, _impl) {
 
   var mode_deferred = Q.defer(),
       sent_chmod = false;
@@ -401,7 +412,12 @@ File.prototype._opt_mode = function (file, opts, stats) {
           console.log('File: mode', stats.mode.toString(8), 'should be', m.toString(8));
           pfs.pChmod(file, m)
           .done(function () {
-            mode_deferred.resolve('Changed mode from ' + stats.mode.toString(8) + ' to ' + m.toString(8) + '. ');
+            _impl.qEvent({
+              module: 'file',
+              object: file,
+              msg: 'Changed mode from ' + stats.mode.toString(8) + ' to ' + m.toString(8) + '. '
+            });
+            mode_deferred.resolve();
           });
           sent_chmod = true;
         }

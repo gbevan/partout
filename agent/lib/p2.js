@@ -337,6 +337,10 @@ var P2 = function () {
   };
   //self._impl.sendevent = GLOBAL.p2_agent_opts.app.sendevent;
 
+  self._impl.qEvent = function (o) {
+   GLOBAL.p2_agent_opts.app.master.qEvent(self.facts, o);
+  };
+
   /**
    * push action step on to the list to execute by .end()
    * @function

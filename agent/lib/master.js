@@ -42,6 +42,7 @@ var Master = function (cfg, https) {
   var self = this;
   self.cfg = cfg;
   self.https = https;
+  self.app = null;
 
   self.options = {
     host: cfg.partout_master_hostname,
@@ -55,6 +56,8 @@ var Master = function (cfg, https) {
       fs.readFileSync(path.join(cfg.PARTOUT_AGENT_SSL_PUBLIC, 'root_ca.crt')).toString()
     ]
   };
+
+  self.event_detail_aggregate = {};
 };
 
 /*
@@ -64,6 +67,16 @@ Master.prototype.set_uuid = function (uuid) {
   self.uuid = uuid;
 }
 */
+
+/**
+ * Set the app for this master instance
+ * @param {object} app The running app
+ */
+Master.prototype.set_app = function (app) {
+  var self = this;
+
+  self.app = app;
+};
 
 /**
  * set the agent certificate and private key (once available)
@@ -81,30 +94,28 @@ Master.prototype.set_agent_cert = function (key, cert) {
 };
 
 /**
- * post to master RESTful API
+ * post to master RESTful API, data is returned via either callback or prommise
  * @function
  * @param {String} path of API, e.g. '/event'
  * @param {Object} data to send
- * @param {Function} optional callback
+ * @param {Function} optional callback, function (err, data)
  * @memberof P2?
  * @returns Promise
  */
 Master.prototype.post = function (path, o, cb) {
-  //console.warn('POST: path:', path, 'data:', o, 'type:', typeof(o));
-  var self = this;
+  utils.dlog('POST: path:', path, 'data:', o, 'type:', typeof(o));
+  var self = this,
+      deferred = Q.defer(),
+      post_data = JSON.stringify(o),
+      options = {
+        method: 'POST',
+        path: path,
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8',
+          'Content-Length': Buffer.byteLength(post_data)
+        }
+      };
 
-  var deferred = Q.defer();
-
-  //o.uuid = self.uuid;
-  var post_data = JSON.stringify(o),
-    options = {
-      method: 'POST',
-      path: path,
-      headers: {
-        'Content-Type': 'application/json; charset=utf-8',
-        'Content-Length': Buffer.byteLength(post_data)
-      }
-    };
   _.merge(options, self.options);
   //console.log('post merged options:', options);
 
@@ -122,7 +133,7 @@ Master.prototype.post = function (path, o, cb) {
     res.on('end', function () {
       //console.log('after on end data:', data);
       if (cb) {
-        cb(data);
+        cb(null, data);
       }
       deferred.resolve(data);
     });
@@ -132,6 +143,9 @@ Master.prototype.post = function (path, o, cb) {
     //throw new Error(err);
     err = new Error(err);
     console.error('POST to master ERROR:', err);
+    if (cb) {
+      cb(err);
+    }
     deferred.reject(err);
   });
   //console.log('post_data:', post_data);
@@ -156,13 +170,89 @@ Master.prototype.post = function (path, o, cb) {
  * @returns Promise
  */
 Master.prototype.sendevent = function (o, cb) {
-  utils.dlog('sendevent: data:', u.inspect(o, {colors: true, depth: 2}));
+  utils.vlog('>>> DEPRECATED >sendevent: data:', u.inspect(o, {colors: true, depth: 2}) + '\nstack:' + (new Error()).stack);
   var self = this;
   //var deferred = Q.defer();
 
   //deferred.resolve('dummy');
   return self.post('/event', o, cb);
   //return deferred.promise;
+};
+
+Master.prototype.send_aggregate_events_and_reset = function (self) {
+  //var self = this;
+
+  utils.vlog('send_aggregate_events_and_reset:' + ' now:' + new Date() + ' data:', u.inspect(self.event_detail_aggregate, {colors: true, depth: 6}));
+
+  self.post('/events', self.event_detail_aggregate);
+
+  self.event_detail_aggregate = {};  // Reset for next period of aggregation
+};
+
+Master.prototype.qEvent = function (facts, o) {
+  var self = this;
+
+  utils.dlog('Master qEvent() o:' + u.inspect(o, {colors: true, depth: 2}));
+
+  if (!o) {
+    return;
+  }
+
+  if (!facts) {
+    utils.vlog('qEvent: data (no facts):', u.inspect(o, {colors: true, depth: 2}));
+    return;
+  }
+
+  if (!self.event_detail_aggregate.agent) {
+    self.event_detail_aggregate.agent = {
+      uuid: facts.partout_agent_uuid,
+      hostname: facts.os_hostname,
+      arch: facts.arch,
+      platform: facts.platform,
+      os_release: facts.os_release,
+      os_family: facts.os_family,
+      os_dist_name: facts.os_dist_name,
+      os_dist_version_id: facts.os_dist_version_id,
+      //count: 0,
+      modules: {}
+    };
+
+    // start aggregate time interval
+    var period = self.app.cfg.partout_agent_throttle.aggregate_period_secs,
+        splay = self.app.cfg.partout_agent_throttle.aggregate_period_splay * period,
+        rnd = Math.random(),
+        rnd_period = (period + (period * splay * rnd) - (0.5 * splay)) * 1000;
+    utils.dlog('*** rnd_period:' + rnd_period + ' now:' + new Date());
+    setTimeout(self.send_aggregate_events_and_reset, rnd_period, self);
+  }
+
+  var o_module = (o && o.module ? o.module : 'unknown');
+  if (!self.event_detail_aggregate.agent.modules[o_module]) {
+    self.event_detail_aggregate.agent.modules[o_module] = {
+      //count: 0,
+      objects: {}
+    };
+  }
+
+  var o_object_b64 = /*new Buffer*/(o && o.object ? o.object : 'unknown')/*.toString('base64')*/;
+  if (!self.event_detail_aggregate.agent.modules[o_module][o_object_b64]) {
+    self.event_detail_aggregate.agent.modules[o_module][o_object_b64] = {
+      //count: 0,
+      messages: {}
+    };
+  }
+
+  var msg_b64 = /*new Buffer*/(
+    o && o.msg ? o.msg : 'Internal Agent Error> msg not provided to makeCallbackEvent() - stack:' + (new Error()).stack
+  )/*.toString('base64')*/;
+  if (!self.event_detail_aggregate.agent.modules[o_module][o_object_b64][msg_b64]) {
+    self.event_detail_aggregate.agent.modules[o_module][o_object_b64][msg_b64] = {
+      level: ((o.level && o.level.match(/(error|info)/)) ? o.level : 'info'),
+      count: 0
+    };
+  }
+
+  self.event_detail_aggregate.agent.modules[o_module][o_object_b64][msg_b64].count += 1;
 };
 
 

@@ -194,6 +194,7 @@ var serve = function (args, master) {
     };
 
   master.set_agent_cert(sslKey, sslCert);
+  master.set_app(app);
 
   // TODO: parameterise from a js file
   app.master_hostname = cfg.partout_master_hostname;

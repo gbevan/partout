@@ -23,12 +23,15 @@ var Cfg = function () {
   self.PARTOUT_AGENT_MANIFEST_SITE_P2 = path.join(self.PARTOUT_AGENT_MANIFEST_DIR, 'site.p2');
 
   /*
-   * moved to Ssl
-  self.partout_agent_publicKeyFile = './etc/ssl/agent_public.key';
-  self.partout_agent_privateKeyFile = './etc/ssl/agent_private.key';
-  self.partout_agent_certFile = './etc/ssl/agent_signed.crt';
-  self.partout_agent_csrFile = './etc/ssl/agent_unsigned.csr';
-  */
+   * defaults for agent to master event throttling
+   */
+  self.partout_agent_throttle = {
+    aggregate_period_secs: 5, // 60,
+    aggregate_period_splay: 0.05,
+    aggregate_level: 4,
+    notify_alive_period_secs: 60 * 60 * 24
+  };
+
 };
 
 module.exports = Cfg;

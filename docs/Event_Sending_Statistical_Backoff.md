@@ -43,9 +43,13 @@ Default starts at level 4.
 Master tells the agent's (via event send responses) to use an event collection period based on:
 
 E<sup>m</sup> = Events per minute arriving at the master
+
 P<sup>s</sup> = Collection Period in seconds
+
 D = Event rate divisor
+
 P<sup>min</sup> = Minimum floor collection period in seconds, e.g. 10 secs
+
 P<sup>max</sup> = Maximum collection period in seconds, whereupon the agents must implement event level aggregation
 
 <p style="font-size: 200%">
@@ -53,6 +57,7 @@ P<sup>s</sup> = int(E<sup>m</sup> / D)
 </p>
 
 if P<sup>s</sup> < P<sup>min</sup> then P<sup>s</sup> = P<sup>min</sup>
+
 if P<sup>s</sup> > P<sup>max</sup> then P<sup>s</sup> = P<sup>max</sup>
 
 ## Event Throttling by Aggregate Level (&ge; P<sup>max</sup>)
@@ -61,24 +66,32 @@ if P<sup>s</sup> &ge; P<sup>max</sup> then ...
 
 ### Thresholds of E<sup>m</sup> events per minute:
 T<sup>obj</sup> = 500
+
 T<sup>mod</sup> = 2000
+
 T<sup>uuid</sup> = 5000
+
 T<sup>max</sup> = 10000
 
 ### Calculate Aggregate Level:
 if E<sup>m</sup> < T<sup>obj</sup>
+
 &nbsp;&nbsp;A<sup>level</sup> = 4   // all detail
 
 if E<sup>m</sup> &ge; T<sup>obj</sup> & < T<sup>mod</sup>
+
 &nbsp;&nbsp;A<sup>level</sup> = 3   // aggregate at Object
 
 if E<sup>m</sup> &ge; T<sup>mod</sup> & < T<sup>uuid</sup>
+
 &nbsp;&nbsp;A<sup>level</sup> = 2   // aggregate at Module
 
 if E<sup>m</sup> &ge; T<sup>uuid</sup> & < T<sup>max</sup>
+
 &nbsp;&nbsp;A<sup>level</sup> = 1   // aggregate at Agent UUID
 
 if E<sup>m</sup> &ge; T<sup>max</sup>
+
 &nbsp;&nbsp;A<sup>level</sup> = 0   // aggregate on Agent alive msgs (same content as level 1)
 
 
@@ -88,18 +101,20 @@ if E<sup>m</sup> &ge; T<sup>max</sup>
       agent: {  // level 0/1
         uuid: ...,
         count: n,
-        modules: [{  // level 2
-          name: ...,
-          count: n,
-          objects: [{  // level 3
-            name: _object_name_,
+        modules: {  // level 2
+          module_name: {
             count: n,
-            messages : [{  // level 4
-              msg: '...',
-              count: n
-            }, ...]
-          }, ...]
-        }, ...]
+            objects: {  // level 3
+              object_name_base64: {
+                count: n,
+                messages : {  // level 4
+                  msg_base64: {
+                    level: error|info,
+                    count: n
+                  }
+                }, ...
+            }, ...
+        }, ...
       },
       period_secs: n
     }
@@ -110,24 +125,22 @@ e.g.:
       agent: {
         uuid: '89609ae7-c955-4109-a2b8-4d0e7edcf460',
         count: 1,
-        modules: [
-          {
-            name: 'file',
+        modules: {
+          'file': {
             count: 1,
-            objects: [
-              {
-                name: '/etc/hosts',
+            objects: {
+              '8765765jhgfjfhgf876587': {  // for special chars handling
                 count: 1,
-                messages: [
-                  {
-                    msg: 'Content Replaced',
+                messages: {
+                  '786576576576dsfsdfsfdsdf976876': {
+                    level: 'info',
                     count: 1
                   }
-                ]
+                }
               }
-            ]
+            }
           }
-        ]
+        }
       },
       period_secs: 10
     }
@@ -146,6 +159,7 @@ The `/events` api will always respond with the current aggregate throttling sett
     .status(500)
     .send({
       aggregate_period_secs: 60,
+      aggregate_period_splay: 0.05,
       aggregate_level: 4,
       notify_alive_period_secs: 60 * 60 * 24
     });
@@ -167,3 +181,7 @@ Data will be stored in the ArangoDB database.
 | Past 7 days | Hourly aggregates |
 | Past 31 days | Daily aggregates |
 | Past 365 days (or more) | Weekly aggregates |
+
+## To Concider
+
+Combination of per Master traffic thresholds AND per agent traffic thresholds???
