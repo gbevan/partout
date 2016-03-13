@@ -187,7 +187,8 @@ Service.getStatus = function (name) {
  * @returns {object} Promise
  */
 Service.setEnabled = function (name) {
-  return utils.pExec('/usr/sbin/update-rc.d ' + name + ' enabled');
+  //return utils.pExec('/usr/sbin/update-rc.d ' + name + ' enabled');
+  return utils.pExec('/usr/sbin/update-rc.d ' + name + ' enable');
 };
 
 /**
@@ -196,7 +197,8 @@ Service.setEnabled = function (name) {
  * @returns {object} Promise
  */
 Service.setDisabled = function (name) {
-  return utils.pExec('/usr/sbin/update-rc.d ' + name + ' disabled');
+  //return utils.pExec('/usr/sbin/update-rc.d ' + name + ' disabled');
+  return utils.pExec('/usr/sbin/update-rc.d ' + name + ' disable');
 };
 
 

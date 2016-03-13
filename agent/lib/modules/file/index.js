@@ -73,9 +73,6 @@ Q.longStackSupport = true;
  *     ...
  *
  * ---
- * TODO: remaining support
- *  Owner, Group
- *
  */
 
 var File = P2M.Module(function () {
@@ -134,15 +131,21 @@ var File = P2M.Module(function () {
 
       // Handle ensure option
       self._opt_ensure(file, opts, err, stats, _impl, inWatchFlag, deferred)
-      .done(function (ensure_record) {
+      .done(function () {
 
         fs.lstat(file, function (err, stats) {
 
           // Handle mode option
           self._opt_mode(file, opts, stats, _impl)
-          .done(function (mode_record) {
-
-            // TODO: Chown
+          .then(function () {
+            // Handle owner option
+            return self._opt_owner(file, opts, stats, _impl);
+          })
+          .then(function () {
+            // Handle group option
+            return self._opt_group(file, opts, stats, _impl);
+          })
+          .done(function () {
 
             if (!inWatchFlag && _watch_state && GLOBAL.p2_agent_opts.daemon) {
               utils.dlog('>>> Starting watcher on file:', file);
@@ -162,9 +165,9 @@ var File = P2M.Module(function () {
                 });
 
                 watch_action_deferred.promise
-                .then(function (o) {
-                  utils.dlog('file watch o:', o);
-                  next_event_cb(utils.makeCallbackEvent(_impl.facts, o)); // next watch event
+                .then(function () {
+                  //next_event_cb(utils.makeCallbackEvent(_impl.facts, o)); // next watch event
+                  next_event_cb(); // next watch event
                 })
                 .done();
 
@@ -172,6 +175,7 @@ var File = P2M.Module(function () {
             }
 
             // pass updated status to caller (p2 steps) with optional event data
+            /*
             var o,
                 record = (ensure_record || '') + (mode_record || '');
             if (record && record !== '') {
@@ -183,6 +187,8 @@ var File = P2M.Module(function () {
               utils.dlog('file ensure resolve o:', o);
             }
             deferred.resolve(utils.makeCallbackEvent(_impl.facts, o));
+            */
+            deferred.resolve();
 
           }); // _opt_mode
 
@@ -430,5 +436,92 @@ File.prototype._opt_mode = function (file, opts, stats, _impl) {
 
   return mode_deferred.promise;
 };
+
+/**
+ * Handle owner option
+ * @param   {string}  file  filename
+ * @param   {object}  opts  options
+ * @param   {object}  err   err from stat
+ * @param   {object}  stats stats
+ * @param   {object}  _impl DSL
+ * @returns {Promise} mode_deferred
+ */
+File.prototype._opt_owner = function (file, opts, stats, _impl) {
+
+  var deferred = Q.defer();
+
+  utils.dlog('_opt_owner stats:', stats);
+
+  if (opts.owner && stats) {
+    pfs.pGetUid(opts.owner)
+    .done(function (usid) {  // UID or SID (windows)
+
+      if (usid !== stats.uid) {
+        utils.vlog('File: owner', stats.uid, 'should be', usid);
+        pfs.pChown(file, usid, stats.gid)
+        .done(function () {
+          _impl.qEvent({
+            module: 'file',
+            object: file,
+            msg: 'Changed owner from ' + stats.uid + ' to ' + usid + '.'
+          });
+          stats.uid = usid;
+          deferred.resolve();
+        });
+      } else {
+        deferred.resolve();
+      }
+
+    });
+  } else {
+    deferred.resolve();
+  } // if stats & owner
+
+  return deferred.promise;
+};
+
+/**
+ * Handle group option
+ * @param   {string}  file  filename
+ * @param   {object}  opts  options
+ * @param   {object}  err   err from stat
+ * @param   {object}  stats stats
+ * @param   {object}  _impl DSL
+ * @returns {Promise} mode_deferred
+ */
+File.prototype._opt_group = function (file, opts, stats, _impl) {
+
+  var deferred = Q.defer();
+
+  utils.dlog('_opt_group stats:', stats);
+
+  if (opts.group && stats) {
+    pfs.pGetGid(opts.group)
+    .done(function (gsid) {  // GID or SID (windows)
+
+      if (gsid !== stats.gid) {
+        utils.vlog('File: group', stats.gid, 'should be', gsid);
+        pfs.pChown(file, stats.uid, gsid)
+        .done(function () {
+          _impl.qEvent({
+            module: 'file',
+            object: file,
+            msg: 'Changed group from ' + stats.gid + ' to ' + gsid + '.'
+          });
+          stats.gid = gsid;
+          deferred.resolve();
+        });
+      } else {
+        deferred.resolve();
+      }
+
+    });
+  } else {
+    deferred.resolve();
+  } // if stats & group
+
+  return deferred.promise;
+};
+
 
 module.exports = File;

@@ -24,12 +24,13 @@
 'use strict';
 
 var expect = require('expect'),
-  forge = require('node-forge'),
-  path = require('path'),
-  pki = forge.pki,
-  fs = require('fs'),
-  Q = require('q'),
-  utils = new (require('../lib/utils'))();
+    forge = require('node-forge'),
+    path = require('path'),
+    pki = forge.pki,
+    fs = require('fs'),
+    Q = require('q'),
+    //utils = new (require('../lib/utils'))(),
+    pfs = new (require('./pfs'))();
 
 /**
  * @constructor
@@ -166,7 +167,7 @@ Ssl.prototype.genCsr = function (cfg, cb) {
     };
 
   // save agent keys
-  Q.nfcall(utils.ensurePath, path.dirname(self.agentCsrFile))
+  Q.nfcall(pfs.ensurePath, path.dirname(self.agentCsrFile))
   .then(function () {
     // create CA Root Cert Pem file
     return Q.nfcall(fs.writeFile, self.agentCsrFile, csr_pem);

@@ -130,6 +130,10 @@ var checkCert = function (args, master) {
           ssl.genCsr({
             subjAttrs: attrs
           }, function (err, csr, fingerprint) {
+            if (err) {
+              console.error('genCsr() failed err:', err);
+              process.exit(1);
+            }
             console.warn('============================================================================');
             console.warn('CSR fingerprint:', fingerprint);
             console.warn('============================================================================');
@@ -285,6 +289,8 @@ var serve = function (args, master) {
           });
         })
         .fail(function (err) {
+          console.error(err);
+          console.error(err.stack);
           console.warn('policy_sync call failed, will continue to run existing cached manifest (if available)');
 
           app._apply(function () {

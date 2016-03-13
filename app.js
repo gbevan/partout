@@ -227,11 +227,12 @@ var serve = function () {
             rejectUnauthorized: false
           };
 
+        //appApi.use(express.bodyParser({limit: '50mb'}));
         appApi.use(compression());
 
         routerApi.use(logger);
 
-        appApi.use(bodyParser.json());
+        appApi.use(bodyParser.json({limit: '50mb'}));
         appApi.use(bodyParser.urlencoded({ extended: true }));
 
         //appApi.set('view engine', 'html');

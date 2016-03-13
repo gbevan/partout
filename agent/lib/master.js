@@ -100,7 +100,7 @@ Master.prototype.set_agent_cert = function (key, cert) {
  * @param {Object} data to send
  * @param {Function} optional callback, function (err, data)
  * @memberof P2?
- * @returns Promise
+ * @returns Promise (returned data)
  */
 Master.prototype.post = function (path, o, cb) {
   utils.dlog('POST: path:', path, 'data:', o, 'type:', typeof(o));
@@ -184,11 +184,19 @@ Master.prototype.send_aggregate_events_and_reset = function (self) {
 
   utils.vlog('send_aggregate_events_and_reset:' + ' now:' + new Date() + ' data:', u.inspect(self.event_detail_aggregate, {colors: true, depth: 6}));
 
-  self.post('/events', self.event_detail_aggregate);
+  self.post('/events', self.event_detail_aggregate)
+  .done(function (data) {
+    utils.dlog('events returned data:', data);
+  });
 
   self.event_detail_aggregate = {};  // Reset for next period of aggregation
 };
 
+/**
+ * Queue and event in the current period aggregate for sending to the Master
+ * @param {object} facts Facts
+ * @param {object} o     {module: '...', object: '...', msg: '...', level: 'info|error'}
+ */
 Master.prototype.qEvent = function (facts, o) {
   var self = this;
 
@@ -281,7 +289,7 @@ Master.prototype.get = function (path, cb) {
 
   //console.log('before https.get');
   var req = self.https.request(options, function (res) {
-    //console.log('after https.get');
+    //console.log('after https.get res:', res);
     if (res.statusCode === 401) {
       msg = 'Client authentication denied by master (csr may need signing to grant access), status: ' + res.statusCode;
       console.error(msg);
@@ -296,7 +304,8 @@ Master.prototype.get = function (path, cb) {
     }
     //console.log('res:', res);
 
-    var cert = res.connection.getPeerCertificate();
+    //console.log('res.connection:', u.inspect(res.connection, {colors: true, depth: 4}));
+    var cert = res.connection.getPeerCertificate(true);
     //console.log('GET server cert:', cert);
 
     res.on('data', function (d) {

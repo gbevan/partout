@@ -46,6 +46,8 @@ p2
   content: 'This is\n\tan example\n\t\tfile...\n{{platform}}\n',
   is_template: true,
   mode: '0600',
+  owner: 'mysql',
+  group: 'video',
   watch: true
 })
 //.watch(false)

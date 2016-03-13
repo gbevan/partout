@@ -24,14 +24,16 @@
 'use strict';
 
 var console = require('better-console'),
-  walk = require('walk'),
-  path = require('path'),
-  fs = require('fs'),
-  crypto = require('crypto'),
-  mkdirp = require('mkdirp'),
-  Q = require('q'),
-  exec = require('child_process').exec,
-  _ = require('lodash');
+    walk = require('walk'),
+    path = require('path'),
+    fs = require('fs'),
+    os = require('os'),
+    crypto = require('crypto'),
+    mkdirp = require('mkdirp'),
+    Q = require('q'),
+    _ = require('lodash'),
+    utils = new (require('./utils'))(),
+    u = require('util');
 
 Q.longStackSupport = true;
 
@@ -206,6 +208,12 @@ Pfs.prototype.pChmod = function (path, mode) {
 };
 
 Pfs.prototype.pChown = function (path, uid, gid) {
+  if (typeof(uid) === 'string') {
+    uid = parseInt(uid);
+  }
+  if (typeof(gid) === 'string') {
+    gid = parseInt(gid);
+  }
   return Q.nfcall(fs.chown, path, uid, gid);
 };
 
@@ -215,6 +223,66 @@ Pfs.prototype.pReadFile = function (file, options) {
 
 Pfs.prototype.pWriteFile = function (file, data, options) {
   return Q.nfcall(fs.writeFile, file, data, options);
+};
+
+/**
+ * Get Uid/Sid for a given user name.  If name is a number, resolve to that directly.
+ * Also supports local accounts on Windows
+ * @param   {string_or_number} name User name / Account to lookup Uid/Sid
+ * @returns {Promise}          Promise (uid/sid)
+ */
+Pfs.prototype.pGetUid = function (name) {
+  var deferred = Q.defer();
+
+  if (u.isNumber(name)) { // TODO: if SID?
+    deferred.resolve(name);
+
+  } else {
+
+    var cmd = 'id -u ' + name;
+    if (os.type === 'Windows_NT') {
+      cmd = u.format('wmic useraccount where name=\'%s\' get sid', name);
+    }
+    utils.pExec(cmd)
+    .done(function (stdout, stderr) {
+      utils.dlog('cmd:', cmd, 'stdout:', stdout, 'stderr:', stderr);
+
+      deferred.resolve(stdout.toString().trim());
+    });
+
+  }
+
+  return deferred.promise;
+};
+
+/**
+ * Get Gid/Sid for a given group name.  If name is a number, resolve to that directly.
+ * Also supports local groups on Windows
+ * @param   {string_or_number} name User name / Account to lookup Gid/Sid
+ * @returns {Promise}          Promise (gid/sid)
+ */
+Pfs.prototype.pGetGid = function (name) {
+  var deferred = Q.defer();
+
+  if (u.isNumber(name)) { // TODO: if SID?
+    deferred.resolve(name);
+
+  } else {
+
+    var cmd = u.format('getent group %s | awk -F: \'{ print $3; }\'', name);
+    if (os.type === 'Windows_NT') {
+      cmd = u.format('wmic group where name=\'%s\' get sid', name);
+    }
+    utils.pExec(cmd)
+    .done(function (stdout, stderr) {
+      utils.dlog('cmd:', cmd, 'stdout:', stdout, 'stderr:', stderr);
+
+      deferred.resolve(stdout.toString().trim());
+    });
+
+  }
+
+  return deferred.promise;
 };
 
 module.exports = Pfs;

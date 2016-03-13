@@ -24,17 +24,17 @@
 'use strict';
 
 var console = require('better-console'),
-  _ = require('lodash'),
-  //utils = new (require('./utils'))(),
-  pfs = new (require('./pfs'))(),
-  path = require('path'),
-  mkdirp = require('mkdirp'),
-  fs = require('fs'),
-  nimble = require('nimble'),
-  Q = require('q'),
-  pki = require('node-forge').pki,
-  forge = require('node-forge'),
-  readline = require('readline');
+    _ = require('lodash'),
+    utils = new (require('./utils'))(),
+    pfs = new (require('./pfs'))(),
+    path = require('path'),
+    mkdirp = require('mkdirp'),
+    fs = require('fs'),
+    nimble = require('nimble'),
+    Q = require('q'),
+    pki = require('node-forge').pki,
+    forge = require('node-forge'),
+    readline = require('readline');
 
 /**
  * @class
@@ -151,7 +151,7 @@ Policy_Sync.prototype.sync = function (srcfolder, destfolder) {
   .then(function (cert) {
     var deferred = Q.defer();
 
-    //console.log('promise cert:', cert);
+    utils.dlog('promise cert:', cert);
     self.server_cert = '-----BEGIN CERTIFICATE-----\n' +
       cert.raw.toString('base64') +
       '\n-----END CERTIFICATE-----\n';

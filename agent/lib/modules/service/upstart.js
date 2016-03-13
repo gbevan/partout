@@ -55,7 +55,15 @@ Service.getStatus = function (name) {
       deferred = Q.defer();
 
   utils.execToArray('initctl list')
+  .fail(function (err) {
+    // ignore err - only report in debug mode
+    utils.dlog('Service upstart getStatus err:', err);
+    utils.dlog(err.err.stack);
+  })
   .then(function (res) {
+    if (!res) {
+      return;
+    }
     var upstart_lines = res.outlines;
     _.forEach(upstart_lines, function (up_line) {
       up_line = up_line.trim();

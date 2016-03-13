@@ -109,7 +109,7 @@ Utils.prototype.execToArray = function (cmd) {
 /**
  * Promisified exec
  * @param   {string} cmd Command to execute
- * @returns {object} Promise
+ * @returns {object} Promise (stdout, stderr), rejects with error
  */
 Utils.prototype.pExec = function (cmd) {
   return Q.nfcall(exec, cmd);
@@ -134,6 +134,9 @@ Utils.prototype.vetOps = function (module, opts, validopts) {
  * @returns {object} Populated callback object
  */
 Utils.prototype.makeCallbackEvent = function (facts, o) {
+  var self = this;
+  self.dlog('DEPRECATED CALL to Utils.makeCallbackEvent() from:\nstack:\n' + (new Error()).stack);
+
   if (o) {
     return {
       agent_uuid: facts.partout_agent_uuid,
