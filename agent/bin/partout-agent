@@ -25,30 +25,31 @@
 /*jslint node: true */
 'use strict';
 
-var args = require('args'),
-  options = args.Options.parse([
-    {
-      name: 'help',
-      shortName: 'h',
-      type: 'bool',
-      help: 'Show this help'
-    },
-    {
-      name: 'verbose',
-      shortName: 'v',
-      type: 'bool',
-      help: 'Show verbose messages'
-    },
-    {
-      name: 'debug',
-      shortName: 'd',
-      type: 'bool',
-      help: 'Show debugging messages'
-    }
-  ]),
-  parser = args.parser(process.argv),
-  parsed = parser.parse(options, {onPositional: 'stop'}),
-  rest = parser.getRest();
+var console = require('better-console'),
+    args = require('args'),
+    options = args.Options.parse([
+      {
+        name: 'help',
+        shortName: 'h',
+        type: 'bool',
+        help: 'Show this help'
+      },
+      {
+        name: 'verbose',
+        shortName: 'v',
+        type: 'bool',
+        help: 'Show verbose messages'
+      },
+      {
+        name: 'debug',
+        shortName: 'd',
+        type: 'bool',
+        help: 'Show debugging messages'
+      }
+    ]),
+    parser = args.parser(process.argv),
+    parsed = parser.parse(options, {onPositional: 'stop'}),
+    rest = parser.getRest();
 
 if (parsed.help) {
   console.log(options.getHelp());
@@ -57,6 +58,15 @@ if (parsed.help) {
 
 if (parsed.debug) {
   parsed.verbose = true;
+}
+
+/*
+ * validate minimum versioj of node
+ */
+var node_version = parseFloat((process.versions.node.match(/^(\d+)/))[1]);
+if (node_version < 4) {
+  console.error('Error: Node must be at minimum version of 4');
+  process.exit(1);
 }
 
 delete GLOBAL.p2;
