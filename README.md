@@ -30,6 +30,7 @@ p2 is a globally instantiated object from the P2 class.
 
 Anatomy of a Module
 -------------------
+(see docs/Anatomy_of_a_module.md)
 
 * The constructor must be documented using jsdoc, with details of how the module isused. e.g.:
 ```javascript

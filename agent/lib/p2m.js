@@ -24,6 +24,7 @@
 'use strict';
 
 var console = require('better-console'),
+    Provider = require('./provider'),
     Q = require('q'),
     u = require('util'),
     utils = new (require('./utils'))();
@@ -41,11 +42,7 @@ var P2M = function () {
   self._actionFn = function () {};
 };
 
-/*
-P2M.prototype.getClassName = function () {
-  return this.classname;
-};
-*/
+u.inherits(P2M, Provider);
 
 /*
  * Wrap methods

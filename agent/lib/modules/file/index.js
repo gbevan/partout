@@ -338,7 +338,17 @@ File.prototype._opt_ensure = function (file, opts, err, stats, _impl, inWatchFla
             }
           });
         } else {
-          ensure_deferred.resolve();
+          if (opts.content !== undefined) {
+            self._ensure_content(file, opts.content, opts.is_template)
+            .done(function (r) {
+              _impl.qEvent({module: 'file', object: file, msg: r});
+              //ensure_deferred.resolve(record + r);
+              ensure_deferred.resolve();
+            });
+          } else {
+            //ensure_deferred.resolve(record);
+            ensure_deferred.resolve();
+          }
         }
         break;
 

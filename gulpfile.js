@@ -1,7 +1,6 @@
 /*jslint browser: true, node: true, vars: true*/
 'use strict';
 
-/*global */
 var gulp = require('gulp'),
     mocha = require('gulp-mocha'),
     gulpLoadPlugins = require('gulp-load-plugins'),
