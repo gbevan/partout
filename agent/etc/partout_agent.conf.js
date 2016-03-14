@@ -1,7 +1,8 @@
 /*jslint node: true */
 'use strict';
 
-var path = require('path');
+var path = require('path'),
+    os = require('os');
 
 var Cfg = function () {
   var self = this;
@@ -11,8 +12,21 @@ var Cfg = function () {
 
   self.partout_agent_port = 10444;
 
-  self.PARTOUT_VARDIR = '/var/opt/partout';
-  self.PARTOUT_ETCDIR = './etc';
+  if (os.type() === 'Windows_NT') {
+    if (os.release().match(/^(6|7|8|10)\./)) {
+      self.PARTOUT_VARDIR = path.join(
+        'C:',
+        'ProgramData',
+        'Partout',
+        'Partout-Agent'
+      );
+    } else {
+      throw new Error('Unsupported version of Windows');
+    }
+  } else {
+    self.PARTOUT_VARDIR = '/var/opt/partout';
+  }
+  self.PARTOUT_ETCDIR = path.join('.', 'etc');
   self.PARTOUT_MASTER_ETCDIR = 'etc';
   self.PARTOUT_MASTER_MANIFEST_DIR = path.join(self.PARTOUT_MASTER_ETCDIR, 'manifest');
 

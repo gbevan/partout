@@ -23,12 +23,25 @@ see https://nodejs.org/en/download/package-manager/
     yum -y install nodejs
 ```
 
+### Windows:
+Install from https://nodejs.org/en  select LTS (Long Term Support) or Latest Stable version.
+
+### Raspberry Pi (tested on Pi3)
+
+```bash
+    mkdir -p /opt/partout
+    cd /opt/partout
+    wget https://nodejs.org/dist/v4.4.0/node-v4.4.0-linux-armv7l.tar.xz
+    tar xvf node-v4.4.0-linux-armv7l.tar.xz
+    ln -s node-v4.4.0-linux-armv7l.tar.xz node
+```
+
 ### Notes
 
 We deliberately leave out build-essentials and development tools, as the Partout Agent must
 always only depend upon Pure-JavaScript modules (ie. nothing compiled).
 
-### Windows, Mac OSX, SunOS, ARM, AIX etc:
+### Other Linux, Windows, Mac OSX, SunOS, ARM, AIX etc:
 
 See https://nodejs.org/en/download/ for installation options.
 
@@ -90,6 +103,8 @@ The Partout Agent must run as root / admin (windows).
 Bootstrapping
 -------------
 
+### By Downloading the agent from the API
+
 Visting the master api with a browser will show the command to be run to bootstrap the agent to a target node.
 
 https://master-ip:10443/
@@ -101,6 +116,20 @@ an appropriate implementation to sync from the master to the agent, in folder:
     |-- opt/
     |   `-- node/
     |       `-- ...
+
+### By mounting a NFS or Samba Share
+
+#### Windows
+
+Open Node shell window as Administrator
+
+```msdos
+net use P: \\your-server\partout_agent
+P:
+node bin\partout-agent --debug
+```
+
+firewall may need opening from windows nodes to permit node.js to talk to master's network.
 
 COPYRIGHT
 ---------

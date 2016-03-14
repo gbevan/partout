@@ -353,6 +353,8 @@ File.prototype._opt_ensure = function (file, opts, err, stats, _impl, inWatchFla
         } else if (!stats.isDirectory()) {
           console.error('Error:', file, 'exists and is not a directory');
           ensure_deferred.resolve();
+        } else {
+          ensure_deferred.resolve(); // no action taken
         }
         break;
 

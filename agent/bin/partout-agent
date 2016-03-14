@@ -63,7 +63,7 @@ if (parsed.debug) {
 /*
  * validate minimum versioj of node
  */
-var node_version = parseFloat((process.versions.node.match(/^(\d+)/))[1]);
+var node_version = parseInt((process.versions.node.match(/^(\d+)/))[1]);
 if (node_version < 4) {
   console.error('Error: Node must be at minimum version of 4');
   process.exit(1);

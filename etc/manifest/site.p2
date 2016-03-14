@@ -15,7 +15,10 @@ p2
 .exec('echo THIS SHOULD ONLY DISPLAY ON DEBIAN')
 
 .node(function (f) { return f.os_family === 'redhat'; })
-.exec('echo THIS SHOULD ONLY DISPLAY ON REDHAT');
+.exec('echo THIS SHOULD ONLY DISPLAY ON REDHAT')
+
+.node(function (f) { return f.os_family === 'windows'; })
+.exec('echo THIS SHOULD ONLY DISPLAY ON WINDOWS');
 
 p2
 .node(/(officepc.net|ub1)/)
@@ -66,7 +69,7 @@ p2
 p2
 .select(function (f) {
   //console.log('in p2 facts:', f);
-  if (f.os_dist_id_like.match(/(debian|rhel)/i)) {
+  if (f.os_dist_id_like && f.os_dist_id_like.match(/(debian|rhel)/i)) {
     return true;
   }
   return false;
@@ -82,14 +85,28 @@ p2
 .exec('echo "CHAINING OK"');
 
 p2
-//.select(true)
+//.select(function (f) { return f.os_type.toLowerCase() === 'linux'; })
 .exec('echo before select b4 cron')
-.select(function () { return true; })
+//.select(function () { return true; })
 .exec('echo before cron')
 .service('cron')
 .service('cron', {ensure: 'stopped'})
 .service('cron', {ensure: 'running'})
 .exec('echo after all cron');
+
+
+p2
+.select(function (f) { return f.os_family === 'windows'; })
+.file('C:\\Windows\\Temp\\p2_test_folder', {
+  ensure: 'directory'
+})
+.exec('echo before template_test.txt')
+.file('C:\\Windows\\Temp\\p2_test_folder\\template_test.txt', {
+  ensure: 'present',
+  content: 'File created on {{os_family}}\n\r',
+  is_template: true,
+  watch: true
+});
 
 
 p2.end(function () {

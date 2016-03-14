@@ -210,7 +210,7 @@ var serve = function (args, master) {
   app.poll_manifest_every = 6;
   app.poll_manifest_splay_secs = 30;
 
-  app.apply_count = 0;
+  app.apply_count = 0;  // count for the modulus calc of polls for manifest
   app.apply_site_p2 = cfg.PARTOUT_AGENT_MANIFEST_SITE_P2;
   app.https = https;
   app.PARTOUT_AGENT_SSL_PUBLIC = cfg.PARTOUT_AGENT_SSL_PUBLIC;
@@ -236,7 +236,9 @@ var serve = function (args, master) {
       console.error('sendevent resp:', resp);
       process.exit(1);
     });
-    process.exit(1); // for now
+    setTimeout(function () {
+      process.exit(1); // for now
+    }, 1000);
   });
   process.on('SIGTERM', function () {
     app.sendevent({
@@ -247,7 +249,9 @@ var serve = function (args, master) {
       console.error('sendevent resp:', resp);
       process.exit(1);
     });
-    process.exit(1); // for now
+    setTimeout(function () {
+      process.exit(1); // for now
+    }, 1000);
   });
 
 
@@ -351,6 +355,7 @@ module.exports = function (opts) {
     utils.print_banner();
 
     // Ensure var path exists
+    utils.dlog('Ensuring path:', cfg.PARTOUT_VARDIR);
     Q.nfcall(pfs.ensurePath, cfg.PARTOUT_VARDIR)
     .then(function () {
       var master = new Master(cfg, https);

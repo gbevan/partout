@@ -76,7 +76,6 @@ Facts.getFacts = function (facts_so_far) {
 
     /***************************************
      * Gather facts about this agent system
-     */
     partout_agent_uuid: (fs.existsSync(UUIDFile) ? fs.readFileSync(UUIDFile).toString() : ''),
     partout_agent_facts_module_dirname: __dirname,
     partout_agent_cwd: process.cwd(),
@@ -108,6 +107,7 @@ Facts.getFacts = function (facts_so_far) {
     os_nics: os.networkInterfaces(),
     os_endianness: os.endianness(),
     os_hostname: os.hostname(),
+     */
 
   };
 
