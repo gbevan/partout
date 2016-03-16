@@ -27,7 +27,8 @@ var console = require('better-console'),
     Provider = require('./provider'),
     Q = require('q'),
     u = require('util'),
-    utils = new (require('./utils'))();
+    utils = new (require('./utils'))(),
+    _ = require('lodash');
 
 Q.longStackSupport = true;
 
@@ -169,22 +170,46 @@ P2M.prototype.facts = function (fn) {
   var self = this;
 
   self.getFacts = function (facts_so_far) {
-    var deferred = Q.defer();
+    var fn_deferred = Q.defer(),
+        getF_deferred = Q.defer(),
+        facts = {};
 
-    fn(deferred, facts_so_far);
+    _.merge(facts, facts_so_far);
 
-    return deferred.promise;
+    fn(fn_deferred, facts_so_far);
+
+    fn_deferred.promise
+    .done(function (index_facts) {
+      _.merge(facts, index_facts);
+      utils.dlog('P2M: facts()  moduleFileName:', self.moduleFileName);
+      utils.dlog('P2M: facts() facts:', facts);
+      //getF_deferred.resolve(self._getFacts(self.moduleFileName, facts)); // <<<<< module.filename is p2m should be module!!!
+      self._getFacts(facts)
+      .done(function (prov_facts) {
+        _.merge(facts, prov_facts);
+        getF_deferred.resolve(facts);
+      });
+    });
+
+    return getF_deferred.promise;
   };
 
   return self;
 };
 
 
-P2M.Module = function (deffn) {
-  var M = function () {
-    M.super_.call(this);
+P2M.Module = function (moduleFileName, deffn) {
+  utils.dlog('====================================');
+  utils.dlog('P2M.Module.moduleFileName:', moduleFileName);
 
-    deffn.apply(this);
+  var M = function () {
+    var self = this;
+
+    M.super_.call(self);
+    self.moduleFileName = moduleFileName;
+    utils.dlog('P2M.Module M.moduleFileName:', self.moduleFileName);
+
+    deffn.apply(self);
     //console.log('P2M.Module this:', u.inspect(this, {colors: true, depth:3}));
   };
 

@@ -75,7 +75,7 @@ Q.longStackSupport = true;
  * ---
  */
 
-var File = P2M.Module(function () {
+var File = P2M.Module(module.filename, function () {
   var self = this;
 
   /*

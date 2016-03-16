@@ -24,10 +24,12 @@
 'use strict';
 
 var Q = require('q'),
+    u = require('util'),
     fs = require('fs'),
     os = require('os'),
     path = require('path'),
-    console = require('better-console');
+    console = require('better-console'),
+    utils = new (require('./utils'))();
 
 /**
  * Provider constructor - to be inherited by other modules.
@@ -63,7 +65,7 @@ Provider.prototype.getProvider = function (facts, filename) {
     srchJsList = [facts.os_dist_id, facts.os_family, os.type().toLowerCase()];
   }
 
-  //console.log('srchJsList b4:', srchJsList);
+  utils.dlog('getProvider() srchJsList b4:', srchJsList);
   srchJsList = srchJsList.map(function (e) {
     if (!e) {
       return undefined;
@@ -76,7 +78,7 @@ Provider.prototype.getProvider = function (facts, filename) {
   var promises = [];
   srchJsList.forEach(function (js) {
     promises.push(function (js) {
-      //console.log('check for provider:', js);
+      utils.dlog('check for provider:', js);
       var inner_deferred = Q.defer();
       fs.exists(js, function (exists) {
         if (exists) {
@@ -92,7 +94,8 @@ Provider.prototype.getProvider = function (facts, filename) {
 
   Q.all(promises)
   .done(function (arr_p) {
-    //console.log('arr_p:', arr_p);
+    utils.dlog('provider arr_p:', u.inspect(arr_p, {colors: true, depth: 3}));
+
     var M;
     arr_p.forEach(function (p) {
       //console.log('p:', p);
@@ -104,7 +107,8 @@ Provider.prototype.getProvider = function (facts, filename) {
       //console.log('getProvider resolving M:', M.runAction);
       deferred.resolve(M);
     } else {
-      console.error('Provider not found for this OS');
+      utils.vlog(
+        (self.getName ? self.getName() : 'n/a') + ': Provider not found for this OS');
       deferred.resolve();
     }
   });
@@ -137,7 +141,8 @@ Provider.prototype.runAction = function (_impl, caller_filename, next_step_callb
  * @param   {object}  facts_so_far Facts discovered so far by P2
  * @returns {Promise} Promise Resolves to facts discovered by this module.
  */
-Provider.prototype._getFacts = function (caller_filename, facts_so_far) {
+//Provider.prototype._getFacts = function (caller_filename, facts_so_far) {
+Provider.prototype._getFacts = function (facts_so_far) {
   //console.warn('getFacts self:', this);
   //console.log('provider getFacts arguments:', arguments);
 
@@ -145,9 +150,11 @@ Provider.prototype._getFacts = function (caller_filename, facts_so_far) {
       deferred = Q.defer(),
       facts = {};
 
+  utils.dlog('Provider _getFacts self.moduleFileName:', self.moduleFileName);
+
   var save_os_type = facts_so_far.os_type;
 
-  self.getProvider(facts_so_far, caller_filename)
+  self.getProvider(facts_so_far, self.moduleFileName)
   .then(function (PM) {
     if (!PM) {
       deferred.resolve();
@@ -156,7 +163,7 @@ Provider.prototype._getFacts = function (caller_filename, facts_so_far) {
     //console.log('Provider getFacts resolved PM (try 1):', PM);
     if (!save_os_type) {
       // Run again as the first one was
-      self.getProvider(facts_so_far, caller_filename)
+      self.getProvider(facts_so_far, self.moduleFileName)
       .then(function (PM) {
         //console.log('Provider getFacts resolved PM (try 2):', PM);
         deferred.resolve(PM.getFacts(facts_so_far));

@@ -24,11 +24,13 @@
 'use strict';
 
 var _ = require('lodash'),
-  fs = require('fs'),
-  path = require('path'),
-  mydir = path.dirname(module.filename),
-  Q = require('q'),
-  nimble = require('nimble');
+    fs = require('fs'),
+    path = require('path'),
+    mydir = path.dirname(module.filename),
+    Q = require('q'),
+    nimble = require('nimble'),
+    utils = new (require('../utils.js'))(),
+    u = require('util');
 
 /*
  * get list of modules (either .js or folders.
@@ -66,18 +68,23 @@ module.exports = function (facts) {
     facts_funcs = [];
 
   _.every(modules, function (m) {
-    //console.log('module file:', m);
+    utils.dlog('****************************');
+    utils.dlog('loading module file:', m);
     m = './' + m;
     var M = require(m),
         C = new M();
-    //console.log('M name:', M.getName());
+    utils.dlog('M:', u.inspect(M, {colors: true, depth: 3}));
+    utils.dlog('C:', u.inspect(C, {colors: true, depth: 3}));
 
     if (facts && C.getFacts) {
       facts_funcs.push(function (done) {
-        //console.log('module name:', M.getName());
+
+        // TDOD: use just one getName()
+        utils.dlog('modules/index: module instance name:', (C.getName ? C.getName() : M.getName()));
+
         C.getFacts(facts)
         .then(function (m_facts) {
-          //console.log('module returned facts:', m_facts);
+          utils.dlog('modules/index: module returned facts:', m_facts);
           if (m_facts) {
             _.merge(facts, m_facts);
           }
