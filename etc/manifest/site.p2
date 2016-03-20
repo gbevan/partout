@@ -21,7 +21,7 @@ p2
 .exec('echo THIS SHOULD ONLY DISPLAY ON WINDOWS');
 
 p2
-.node(/(officepc.net|ub1)/)
+.node(/(officepc.net|ub1|co7)/)
 .exec('sleep 1; echo "second after sleep"')
 .exec('echo "second"')
 .exec('pwd', function () { console.log('pwd ended'); })

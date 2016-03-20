@@ -51,6 +51,7 @@ Q.onerror = function (err) {
  *
  *   | Operand    | Type   | Description                                                |
  *   |:-----------|--------|:-----------------------------------------------------------|
+ *   | cmd        | String | Title is taken as trhe command, otherwise, this argument can override it |
  *   | cwd        | String | Current working directory of the child process |
  *   | env        | Object | Environment key-value pairs |
  *   | encoding   | String | (Default: 'utf8') |
@@ -105,29 +106,26 @@ var Exec = P2M.Module(module.filename, function () {
     };
 
     deferred.resolve(facts);
-  });
+  })
 
-});
+  //////////////////
+  // Action handler
+  .action(function (args) {
 
-Exec.prototype.addStep = function (_impl, cmd, opts, command_complete_cb) {
-  var self = this;
-  var _watch_state = self._watch_state;
+    var deferred = args.deferred,
+        inWatchFlag = args.inWatchFlag,
+        _impl = args._impl,
+        title = args.title,
+        opts = args.opts,
+        command_complete_cb = args.cb, // cb is policy provided optional call back on completion
+        errmsg = '',
+        cmd = title;
 
-  if (!opts) {
-    opts = {};
-  }
+    var _watch_state = (opts.watch ? true : _impl._watch_state);
 
-  if (typeof (opts) === 'function') {
-    command_complete_cb = opts;
-    opts = {};
-  }
-
-  if (!_impl.ifNode()) {
-    return self;
-  }
-
-  //console.log('Queing on node "' + node + '", cmd:', cmd);
-  _impl.push_action(function (next_step_callback) {
+    if (opts.cmd) {
+      cmd = opts.cmd;
+    }
 
     console.log('Exec on node "' + os.hostname() + '", cmd:', cmd, ', opts:', JSON.stringify(opts));
 
@@ -198,16 +196,21 @@ Exec.prototype.addStep = function (_impl, cmd, opts, command_complete_cb) {
     // handle 'extra' options
     if (opts.creates) {
       fs.exists(opts.creates, function (exists) {
-        _exec(exists, false, next_step_callback);
+        _exec(exists, false, function () {
+          deferred.resolve();
+        });
       });
       //delete opts.creates;
     } else {
-      _exec(false, false, next_step_callback);
+      _exec(false, false, function () {
+        deferred.resolve();
+      });
     }
 
-  }); // push
-  //return self;
-};
+  });
+
+});
+
 
 
 

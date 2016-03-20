@@ -247,7 +247,7 @@ Pfs.prototype.pGetUid = function (name) {
     .done(function (stdout, stderr) {
       utils.dlog('cmd:', cmd, 'stdout:', stdout, 'stderr:', stderr);
 
-      deferred.resolve(stdout.toString().trim());
+      deferred.resolve(stdout[0].toString().trim().replace(/\n|\r/g, ''));
     });
 
   }
@@ -277,7 +277,7 @@ Pfs.prototype.pGetGid = function (name) {
     .done(function (stdout, stderr) {
       utils.dlog('cmd:', cmd, 'stdout:', stdout, 'stderr:', stderr);
 
-      deferred.resolve(stdout.toString().trim());
+      deferred.resolve(stdout[0].toString().trim().replace(/\n|\r/g, ''));
     });
 
   }

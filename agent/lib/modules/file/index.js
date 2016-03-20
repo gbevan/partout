@@ -475,6 +475,7 @@ File.prototype._opt_owner = function (file, opts, stats, _impl) {
   if (opts.owner && stats) {
     pfs.pGetUid(opts.owner)
     .done(function (usid) {  // UID or SID (windows)
+      utils.dlog('file index usid:', usid);
 
       if (usid !== stats.uid) {
         utils.vlog('File: owner', stats.uid, 'should be', usid);
