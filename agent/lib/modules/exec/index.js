@@ -104,8 +104,6 @@ var Exec = P2M.Module(module.filename, function () {
       }
     };
 
-    facts.exec_loaded = true;
-    //facts.THIS_IS_WORKING = true;
     deferred.resolve(facts);
   });
 
