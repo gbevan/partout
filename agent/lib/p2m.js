@@ -31,6 +31,10 @@ var console = require('better-console'),
     _ = require('lodash');
 
 Q.longStackSupport = true;
+Q.onerror = function (err) {
+  console.error(err);
+  console.error(err.stack);
+};
 
 /**
  * P2M DSL - inherited by all DSL based modules.
@@ -39,7 +43,7 @@ Q.longStackSupport = true;
 var P2M = function () {
   //this.classname = 'P2M';
   var self = this;
-  self._name = 'MISSING NAME';
+  self._name = '__MISSING NAME__';
   self._actionFn = function () {};
 };
 
@@ -176,13 +180,13 @@ P2M.prototype.facts = function (fn) {
 
     _.merge(facts, facts_so_far);
 
-    fn(fn_deferred, facts_so_far);
+    fn.call(self, fn_deferred, facts_so_far);
 
     fn_deferred.promise
     .done(function (index_facts) {
       _.merge(facts, index_facts);
       utils.dlog('P2M: facts()  moduleFileName:', self.moduleFileName);
-      utils.dlog('P2M: facts() facts:', facts);
+      //utils.dlog('P2M: facts() facts:', facts);
       //getF_deferred.resolve(self._getFacts(self.moduleFileName, facts)); // <<<<< module.filename is p2m should be module!!!
       self._getFacts(facts)
       .done(function (prov_facts) {

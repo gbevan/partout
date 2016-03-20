@@ -23,7 +23,8 @@
 /*jslint node: true, nomen: true */
 'use strict';
 
-var console = require('better-console'),
+var P2M = require('../../p2m'),
+    console = require('better-console'),
     _ = require('lodash'),
     os = require('os'),
     fs = require('fs'),
@@ -36,18 +37,43 @@ Q.longStackSupport = true;
 
 Q.onerror = function (err) {
   console.error(err);
+  console.error(err.stack);
 };
 
-var Service = function () {
+var Service = P2M.Module(module.filename, function () {
+   var self = this;
 
-};
+  /*
+   * module definition using P2M DSL
+   */
+
+  self
+
+  ////////////////////
+  // Name this module
+  //.name('Facts')
+
+  ////////////////
+  // Gather facts
+  .facts(function (deferred, facts_so_far) {
+    var self = this,
+        facts = {};
+
+    self.getStatus()
+    .done(function (services) {
+      facts.services = services;
+      deferred.resolve(facts);
+    });
+  });
+
+});
 
 
 /**
  * Get the current sysv runlevel
  * @returns {Object} Promise -> runlevel
  */
-Service._getRunLevel = function () {
+Service.prototype._getRunLevel = function () {
   var deferred = Q.defer();
 
   utils.execToArray('/sbin/runlevel')
@@ -71,7 +97,7 @@ Service._getRunLevel = function () {
  * Get sysv services that are enabled for the current runlevel
  * @returns {Object} Promise -> {service: true, ...}
  */
-Service._getSysvEnabled = function () {
+Service.prototype._getSysvEnabled = function () {
   var self = this,
       deferred = Q.defer();
 
@@ -101,7 +127,7 @@ Service._getSysvEnabled = function () {
  * Get sysv service list and status
  * @returns {Object} Services[name]={desired:..., actual:..., provider: "upstart"}
  */
-Service.getStatus = function (name) {
+Service.prototype.getStatus = function (name) {
   var self = this,
       deferred = Q.defer();
 
@@ -186,7 +212,7 @@ Service.getStatus = function (name) {
  * @param   {string} name Service name
  * @returns {object} Promise
  */
-Service.setEnabled = function (name) {
+Service.prototype.setEnabled = function (name) {
   //return utils.pExec('/usr/sbin/update-rc.d ' + name + ' enabled');
   return utils.pExec('/usr/sbin/update-rc.d ' + name + ' enable');
 };
@@ -196,7 +222,7 @@ Service.setEnabled = function (name) {
  * @param   {string} name Service name
  * @returns {object} Promise
  */
-Service.setDisabled = function (name) {
+Service.prototype.setDisabled = function (name) {
   //return utils.pExec('/usr/sbin/update-rc.d ' + name + ' disabled');
   return utils.pExec('/usr/sbin/update-rc.d ' + name + ' disable');
 };

@@ -36,6 +36,10 @@ var console = require('better-console'),
     Q = require('q');
 
 Q.longStackSupport = true;
+Q.onerror = function (err) {
+  console.error(err);
+  console.error(err.stack);
+};
 
 /**
  * @module File
@@ -92,7 +96,11 @@ var File = P2M.Module(module.filename, function () {
   // Gather facts
   .facts(function (deferred, facts_so_far) {
     var facts = {
-      file_loaded: true
+      p2module: {
+        file: {
+          loaded: true
+        }
+      }
     };
     deferred.resolve(facts);
   })

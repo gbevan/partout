@@ -36,6 +36,7 @@ Q.longStackSupport = true;
 
 Q.onerror = function (err) {
   console.error(err);
+  console.error(err.stack);
 };
 
 var Service = function () {

@@ -61,7 +61,11 @@ var Facts = P2M.Module(module.filename, function () {
     var UUIDFile = path.join(cfg.PARTOUT_VARDIR, 'UUID');
 
     var myFacts = {
-      facts_loaded: true,
+      p2module: {
+        facts: {
+          loaded: true
+        }
+      },
 
       /*****************************************************************
        * Gather generic, node available, facts about this agent system
@@ -86,7 +90,7 @@ var Facts = P2M.Module(module.filename, function () {
       node_versions: process.versions,
 
       os_type: os.type(),
-      os_family: (os.type() === 'Windows_NT' ? 'windows' : 'unknown'), // provider will populate later
+      os_family: (os.type() === 'Windows_NT' ? 'windows' : null), // provider will populate later
       os_arch: os.arch(),
       os_release: os.release(),
       os_uptime: os.uptime(),

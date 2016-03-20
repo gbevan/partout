@@ -23,27 +23,90 @@
 /*jslint node: true, nomen: true */
 'use strict';
 
-var console = require('better-console'),
+var P2M = require('../../p2m'),
+    console = require('better-console'),
     _ = require('lodash'),
     os = require('os'),
     fs = require('fs'),
     exec = require('child_process').exec,
     Q = require('q'),
     assert = require('assert'),
+    utils = new (require('../../utils'))(),
     u = require('util');
 
 Q.longStackSupport = true;
-
-var Package = function () {
-
+Q.onerror = function (err) {
+  console.error(err);
+  console.error(err.stack);
 };
+
+var Package = P2M.Module(module.filename, function () {
+   var self = this;
+
+  /*
+   * module definition using P2M DSL
+   */
+
+  self
+
+  ////////////////////
+  // Name this module
+  //.name('Facts')
+
+  ////////////////
+  // Gather facts
+  .facts(function (deferred, facts_so_far) {
+    var self = this,
+        facts = {},
+        packages = {},
+        cmd = '';
+    utils.dlog('in package rpm facts()');
+    //console.log('facts_so_far:', facts_so_far);
+
+    // get installed packages for this OS
+
+    // RedHat-like OS's
+    cmd = "rpm -qa --queryformat '%{NAME} %{VERSION}-%{RELEASE} %{ARCH}\n'";
+    exec(cmd, function (err, stdout, stderr) {
+      if (err) {
+        console.log('exec of ' + cmd + ' failed:', err, stderr);
+        deferred.resolve({});
+      } else {
+        //console.log('stdout:', stdout);
+        var lines = stdout.split(/\r?\n/);
+        _.forEach(lines, function (line) {
+          line = line.trim();
+          if (line === '') {
+            return;
+          }
+
+          var fields = line.split(/\s+/, 3);
+          //console.log('fields:', fields);
+
+          var p_obj = {
+            name: fields[0],
+            version: fields[1],
+            arch: fields[2],
+            provider: 'rpm'
+          };
+          packages[fields[0]] = p_obj;
+        });
+        facts.installed_packages = packages;
+
+        deferred.resolve(facts);
+      }
+    });
+
+  });
+
+});
 
 /**
  * Get the current state of a package
  * @param   {String} name Name of package
  * @returns {Object} Undefined if not installed, otherwise {name:..., version:..., status:'installed'}
  */
-Package.getStatus = function (name) {
+Package.prototype.getStatus = function (name) {
   assert(name !== undefined);
   assert(u.isString(name));
   assert(name !== '');
@@ -72,7 +135,7 @@ Package.getStatus = function (name) {
   return deferred.promise;
 };
 
-Package.runAction = function (_impl, next_step_callback, title, opts, command_complete_cb) {
+Package.prototype.runAction = function (_impl, next_step_callback, title, opts, command_complete_cb) {
   var self = this;
   //console.log('package action self:', self);
   //console.log('package redhat arguments:', arguments);
@@ -148,48 +211,5 @@ Package.runAction = function (_impl, next_step_callback, title, opts, command_co
   next_step_callback();
 };
 
-Package.getFacts = function (facts_so_far) {
-  var self = this,
-    facts = {},
-    packages = {},
-    deferred = Q.defer(),
-    cmd = '';
-  //console.log('facts_so_far:', facts_so_far);
-
-  // get installed packages for this OS
-
-  // RedHat-like OS's
-  cmd = "rpm -qa --queryformat '%{NAME} %{VERSION}-%{RELEASE} %{ARCH}\n'";
-  exec(cmd, function (err, stdout, stderr) {
-    if (err) {
-      console.log('exec of ' + cmd + ' failed:', err, stderr);
-      deferred.resolve({});
-    } else {
-      //console.log('stdout:', stdout);
-      var lines = stdout.split(/\r?\n/);
-      _.forEach(lines, function (line) {
-        line = line.trim();
-        if (line === '') {
-          return;
-        }
-
-        var fields = line.split(/\s+/, 3);
-        //console.log('fields:', fields);
-
-        var p_obj = {
-          name: fields[0],
-          version: fields[1],
-          arch: fields[2]
-        };
-        packages[fields[0]] = p_obj;
-      });
-      facts.installed_packages = packages;
-
-      deferred.resolve(facts);
-    }
-  });
-
-  return deferred.promise;
-};
 
 module.exports = Package;

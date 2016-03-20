@@ -23,10 +23,13 @@
 /*jslint node: true, nomen: true */
 'use strict';
 
-var Provider = require('../../provider'),
+var /*Provider = require('../../provider'),*/
     console = require('better-console'),
     u = require('util'),
-    utils = new (require('../../utils.js'))();
+    utils = new (require('../../utils.js'))(),
+    P2M = require('../../p2m');
+
+// Q.longStackSupport = true;
 
 /**
  * @module Service
@@ -55,11 +58,37 @@ var Provider = require('../../provider'),
  *   | provider   | String  | Override backend provider e.g.: debian, redhat, etc |
  */
 
-var Service = function () {
+var Service = P2M.Module(module.filename, function () {
   var self = this;
-};
 
-u.inherits(Service, Provider);
+  /*
+   * module definition using P2M DSL
+   */
+
+  self
+
+  ////////////////////
+  // Name this module
+  .name('service')
+
+  ////////////////
+  // Gather facts
+  .facts(function (deferred, facts_so_far) {
+    var facts = {
+      p2module: {
+        service: {
+          loaded: true
+        }
+      }
+    };
+    self._getDefaultProvider(facts_so_far);
+    deferred.resolve(facts);
+  })
+
+  ;
+
+});
+
 
 Service.prototype._getDefaultProvider = function (facts, opts) {
   var self = this;
@@ -78,8 +107,10 @@ Service.prototype._getDefaultProvider = function (facts, opts) {
     }
   }
   self.provider = opts.provider;
+  utils.dlog('service index provider:', self.provider);
 };
 
+/*
 Service.prototype.addStep = function (_impl, title, opts, command_complete_cb) {
   var self = this;  // self is p2 _impl DSL
 
@@ -125,5 +156,6 @@ Service.prototype.getFacts = function (facts) {
   var self = this;
   return self._getFacts(module.filename, facts);
 };
+*/
 
 module.exports = Service;

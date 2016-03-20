@@ -23,12 +23,19 @@
 /*jslint node: true, nomen: true */
 'use strict';
 
-var console = require('better-console'),
-  _ = require('lodash'),
-  os = require('os'),
-  fs = require('fs'),
-  exec = require('child_process').exec,
-  Q = require('q');
+var P2M = require('../../p2m'),
+    console = require('better-console'),
+    _ = require('lodash'),
+    os = require('os'),
+    fs = require('fs'),
+    exec = require('child_process').exec,
+    Q = require('q');
+
+Q.longStackSupport = true;
+Q.onerror = function (err) {
+  console.error(err);
+  console.error(err.stack);
+};
 
 /**
  * @module Exec
@@ -73,10 +80,36 @@ var console = require('better-console'),
  *   - unless
  */
 
-var Exec = function () {
+var Exec = P2M.Module(module.filename, function () {
   var self = this;
-  //console.log('Exec called self:', self);
-};
+
+  /*
+   * module definition using P2M DSL
+   */
+
+  self
+
+  ////////////////////
+  // Name this module
+  .name('exec')
+
+  ////////////////
+  // Gather facts
+  .facts(function (deferred, facts_so_far) {
+    var facts = {
+      p2module: {
+        exec: {
+          loaded: true
+        }
+      }
+    };
+
+    facts.exec_loaded = true;
+    //facts.THIS_IS_WORKING = true;
+    deferred.resolve(facts);
+  });
+
+});
 
 Exec.prototype.addStep = function (_impl, cmd, opts, command_complete_cb) {
   var self = this;
@@ -178,25 +211,6 @@ Exec.prototype.addStep = function (_impl, cmd, opts, command_complete_cb) {
   //return self;
 };
 
-/**
- * Return this module's name
- * @return {String} name of module
- */
-Exec.getName = function () { return 'exec'; };
 
-/**
- * Return this module's discovered facts
- * @return {String} name of module or a deferred promise
- */
-Exec.prototype.getFacts = function () {
-  var facts = {},
-    deferred = Q.defer();
-
-  facts.exec_loaded = true;
-  //facts.THIS_IS_WORKING = true;
-  deferred.resolve(facts);
-
-  return deferred.promise;
-};
 
 module.exports = Exec;

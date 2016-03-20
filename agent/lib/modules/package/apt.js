@@ -23,7 +23,8 @@
 /*jslint node: true, nomen: true */
 'use strict';
 
-var console = require('better-console'),
+var P2M = require('../../p2m'),
+    console = require('better-console'),
     _ = require('lodash'),
     os = require('os'),
     fs = require('fs'),
@@ -34,14 +35,74 @@ var console = require('better-console'),
     u = require('util');
 
 Q.longStackSupport = true;
+Q.onerror = function (err) {
+  console.error(err);
+  console.error(err.stack);
+};
 
 /*
  * Apt provider for the Package module.
  *
  */
-var Package = function () {
+var Package = P2M.Module(module.filename, function () {
+   var self = this;
 
-};
+  /*
+   * module definition using P2M DSL
+   */
+
+  self
+
+  ////////////////////
+  // Name this module
+  //.name('Facts')
+
+  ////////////////
+  // Gather facts
+  .facts(function (deferred, facts_so_far) {
+    var self = this,
+        facts = {},
+        packages = {},
+        cmd = '';
+
+    // get installed packages for this OS
+
+    // Debian-like OS's
+    exec('dpkg -l | tail -n +6', function (err, stdout, stderr) {
+      if (err) {
+        console.log('exec of dpkg -l failed:', err, stderr);
+        deferred.resolve({});
+      } else {
+        //console.log('stdout:', stdout);
+        var lines = stdout.split(/\r?\n/);
+        _.forEach(lines, function (line) {
+          line = line.trim();
+          if (line === '') {
+            return;
+          }
+          var fields = line.split(/\s+/, 4);
+          //console.log('fields:', fields);
+          var p_obj = {
+            name: fields[1],
+            version: fields[2],
+            arch: fields[3],
+            provider: 'apt'
+          };
+          //facts['package:' + fields[1]] = p_obj;
+          packages[fields[1]] = p_obj;
+        });
+        facts.installed_packages = packages;
+
+        deferred.resolve(facts);
+      }
+    });
+
+  })
+  ;
+});
+
+
+
 
 Package.getStatus = function (name) {
   assert(name !== undefined);
@@ -208,7 +269,8 @@ Package.getFacts = function (facts_so_far) {
         var p_obj = {
           name: fields[1],
           version: fields[2],
-          arch: fields[3]
+          arch: fields[3],
+          provider: 'apt'
         };
         //facts['package:' + fields[1]] = p_obj;
         packages[fields[1]] = p_obj;

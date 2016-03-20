@@ -53,6 +53,14 @@ Provider.prototype.getProvider = function (facts, filename) {
       srchJsList = [];
   //console.warn('getProvider mydir:', mydir);
 
+  /*
+   * only get a provider if filename is index.js (prevent infinite recursion)
+   */
+  if (!filename.match(/index\.js$/)) {
+    deferred.resolve();
+    return deferred.promise;
+  }
+
   // Get some early facts for provider search
   //console.log('provider getProvider self.provider:', self.provider);
   if (self.provider) {
@@ -82,8 +90,11 @@ Provider.prototype.getProvider = function (facts, filename) {
       var inner_deferred = Q.defer();
       fs.exists(js, function (exists) {
         if (exists) {
-          var M = require(js);
-          inner_deferred.resolve(M);
+          var M = require(js),
+              m = new M();
+          utils.dlog('Provider m:', m);
+
+          inner_deferred.resolve(m);  // was just M
         } else {
           inner_deferred.resolve();
         }
@@ -156,16 +167,17 @@ Provider.prototype._getFacts = function (facts_so_far) {
 
   self.getProvider(facts_so_far, self.moduleFileName)
   .then(function (PM) {
+    utils.dlog('Provider PM:', PM);
     if (!PM) {
       deferred.resolve();
       return;
     }
-    //console.log('Provider getFacts resolved PM (try 1):', PM);
+    utils.dlog('Provider getFacts resolved PM (try 1):', PM);
     if (!save_os_type) {
       // Run again as the first one was
       self.getProvider(facts_so_far, self.moduleFileName)
       .then(function (PM) {
-        //console.log('Provider getFacts resolved PM (try 2):', PM);
+        utils.dlog('Provider getFacts resolved PM (try 2):', PM);
         deferred.resolve(PM.getFacts(facts_so_far));
       })
       .done();

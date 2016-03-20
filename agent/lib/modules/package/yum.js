@@ -23,22 +23,48 @@
 /*jslint node: true, nomen: true */
 'use strict';
 
-var console = require('better-console'),
+var P2M = require('../../p2m'),
+    console = require('better-console'),
     _ = require('lodash'),
     os = require('os'),
     fs = require('fs'),
     exec = require('child_process').exec,
     Q = require('q'),
-    rpm = require('./rpm'),
+    rpm = new (require('./rpm'))(),
     utils = new (require('../../utils'))();
 
 Q.longStackSupport = true;
-
-var Package = function () {
-
+Q.onerror = function (err) {
+  console.error(err);
+  console.error(err.stack);
 };
 
-Package.runAction = function (_impl, next_step_callback, title, opts, command_complete_cb) {
+var Package = P2M.Module(module.filename, function () {
+   var self = this;
+
+  /*
+   * module definition using P2M DSL
+   */
+
+  self
+
+  ////////////////////
+  // Name this module
+  //.name('Facts')
+
+  ////////////////
+  // Gather facts
+  .facts(function (deferred, facts_so_far) {
+    var self = this;
+    utils.dlog('in package yum facts()');
+
+    // get installed packages for this OS from rpm.js
+    deferred.resolve(rpm.getFacts(facts_so_far));
+  });
+
+});
+
+Package.prototype.runAction = function (_impl, next_step_callback, title, opts, command_complete_cb) {
   var self = this;
   //console.log('package action self:', self);
   //console.log('package redhat arguments:', arguments);
@@ -130,12 +156,5 @@ Package.runAction = function (_impl, next_step_callback, title, opts, command_co
   .done();
 };
 
-Package.getFacts = function (facts_so_far) {
-  var self = this;
-
-  // get installed packages for this OS from rpm.js
-
-  return rpm.getFacts(facts_so_far);
-};
 
 module.exports = Package;

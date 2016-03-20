@@ -23,36 +23,40 @@
 /*jslint node: true, nomen: true */
 'use strict';
 
-var console = require('better-console'),
-  _ = require('lodash'),
-  os = require('os'),
-  fs = require('fs'),
-  exec = require('child_process').exec,
-  Q = require('q'),
-  utils = new(require('../../utils'))();
+var P2M = require('../../p2m'),
+    console = require('better-console'),
+    _ = require('lodash'),
+    os = require('os'),
+    fs = require('fs'),
+    exec = require('child_process').exec,
+    Q = require('q'),
+    utils = new(require('../../utils'))();
 
 Q.longStackSupport = true;
-
-var Service = function () {
-
+Q.onerror = function (err) {
+  console.error(err);
+  console.error(err.stack);
 };
 
-Service.runAction = function (_impl, next_step_callback, title, opts, command_complete_cb) {
-  var self = this;  // self is _impl
+var Service = P2M.Module(module.filename, function () {
+   var self = this;
 
-  //next_step_callback(); // when finished
-  utils.callbackEvent(next_step_callback, _impl.facts, {
-    module: 'service',
-    object: opts.name,
-    msg: 'TODO runAction'
-  });
-};
+  /*
+   * module definition using P2M DSL
+   */
 
-Service.getFacts = function (facts_so_far) {
-  var self = this,
+  self
+
+  ////////////////////
+  // Name this module
+  //.name('Facts')
+
+  ////////////////
+  // Gather facts
+  .facts(function (deferred, facts_so_far) {
+    var self = this,
       facts = {},
       services = {},
-      deferred = Q.defer(),
       cmd = '';
   //console.log('redhat getFacts()');
 
@@ -89,8 +93,19 @@ Service.getFacts = function (facts_so_far) {
     deferred.resolve();
   })
   .done();
+  });
 
-  return deferred.promise;
+});
+
+Service.prototype.runAction = function (_impl, next_step_callback, title, opts, command_complete_cb) {
+  var self = this;  // self is _impl
+
+  //next_step_callback(); // when finished
+  utils.callbackEvent(next_step_callback, _impl.facts, {
+    module: 'service',
+    object: opts.name,
+    msg: 'TODO runAction'
+  });
 };
 
 

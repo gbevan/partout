@@ -23,43 +23,76 @@
 /*jslint node: true, nomen: true */
 'use strict';
 
-var console = require('better-console'),
+var P2M = require('../../p2m'),
+    console = require('better-console'),
     _ = require('lodash'),
     os = require('os'),
     fs = require('fs'),
     exec = require('child_process').exec,
     Q = require('q'),
-    utils = new(require('../../utils'))(),
+    utils = new (require('../../utils'))(),
     u = require('util'),
-    sysv = require('./sysv'),
-    upstart = require('./upstart'),
-    systemd = require('./systemd');
+    sysv = new (require('./sysv'))(),
+    upstart = new (require('./upstart'))(),
+    systemd = new (require('./systemd'))();
 
 Q.longStackSupport = true;
 
 Q.onerror = function (err) {
   console.error(err);
+  console.error(err.stack);
 };
 
 /*
  * Debian provider for the Service module.
  */
-var Service = function () {
+var Service = P2M.Module(module.filename, function () {
+   var self = this;
 
-};
+  /*
+   * module definition using P2M DSL
+   */
 
-Service.getStatus = function (name) {
+  self
+
+  ////////////////////
+  // Name this module
+  //.name('Facts')
+
+  ////////////////
+  // Gather facts
+  .facts(function (deferred, facts_so_far) {
+    var self = this,
+        facts = {};
+
+    utils.dlog('service debian self:', self);
+    self.getStatus()
+    .done(function (services) {
+      facts.services = services;
+      deferred.resolve(facts);
+    });
+
+  })
+
+  ;
+
+});
+
+Service.prototype.getStatus = function (name) {
   var self = this,
       service = {},
       deferred = Q.defer();
+  utils.dlog('service getStatus entered');
 
   Q.all([
+    //upstart.getStatus(name),
+    //sysv.getStatus(name)
     upstart.getStatus(name),
     sysv.getStatus(name)
     //TODO: systemd.getStatus(name)
   ])
   .done(function (res) {
-    //console.log('res:', res);
+    utils.dlog('service debian res:', res);
     var upstart = res[0],
         sysv = res[1];
 
@@ -76,7 +109,6 @@ Service.getStatus = function (name) {
  * get Facts for this module provider
  * @param {Object} facts_so_far Facts discovered up to calling this module
  * @return {Object} Promise
- */
 Service.getFacts = function (facts_so_far) {
   var self = this,
       facts = {},
@@ -90,6 +122,7 @@ Service.getFacts = function (facts_so_far) {
 
   return deferred.promise;
 };
+ */
 
 Service.runAction = function (_impl, next_step_callback, title, opts, command_complete_cb) {
   var self = this,

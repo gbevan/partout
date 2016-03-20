@@ -23,7 +23,8 @@
 /*jslint node: true, nomen: true */
 'use strict';
 
-var console = require('better-console'),
+var P2M = require('../../p2m'),
+    console = require('better-console'),
     _ = require('lodash'),
     os = require('os'),
     fs = require('fs'),
@@ -36,21 +37,46 @@ Q.longStackSupport = true;
 
 Q.onerror = function (err) {
   console.error(err);
+  console.error(err.stack);
 };
 
 /*
  * Upstart provider for the Service module.
  */
-var Service = function () {
+var Service = P2M.Module(module.filename, function () {
+   var self = this;
 
-};
+  /*
+   * module definition using P2M DSL
+   */
+
+  self
+
+  ////////////////////
+  // Name this module
+  //.name('Facts')
+
+  ////////////////
+  // Gather facts
+  .facts(function (deferred, facts_so_far) {
+    var self = this,
+        facts = {};
+
+    self.getStatus()
+    .done(function (services) {
+      facts.services = services;
+      deferred.resolve(facts);
+    });
+  });
+
+});
 
 /**
  * Get Service list and statuses from Upstart
  * @param {string} optional service name to get status for, otherwise get all
  * @returns {Object} Services[name]={desired:..., actual:..., provider: "upstart"}
  */
-Service.getStatus = function (name) {
+Service.prototype.getStatus = function (name) {
   var services = {},
       deferred = Q.defer();
 
@@ -97,7 +123,6 @@ Service.getStatus = function (name) {
  * get Facts for this module provider
  * @param {Object} facts_so_far Facts discovered up to calling this module
  * @return {Object} Promise
- */
 Service.getFacts = function (facts_so_far) {
   var self = this,
       facts = {},
@@ -111,6 +136,7 @@ Service.getFacts = function (facts_so_far) {
 
   return deferred.promise;
 };
+ */
 
 /**
  * Set upstart service to enabled

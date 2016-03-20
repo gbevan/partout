@@ -23,10 +23,13 @@
 /*jslint node: true, nomen: true */
 'use strict';
 
-var Provider = require('../../provider'),
+var /*Provider = require('../../provider'),*/
     console = require('better-console'),
     u = require('util'),
-    utils = new (require('../../utils.js'))();
+    utils = new (require('../../utils.js'))(),
+    P2M = require('../../p2m');
+
+// Q.longStackSupport = true;
 
 /**
  * @module Package
@@ -55,11 +58,36 @@ var Provider = require('../../provider'),
  *
  */
 
-var Package = function () {
+var Package = P2M.Module(module.filename, function () {
   var self = this;
-};
 
-u.inherits(Package, Provider);
+  /*
+   * module definition using P2M DSL
+   */
+
+  self
+
+  ////////////////////
+  // Name this module
+  .name('package')
+
+  ////////////////
+  // Gather facts
+  .facts(function (deferred, facts_so_far) {
+    var facts = {
+      p2module: {
+        package: {
+          loaded: true
+        }
+      }
+    };
+    self._getDefaultProvider(facts_so_far);
+    deferred.resolve(facts);
+  })
+
+  ;
+
+});
 
 Package.prototype._getDefaultProvider = function (facts, opts) {
   var self = this;
@@ -80,6 +108,9 @@ Package.prototype._getDefaultProvider = function (facts, opts) {
   self.provider = opts.provider;
 };
 
+
+
+/*
 Package.prototype.addStep = function (_impl, title, opts, command_complete_cb) {
   //console.log('package addStep arguments:', arguments);
   var self = this;
@@ -120,11 +151,12 @@ Package.prototype.addStep = function (_impl, title, opts, command_complete_cb) {
   //return self;
 };
 
-Package.getName = function () { return 'package'; };
+//Package.getName = function () { return 'package'; };
 Package.prototype.getFacts = function (facts) {
   var self = this;
   self._getDefaultProvider(facts);
   return self._getFacts(module.filename, facts);
 };
+*/
 
 module.exports = Package;

@@ -84,7 +84,7 @@ module.exports = function (facts) {
 
         C.getFacts(facts)
         .then(function (m_facts) {
-          utils.dlog('modules/index: module returned facts:', m_facts);
+          //utils.dlog('modules/index: module returned facts:', m_facts);
           if (m_facts) {
             _.merge(facts, m_facts);
           }

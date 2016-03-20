@@ -372,7 +372,9 @@ var P2 = function () {
     //_modules = require('./modules')();
     module_promise = require('./modules')();
   } else {
-    self.facts = {};
+    self.facts = {
+      p2module: {}
+    };
     //_modules = require('./modules')(self.facts);
     module_promise = require('./modules')(self.facts);
   }
