@@ -43,7 +43,7 @@ var Cfg = function () {
     aggregate_period_secs: 5, // 60,
     aggregate_period_splay: 0.05,
     aggregate_level: 4,
-    notify_alive_period_secs: 60 * 60 * 24
+    notify_alive_period_secs: 60 * 60 * 24  // TODO: code agent alive msgs
   };
 
 };

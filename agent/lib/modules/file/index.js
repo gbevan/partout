@@ -250,6 +250,9 @@ File.prototype._ensure_content = function (file, data, is_template) {
     .done(function () {
       deferred.resolve('Content Replaced. ');
     });
+  } else {
+    // hashes match
+    deferred.resolve();
   }
 
   return deferred.promise;
@@ -301,7 +304,8 @@ File.prototype._opt_ensure = function (file, opts, err, stats, _impl, inWatchFla
             console.warn('Deleting directory', file);
             pfs.pRmdir(file)
             .done(function () {
-              ensure_deferred.resolve('Deleted directory. ');
+              _impl.qEvent({module: 'file', object: file, msg: 'Deleted directory.'});
+              ensure_deferred.resolve();
             });
           } else {
             console.warn('Deleting file', file);
@@ -336,7 +340,9 @@ File.prototype._opt_ensure = function (file, opts, err, stats, _impl, inWatchFla
             if (opts.content !== undefined) {
               self._ensure_content(file, opts.content, opts.is_template)
               .done(function (r) {
-                _impl.qEvent({module: 'file', object: file, msg: r});
+                if (r) {
+                  _impl.qEvent({module: 'file', object: file, msg: r});
+                }
                 //ensure_deferred.resolve(record + r);
                 ensure_deferred.resolve();
               });
@@ -349,7 +355,9 @@ File.prototype._opt_ensure = function (file, opts, err, stats, _impl, inWatchFla
           if (opts.content !== undefined) {
             self._ensure_content(file, opts.content, opts.is_template)
             .done(function (r) {
-              _impl.qEvent({module: 'file', object: file, msg: r});
+              if (r) {
+                _impl.qEvent({module: 'file', object: file, msg: r});
+              }
               //ensure_deferred.resolve(record + r);
               ensure_deferred.resolve();
             });

@@ -182,11 +182,88 @@ Master.prototype.sendevent = function (o, cb) {
 Master.prototype.send_aggregate_events_and_reset = function (self) {
   //var self = this;
 
-  utils.vlog('send_aggregate_events_and_reset:' + ' now:' + new Date() + ' data:', u.inspect(self.event_detail_aggregate, {colors: true, depth: 6}));
+  /*
+   * rollup aggregate counts to parents
+   *  event_detail_aggregate.agent.modules
+   *    \ [keys].count <------
+   *      .objects            \
+   *        \ [keys].count <----
+   *          .messages         \
+   *            \ [keys].count ->
+   */
+  function _incCount(o) {
+    utils.dlog('in _incCount o:', o);
+    if (o.count === undefined) {
+      o.count = 0;
+    }
+    o.count += 1;
+    utils.dlog('leaving _incCount o:', o);
+  }
+
+  var o = self.event_detail_aggregate,
+      flat_agg = [];
+
+  // count modules
+  var msg_count_total = 0;
+  _.forEachRight(o.agent.modules, function (m, mk) {
+    utils.dlog('mk:', mk, 'm:', m);
+    //_incCount(o.agent.modules);
+
+    // count objects per module
+    var msg_count_per_module = 0;
+    _.forEach(m.objects, function (obj, objk) {
+      utils.dlog('objk:', objk, 'obj:', obj);
+      //_incCount(o.agent.modules[mk].objects);
+
+      var msg_count_per_object = 0;
+      _.forEach(obj.messages, function (msg, msgk) {
+        utils.dlog('msgk:', msgk, 'msg:', msg);
+        //_incCount(o.agent.modules[mk].objects[objk].messages);
+
+        msg_count_per_object += msg.count;
+        msg_count_per_module += msg.count;
+        msg_count_total += msg.count;
+      });
+
+      obj.count = msg_count_per_object;
+
+      if (self.cfg.partout_agent_throttle.aggregate_level < 4) {
+        utils.dlog('deleteing obj.messages');
+        delete obj.messages;
+      }
+
+    });
+
+    m.count = msg_count_per_module;
+
+    if (self.cfg.partout_agent_throttle.aggregate_level < 3) {
+      utils.dlog('deleteing m.objects');
+      delete m.objects;
+    }
+
+  });
+  o.agent.count = msg_count_total;
+
+  if (self.cfg.partout_agent_throttle.aggregate_level < 2) {
+    utils.dlog('deleteing o.agent.modules');
+    delete o.agent.modules;
+  }
+
+  utils.dlog('flat_agg:', flat_agg);
+
+  utils.vlog('send_aggregate_events_and_reset:' + ' now:' + new Date() + ' data:', u.inspect(self.event_detail_aggregate, {colors: true, depth: 7}));
 
   self.post('/events', self.event_detail_aggregate)
   .done(function (data) {
-    utils.dlog('events returned data:', data);
+    data = JSON.parse(data);
+    utils.dlog('events returned data:', data, typeof(data));
+
+    // Store dynamic aggregate event throttle settings from the master
+    self.cfg.partout_agent_throttle.aggregate_period_secs = data.aggregate_period_secs;
+    self.cfg.partout_agent_throttle.aggregate_period_splay  = data.aggregate_period_splay;
+    self.cfg.partout_agent_throttle.aggregate_level = data.aggregate_level;
+    self.cfg.partout_agent_throttle.notify_alive_period_secs = data.notify_alive_period_secs;
+    utils.dlog('+++ after events post self.cfg.partout_agent_throttle:', self.cfg.partout_agent_throttle);
   });
 
   self.event_detail_aggregate = {};  // Reset for next period of aggregation
@@ -226,11 +303,12 @@ Master.prototype.qEvent = function (facts, o) {
     };
 
     // start aggregate time interval
-    var period = self.app.cfg.partout_agent_throttle.aggregate_period_secs,
-        splay = self.app.cfg.partout_agent_throttle.aggregate_period_splay * period,
+    var period = self.cfg.partout_agent_throttle.aggregate_period_secs,
+        splay = self.cfg.partout_agent_throttle.aggregate_period_splay * period,
         rnd = Math.random(),
         rnd_period = (period + (period * splay * rnd) - (0.5 * splay)) * 1000;
     utils.dlog('*** rnd_period:' + rnd_period + ' now:' + new Date());
+    utils.dlog('*** self.cfg.partout_agent_throttle:', self.cfg.partout_agent_throttle);
     setTimeout(self.send_aggregate_events_and_reset, rnd_period, self);
   }
 
@@ -243,8 +321,8 @@ Master.prototype.qEvent = function (facts, o) {
   }
 
   var o_object_b64 = /*new Buffer*/(o && o.object ? o.object : 'unknown')/*.toString('base64')*/;
-  if (!self.event_detail_aggregate.agent.modules[o_module][o_object_b64]) {
-    self.event_detail_aggregate.agent.modules[o_module][o_object_b64] = {
+  if (!self.event_detail_aggregate.agent.modules[o_module].objects[o_object_b64]) {
+    self.event_detail_aggregate.agent.modules[o_module].objects[o_object_b64] = {
       //count: 0,
       messages: {}
     };
@@ -253,14 +331,14 @@ Master.prototype.qEvent = function (facts, o) {
   var msg_b64 = /*new Buffer*/(
     o && o.msg ? o.msg : 'Internal Agent Error> msg not provided to makeCallbackEvent() - stack:' + (new Error()).stack
   )/*.toString('base64')*/;
-  if (!self.event_detail_aggregate.agent.modules[o_module][o_object_b64][msg_b64]) {
-    self.event_detail_aggregate.agent.modules[o_module][o_object_b64][msg_b64] = {
+  if (!self.event_detail_aggregate.agent.modules[o_module].objects[o_object_b64].messages[msg_b64]) {
+    self.event_detail_aggregate.agent.modules[o_module].objects[o_object_b64].messages[msg_b64] = {
       level: ((o.level && o.level.match(/(error|info)/)) ? o.level : 'info'),
       count: 0
     };
   }
 
-  self.event_detail_aggregate.agent.modules[o_module][o_object_b64][msg_b64].count += 1;
+  self.event_detail_aggregate.agent.modules[o_module].objects[o_object_b64].messages[msg_b64].count += 1;
 };
 
 

@@ -30,7 +30,7 @@ The idea is to have the Partout Master be able to control and statistically thro
 
 | Level | Aggregates |
 | :---: | :--------- |
-|   0   | Agent alive msgs for at Agent UUID level |
+|   ~~0~~   | ~~Agent alive msgs for at Agent UUID level~~ |
 |   1   | Counts by agent_uuid |
 |   2   | Counts by agent_uuid & module |
 |   3   | Counts by agent_uuid & module & object |
@@ -40,7 +40,7 @@ Default starts at level 4.
 
 ## Event Throttling by Time Period
 
-Master tells the agent's (via event send responses) to use an event collection period based on:
+Master tells the agent's (via event send responses (POSTs to ```/events```)) to use an event collection period based on:
 
 E<sup>m</sup> = Events per minute arriving at the master
 

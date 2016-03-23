@@ -97,6 +97,12 @@ p2
 
 p2
 .select(function (f) { return f.os_family === 'windows'; })
+.file('C:\\Windows\\Temp\\p2_test_folder\\template_test.txt', {
+  ensure: 'absent'
+})
+.file('C:\\Windows\\Temp\\p2_test_folder', {
+  ensure: 'absent'
+})
 .file('C:\\Windows\\Temp\\p2_test_folder', {
   ensure: 'directory'
 })
