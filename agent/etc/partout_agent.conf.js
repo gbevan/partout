@@ -40,6 +40,8 @@ var Cfg = function () {
    * defaults for agent to master event throttling
    */
   self.partout_agent_throttle = {
+
+    // Defaults (modified by algorythms)
     aggregate_period_secs: 5, // 60,
     aggregate_period_splay: 0.05,
     aggregate_level: 4,

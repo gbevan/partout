@@ -90,9 +90,9 @@ if E<sup>m</sup> &ge; T<sup>uuid</sup> & < T<sup>max</sup>
 
 &nbsp;&nbsp;A<sup>level</sup> = 1   // aggregate at Agent UUID
 
-if E<sup>m</sup> &ge; T<sup>max</sup>
+~~if E<sup>m</sup> &ge; T<sup>max</sup>~~
 
-&nbsp;&nbsp;A<sup>level</sup> = 0   // aggregate on Agent alive msgs (same content as level 1)
+~~&nbsp;&nbsp;A<sup>level</sup> = 0   // aggregate on Agent alive msgs (same content as level 1)~~
 
 
 ## Examples of Aggregated Events

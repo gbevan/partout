@@ -16,6 +16,18 @@ var Cfg = function () {
 
   self.database_name = 'partout';
 
+  // Settings
+  self.event_rate_divisor = 100;
+  self.aggregate_collection_period_secs_max = 60 * 60;   // 1 hour
+  self.aggregate_collection_period_secs_min = 5;
+
+  // After Pmax (above) is reached, we start to reduce the amount of detail in the aggregate events
+
+  // Events per minute thresholds for aggregate detail level reduction
+  self.em_threshold_obj = 500;
+  self.em_threshold_mod = 2000;
+  self.em_threshold_uuid = 5000;
+
 };
 
 module.exports = Cfg;

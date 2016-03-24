@@ -48,7 +48,8 @@ var console = require('better-console'),
     db = arangojs({promise: Q.promise}),
     Csr = require('./server/controllers/csr.js'),
     Agent = require('./server/controllers/agent.js'),
-    utils = new (require('./agent/lib/utils'))();
+    utils = new (require('./agent/lib/utils'))(),
+    serverMetrics = new (require('./lib/server_metrics'))();
 
 Q.longStackSupport = true;
 
@@ -238,7 +239,7 @@ var serve = function () {
         //appApi.set('view engine', 'html');
 
         //router.use('/', routes);
-        require('./lib/api/routes')(routerApi, cfg, db, controllers);
+        require('./lib/api/routes')(routerApi, cfg, db, controllers, serverMetrics);
 
         appApi.use('/', routerApi);
 

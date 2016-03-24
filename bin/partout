@@ -31,6 +31,8 @@
  * partout [ server | csr [ list | reject k | sign k ]]
  */
 
+// TODO: add --debug and --verbose same as agent
+
 var opts = {},
   args = process.argv.slice(2);
 
