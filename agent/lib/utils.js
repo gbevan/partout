@@ -42,10 +42,9 @@ Q.longStackSupport = true;
  * @constructor
  */
 var Utils = function () {
-};
+  var self = this;
 
-Utils.prototype.print_banner = function () {
-  var banner = "\n\
+  self.banner = "\n\
 '########:::::'###::::'########::'########::'#######::'##::::'##:'########:\n\
  ##.... ##:::'## ##::: ##.... ##:... ##..::'##.... ##: ##:::: ##:... ##..::\n\
  ##:::: ##::'##:. ##:: ##:::: ##:::: ##:::: ##:::: ##: ##:::: ##:::: ##::::\n\
@@ -55,7 +54,17 @@ Utils.prototype.print_banner = function () {
  ##:::::::: ##:::: ##: ##:::. ##:::: ##::::. #######::. #######::::: ##::::\n\
 ..:::::::::..:::::..::..:::::..:::::..::::::.......::::.......::::::..:::::\n\
 ";
-  console.info(banner);
+
+};
+
+Utils.prototype.print_banner = function () {
+  var self = this;
+  console.info(self.banner);
+};
+
+Utils.prototype.getBanner = function () {
+  var self = this;
+  return self.banner;
 };
 
 /**

@@ -228,23 +228,15 @@ var serve = function () {
             rejectUnauthorized: false
           };
 
-        //appApi.use(express.bodyParser({limit: '50mb'}));
         appApi.use(compression());
-
         routerApi.use(logger);
-
         appApi.use(bodyParser.json({limit: '50mb'}));
         appApi.use(bodyParser.urlencoded({ extended: true }));
 
-        //appApi.set('view engine', 'html');
-
-        //router.use('/', routes);
         require('./lib/api/routes')(routerApi, cfg, db, controllers, serverMetrics);
 
         appApi.use('/', routerApi);
-
-        //appApi.use(express.static('public'));
-
+        appApi.use(express.static('public'));
 
         httpsApi.createServer(optionsApi, appApi)
         .listen(cfg.partout_api_port);
@@ -280,16 +272,14 @@ var serve = function () {
           };
 
         appUi.use(compression());
-
         routerUi.use(logger);
-
         appUi.use(bodyParser.json());
         appUi.use(bodyParser.urlencoded({ extended: true }));
 
-        //router.use('/', routes);
-        require('./lib/ui/routes')(routerUi);
+        require('./lib/ui/routes')(routerUi, cfg, db, controllers, serverMetrics);
 
         appUi.use('/', routerUi);
+        appUi.use(express.static('public'));
 
         httpsUi.createServer(optionsUi, appUi)
         .listen(cfg.partout_ui_port);

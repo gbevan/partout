@@ -41,6 +41,10 @@ GLOBAL.should = require('should');
 should.extend();
 
 Q.longStackSupport = true;
+Q.onerror = function (err) {
+  console.error(err);
+  console.error(err.stack);
+};
 
 var appApi;
 

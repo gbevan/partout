@@ -20,6 +20,10 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+/*
+ * Note: SerialNumbers must increment for each certificate from any given issuer.
+ */
+
 /*jslint node: true */
 'use strict';
 
@@ -54,7 +58,7 @@ var Ca = function () {
       shortName: 'OU',
       value: 'Partout'
     }],
-    serialNumber: '01',
+    serialNumber: '02',
     maxAge: 25,
     keySize: 4096
   };
@@ -82,7 +86,7 @@ var Ca = function () {
       shortName: 'OU',
       value: 'Partout Master API'
     }],
-    serialNumber: '01',
+    serialNumber: '02',
     maxAge: 25,
     keySize: 2048
   };
@@ -96,7 +100,7 @@ var Ca = function () {
       shortName: 'OU',
       value: 'Partout Master UI'
     }],
-    serialNumber: '01',
+    serialNumber: '03',
     maxAge: 25,
     keySize: 2048
   };

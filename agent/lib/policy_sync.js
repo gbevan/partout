@@ -56,7 +56,7 @@ var Policy_Sync = function (app) {
 Policy_Sync.prototype.load_master_fingerprint = function () {
   var self = this,
     deferred = Q.defer(),
-    fp = path.join(self.app.PARTOUT_AGENT_SSL_PUBLIC, 'master_fingerprint.dat');
+    fp = path.join(self.app.cfg.PARTOUT_AGENT_SSL_DIR, 'master_fingerprint.dat');
 
   pfs.pExists(fp)
   .then(function (exists) {
@@ -80,7 +80,7 @@ Policy_Sync.prototype.load_master_fingerprint = function () {
 Policy_Sync.prototype.save_master_fingerprint = function (fingerprint) {
   var self = this,
     deferred = Q.defer(),
-    fp = path.join(self.app.PARTOUT_AGENT_SSL_PUBLIC, 'master_fingerprint.dat');
+    fp = path.join(self.app.cfg.PARTOUT_AGENT_SSL_DIR, 'master_fingerprint.dat');
 
   return Q.nfcall(fs.writeFile, fp, fingerprint);
 };
@@ -100,7 +100,8 @@ Policy_Sync.prototype.get_master_cert = function () {
     deferred.resolve(cert);
   })
   .fail(function (err) {
-    //console.error('get_master_cert failed err:', err);
+    console.error('get_master_cert failed err:', err);
+    console.warn('This could be due to an invalid agent SSL certificate...');
     deferred.reject(err);
   })
   .done();

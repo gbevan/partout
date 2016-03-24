@@ -2,20 +2,30 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Partout Master API</title>
+<title>Partout {{role}}</title>
+  <link rel="stylesheet" href="assets/css/style.css">
 </head>
 
 <body>
-  <h1>Partout Master API</h1>
-  <h2>Installing Agent:</h2>
-  <p>on Linux / Unix (as root):</p>
-  <pre>
-    bash <(curl -k -s "https://{{master_hostname}}:{{master_api_port}}/bootstrap?os=$(uname -s)")
-  </pre>
-  <p>or</p>
-  <pre>
-    CWEB=wget bash <(wget --no-check-certificate -qO- "https://{{master_hostname}}:{{master_api_port}}/bootstrap?os=$(uname -s)")
-  </pre>
+  <div class="outerBody">
+    <div class="banner">
+      <pre>
+{{banner}}
+      </pre>
+    </div>
+    <h1>Partout {{role}}</h1>
+    <h2>Installing Agent:</h2>
+    <p>on Linux / Unix (as root):</p>
+    <pre>
+      bash <(curl -k -s "https://{{master_hostname}}:{{master_api_port}}/bootstrap?os=$(uname -s)")
+    </pre>
+    <p>or</p>
+    <pre>
+      CWEB=wget bash <(wget --no-check-certificate -qO- "https://{{master_hostname}}:{{master_api_port}}/bootstrap?os=$(uname -s)")
+    </pre>
+
+  <footer class="mainFooter">Copyright Graham Bevan &lt;graham.bevan@ntlworld.com&gt; - Licensed under the GNU General Public License Version 3 (GPLv3).</footer>
+  </div>
 </body>
 
 </html>
