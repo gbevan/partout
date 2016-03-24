@@ -32,7 +32,7 @@ var assert = require('assert'),
   rmdir = require('rmdir'),
   Q = require('q'),
   fs = require('fs'),
-  utils = new (require('../agent/lib/utils'))(),
+  pfs = new (require('../agent/lib/pfs'))(),
   path = require('path'),
   os = require('os');
 
@@ -164,7 +164,7 @@ describe('Ca', function () {
   describe('createRootCert', function () {
     it('should create a Root CA certificate', function (done) {
 
-      utils.pExists('./etc/ssl-test')
+      pfs.pExists('./etc/ssl-test')
 
       .then(function (sslDirExists) {
         if (sslDirExists) {
@@ -193,16 +193,16 @@ describe('Ca', function () {
           should(certObj.extensions).not.be.undefined;
 
           // test files created
-          utils.pExists(ca.rootCertFile)
+          pfs.pExists(ca.rootCertFile)
           .then(function (exists) {
             exists.should.be.true;
 
-            return utils.pExists(ca.rootPrivateKeyFile);
+            return pfs.pExists(ca.rootPrivateKeyFile);
           })
           .then(function (exists) {
             exists.should.be.true;
 
-            return utils.pExists(ca.rootPublicKeyFile);
+            return pfs.pExists(ca.rootPublicKeyFile);
           })
           .then(function (exists) {
             exists.should.be.true;
@@ -234,7 +234,7 @@ describe('Ca', function () {
   describe('createIntermediateCert', function () {
     it('should create an Intermediate CA certificate', function (done) {
 
-      utils.pExists('./etc/ssl-test')
+      pfs.pExists('./etc/ssl-test')
 
       .then(function (sslDirExists) {
         if (sslDirExists) {
@@ -263,16 +263,16 @@ describe('Ca', function () {
           should(certObj.extensions).not.be.undefined;
 
           // test files created
-          utils.pExists(ca.intCertFile)
+          pfs.pExists(ca.intCertFile)
           .then(function (exists) {
             exists.should.be.true;
 
-            return utils.pExists(ca.intPrivateKeyFile);
+            return pfs.pExists(ca.intPrivateKeyFile);
           })
           .then(function (exists) {
             exists.should.be.true;
 
-            return utils.pExists(ca.intPublicKeyFile);
+            return pfs.pExists(ca.intPublicKeyFile);
           })
           .then(function (exists) {
             exists.should.be.true;
@@ -306,7 +306,7 @@ describe('Ca', function () {
   describe('createAgentSignerCert', function () {
     it('should create an Agent Signer certificate', function (done) {
 
-      utils.pExists('./etc/ssl-test')
+      pfs.pExists('./etc/ssl-test')
 
       .then(function (sslDirExists) {
         if (sslDirExists) {
@@ -335,16 +335,16 @@ describe('Ca', function () {
           should(certObj.extensions).not.be.undefined;
 
           // test files created
-          utils.pExists(ca.agentSignerCertFile)
+          pfs.pExists(ca.agentSignerCertFile)
           .then(function (exists) {
             exists.should.be.true;
 
-            return utils.pExists(ca.agentSignerPrivateKeyFile);
+            return pfs.pExists(ca.agentSignerPrivateKeyFile);
           })
           .then(function (exists) {
             exists.should.be.true;
 
-            return utils.pExists(ca.agentSignerPublicKeyFile);
+            return pfs.pExists(ca.agentSignerPublicKeyFile);
           })
           .then(function (exists) {
             exists.should.be.true;
@@ -377,7 +377,7 @@ describe('Ca', function () {
   describe('createMasterApiCert', function () {
     it('should create an Master API certificate', function (done) {
 
-      utils.pExists('./etc/ssl-test')
+      pfs.pExists('./etc/ssl-test')
 
       .then(function (sslDirExists) {
         if (sslDirExists) {
@@ -406,16 +406,16 @@ describe('Ca', function () {
           should(certObj.extensions).not.be.undefined;
 
           // test files created
-          utils.pExists(ca.masterApiCertFile)
+          pfs.pExists(ca.masterApiCertFile)
           .then(function (exists) {
             exists.should.be.true;
 
-            return utils.pExists(ca.masterApiPrivateKeyFile);
+            return pfs.pExists(ca.masterApiPrivateKeyFile);
           })
           .then(function (exists) {
             exists.should.be.true;
 
-            return utils.pExists(ca.masterApiPublicKeyFile);
+            return pfs.pExists(ca.masterApiPublicKeyFile);
           })
           .then(function (exists) {
             exists.should.be.true;
@@ -449,7 +449,7 @@ describe('Ca', function () {
   describe('createMasterUiCert', function () {
     it('should create an Master UI certificate', function (done) {
 
-      utils.pExists('./etc/ssl-test')
+      pfs.pExists('./etc/ssl-test')
 
       .then(function (sslDirExists) {
         if (sslDirExists) {
@@ -478,16 +478,16 @@ describe('Ca', function () {
           should(certObj.extensions).not.be.undefined;
 
           // test files created
-          utils.pExists(ca.masterUiCertFile)
+          pfs.pExists(ca.masterUiCertFile)
           .then(function (exists) {
             exists.should.be.true;
 
-            return utils.pExists(ca.masterUiPrivateKeyFile);
+            return pfs.pExists(ca.masterUiPrivateKeyFile);
           })
           .then(function (exists) {
             exists.should.be.true;
 
-            return utils.pExists(ca.masterUiPublicKeyFile);
+            return pfs.pExists(ca.masterUiPublicKeyFile);
           })
           .then(function (exists) {
             exists.should.be.true;
@@ -518,7 +518,7 @@ describe('Ca', function () {
       ca.generateTrustedCertChain(function (err, certChain) {
         should(err).be.undefined;
         should(certChain).not.be.undefined;
-        utils.pExists(ca.trustedCertChain)
+        pfs.pExists(ca.trustedCertChain)
         .done(function (exists) {
           exists.should.be.true;
           done();
@@ -536,19 +536,19 @@ describe('Ca', function () {
       ca.copyCaCertsToAgentSslPub(function (err) {
         should(err).be.undefined;
 
-        utils.pExists(path.join(ca.PARTOUT_SSL_PUBLIC, 'root_ca.crt'))
+        pfs.pExists(path.join(ca.PARTOUT_SSL_PUBLIC, 'root_ca.crt'))
         .then(function (exists) {
           exists.should.be.true;
 
-          utils.pExists(path.join(ca.PARTOUT_SSL_PUBLIC, 'intermediate_ca.crt'))
+          pfs.pExists(path.join(ca.PARTOUT_SSL_PUBLIC, 'intermediate_ca.crt'))
           .then(function (exists) {
             exists.should.be.true;
 
-            utils.pExists(path.join(ca.PARTOUT_AGENT_SSL_PUBLIC, 'root_ca.crt'))
+            pfs.pExists(path.join(ca.PARTOUT_AGENT_SSL_PUBLIC, 'root_ca.crt'))
             .then(function (exists) {
               exists.should.be.true;
 
-              utils.pExists(path.join(ca.PARTOUT_AGENT_SSL_PUBLIC, 'intermediate_ca.crt'))
+              pfs.pExists(path.join(ca.PARTOUT_AGENT_SSL_PUBLIC, 'intermediate_ca.crt'))
               .then(function (exists) {
                 exists.should.be.true;
                 done();

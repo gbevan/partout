@@ -5,11 +5,12 @@
 
 /*global describe, before, it, should*/
 var assert = require('assert'),
-  expect = require('expect'),
-  rmdir = require('rmdir'),
-  Ssl = require('../lib/ssl'),
-  Q = require('q'),
-  utils = new (require('../lib/utils'))();
+    expect = require('expect'),
+    rmdir = require('rmdir'),
+    cfg = new (require('../etc/partout_agent.conf.js'))(),
+    Ssl = require('../lib/ssl'),
+    Q = require('q'),
+    pfs = new (require('../lib/pfs'))();
 
 GLOBAL.should = require('should');
 should.extend();
@@ -23,7 +24,7 @@ describe('Ssl', function () {
     pemServer;
 
   before(function () {
-    ssl = new Ssl();
+    ssl = new Ssl(cfg);
   });
 
   it('should have method setSslDir()', function () {
@@ -69,7 +70,7 @@ describe('Ssl', function () {
   describe('genCsr()', function () {
     it('should create a certificate signing request (csr)', function (done) {
 
-      utils.pExists('./etc/ssl-test')
+      pfs.pExists('./etc/ssl-test')
 
       .then(function (sslDirExists) {
         if (sslDirExists) {
@@ -125,16 +126,16 @@ describe('Ssl', function () {
 
           // test files created
           //console.log('ssl.agentCsrFile:', ssl.agentCsrFile);
-          utils.pExists(ssl.agentCsrFile)
+          pfs.pExists(ssl.agentCsrFile)
           .then(function (exists) {
             exists.should.be.true;
 
-            return utils.pExists(ssl.agentPrivateKeyFile);
+            return pfs.pExists(ssl.agentPrivateKeyFile);
           })
           .then(function (exists) {
             exists.should.be.true;
 
-            return utils.pExists(ssl.agentPublicKeyFile);
+            return pfs.pExists(ssl.agentPublicKeyFile);
           })
           .done(function (exists) {
             exists.should.be.true;
