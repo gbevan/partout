@@ -31,7 +31,11 @@ var P2M = require('../../p2m'),
     exec = require('child_process').exec,
     Q = require('q'),
     cfg = new (require('../../../etc/partout_agent.conf.js'))(),
-    path = require('path');
+    path = require('path'),
+    pickle = require('pickle'),
+    utils = new (require('../../utils'))(),
+    pfs = new (require('../../pfs'))(),
+    u = require('util');
 
 Q.longStackSupport = true;
 Q.onerror = function (err) {
@@ -124,6 +128,29 @@ var Facts = P2M.Module(module.filename, function () {
     //console.log('promises:', promises);
 
     /*
+     * if cloud-init has an obj.pkl - load it as facts
+     */
+    var objpkl = '/var/lib/cloud/instance/obj.pkl',
+        cloud_deferred = Q.defer();
+    pfs.pExists(objpkl)
+    .then(function (exists) {
+      utils.dlog('facts linux: ', objpkl, 'exists:', exists);
+      if (!exists) {
+        cloud_deferred.resolve();
+      } else {
+        var objpklCmd = u.format('/usr/bin/python -c "import json; import pickle; F=open(\'%s\'); O=pickle.load(F); print json.dumps(O.ec2_metadata)"', objpkl);
+        utils.pExec(objpklCmd)
+        .then(function (jsonStr) {
+          utils.dlog('ec2_metadata jsonStr:', jsonStr[0]);
+          var cloudObj = JSON.parse(jsonStr[0]);
+          utils.dlog('ec2_metadata cloudObj:', cloudObj);
+          cloud_deferred.resolve(["ec2_metadata", cloudObj]);
+        });
+      }
+    });
+    promises.push(cloud_deferred.promise);
+
+    /*
      * Determine details of Linux operating system from /etc/os-release
      * add to array of promises
      */
@@ -163,13 +190,15 @@ var Facts = P2M.Module(module.filename, function () {
       Q.all(promises)
       .then(function (ar) {
         _.forEach(ar, function (res) {
-          facts[res[0]] = res[1];
+          if (res) {
+            facts[res[0]] = res[1];
 
-          if (res[0] === 'os_dist_id_like') {
-            if (res[1].match(/rhel/)) {
-              facts.os_family = 'redhat';
-            } else {
-              facts.os_family = res[1];
+            if (res[0] === 'os_dist_id_like') {
+              if (res[1].match(/rhel/)) {
+                facts.os_family = 'redhat';
+              } else {
+                facts.os_family = res[1];
+              }
             }
           }
         });

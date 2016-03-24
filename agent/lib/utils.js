@@ -118,7 +118,7 @@ Utils.prototype.execToArray = function (cmd) {
 /**
  * Promisified exec
  * @param   {string} cmd Command to execute
- * @returns {object} Promise (stdout, stderr), rejects with error
+ * @returns {object} Promise (obj[0,1]=stdout, stderr), rejects with error
  */
 Utils.prototype.pExec = function (cmd) {
   return Q.nfcall(exec, cmd);
