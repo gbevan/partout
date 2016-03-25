@@ -9,26 +9,34 @@ body {
   color: azure;
   margin: 20px;
   padding: 10px;
-  width: 800px;
+  width: 900px;
 }
 
 .banner {
   /*border: 2px solid black;*/
-  border-top: 2px solid black;
   border-bottom: 2px solid black;
   -moz-border-radius: 10px;
   border-radius: 10px;
+  border-top: 2px solid black;
   color: burlywood;
   text-align: center;
 }
 
 .mainFooter {
-  border-top: 2px solid black;
   border-bottom: 2px solid black;
   -moz-border-radius: 10px;
   border-radius: 10px;
+  border-top: 2px solid black;
   color: #437474;
   font-size: 8pt;
+  margin-top: 20px;
   padding: 2px;
   text-align: center;
+}
+
+a {
+  color: #9cd1ff;
+}
+a:hover {
+  color: cyan;
 }
