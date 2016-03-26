@@ -103,7 +103,7 @@ Master.prototype.set_agent_cert = function (key, cert) {
  * @returns Promise (returned data)
  */
 Master.prototype.post = function (path, o, cb) {
-  utils.dlog('POST: path:', path, 'data:', o, 'type:', typeof(o));
+  //utils.dlog('POST: path:', path, 'data:', o, 'type:', typeof(o));
   var self = this,
       deferred = Q.defer(),
       post_data = JSON.stringify(o),
@@ -280,6 +280,7 @@ Master.prototype.qEvent = function (facts, o) {
   utils.dlog('Master qEvent() o:' + u.inspect(o, {colors: true, depth: 2}));
 
   if (!o) {
+    utils.dlog('qEvent passed undefined object from stack:' + (new Error()).stack);
     return;
   }
 
@@ -290,6 +291,7 @@ Master.prototype.qEvent = function (facts, o) {
 
   if (!self.event_detail_aggregate.agent) {
     self.event_detail_aggregate.agent = {
+      /*
       uuid: facts.partout_agent_uuid,
       hostname: facts.os_hostname,
       arch: facts.arch,
@@ -298,6 +300,7 @@ Master.prototype.qEvent = function (facts, o) {
       os_family: facts.os_family,
       os_dist_name: facts.os_dist_name,
       os_dist_version_id: facts.os_dist_version_id,
+      */
       //count: 0,
       modules: {}
     };
@@ -311,6 +314,17 @@ Master.prototype.qEvent = function (facts, o) {
     utils.dlog('*** self.cfg.partout_agent_throttle:', self.cfg.partout_agent_throttle);
     setTimeout(self.send_aggregate_events_and_reset, rnd_period, self);
   }
+
+  // Accumulate facts
+  var a = self.event_detail_aggregate.agent;
+  a.uuid = facts.partout_agent_uuid;
+  a.hostname = facts.os_hostname;
+  a.arch = facts.arch;
+  a.platform = facts.platform;
+  a.os_release = facts.os_release;
+  a.os_family = facts.os_family;
+  a.os_dist_name = facts.os_dist_name;
+  a.os_dist_version_id = facts.os_dist_version_id;
 
   var o_module = (o && o.module ? o.module : 'unknown');
   if (!self.event_detail_aggregate.agent.modules[o_module]) {

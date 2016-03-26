@@ -314,7 +314,7 @@ var serve = function (args, master) {
   router.use(morgan('combined'));
 
   router.get('/', function (req, res, next) {
-    res.send('Hello');
+    res.send('Partout Agent API...\n\r');
   });
 
   app.use('/', router);
@@ -324,8 +324,9 @@ var serve = function (args, master) {
     .listen(10444);
   //console.log('after https server');
 
-  app.sendevent({
-    module: 'app',
+  //app.sendevent({
+  master.qEvent({}, {
+    module: '_app',
     object: 'partout-agent',
     msg: 'Partout-Agent has (re)started https server'
   });
