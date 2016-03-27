@@ -81,7 +81,7 @@ var Package = P2M.Module(module.filename, function () {
         }
       }
     };
-    self._getDefaultProvider(facts_so_far);
+    //self._getDefaultProvider(facts_so_far);  // superceded by setProvider
     deferred.resolve(facts);
   })
 
@@ -97,8 +97,6 @@ var Package = P2M.Module(module.filename, function () {
     if (!opts.name) {
       opts.name = title;
     }
-
-    self._getDefaultProvider(_impl.facts);
 
     deferred.resolve();
   });
@@ -116,74 +114,5 @@ Package.prototype.setProvider = function (facts) {
   return null;
 };
 
-Package.prototype._getDefaultProvider = function (facts, opts) {
-  var self = this;
-
-  if (!opts) {
-    opts = {};
-  }
-
-  // Choose default providers (if not manually provided in policy)
-  if (!opts.provider) {
-    if (facts.os_family === 'debian') {
-      opts.provider = 'apt';
-
-    } else if (facts.os_family === 'redhat') {
-      opts.provider = 'yum';
-    }
-  }
-  self.provider = opts.provider;
-};
-
-
-
-/*
-Package.prototype.addStep = function (_impl, title, opts, command_complete_cb) {
-  //console.log('package addStep arguments:', arguments);
-  var self = this;
-
-  if (typeof (opts) === 'function') {
-    command_complete_cb = opts;
-    opts = {};
-  }
-
-  if (!opts) {
-    opts = {};
-  }
-  opts.ensure = (opts.ensure ? opts.ensure : 'present');
-  opts.name = (opts.name ? opts.name : title);
-
-  if (!utils.vetOps('Package', opts, {
-    name: true,
-    ensure: true
-  }) ) {
-    return self;
-  }
-
-  self._getDefaultProvider(_impl.facts, opts);
-
-  //console.warn('package b4 ifNode');
-  if (!_impl.ifNode()) {
-    return self;
-  }
-  //console.warn('package after ifNode passed');
-
-  _impl.push_action(function (next_step_callback) {
-    //var self = this;
-    //console.warn('package index.js b4 runAction.call');
-    self.runAction(_impl, module.filename, next_step_callback, [title, opts, command_complete_cb]);
-
-  }); // push action
-
-  //return self;
-};
-
-//Package.getName = function () { return 'package'; };
-Package.prototype.getFacts = function (facts) {
-  var self = this;
-  self._getDefaultProvider(facts);
-  return self._getFacts(module.filename, facts);
-};
-*/
 
 module.exports = Package;
