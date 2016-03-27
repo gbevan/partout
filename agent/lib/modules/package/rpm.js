@@ -97,6 +97,93 @@ var Package = P2M.Module(module.filename, function () {
       }
     });
 
+  })
+
+  ///////////////
+  // Run Action
+  .action(function (args) {
+
+    var deferred = args.deferred,
+        //inWatchFlag = args.inWatchFlag,
+        _impl = args._impl,
+        title = args.title,
+        opts = args.opts,
+        command_complete_cb = args.cb, // cb is policy provided optional call back on completion
+        errmsg = '';
+
+    utils.dlog('Package rpm: in action TODO: ############################ name:', opts.name, 'ensure:', opts.ensure);
+
+    // TODO:
+
+    // PRESENT / INSTALLED / LATEST
+    // TODO: Rewrite for RPM
+    /*
+    if (opts.ensure.match(/^(present|installed|latest)$/)) {
+      console.log('ensure present');
+
+      if (!_impl.facts.installed_packages[opts.name]) {
+
+        exec('yum -y install -y ' + opts.name, function (err, stdout, stderr) {
+          if (err) {
+            console.error('yum install failed:', err, stderr);
+          } else {
+            _impl.facts.installed_packages[opts.name] = {};  // next facts run will populate
+          }
+          if (command_complete_cb) command_complete_cb(err, stdout, stderr);
+          next_step_callback({
+            module: 'package',
+            object: opts.name,
+            msg: 'install ' + (err ? err : 'ok')
+          });
+        });
+
+      } else if (opts.ensure === 'latest') {
+        // LATEST
+        exec('yum -y update ' + opts.name, function (err, stdout, stderr) {
+          if (err) {
+            console.error('yum update failed:', err, stderr);
+          }
+          if (command_complete_cb) command_complete_cb(err, stdout, stderr);
+          next_step_callback({
+            module: 'package',
+            object: opts.name,
+            msg: 'upgrade ' + (err ? err : 'ok')
+          });
+        });
+      }
+
+    } else if (opts.ensure.match(/^(absent|purged)$/)) {
+      // ABSENT / PURGED
+      console.log('ensure absent pkg inst:', _impl.facts.installed_packages[opts.name]);
+
+      if (_impl.facts.installed_packages[opts.name]) {
+
+        exec('yum -y erase ' + opts.name, function (err, stdout, stderr) {
+          if (err) {
+            console.error('yum erase failed:', err, stderr);
+          } else {
+            delete _impl.facts.installed_packages[opts.name];
+          }
+          if (command_complete_cb) command_complete_cb(err, stdout, stderr);
+          next_step_callback({
+            module: 'package',
+            object: opts.name,
+            msg: 'uninstall ' + (err ? err : 'ok')
+          });
+        });
+
+      } else {
+        console.error('Unsupported option for package ensure:', opts.ensure);
+        next_step_callback();
+      }
+
+    } else {
+      console.error('package module does not support ensure option value of:', opts.ensure);
+      next_step_callback();
+    }
+    */
+
+    deferred.resolve();
   });
 
 });
@@ -133,82 +220,6 @@ Package.prototype.getStatus = function (name) {
   });
 
   return deferred.promise;
-};
-
-Package.prototype.runAction = function (_impl, next_step_callback, title, opts, command_complete_cb) {
-  var self = this;
-  //console.log('package action self:', self);
-  //console.log('package redhat arguments:', arguments);
-  //console.log('package action called next_step_callback:', next_step_callback);
-
-  // PRESENT / INSTALLED / LATEST
-  // TODO: Rewrite for RPM
-  /*
-  if (opts.ensure.match(/^(present|installed|latest)$/)) {
-    console.log('ensure present');
-
-    if (!_impl.facts.installed_packages[opts.name]) {
-
-      exec('yum -y install -y ' + opts.name, function (err, stdout, stderr) {
-        if (err) {
-          console.error('yum install failed:', err, stderr);
-        } else {
-          _impl.facts.installed_packages[opts.name] = {};  // next facts run will populate
-        }
-        if (command_complete_cb) command_complete_cb(err, stdout, stderr);
-        next_step_callback({
-          module: 'package',
-          object: opts.name,
-          msg: 'install ' + (err ? err : 'ok')
-        });
-      });
-
-    } else if (opts.ensure === 'latest') {
-      // LATEST
-      exec('yum -y update ' + opts.name, function (err, stdout, stderr) {
-        if (err) {
-          console.error('yum update failed:', err, stderr);
-        }
-        if (command_complete_cb) command_complete_cb(err, stdout, stderr);
-        next_step_callback({
-          module: 'package',
-          object: opts.name,
-          msg: 'upgrade ' + (err ? err : 'ok')
-        });
-      });
-    }
-
-  } else if (opts.ensure.match(/^(absent|purged)$/)) {
-    // ABSENT / PURGED
-    console.log('ensure absent pkg inst:', _impl.facts.installed_packages[opts.name]);
-
-    if (_impl.facts.installed_packages[opts.name]) {
-
-      exec('yum -y erase ' + opts.name, function (err, stdout, stderr) {
-        if (err) {
-          console.error('yum erase failed:', err, stderr);
-        } else {
-          delete _impl.facts.installed_packages[opts.name];
-        }
-        if (command_complete_cb) command_complete_cb(err, stdout, stderr);
-        next_step_callback({
-          module: 'package',
-          object: opts.name,
-          msg: 'uninstall ' + (err ? err : 'ok')
-        });
-      });
-
-    } else {
-      console.error('Unsupported option for package ensure:', opts.ensure);
-      next_step_callback();
-    }
-
-  } else {
-    console.error('package module does not support ensure option value of:', opts.ensure);
-    next_step_callback();
-  }
-  */
-  next_step_callback();
 };
 
 

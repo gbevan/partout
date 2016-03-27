@@ -32,6 +32,12 @@ var _ = require('lodash'),
     utils = new (require('../utils.js'))(),
     u = require('util');
 
+Q.longStackSupport = true;
+Q.onerror = function (err) {
+  console.error(err);
+  console.error(err.stack);
+};
+
 /*
  * get list of modules (either .js or folders.
  */
@@ -56,16 +62,23 @@ var modules = modules_top.map(function (m) {
   }
 });
 
-Q.longStackSupport = true;
-
 modules.unshift('facts/index.js');
 
+/*
+ * module load with or without facts (if already cached)
+ */
 module.exports = function (facts) {
   // dynamically load modules
   var _exports = {},
     deferred = Q.defer(),
     facts_promises = [],
     facts_funcs = [];
+
+//  if (!facts || typeof(facts) !== 'object') {
+//    var err = new Error('ERROR: modules loaded without a facts object');
+//    console.error(err, '\nstack:' + err.stack);
+//    throw err;
+//  }
 
   _.every(modules, function (m) {
     utils.dlog('****************************');
@@ -106,7 +119,7 @@ module.exports = function (facts) {
 
   facts_funcs.push(function (done) {
     deferred.resolve(_exports);
-    done();
+    done(); // nimble cb
   });
   nimble.series(facts_funcs);
 

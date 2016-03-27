@@ -31,6 +31,12 @@ var Q = require('q'),
     console = require('better-console'),
     utils = new (require('./utils'))();
 
+Q.longStackSupport = true;
+Q.onerror = function (err) {
+  console.error(err);
+  console.error(err.stack);
+};
+
 /**
  * Provider constructor - to be inherited by other modules.
  * @constructor
@@ -61,10 +67,19 @@ Provider.prototype.getProvider = function (facts, filename) {
     return deferred.promise;
   }
 
+  // use setProvider() method if provided in module's index.js
+  if (!self.provider && self.setProvider && typeof(self.setProvider) === 'function') {
+    var p = self.setProvider(facts);
+    if (p) {
+      self.provider = p;
+    }
+  }
+
   // Get some early facts for provider search
   //console.log('provider getProvider self.provider:', self.provider);
   if (self.provider) {
     srchJsList.push(self.provider);
+
   } else {
     // Provider search list
     // (1) Operating System Specific Provider?
@@ -129,20 +144,28 @@ Provider.prototype.getProvider = function (facts, filename) {
 
 
 
-// run action (from P2 directive)
-Provider.prototype.runAction = function (_impl, caller_filename, next_step_callback, args) {
-  var self = this,
-      opts = args[1];
-  //console.log('provider runAction self:', self);
-  //console.log('runAction filename:', caller_filename);
+/**
+ * runAction wrapper
+ * @param {object}   _impl              DSL implementation
+ * @param {function} next_step_callback Callback for next step in p2
+ * @param {Array}    args               ???
+ */
+Provider.prototype._runAction = function (_impl, next_step_callback, inWatchFlag, title, opts, cb) {
+  var self = this;
+  console.log('runAction filename:', self.moduleFileName);
+  console.warn('provider runAction self:', self, 'stack:', (new Error().stack));
 
-  self.getProvider(_impl.facts, caller_filename)
+  self.getProvider(_impl.facts, self.moduleFileName)
   .then(function (PM) {
-    //console.log('Provider runAction resolved PM:', PM);
+    utils.dlog('Provider runAction resolved PM:', PM);
     //console.warn('next_step_callback:', next_step_callback);
-    args.unshift(next_step_callback);
-    args.unshift(_impl);
-    PM.runAction.apply(self, args);
+    if (PM) {
+      //args.unshift(next_step_callback);
+      //args.unshift(_impl);
+      PM.runAction.call(self, _impl, next_step_callback, inWatchFlag, title, opts, cb);
+    } else {
+      next_step_callback();
+    }
   })
   .done();
 };
@@ -174,7 +197,7 @@ Provider.prototype._getFacts = function (facts_so_far) {
     }
     utils.dlog('Provider getFacts resolved PM (try 1):', PM);
     if (!save_os_type) {
-      // Run again as the first one was
+      // Run again as the first one was (what?)
       self.getProvider(facts_so_far, self.moduleFileName)
       .then(function (PM) {
         utils.dlog('Provider getFacts resolved PM (try 2):', PM);

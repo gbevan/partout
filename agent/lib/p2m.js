@@ -109,9 +109,38 @@ P2M.prototype.name = function (name) {
 P2M.prototype.module_name = P2M.prototype.name;
 
 
-P2M.prototype.action = function (fn) {
+P2M.prototype.action = function (fn, action_args) {
   var self = this;
   self._actionFn = fn;
+
+  if (!action_args) {
+    action_args = {
+      immediate: false
+    };
+  }
+
+  if (action_args.immediate) {
+    self.runAction = function (_impl, next_step_callback, inWatchFlag, title, opts, cb) {
+      console.warn('P2M in runAction()');
+
+      var deferred = Q.defer();
+
+      utils.dlog('p2m runAction (immediate) calling fn (action) title: %s opts: %s', title, u.inspect(opts, {colors: true, depth: 2}));
+      fn({
+        deferred: deferred,
+        inWatchFlag: inWatchFlag,
+        _impl: _impl,
+        title: title,
+        opts: opts,
+        cb: cb
+      });
+
+      deferred.promise
+      .done(next_step_callback);
+
+    };
+    return self;
+  }
 
   /**
    * Called from p2, add an action step
@@ -151,8 +180,11 @@ P2M.prototype.action = function (fn) {
           console.error(u.format('error: module %s err: %s', self.name, err));
         })
         .then(function (o) {
-          utils.dlog('p2m addStep() action resolved with: %s', u.inspect(o, {colors: true, depth: 2}));
-          utils.callbackEvent(nextStepCb, _impl.facts, o); // move to next policy directive in p2
+          utils.dlog('calling provider _runAction()');
+          self._runAction(_impl, nextStepCb, inWatchFlag, title, opts, cb);
+
+          //utils.dlog('p2m addStep() action resolved with: %s', u.inspect(o, {colors: true, depth: 2}));
+          //utils.callbackEvent(nextStepCb, _impl.facts, o); // move to next policy directive in p2
         })
         .done();
       });

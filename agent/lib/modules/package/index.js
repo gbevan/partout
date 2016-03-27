@@ -85,9 +85,36 @@ var Package = P2M.Module(module.filename, function () {
     deferred.resolve(facts);
   })
 
-  ;
+  .action(function (args) {
+    var deferred = args.deferred,
+        _impl = args._impl,
+        title = args.title,
+        opts = args.opts,
+        command_complete_cb = args.cb, // cb is policy provided optional call back on completion
+        errmsg = '';
+    utils.dlog('Package index: in action ############################');
+
+    if (!opts.name) {
+      opts.name = title;
+    }
+
+    self._getDefaultProvider(_impl.facts);
+
+    deferred.resolve();
+  });
 
 });
+
+Package.prototype.setProvider = function (facts) {
+  if (facts.os_family === 'debian') {
+    return 'apt';
+
+  } else if (facts.os_family === 'redhat') {
+    return 'yum';
+  }
+
+  return null;
+};
 
 Package.prototype._getDefaultProvider = function (facts, opts) {
   var self = this;

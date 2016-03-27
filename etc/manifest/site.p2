@@ -75,9 +75,10 @@ p2
   return false;
 })
 
-//.package('mariadb-server', { ensure: 'absent' })
+.package('mariadb-server', { ensure: 'absent' })
 //.package('mariadb-server')
 .package('mariadb-server', { ensure: 'latest' })
+.exec('echo AFTER mariadb latest')
 
 .select(function (f) { return f.os_family === 'debian'; })
 .exec('echo "BEFORE APTITUDE"')

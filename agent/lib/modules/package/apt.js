@@ -98,10 +98,134 @@ var Package = P2M.Module(module.filename, function () {
     });
 
   })
-  ;
+
+  ///////////////
+  // Run Action
+  .action(function (args) {
+
+    var deferred = args.deferred,
+        //inWatchFlag = args.inWatchFlag,
+        _impl = args._impl,
+        title = args.title,
+        opts = args.opts,
+        command_complete_cb = args.cb, // cb is policy provided optional call back on completion
+        errmsg = '';
+
+    utils.dlog('Package apt: in action ############################ name:', opts.name, 'ensure:', opts.ensure);
+
+    // fix env for non-interactive apt commands
+    process.env.DEBIAN_FRONTEND = "noninteractive";
+    process.env.APT_LISTBUGS_FRONTEND = "none";
+    process.env.APT_LISTCHANGES_FRONTEND = "none";
+
+    Package.getStatus.call(self, opts.name)
+    .then(function (current_state) {
+      //console.log(opts.name, 'b4 ensure current_state:', current_state, 'ensure:', opts.ensure);
+      // PRESENT / INSTALLED / LATEST
+      if (opts.ensure.match(/^(present|installed|latest)$/)) {
+        //console.log('ensure present');
+
+        if (!current_state) {
+          console.info('Installing package:', opts.name);
+          exec('apt-get update && apt-get install -y ' + opts.name, function (err, stdout, stderr) {
+            if (err) {
+              console.error('apt-get install failed:', err, stderr);
+            } else {
+              _impl.facts.installed_packages[opts.name] = {};  // next facts run will populate
+            }
+            if (command_complete_cb) command_complete_cb(err, stdout, stderr);
+
+            // TODO: EXTEND USAGE...
+//            utils.callbackEvent(next_step_callback, _impl.facts, {
+//              module: 'package',
+//              object: opts.name,
+//              msg: 'install ' + (err ? err : 'ok')
+//            });
+            _impl.qEvent({
+              module: 'package',
+              object: opts.name,
+              msg: 'install ' + (err ? err : 'ok')
+            });
+            deferred.resolve();
+
+          });
+
+        } else if (opts.ensure === 'latest') {
+          // LATEST
+          if (current_state.version !== current_state.candidate) {
+            //console.info('Upgrading package:', opts.name);
+            exec('apt-get upgrade -y ' + opts.name, function (err, stdout, stderr) {
+              if (err) {
+                console.error('apt-get upgrade failed:', err, stderr);
+              }
+              if (command_complete_cb) command_complete_cb(err, stdout, stderr);
+
+//              utils.callbackEvent(next_step_callback, _impl.facts, {
+//                module: 'package',
+//                object: opts.name,
+//                msg: 'upgrade ' + (err ? err : 'ok')
+//              });
+
+              _impl.qEvent({
+                 module: 'package',
+                object: opts.name,
+                msg: 'upgrade ' + (err ? err : 'ok')
+              });
+              deferred.resolve();
+            });
+          } else {
+            //next_step_callback();
+            deferred.resolve();
+          }
+
+        } else {
+//          next_step_callback();
+          deferred.resolve();
+        }
+
+      } else if (opts.ensure.match(/^(absent|purged)$/)) {
+        // ABSENT / PURGED
+        //console.log('current_state:', current_state);
+
+        if (current_state) {
+          console.info('Removing package:', opts.name);
+
+          exec('apt-get purge -y ' + opts.name, function (err, stdout, stderr) {
+            if (err) {
+              console.error('apt-get purge failed:', err, stderr);
+            } else {
+              delete _impl.facts.installed_packages[opts.name];
+            }
+            if (command_complete_cb) command_complete_cb(err, stdout, stderr);
+//            utils.callbackEvent(next_step_callback, _impl.facts, {
+//              module: 'package',
+//              object: opts.name,
+//              msg: 'uninstall ' + (err ? err : 'ok')
+//            });
+            _impl.qEvent({
+              module: 'package',
+              object: opts.name,
+              msg: 'uninstall ' + (err ? err : 'ok')
+            });
+            deferred.resolve();
+          });
+
+        } else {
+//          next_step_callback();
+          deferred.resolve();
+        }
+
+      } else {
+        console.error('package module does not support ensure option value of:', opts.ensure);
+//        next_step_callback();
+        deferred.resolve();
+      }
+
+    }) // current_state
+    .done();
+
+  }, {immediate: true});
 });
-
-
 
 
 Package.getStatus = function (name) {
@@ -146,142 +270,48 @@ Package.getStatus = function (name) {
   return deferred.promise;
 };
 
-Package.runAction = function (_impl, next_step_callback, title, opts, command_complete_cb) {
-  var self = this;
-  //console.log('package debian arguments:', arguments);
-  //console.log('package action self:', typeof(self));
-  //console.log('package action called next_step_callback:', next_step_callback);
 
-  // fix env for non-interactive apt commands
-  process.env.DEBIAN_FRONTEND = "noninteractive";
-  process.env.APT_LISTBUGS_FRONTEND = "none";
-  process.env.APT_LISTCHANGES_FRONTEND = "none";
-
-  Package.getStatus.call(self, opts.name)
-  .then(function (current_state) {
-    //console.log(opts.name, 'b4 ensure current_state:', current_state, 'ensure:', opts.ensure);
-    // PRESENT / INSTALLED / LATEST
-    if (opts.ensure.match(/^(present|installed|latest)$/)) {
-      //console.log('ensure present');
-
-      if (!current_state) {
-        console.info('Installing package:', opts.name);
-        exec('apt-get update && apt-get install -y ' + opts.name, function (err, stdout, stderr) {
-          if (err) {
-            console.error('apt-get install failed:', err, stderr);
-          } else {
-            _impl.facts.installed_packages[opts.name] = {};  // next facts run will populate
-          }
-          if (command_complete_cb) command_complete_cb(err, stdout, stderr);
-
-          // TODO: EXTEND USAGE...
-          utils.callbackEvent(next_step_callback, _impl.facts, {
-            module: 'package',
-            object: opts.name,
-            msg: 'install ' + (err ? err : 'ok')
-          });
-
-        });
-
-      } else if (opts.ensure === 'latest') {
-        // LATEST
-        if (current_state.version !== current_state.candidate) {
-          //console.info('Upgrading package:', opts.name);
-          exec('apt-get upgrade -y ' + opts.name, function (err, stdout, stderr) {
-            if (err) {
-              console.error('apt-get upgrade failed:', err, stderr);
-            }
-            if (command_complete_cb) command_complete_cb(err, stdout, stderr);
-
-            utils.callbackEvent(next_step_callback, _impl.facts, {
-              module: 'package',
-              object: opts.name,
-              msg: 'upgrade ' + (err ? err : 'ok')
-            });
-          });
-        } else {
-          next_step_callback();
-        }
-
-      } else {
-        next_step_callback();
-      }
-
-    } else if (opts.ensure.match(/^(absent|purged)$/)) {
-      // ABSENT / PURGED
-      //console.log('current_state:', current_state);
-
-      if (current_state) {
-        console.info('Removing package:', opts.name);
-
-        exec('apt-get purge -y ' + opts.name, function (err, stdout, stderr) {
-          if (err) {
-            console.error('apt-get purge failed:', err, stderr);
-          } else {
-            delete _impl.facts.installed_packages[opts.name];
-          }
-          if (command_complete_cb) command_complete_cb(err, stdout, stderr);
-          utils.callbackEvent(next_step_callback, _impl.facts, {
-            module: 'package',
-            object: opts.name,
-            msg: 'uninstall ' + (err ? err : 'ok')
-          });
-        });
-
-      } else {
-        next_step_callback();
-      }
-
-    } else {
-      console.error('package module does not support ensure option value of:', opts.ensure);
-      next_step_callback();
-    }
-
-  }) // current_state
-  .done();
-};
-
-Package.getFacts = function (facts_so_far) {
-  var self = this,
-    facts = {},
-    packages = {},
-    deferred = Q.defer(),
-    cmd = '';
-  //console.log('facts_so_far:', facts_so_far);
-
-  // get installed packages for this OS
-
-  // Debian-like OS's
-  exec('dpkg -l | tail -n +6', function (err, stdout, stderr) {
-    if (err) {
-      console.log('exec of dpkg -l failed:', err, stderr);
-      deferred.resolve({});
-    } else {
-      //console.log('stdout:', stdout);
-      var lines = stdout.split(/\r?\n/);
-      _.forEach(lines, function (line) {
-        line = line.trim();
-        if (line === '') {
-          return;
-        }
-        var fields = line.split(/\s+/, 4);
-        //console.log('fields:', fields);
-        var p_obj = {
-          name: fields[1],
-          version: fields[2],
-          arch: fields[3],
-          provider: 'apt'
-        };
-        //facts['package:' + fields[1]] = p_obj;
-        packages[fields[1]] = p_obj;
-      });
-      facts.installed_packages = packages;
-
-      deferred.resolve(facts);
-    }
-  });
-
-  return deferred.promise;
-};
+//Package.getFacts = function (facts_so_far) {
+//  var self = this,
+//    facts = {},
+//    packages = {},
+//    deferred = Q.defer(),
+//    cmd = '';
+//  //console.log('facts_so_far:', facts_so_far);
+//
+//  // get installed packages for this OS
+//
+//  // Debian-like OS's
+//  exec('dpkg -l | tail -n +6', function (err, stdout, stderr) {
+//    if (err) {
+//      console.log('exec of dpkg -l failed:', err, stderr);
+//      deferred.resolve({});
+//    } else {
+//      //console.log('stdout:', stdout);
+//      var lines = stdout.split(/\r?\n/);
+//      _.forEach(lines, function (line) {
+//        line = line.trim();
+//        if (line === '') {
+//          return;
+//        }
+//        var fields = line.split(/\s+/, 4);
+//        //console.log('fields:', fields);
+//        var p_obj = {
+//          name: fields[1],
+//          version: fields[2],
+//          arch: fields[3],
+//          provider: 'apt'
+//        };
+//        //facts['package:' + fields[1]] = p_obj;
+//        packages[fields[1]] = p_obj;
+//      });
+//      facts.installed_packages = packages;
+//
+//      deferred.resolve(facts);
+//    }
+//  });
+//
+//  return deferred.promise;
+//};
 
 module.exports = Package;

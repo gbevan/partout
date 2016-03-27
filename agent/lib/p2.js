@@ -39,6 +39,10 @@ var console = require('better-console'),
     utils = new (require('./utils'))();
 
 Q.longStackSupport = true;
+Q.onerror = function (err) {
+  console.error(err);
+  console.error(err.stack);
+};
 
 var init_impl = function _impl() {  },
     empty_impl = Object.create(init_impl);
@@ -371,6 +375,7 @@ var P2 = function () {
     self.facts = GLOBAL.p2.facts;
     //_modules = require('./modules')();
     module_promise = require('./modules')();
+
   } else {
     self.facts = {
       p2module: {}
