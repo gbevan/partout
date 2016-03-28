@@ -58,45 +58,63 @@ var Service = P2M.Module(module.filename, function () {
       facts = {},
       services = {},
       cmd = '';
-  //console.log('redhat getFacts()');
+    //console.log('redhat getFacts()');
 
-  //utils.execToArray('/usr/bin/gdbus call --system --dest org.freedesktop.systemd1 --object-path /org/freedesktop/systemd1 --method org.freedesktop.systemd1.Manager.ListUnits')
-  utils.execToArray('/usr/bin/systemctl list-units *.service | grep "\.service"')
-  .then(function (res) {
-    //console.log('res:', res);
-    var u_lines = res.outlines;
-    //console.log('u_lines:', u_lines);
+    //utils.execToArray('/usr/bin/gdbus call --system --dest org.freedesktop.systemd1 --object-path /org/freedesktop/systemd1 --method org.freedesktop.systemd1.Manager.ListUnits')
+    utils.execToArray('/usr/bin/systemctl list-units *.service | grep "\.service"')
+    .then(function (res) {
+      //console.log('res:', res);
+      var u_lines = res.outlines;
+      //console.log('u_lines:', u_lines);
 
-    /*
-     * parse each line for status
-     * e.g.
-     * sshd.service                           loaded active running OpenSSH server daemon
-     */
-    var services = {};
-    u_lines.forEach(function (ul) {
-      var ul_m = ul.match(/^(\S+)\s+(\w+)\s+(\w+)\s+(\w+)\s+(.*)/);
-      if (ul_m) {
-        var u_name = ul_m[1],
-            u_desired = ul_m[3],
-            u_status = ul_m[4];
-        services[u_name] = {
-          desired: u_desired,
-          actual: u_status,
-          provider: 'systemd'
-        };
-      }
-    });
-    deferred.resolve({services: services});
+      /*
+       * parse each line for status
+       * e.g.
+       * sshd.service                           loaded active running OpenSSH server daemon
+       */
+      var services = {};
+      u_lines.forEach(function (ul) {
+        var ul_m = ul.match(/^(\S+)\s+(\w+)\s+(\w+)\s+(\w+)\s+(.*)/);
+        if (ul_m) {
+          var u_name = ul_m[1],
+              u_desired = ul_m[3],
+              u_status = ul_m[4];
+          services[u_name] = {
+            desired: u_desired,
+            actual: u_status,
+            provider: 'systemd'
+          };
+        }
+      });
+      deferred.resolve({services: services});
+    })
+    .fail(function (err) {
+      console.error('Service getFacts failed:', err, '\n', err.stacktrace);
+      deferred.resolve();
+    })
+    .done();
   })
-  .fail(function (err) {
-    console.error('Service getFacts failed:', err, '\n', err.stacktrace);
+
+  ///////////////
+  // Run Action
+  .action(function (args) {
+
+    var deferred = args.deferred,
+        //inWatchFlag = args.inWatchFlag,
+        _impl = args._impl,
+        title = args.title,
+        opts = args.opts,
+        command_complete_cb = args.cb, // cb is policy provided optional call back on completion
+        errmsg = '';
+
+    utils.dlog('Service redhat: in action TODO: ############################ name:', opts.name, 'ensure:', opts.ensure);
+
     deferred.resolve();
-  })
-  .done();
-  });
+  }, {immediate: true}); // action
 
 });
 
+/*
 Service.prototype.runAction = function (_impl, next_step_callback, title, opts, command_complete_cb) {
   var self = this;  // self is _impl
 
@@ -107,6 +125,6 @@ Service.prototype.runAction = function (_impl, next_step_callback, title, opts, 
     msg: 'TODO runAction'
   });
 };
-
+*/
 
 module.exports = Service;

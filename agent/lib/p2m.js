@@ -121,12 +121,12 @@ P2M.prototype.action = function (fn, action_args) {
 
   if (action_args.immediate) {
     self.runAction = function (_impl, next_step_callback, inWatchFlag, title, opts, cb) {
-      console.warn('P2M in runAction()');
+      utils.dlog('P2M in runAction()');
 
       var deferred = Q.defer();
 
       utils.dlog('p2m runAction (immediate) calling fn (action) title: %s opts: %s', title, u.inspect(opts, {colors: true, depth: 2}));
-      fn({
+      fn.call(self, {
         deferred: deferred,
         inWatchFlag: inWatchFlag,
         _impl: _impl,

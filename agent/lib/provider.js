@@ -152,8 +152,8 @@ Provider.prototype.getProvider = function (facts, filename) {
  */
 Provider.prototype._runAction = function (_impl, next_step_callback, inWatchFlag, title, opts, cb) {
   var self = this;
-  console.log('runAction filename:', self.moduleFileName);
-  console.warn('provider runAction self:', self, 'stack:', (new Error().stack));
+  utils.dlog('runAction filename:', self.moduleFileName);
+  utils.dlog('provider runAction self:', self, 'stack:', (new Error().stack));
 
   self.getProvider(_impl.facts, self.moduleFileName)
   .then(function (PM) {

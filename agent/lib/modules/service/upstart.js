@@ -34,7 +34,6 @@ var P2M = require('../../p2m'),
     u = require('util');
 
 Q.longStackSupport = true;
-
 Q.onerror = function (err) {
   console.error(err);
   console.error(err.stack);
@@ -143,7 +142,7 @@ Service.getFacts = function (facts_so_far) {
  * @param   {string} name Service name
  * @returns {object} Promise
  */
-Service.setEnabled = function (name) {
+Service.prototype.setEnabled = function (name) {
   return Q.nfcall(fs.unlink, '/etc/init/' + name + '.override');
 };
 
@@ -152,7 +151,7 @@ Service.setEnabled = function (name) {
  * @param   {string} name Service name
  * @returns {object} Promise
  */
-Service.setDisabled = function (name) {
+Service.prototype.setDisabled = function (name) {
   return Q.nfcall(fs.writeFile, '/etc/init/' + name + '.override', 'manual\n');
 };
 

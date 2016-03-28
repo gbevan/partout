@@ -74,7 +74,155 @@ var Service = P2M.Module(module.filename, function () {
 
   })
 
-  ;
+  ///////////////
+  // Run Action
+  .action(function (args) {
+
+    var self = this,
+        deferred = args.deferred,
+        //inWatchFlag = args.inWatchFlag,
+        _impl = args._impl,
+        title = args.title,
+        opts = args.opts,
+        command_complete_cb = args.cb, // cb is policy provided optional call back on completion
+        errmsg = '',
+        cmd = '';
+
+    utils.dlog('Package yum: in action ############################ name:', opts.name, 'ensure:', opts.ensure);
+
+    self.getStatus(opts.name)
+    .done(function (status) {
+      //console.log('service status:', status, 'opts.provider:', opts.provider);
+
+      if (!status) {
+        console.error('No status determined for service:', opts.name);
+        deferred.resolve();
+        return;
+      }
+
+      var deferred_enabled = Q.defer();
+
+      if (opts.enabled) {
+        if (status.desired !== 'start') {
+          if (status.provider === 'sysv') {
+            deferred_enabled.resolve(sysv.setEnabled(opts.name));
+
+          } else if (status.provider === 'upstart') {
+            deferred_enabled.resolve(upstart.setEnabled(opts.name));
+
+          } else {
+            console.error('Unsupported provider reported for debian service status:', status.provider);
+            deferred_enabled.resolve();
+          }
+        } else {
+          deferred_enabled.resolve();
+        }
+
+      } else { // disable
+        if (status.desired !== 'stop') {
+          if (status.provider === 'sysv') {
+            deferred_enabled.resolve(sysv.setDisabled(opts.name));
+
+          } else if (status.provider === 'upstart') {
+            deferred_enabled.resolve(upstart.setDisabled(opts.name));
+
+          } else {
+            console.error('Unsupported provider reported for debian service status:', status.provider);
+            deferred_enabled.resolve();
+          }
+        } else {
+          deferred_enabled.resolve();
+        }
+      }
+
+      deferred_enabled.promise
+      .done(function () {
+
+        if (opts.ensure === 'stopped') {
+          if (status.actual === 'running') {
+            cmd = 'service ' + opts.name + ' stop';
+            utils.pExec(cmd)
+            .fail(function (err) {
+              console.error('Service command failed: ', cmd);
+              console.error(err.stack);
+//              utils.callbackEvent(next_step_callback, _impl.facts, {
+//                module: 'service',
+//                object: opts.name,
+//                msg: 'service stop failed: ' + err
+//              });
+              _impl.qEvent({
+                module: 'service',
+                object: opts.name,
+                msg: 'service stop failed: ' + err
+              });
+              deferred.resolve();
+            })
+            .done(function () {
+//              utils.callbackEvent(next_step_callback, _impl.facts, {
+//                module: 'service',
+//                object: opts.name,
+//                msg: 'stopped'
+//              });
+              _impl.qEvent({
+                module: 'service',
+                object: opts.name,
+                msg: 'stopped'
+              });
+              deferred.resolve();
+            });
+          } else {
+//            next_step_callback();
+            deferred.resolve();
+          }
+
+        } else if (opts.ensure === 'running') {
+          if (status.actual !== 'running') {
+            cmd = 'service ' + opts.name + ' start';
+            utils.pExec(cmd)
+            .fail(function (err) {
+              console.error('Service command failed: ', cmd);
+//              utils.callbackEvent(next_step_callback, _impl.facts, {
+//                module: 'service',
+//                object: opts.name,
+//                msg: 'service start failed: ' + err
+//              });
+              _impl.qEvent({
+                module: 'service',
+                object: opts.name,
+                msg: 'service start failed: ' + err
+              });
+              deferred.resolve();
+            })
+            .done(function () {
+//              utils.callbackEvent(next_step_callback, _impl.facts, {
+//                module: 'service',
+//                object: opts.name,
+//                msg: 'started'
+//              });
+              _impl.qEvent({
+                module: 'service',
+                object: opts.name,
+                msg: 'started'
+              });
+              deferred.resolve();
+            });
+          } else {
+//            next_step_callback();
+            deferred.resolve();
+          }
+
+        } else {
+          console.error('ensure ' + opts.ensure + ' not supported');
+//          next_step_callback(); // when finished
+          deferred.resolve();
+        }
+
+      }); // deferred_enabled
+
+    });
+
+
+  }, {immediate: true}); // action
 
 });
 
@@ -130,102 +278,7 @@ Service.runAction = function (_impl, next_step_callback, title, opts, command_co
 
   //console.warn('IN RUNACTION Service Debian self:', self);
 
-  Service.getStatus(opts.name)
-  .done(function (status) {
-    //console.log('service status:', status, 'opts.provider:', opts.provider);
-    var deferred_enabled = Q.defer();
 
-    if (opts.enabled) {
-      if (status.desired !== 'start') {
-        if (status.provider === 'sysv') {
-          deferred_enabled.resolve(sysv.setEnabled(opts.name));
-
-        } else if (status.provider === 'upstart') {
-          deferred_enabled.resolve(upstart.setEnabled(opts.name));
-
-        } else {
-          console.error('Unsupported provider reported for debian service status:', status.provider);
-          deferred_enabled.resolve();
-        }
-      } else {
-        deferred_enabled.resolve();
-      }
-
-    } else { // disable
-      if (status.desired !== 'stop') {
-        if (status.provider === 'sysv') {
-          deferred_enabled.resolve(sysv.setDisabled(opts.name));
-
-        } else if (status.provider === 'upstart') {
-          deferred_enabled.resolve(upstart.setDisabled(opts.name));
-
-        } else {
-          console.error('Unsupported provider reported for debian service status:', status.provider);
-          deferred_enabled.resolve();
-        }
-      } else {
-        deferred_enabled.resolve();
-      }
-    }
-
-    deferred_enabled.promise
-    .done(function () {
-
-      if (opts.ensure === 'stopped') {
-        if (status.actual === 'running') {
-          cmd = 'service ' + opts.name + ' stop';
-          utils.pExec(cmd)
-          .fail(function (err) {
-            console.error('Service command failed: ', cmd);
-            console.error(err.stack);
-            utils.callbackEvent(next_step_callback, _impl.facts, {
-              module: 'service',
-              object: opts.name,
-              msg: 'service stop failed: ' + err
-            });
-          })
-          .done(function () {
-            utils.callbackEvent(next_step_callback, _impl.facts, {
-              module: 'service',
-              object: opts.name,
-              msg: 'stopped'
-            });
-          });
-        } else {
-          next_step_callback();
-        }
-
-      } else if (opts.ensure === 'running') {
-        if (status.actual !== 'running') {
-          cmd = 'service ' + opts.name + ' start';
-          utils.pExec(cmd)
-          .fail(function (err) {
-            console.error('Service command failed: ', cmd);
-            utils.callbackEvent(next_step_callback, _impl.facts, {
-              module: 'service',
-              object: opts.name,
-              msg: 'service start failed: ' + err
-            });
-          })
-          .done(function () {
-            utils.callbackEvent(next_step_callback, _impl.facts, {
-              module: 'service',
-              object: opts.name,
-              msg: 'started'
-            });
-          });
-        } else {
-          next_step_callback();
-        }
-
-      } else {
-        console.error('ensure ' + opts.ensure + ' not supported');
-        next_step_callback(); // when finished
-      }
-
-    }); // deferred_enabled
-
-  });
 
 };
 

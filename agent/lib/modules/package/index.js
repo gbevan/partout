@@ -85,6 +85,8 @@ var Package = P2M.Module(module.filename, function () {
     deferred.resolve(facts);
   })
 
+  ////////////////
+  // Action
   .action(function (args) {
     var deferred = args.deferred,
         _impl = args._impl,
@@ -94,8 +96,12 @@ var Package = P2M.Module(module.filename, function () {
         errmsg = '';
     utils.dlog('Package index: in action ############################');
 
+    // defaults
     if (!opts.name) {
       opts.name = title;
+    }
+    if (!opts.ensure) {
+      opts.ensure = 'latest';
     }
 
     deferred.resolve();

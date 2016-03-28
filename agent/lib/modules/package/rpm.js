@@ -184,7 +184,7 @@ var Package = P2M.Module(module.filename, function () {
     */
 
     deferred.resolve();
-  });
+  }, {immediate: true}); // action
 
 });
 

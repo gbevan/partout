@@ -2,7 +2,7 @@
     Partout [Everywhere] - Policy-Based Configuration Management for the
     Data-Driven-Infrastructure.
 
-    Copyright (C) 2016  Graham Lee Bevan <graham.bevan@ntlworld.com>
+    Copyright (C) 2016 Graham Lee Bevan <graham.bevan@ntlworld.com>
 
     This file is part of Partout.
 
@@ -81,33 +81,49 @@ var Service = P2M.Module(module.filename, function () {
         }
       }
     };
-    self._getDefaultProvider(facts_so_far);
+    //self._getDefaultProvider(facts_so_far);
     deferred.resolve(facts);
   })
 
-  ;
+  ////////////////
+  // Action
+  .action(function (args) {
+    var deferred = args.deferred,
+        _impl = args._impl,
+        title = args.title,
+        opts = args.opts,
+        command_complete_cb = args.cb, // cb is policy provided optional call back on completion
+        errmsg = '';
+    utils.dlog('Service index: in action ############################');
+
+    opts.name = (opts.name ? opts.name : title);
+    opts.ensure = (opts.ensure ? opts.ensure : 'stopped');
+    opts.enabled = (opts.enabled !== undefined ? opts.enabled : (opts.ensure === 'running' ? true : false));
+
+    if (!utils.vetOps('Service', opts, {
+      name: true,
+      ensure: true,
+      enabled: true
+    }) ) {
+      deferred.resolve();
+      return;
+    }
+
+    deferred.resolve();
+  });
 
 });
 
 
-Service.prototype._getDefaultProvider = function (facts, opts) {
-  var self = this;
+Service.prototype.setProvider = function (facts) {
+  if (facts.os_family === 'debian') {
+    return 'debian';
 
-  if (!opts) {
-    opts = {};
+  } else if (facts.os_family === 'redhat') {
+    return 'redhat';
   }
 
-  // Choose default providers (if not manually provided in policy)
-  if (!opts.provider) {
-    if (facts.os_family === 'debian') {
-      opts.provider = 'debian';
-
-    } else if (facts.os_family === 'redhat') {
-      opts.provider = 'redhat';
-    }
-  }
-  self.provider = opts.provider;
-  utils.dlog('service index provider:', self.provider);
+  return null;
 };
 
 /*

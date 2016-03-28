@@ -75,7 +75,7 @@ p2
   return false;
 })
 
-.package('mariadb-server', { ensure: 'absent' })
+//.package('mariadb-server', { ensure: 'absent' })
 //.package('mariadb-server')
 .package('mariadb-server', { ensure: 'latest' })
 .exec('echo AFTER mariadb latest')
@@ -86,8 +86,13 @@ p2
 .exec('echo "CHAINING OK"');
 
 p2
-//.select(function (f) { return f.os_type.toLowerCase() === 'linux'; })
-.exec('echo before select b4 cron')
+.select(function (f) { return f.os_type.toLowerCase() === 'linux'; })
+
+.exec('echo before ntp service stop/start')
+.service('ntp', {ensure: 'stopped'})
+.service('ntp', {ensure: 'running'})
+
+//.exec('echo before select b4 cron')
 //.select(function () { return true; })
 .exec('echo before cron')
 .service('cron')

@@ -120,7 +120,7 @@ var Package = P2M.Module(module.filename, function () {
 
     Package.getStatus.call(self, opts.name)
     .then(function (current_state) {
-      //console.log(opts.name, 'b4 ensure current_state:', current_state, 'ensure:', opts.ensure);
+      utils.dlog(opts.name, 'b4 ensure current_state:', current_state, 'ensure:', opts.ensure);
       // PRESENT / INSTALLED / LATEST
       if (opts.ensure.match(/^(present|installed|latest)$/)) {
         //console.log('ensure present');
@@ -270,48 +270,5 @@ Package.getStatus = function (name) {
   return deferred.promise;
 };
 
-
-//Package.getFacts = function (facts_so_far) {
-//  var self = this,
-//    facts = {},
-//    packages = {},
-//    deferred = Q.defer(),
-//    cmd = '';
-//  //console.log('facts_so_far:', facts_so_far);
-//
-//  // get installed packages for this OS
-//
-//  // Debian-like OS's
-//  exec('dpkg -l | tail -n +6', function (err, stdout, stderr) {
-//    if (err) {
-//      console.log('exec of dpkg -l failed:', err, stderr);
-//      deferred.resolve({});
-//    } else {
-//      //console.log('stdout:', stdout);
-//      var lines = stdout.split(/\r?\n/);
-//      _.forEach(lines, function (line) {
-//        line = line.trim();
-//        if (line === '') {
-//          return;
-//        }
-//        var fields = line.split(/\s+/, 4);
-//        //console.log('fields:', fields);
-//        var p_obj = {
-//          name: fields[1],
-//          version: fields[2],
-//          arch: fields[3],
-//          provider: 'apt'
-//        };
-//        //facts['package:' + fields[1]] = p_obj;
-//        packages[fields[1]] = p_obj;
-//      });
-//      facts.installed_packages = packages;
-//
-//      deferred.resolve(facts);
-//    }
-//  });
-//
-//  return deferred.promise;
-//};
 
 module.exports = Package;
