@@ -1,6 +1,8 @@
 Anatomy of a Partout Module
 ===========================
 
+![Module Internal Flow](Partout_Agent_Provider_P2M_Module_DSL.jpg "Module Internal Flow")
+
 Partout modules (also called P2 Modules) are defined by executing P2M.Module() and creating a DSL-like set of method handlers, namely: name(), facts() and action().
 
 Simple example from the File module:
