@@ -166,7 +166,8 @@ P2M.prototype.action = function (fn, action_args) {
         var deferred = Q.defer();
 
         utils.dlog('p2m addStep calling fn (action) title: %s opts: %s', title, u.inspect(opts, {colors: true, depth: 2}));
-        fn({
+
+        fn.call(self, {
           deferred: deferred,
           inWatchFlag: inWatchFlag,
           _impl: _impl,
