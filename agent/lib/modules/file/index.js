@@ -485,7 +485,7 @@ File.prototype._opt_owner = function (file, opts, stats, _impl) {
     .done(function (usid) {  // UID or SID (windows)
       utils.dlog('file index usid:', usid);
 
-      if (usid !== stats.uid) {
+      if (usid !== stats.uid.toString()) {
         utils.vlog('File: owner', stats.uid, 'should be', usid);
         pfs.pChown(file, usid, stats.gid)
         .done(function () {
@@ -528,7 +528,7 @@ File.prototype._opt_group = function (file, opts, stats, _impl) {
     pfs.pGetGid(opts.group)
     .done(function (gsid) {  // GID or SID (windows)
 
-      if (gsid !== stats.gid) {
+      if (gsid !== stats.gid.toString()) {
         utils.vlog('File: group', stats.gid, 'should be', gsid);
         pfs.pChown(file, stats.uid, gsid)
         .done(function () {
