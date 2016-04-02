@@ -42,17 +42,17 @@ Q.onerror = function (err) {
  * get list of modules (either .js or folders.
  */
 var modules_top = _.remove(
-    fs.readdirSync(mydir), // TODO: walk?
-    function (m) {
-      var f = path.join(mydir, m),
-        isDir = fs.statSync(f).isDirectory();
-      if (isDir) {
-        return m != 'facts';
-      } else {
-        return m.match(/\.js$/) !== null && m !== 'index.js' && m != 'facts.js';
-      }
+  fs.readdirSync(mydir), // TODO: walk?
+  function (m) {
+    var f = path.join(mydir, m),
+      isDir = fs.statSync(f).isDirectory();
+    if (isDir) {
+      return m != 'facts';
+    } else {
+      return m.match(/\.js$/) !== null && m !== 'index.js' && m != 'facts.js';
     }
-  );
+  }
+);
 
 var modules = modules_top.map(function (m) {
   if (m.match(/\.js$/)) {
@@ -70,9 +70,9 @@ modules.unshift('facts/index.js');
 module.exports = function (facts) {
   // dynamically load modules
   var _exports = {},
-    deferred = Q.defer(),
-    facts_promises = [],
-    facts_funcs = [];
+      deferred = Q.defer(),
+      facts_promises = [],
+      facts_funcs = [];
 
 //  if (!facts || typeof(facts) !== 'object') {
 //    var err = new Error('ERROR: modules loaded without a facts object');
