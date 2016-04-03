@@ -79,6 +79,8 @@ var Facts = P2M.Module(module.filename, function () {
       platform: process.platform,
       arch: process.arch,
 
+      argv: process.argv,
+
       gid: (process.getgid ? process.getgid() : undefined),
       uid: (process.getuid ? process.getuid() : undefined),
       egid: (process.getegid ? process.getegid() : undefined),

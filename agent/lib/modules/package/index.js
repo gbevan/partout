@@ -27,7 +27,9 @@ var /*Provider = require('../../provider'),*/
     console = require('better-console'),
     u = require('util'),
     utils = new (require('../../utils.js'))(),
-    P2M = require('../../p2m');
+    P2M = require('../../p2m'),
+    npm = new (require('./npm'))(),
+    Q = require('q');
 
 // Q.longStackSupport = true;
 
@@ -74,15 +76,22 @@ var Package = P2M.Module(module.filename, function () {
   ////////////////
   // Gather facts
   .facts(function (deferred, facts_so_far) {
-    var facts = {
-      p2module: {
+
+    // get npm pkgs
+    npm.getFacts(facts_so_far)
+    .done(function (facts) {
+//      if (!facts) {
+//        facts = {};
+//      }
+
+      facts.p2module = {
         package: {
           loaded: true
         }
-      }
-    };
-    //self._getDefaultProvider(facts_so_far);  // superceded by setProvider
-    deferred.resolve(facts);
+      };
+      //console.log('package facts:', facts);
+      deferred.resolve(facts);
+    });
   })
 
   ////////////////
@@ -110,6 +119,9 @@ var Package = P2M.Module(module.filename, function () {
 });
 
 Package.prototype.setProvider = function (facts) {
+  var self = this;
+  utils.dlog('Package setProvider() self:', self);
+  utils.dlog('Package setProvider() self.provider:', self.provider);
   if (facts.os_family === 'debian') {
     return 'apt';
 

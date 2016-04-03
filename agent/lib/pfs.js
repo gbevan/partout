@@ -285,4 +285,12 @@ Pfs.prototype.pGetGid = function (name) {
   return deferred.promise;
 };
 
+/**
+ * Resolve path to node executing this instance of the partout agent
+ * @returns {string} node dirname
+ */
+Pfs.prototype.resolveNodeDir = function () {
+  return path.dirname(process.argv[0]);
+};
+
 module.exports = Pfs;

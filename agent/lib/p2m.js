@@ -159,6 +159,11 @@ P2M.prototype.action = function (fn, action_args) {
       cb = opts;
       opts = {};
     }
+
+    if (opts.provider) {
+      self.provider = opts.provider;
+    }
+
     utils.dlog('p2m addStep opts: %s', u.inspect(opts, {colors: true, depth: 2}));
 
     if (_impl.ifNode()) {

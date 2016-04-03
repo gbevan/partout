@@ -10,7 +10,8 @@ var assert = require('assert'),
     cfg = new (require('../etc/partout_agent.conf.js'))(),
     Ssl = require('../lib/ssl'),
     Q = require('q'),
-    pfs = new (require('../lib/pfs'))();
+    pfs = new (require('../lib/pfs'))(),
+    path = require('path');
 
 GLOBAL.should = require('should');
 should.extend();
@@ -19,9 +20,10 @@ describe('Ssl', function () {
   console.log('in Ssl');
 
   var ssl,
-    pemCA,
-    pemIntCA,
-    pemServer;
+      pemCA,
+      pemIntCA,
+      pemServer,
+      sslTestDir = path.join(cfg.PARTOUT_VARDIR, 'ssl-test');
 
   before(function () {
     ssl = new Ssl(cfg);
@@ -35,11 +37,11 @@ describe('Ssl', function () {
   });
   describe('set/getSslDir', function () {
     it ('should set and return the test SSL Dir', function (done) {
-      ssl.setSslDir('./etc/ssl-test');
-      ssl.getSslDir().should.eql('./etc/ssl-test');
+      ssl.setSslDir(sslTestDir);
+      ssl.getSslDir().should.eql(sslTestDir);
 
       // remove ssl-test folder and contents before rest of tests
-      rmdir('./etc/ssl-test', function (err, dirs, files) {
+      rmdir(sslTestDir, function (err, dirs, files) {
         //console.log( dirs );
         //console.log( files );
         //console.log( 'all files are removed' );
@@ -69,8 +71,9 @@ describe('Ssl', function () {
 
   describe('genCsr()', function () {
     it('should create a certificate signing request (csr)', function (done) {
+      this.timeout(20000);
 
-      pfs.pExists('./etc/ssl-test')
+      pfs.pExists(sslTestDir)
 
       .then(function (sslDirExists) {
         if (sslDirExists) {

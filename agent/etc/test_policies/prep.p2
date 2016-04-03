@@ -1,0 +1,36 @@
+/*jslint node: true */
+'use strict';
+/*global p2, P2*/
+
+/*
+ * Prepare an agent node for unit-testing with gulp/mocha
+ */
+
+p2
+
+.package('gulp', {
+  ensure: 'absent',
+  provider: 'npm'
+})
+
+.package('gulp-cli', {
+  ensure: 'latest',
+  provider: 'npm'
+})
+
+//.package('gulp-mocha', {
+//  ensure: 'latest',
+//  provider: 'npm'
+//})
+//
+//.package('gulp-load-plugins', {
+//  ensure: 'latest',
+//  provider: 'npm'
+//})
+//
+//.package('gulp-util', {
+//  ensure: 'latest',
+//  provider: 'npm'
+//})
+
+.end();

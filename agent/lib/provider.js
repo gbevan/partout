@@ -192,7 +192,7 @@ Provider.prototype._getFacts = function (facts_so_far) {
   .then(function (PM) {
     utils.dlog('Provider PM:', PM);
     if (!PM) {
-      deferred.resolve();
+      deferred.resolve({});
       return;
     }
     utils.dlog('Provider getFacts resolved PM (try 1):', PM);

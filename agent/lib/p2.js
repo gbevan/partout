@@ -342,7 +342,12 @@ var P2 = function () {
   //self._impl.sendevent = GLOBAL.p2_agent_opts.app.sendevent;
 
   self._impl.qEvent = function (o) {
-   GLOBAL.p2_agent_opts.app.master.qEvent(self.facts, o);
+    if (GLOBAL.p2_agent_opts.app) {
+      var master =  GLOBAL.p2_agent_opts.app.master;
+      master.qEvent(self.facts, o);
+    } else {
+      console.info('Partout Event:', o);
+    }
   };
 
   /**

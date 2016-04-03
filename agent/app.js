@@ -317,6 +317,8 @@ var serve = function (args, master) {
     res.send('Partout Agent API...\n\r');
   });
 
+  require('./lib/api/routes')(router, cfg);
+
   app.use('/', router);
 
   //console.log('before https server');

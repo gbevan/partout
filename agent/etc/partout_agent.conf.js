@@ -48,6 +48,8 @@ var Cfg = function () {
     notify_alive_period_secs: 60 * 60 * 24  // TODO: code agent alive msgs
   };
 
+  self.partout_agent_permit_mocha_api = true;
+
 };
 
 module.exports = Cfg;
