@@ -2,7 +2,8 @@
 'use strict';
 
 var path = require('path'),
-    os = require('os');
+    os = require('os'),
+    isInTest = typeof global.it === 'function';  // in Mocha test?
 
 var Cfg = function () {
   var self = this;
@@ -24,7 +25,11 @@ var Cfg = function () {
       throw new Error('Unsupported version of Windows');
     }
   } else {
-    self.PARTOUT_VARDIR = '/var/opt/partout';
+    if (isInTest) {
+      self.PARTOUT_VARDIR = '/tmp/var/opt/partout';
+    } else {
+      self.PARTOUT_VARDIR = '/var/opt/partout';
+    }
   }
   self.PARTOUT_ETCDIR = path.join('.', 'etc');
   self.PARTOUT_MASTER_ETCDIR = 'etc';
