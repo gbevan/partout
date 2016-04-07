@@ -8,6 +8,12 @@ Pure Javascript Data and Event Driven Policy Based Configuration Management for 
 Modules
 -------
 
+* [Facts](./agent/lib/modules/facts/README.md)
+* [Exec](./agent/lib/modules/exec/README.md)
+* [File](./agent/lib/modules/file/README.md)
+* [Package](./agent/lib/modules/package/README.md)
+* [Service](./agent/lib/modules/service/README.md)
+
 ### facts
 Takes no parameters and is called internally before any other modules, to gather facts about the target system.
 
