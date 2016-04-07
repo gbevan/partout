@@ -72,15 +72,19 @@ RemoteTests.prototype.run = function () {
       var deferred = Q.defer();
       test_promises.push(deferred.promise);
 
+      var ca = new (require('../../lib/ca'))();
+
       var options = {
         hostname: remote,
         port: 10444,
         rejectUnauthorized: false, //true,
         requestCert: true,
         agent: false,
+        key: fs.readFileSync(path.join('..', ca.masterApiPrivateKeyFile)),
+        cert: fs.readFileSync(path.join('..', ca.masterApiCertFile)),
         ca: [
-          fs.readFileSync(path.join(cfg.PARTOUT_AGENT_SSL_PUBLIC, 'intermediate_ca.crt')).toString(),
-          fs.readFileSync(path.join(cfg.PARTOUT_AGENT_SSL_PUBLIC, 'root_ca.crt')).toString()
+          fs.readFileSync(path.join('..', cfg.PARTOUT_AGENT_SSL_PUBLIC, 'intermediate_ca.crt')).toString(),
+          fs.readFileSync(path.join('..', cfg.PARTOUT_AGENT_SSL_PUBLIC, 'root_ca.crt')).toString()
         ],
         path: '/mocha',
         method: 'POST'
@@ -94,15 +98,17 @@ RemoteTests.prototype.run = function () {
         });
 
         res.on('end', function () {
+          //console.log('*** res status:', res.statusCode);
+          //console.log('*** data:', data);
           var test_result = JSON.parse(data),
               status = (test_result.err ? 'FAILED' : 'OK');
 
           if (status !== 'OK') {
-            console.error('---------------------------------\n' + remote + ' : ' + status + '\n');
-
+            console.error('---------------------------------\n' + remote + ' : ' + status + ' : ' + res.statusCode);
             console.error(test_result.stdout);
+
           } else {
-            console.info('---------------------------------\n' + remote + ' : ' + status + '\n');
+            console.info('---------------------------------\n' + remote + ' : ' + status + ' : ' + res.statusCode);
           }
 
           //deferred.resolve(u.format('%s: %s', remote, (test_result.err ? 'failed' : 'ok')));

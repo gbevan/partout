@@ -192,10 +192,16 @@ var serve = function (args, master) {
   //console.log('sslCert:', sslCert.toString());
 
   var app = express(),
-    ssl_options = {
-      key: sslKey,
-      cert: sslCert
-    };
+      ssl_options = {
+        key: sslKey,
+        cert: sslCert,
+        ca: [
+          fs.readFileSync(path.join(cfg.PARTOUT_AGENT_SSL_PUBLIC, 'intermediate_ca.crt'), 'utf8'),
+          fs.readFileSync(path.join(cfg.PARTOUT_AGENT_SSL_PUBLIC, 'root_ca.crt'), 'utf8')
+        ],
+        requestCert: true,
+        rejectUnauthorized: false
+      };
 
   master.set_agent_cert(sslKey, sslCert);
   master.set_app(app);

@@ -93,10 +93,10 @@ gulp.task('mocha', function () {
           conMethod(printf(
             '   %-15s %20s %7s %8s %25s : %6s',
             t.remote.slice(0, 15),
-            (t.test_result ? t.test_result.hostname : 'n/a').slice(0, 20),
-            (t.test_result ? t.test_result.arch : 'n/a').slice(0, 7),
-            (t.test_result ? t.test_result.platform : 'n/a').slice(0, 8),
-            (t.test_result ? t.test_result.release : 'n/a').slice(0, 25),
+            (t.test_result && t.test_result.hostname ? t.test_result.hostname : 'n/a').slice(0, 20),
+            (t.test_result && t.test_result.arch ? t.test_result.arch : 'n/a').slice(0, 7),
+            (t.test_result && t.test_result.platform ? t.test_result.platform : 'n/a').slice(0, 8),
+            (t.test_result && t.test_result.release ? t.test_result.release : 'n/a').slice(0, 25),
             t.result
           ));
         });

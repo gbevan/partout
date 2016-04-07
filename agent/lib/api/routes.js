@@ -53,7 +53,30 @@ var routesApi = function (r, cfg, db, controllers, serverMetrics) {
   var self = this,
       nodegulp = path.join(pfs.resolveNodeDir(), 'gulp');
 
-  r.post('/mocha', function (req, res, next) {
+  /**
+   * Middleware: Validate a master request is authorised
+   * @param {object}   req  Request
+   * @param {object}   res  Result
+   * @param {function} next Callback
+   */
+  function requestMasterCertAuthorized (req, res, next) {
+    //console.log('r.mock:', r.mock);
+    //console.log('req.client:', req.client);
+    console.log('requestClientCertAuthorized req.client authorized:', req.client.authorized);
+    if (!req.client.authorized && !r.mock) {
+      console.error('Error: Unauthorised request', req.client.authorizationError);
+      res
+      .status(401)
+      .send({
+        err: true,
+        stdout: 'Master SSL cert denied: ' + req.client.authorizationError + '\n\r'
+      });
+      return;
+    }
+    next();
+  }
+
+  r.post('/mocha', requestMasterCertAuthorized, function (req, res, next) {
     console.warn('REST /mocha called');
 
     pfs.pExists(nodegulp)
@@ -63,6 +86,9 @@ var routesApi = function (r, cfg, db, controllers, serverMetrics) {
 
       console.warn('running cmd:', cmd);
       exec(cmd, function (err, stdout, stderr) {
+        if (err) {
+          console.error(err, stderr);
+        }
         var resobj = {
           platform: os.platform(),
           release: os.release(),
