@@ -1,9 +1,19 @@
 Partout
 =======
 
-Pure Javascript Data and Event Driven Policy Based Configuration Management for the Internet of Everything.
+Pure Javascript/Node.js Data and Event Driven Policy Based Configuration Management for the Internet of Everything.
 
 "Partout" is french for "Everywhere"
+
+\* THIS PROJECT IS UNDER INITIAL DEVELOPMENT AND IS NOT READY FOR \_ANY\_ FORM OF PRODUCTION USE *
+
+Licensed under the GNU General Public License Version 3 (GPLv3).
+
+If you wish to contribute to this Open Source project, please understand that:
+
+    By contributing [patches, pull requests, documentation, etc] to this project you are clearly indicating your assent for inclusion of all contributions to this project under this project's (GPLv3) license.
+
+    You also agree that your contributions do not infringe on any existing copyrighted or patented products to your knowledge.
 
 Modules
 -------
