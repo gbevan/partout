@@ -31,6 +31,7 @@ var P2M = require('../../p2m'),
     u = require('util'),
     pfs = new (require('../../pfs'))(),
     utils = new (require('../../utils'))(),
+    os = require('os'),
     Q = require('q');
 
 Q.longStackSupport = true;
@@ -207,10 +208,7 @@ var Package = P2M.Module(module.filename, function () {
 
 Package.prototype.resolveNpm = function () {
   var deferred = Q.defer(),
-      npm = path.join(
-        pfs.resolveNodeDir(),
-        'npm'
-      );
+      npm = path.join(pfs.resolveNodeDir(), 'npm');
 
   pfs.pExists(npm)
   .done(function (exists) {
@@ -235,6 +233,7 @@ Package.prototype.getStatus = function (name) {
 
   exec(cmd, function (err, stdout, stderr) {
     if (err) {
+      utils.dlog(u.format('exec of `%s`:', cmd), err, stderr);
       if (err.code !== 1) {
         console.log(u.format('exec of `%s`:', cmd), err, stderr);
       }

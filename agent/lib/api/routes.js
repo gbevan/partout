@@ -30,7 +30,7 @@ var console = require('better-console'),
     //Mustache = require('mustache'),
     //Q = require('q'),
     express = require('express'),
-    //os = require('os'),
+    os = require('os'),
     exec = require('child_process').exec,
     path = require('path'),
     utils = new (require('../utils'))(),
@@ -51,26 +51,30 @@ var console = require('better-console'),
 // FIXME: restrict to authorised master (via ssl cert)
 var routesApi = function (r, cfg, db, controllers, serverMetrics) {
   var self = this,
-      gulp = path.join(pfs.resolveNodeDir(), 'gulp'),
-      cmd = u.format('"%s" mocha', gulp);
+      nodegulp = path.join(pfs.resolveNodeDir(), 'gulp');
 
   r.post('/mocha', function (req, res, next) {
     console.warn('REST /mocha called');
 
-    exec(cmd, function (err, stdout, stderr) {
-      if (err) {
-        console.log('exec: ' + cmd + ', err:', err, 'stderr', stderr, 'stdout:', stdout);
-        res.send({
+    pfs.pExists(nodegulp)
+    .done(function (exists) {
+      var gulp = (exists ? nodegulp : 'gulp'),
+          cmd = u.format('%s mocha', gulp);
+
+      console.warn('running cmd:', cmd);
+      exec(cmd, function (err, stdout, stderr) {
+        var resobj = {
+          platform: os.platform(),
+          release: os.release(),
+          type: os.type(),
+          arch: os.arch(),
+          hostname: os.hostname(),
           err: err,
           stderr: stderr,
           stdout: stdout
-        });
-
-      } else {
-        res.send({
-          stdout: stdout
-        });
-      }
+        };
+        res.send(resobj);
+      });
     });
 
   });

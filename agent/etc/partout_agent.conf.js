@@ -2,11 +2,14 @@
 'use strict';
 
 var path = require('path'),
-    os = require('os'),
-    isInTest = typeof global.it === 'function';  // in Mocha test?
+    os = require('os');
 
 var Cfg = function () {
-  var self = this;
+  var self = this,
+      isInTest = typeof GLOBAL.it === 'function';  // in Mocha test?
+
+//  console.log('isInTest:', isInTest);
+//  console.log('GLOBAL.it:', GLOBAL.it);
 
   self.partout_master_hostname = 'officepc.net';
   self.partout_master_port = 10443;
@@ -53,6 +56,10 @@ var Cfg = function () {
     notify_alive_period_secs: 60 * 60 * 24  // TODO: code agent alive msgs
   };
 
+  /*
+   * Enable the /mocha REST API for real-time unit-testing during development
+   * !!!THIS MUST BE DISABLED FOR PRODUCTION!!!
+   */
   self.partout_agent_permit_mocha_api = true;
 
 };

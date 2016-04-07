@@ -131,6 +131,46 @@ node bin\partout-agent --debug
 
 firewall may need opening from windows nodes to permit node.js to talk to master's network.
 
+Distributed Unit Testing
+------------------------
+
+Once the test endpoints have been prepped the Agent's Mocha unit-testing REST API can be enabled by setting the following in the agents' partout_agent.conf.js file:
+
+    /*
+     * Enable the /mocha REST API for real-time unit-testing during development
+     * !!!THIS MUST BE DISABLED FOR PRODUCTION!!!
+     */
+    self.partout_agent_permit_mocha_api = true;
+
+Next copy file ```.test_remotes.example``` to ```.test_remotes``` and edit it with the hostnames or IP addresses
+of your target test endpoints.
+
+Test by running the following command in the agent subfolder:
+
+    gulp mocha
+
+all being well you should get a summary report of the unit-tests like:
+
+    Unit Test Summary:
+    ==================
+
+       Remote                      Hostname    Arch Platform                   Release : Result
+       ------                      --------    ---- --------                   ------- : ------
+       *LOCAL                  officepc.net     x64    linux            3.18.12-gentoo :     OK
+       pi3                      raspberrypi     arm    linux                4.1.18-v7+ :     OK
+       172.16.0.131                     ub1     x64    linux         3.13.0-77-generic :     OK
+       172.16.0.132     co7.openstack.local     x64    linux     3.10.0-327.el7.x86_64 :     OK
+       192.168.0.132         Grahams_laptop     x64    win32                10.0.10586 :     OK
+
+    ----
+
+You can set gulp to watch your project's agent source files for changes and to run this suite of unit-tests
+every time you make a change to a file, by running:
+
+    gulp watch-mocha
+
+
+
 COPYRIGHT
 ---------
    ```

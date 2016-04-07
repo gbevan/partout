@@ -39,6 +39,7 @@ describe('Ssl', function () {
     it ('should set and return the test SSL Dir', function (done) {
       ssl.setSslDir(sslTestDir);
       ssl.getSslDir().should.eql(sslTestDir);
+      console.log('ssl dir:', ssl.getSslDir());
 
       // remove ssl-test folder and contents before rest of tests
       rmdir(sslTestDir, function (err, dirs, files) {

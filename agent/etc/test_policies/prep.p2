@@ -8,15 +8,23 @@
 
 p2
 
-.package('gulp', {
-  ensure: 'absent',
-  provider: 'npm'
-})
+//.package('gulp', {
+//  ensure: 'absent',
+//  provider: 'npm'
+//})
 
+//.node(function (f) { return f.os_family !== 'windows'; })
 .package('gulp-cli', {
   ensure: 'latest',
   provider: 'npm'
 })
+
+//.node(function (f) { return f.os_family === 'windows'; })
+//.package('gulp', {
+//  ensure: 'latest',
+//  provider: 'npm'
+//})
+
 
 //.package('gulp-mocha', {
 //  ensure: 'latest',
