@@ -149,7 +149,7 @@ Test by running the following command in the agent subfolder:
 
     gulp mocha
 
-all being well you should get a summary report of the unit-tests like:
+all being well you should get a summary report of the unit-tests something like:
 
     Unit Test Summary:
     ==================

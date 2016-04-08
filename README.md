@@ -1,7 +1,7 @@
 Partout
 =======
 
-Pure Javascript/Node.js Data and Event Driven Policy Based Configuration Management for the Internet of Everything.
+The goal is to develop a pure Javascript/Node.js Data and Event Driven Policy Based Configuration Management tool for the Internet of Everything.
 
 "Partout" is french for "Everywhere"
 
@@ -9,9 +9,24 @@ Pure Javascript/Node.js Data and Event Driven Policy Based Configuration Managem
 
 Licensed under the GNU General Public License Version 3 (GPLv3).
 
-If you wish to contribute to this Open Source project, please understand that:
+If you wish (and indeed you are invited) to contribute to this Open Source project, please understand that:
 
     By contributing [patches, pull requests, documentation, etc] to this project you are clearly indicating your assent for inclusion of your contributions to this project under this project's (GPLv3) license and agree that your contributions do not infringe on any existing copyrighted or patented products to your knowledge.
+
+Platforms
+---------
+
+Platforms currently being developed and tested on are:
+* Gentoo linux
+* Ubuntu Linux
+* CentOS Linux
+* Microsoft Windows 10
+* Raspberry Pi3 (Raspbian 8 jessie)
+
+Agent and Unit-Testing Policies
+-------------------------------
+
+* See [Agent Readme](./agent/README.md)
 
 Modules
 -------
@@ -22,19 +37,6 @@ Modules
 * [Package](./agent/lib/modules/package/README.md)
 * [Service](./agent/lib/modules/service/README.md)
 
-### facts
-Takes no parameters and is called internally before any other modules, to gather facts about the target system.
-
-If any module contains a method called getFacts, it will be called during fact discovery, prior to module execution.
-
-### exec
-Execute commands.
-
-### file
-Manage files, includes the [Mustache](https://github.com/janl/mustache.js) templating library.
-
-Discovered facts are made available to the templating engine.
-
 P2 Language - Policy Files
 --------------------------
 
@@ -44,102 +46,14 @@ p2 is a globally instantiated object from the P2 class.
 
 Anatomy of a Module
 -------------------
-(see docs/Anatomy_of_a_module.md)
-
-* The constructor must be documented using jsdoc, with details of how the module isused. e.g.:
-```javascript
-    /**
-     * @constructor
-     * @description
-     * Exec module
-     * ===========
-     *
-     *     p2.node([...])
-     *       .exec('a command', options, function (err, stdout, stderr) { ... });
-     *
-     * Options (from https://nodejs.org/api/child_process.html):
-     *
-     *   | Operand    | Type   | Description                                                |
-     *   |:-----------|--------|:-----------------------------------------------------------|
-     *   | cwd        | String | Current working directory of the child process |
-     *   | env        | Object | Environment key-value pairs |
-     *   | encoding   | String | (Default: 'utf8') |
-     *   | shell      | String | Shell to execute the command with (Default: '/bin/sh'
-     *   |            |        | on UNIX, 'cmd.exe' on Windows, The shell should understand |
-     *   |            |        | the -c switch on UNIX or /s /c on Windows. On Windows, |
-     *   |            |        | command line parsing should be compatible with cmd.exe.) |
-     *   | timeout    | Number | (Default: 0) |
-     *   | maxBuffer  | Number | (Default: 200*1024) |
-     *   | killSignal | String | (Default: 'SIGTERM') |
-     *   | uid        | Number | Sets the user identity of the process. (See setuid(2).) |
-     *   | gid        | Number | Sets the group identity of the process. (See setgid(2).) |
-     * ...
-     */
-```
-
-* Must provide method getName() which simply returns the P2 DSL command name, e.g.:
-```javascript
-    Exec.getName = function () { return 'exec'; };
-```
-
-* May optionally provide method getFacts() which will be called prior to P2 policy executions, to pre-gather facts. e.g.:
-```javascript
-    Exec.getFacts = function (facts_so_far) {
-      var facts = {};
-      facts.exec_loaded = true;
-      return facts;
-    };
-```
-
-  The passed facts_so_far parameter holds all the facts that have been gathered so far.  The facts.js module runs before all other modules to ensure it's facts are available.
-
-* The module's constructor is called with the parameters passed from the P2 policy, e.g.:
-```javascript
-    p2
-    .exec('runthis_cmd > newfile', {
-      creates: 'newfile'
-    }, function () {
-      ... called when cmd has been run ...
-    })
-    ...
-```
-
-  The constructor in this case looks like this:
-```javascript
-    var Exec = function (cmd, opts, command_complete_cb) {
-      var self = this;  // self is parents _impl
-      ...
-
-      return self;
-    };
-```
-
-  The ```this``` (saved as ```self``` here) object is the P2 _impl object that provides the DSL, and MUST be returned by the constructor, as this passes on the DSL _impl for the next directive in the P2 policy.
-
-* All actions initiated by the module's constructor MUST be pushed on the P2 _impl stack for serialised execution using the provided push_action() method, e.g.:
-
-      self.push_action(function (next_step_callback) {
-
-  The next_step_callback() is called to allow P2 DSL to move onto it's next serialised action for the policy.  It can be used to send a notification event back to the master on completion of this action, e.g.:
-```javascript
-      next_step_callback({
-        module: 'exec',
-        object: opts.creates,
-        msg: 'target (re)created'
-      });
-```
-
-  *NB: Be mindful that, even though actions are executed in a serialised manner by P2, they are actually being executed asyncronously and require that the next_step_callback() be called to move P2 onto the next action (or completion).
-
-* If you need to do template expansion, use the provided Mustache library.
-
+* See [Anatomy of a Module](./docs/Anatomy_of_a_module.md)
 
 DEVELOPMENT
 -----------
 
 ### LXD/LXC Agents
 
-*NB: Guests using systemd are not currently supported.
+*NB: Guests using systemd are not currently supported if running lxd containers unpriviledged.
 
 #### Ubuntu Trusty
 ```bash
