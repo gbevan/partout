@@ -11,9 +11,9 @@ Manage System Services
 
 Options:
 
-  | Operand    | Type    | Description                                                |
-  |:-----------|---------|:-----------------------------------------------------------|
-  | name       | String  | Name of the service to manage (defaults to title) |
-  | ensure     | String  | stopped, running (defaults to stopped) |
-  | enable     | Boolean | true, false |
-  | provider   | String  | Override backend provider e.g.: debian, redhat, etc |
+| Operand    | Type    | Description                                                |
+|:-----------|---------|:-----------------------------------------------------------|
+| name       | String  | Name of the service to manage (defaults to title) |
+| ensure     | String  | stopped, running (defaults to stopped) |
+| enable     | Boolean | true, false |
+| provider   | String  | Override backend provider e.g.: debian, redhat, etc |

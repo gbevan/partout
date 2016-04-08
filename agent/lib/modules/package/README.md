@@ -12,8 +12,8 @@ Manage System Packages
 
 Options:
 
-  | Operand    | Type    | Description                                                |
-  |:-----------|---------|:-----------------------------------------------------------|
-  | name       | String  | Package name to install (defaults to title) |
-  | ensure     | String  | present/installed, absent/purged, latest (default is present) |
-  | provider   | String  | Override backend provider e.g.: apt, yum, rpm, etc |
+| Operand    | Type    | Description                                                |
+|:-----------|---------|:-----------------------------------------------------------|
+| name       | String  | Package name to install (defaults to title) |
+| ensure     | String  | present/installed, absent/purged, latest (default is present) |
+| provider   | String  | Override backend provider e.g.: apt, yum, rpm, etc |
