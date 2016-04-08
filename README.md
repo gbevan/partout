@@ -17,11 +17,14 @@ Platforms
 ---------
 
 Platforms currently being developed and tested on are:
+
 * Gentoo linux
 * Ubuntu Linux
 * CentOS Linux
 * Microsoft Windows 10
 * Raspberry Pi3 (Raspbian 8 jessie)
+
+(see Agent and Unit-Testing Policies below...)
 
 Prerequisites
 -------------
