@@ -23,6 +23,11 @@ Platforms currently being developed and tested on are:
 * Microsoft Windows 10
 * Raspberry Pi3 (Raspbian 8 jessie)
 
+Prerequisites
+-------------
+* Node.js v4 or above
+* ArangoDB (master only)
+
 Agent and Unit-Testing Policies
 -------------------------------
 
@@ -102,6 +107,12 @@ On OpenStack guests:
 ```bash
 ??????:/home/????/Documents/Brackets/partout/agent  /opt/partout/agent nfs defaults,ro,intr 0 0
 ```
+
+Design / Proposal / Brain-Storm Documents
+-----------------------------------------
+
+* [PoC bootstrapping agents over a RESTful API](./agent/docs/shell_rest_notes.md)
+* [Agent Event Sending Algorythmic Statistical Backoff for Scalability](./docs/Event_Sending_Statistical_Backoff.md)
 
 ----
 
