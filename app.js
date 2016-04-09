@@ -44,8 +44,9 @@ var console = require('better-console'),
     ca = new (require('./lib/ca'))(),
     Q = require('q'),
     cfg = new (require('./etc/partout.conf.js'))(),
-    arangojs = require('arangojs'),
-    db = arangojs({promise: Q.promise}),
+    //arangojs = require('arangojs'),
+    //db = arangojs({promise: Q.promise}),
+    db = new (require('./lib/db.js'))(cfg),
     Csr = require('./server/controllers/csr.js'),
     Agent = require('./server/controllers/agent.js'),
     utils = new (require('./agent/lib/utils'))(),
@@ -61,42 +62,6 @@ var App = function () {
 
 };
 
-
-/**
- * Connect to the Partout Arango database, creating it if it doesnt
- * exist. Set as active database.
- * @memberof App
- */
-var connectDb = function () {
-  var deferred = Q.defer();
-  // get list of databases
-  db.listUserDatabases()
-  .then(function (databases) {
-    //console.warn('list databases:', databases);
-
-    // Test if db exists
-    var dbExists = (databases.filter(function (d) {
-      return d === cfg.database_name;
-    }).length > 0);
-    //console.warn('db exists:', dbExists);
-
-    if (!dbExists) {
-      // Create the database
-      db.createDatabase('partout')
-      .then(function(info) {
-        //console.warn('create info:', info);
-        db.useDatabase(cfg.database_name);
-        deferred.resolve('created');
-      });
-    } else {
-      db.useDatabase(cfg.database_name);
-      deferred.resolve('opened');
-    }
-  });
-  return deferred.promise;
-};
-
-
 /**
  * Initialise partout server database
  * @memberof App
@@ -107,12 +72,12 @@ var init = function () {
   console.info('Initialising...\n');
   utils.print_banner();
 
-  connectDb()
+  db.connect()
   .then(function () {
 
     // Init ArangoDB Collections
-    var csr = new Csr(db);
-    var agent = new Agent(db);
+    var csr = new Csr(db.getDb());
+    var agent = new Agent(db.getDb());
 
     csr.init()
     .then(function () {
@@ -182,7 +147,7 @@ var serve = function () {
       console.info('Master API SSL fingerprint (SHA256):\n' + master_fingerprint);
       console.info(new Array(master_fingerprint.length + 1).join('='));
 
-      connectDb()
+      db.connect()
       .then(function (status) {
         //console.log('db:', status);
 
@@ -190,8 +155,8 @@ var serve = function () {
         //console.warn('db:',db);
 
         var controllers = {
-          'csr': new Csr(db),
-          'agent': new Agent(db)
+          'csr': new Csr(db.getDb()),
+          'agent': new Agent(db.getDb())
         };
         controllers.csr.init();  // create collections if req'd. returns a promise
         controllers.agent.init();  // create collections if req'd. returns a promise
@@ -233,7 +198,7 @@ var serve = function () {
         appApi.use(bodyParser.json({limit: '50mb'}));
         appApi.use(bodyParser.urlencoded({ extended: true }));
 
-        require('./lib/api/routes')(routerApi, cfg, db, controllers, serverMetrics);
+        require('./lib/api/routes')(routerApi, cfg, db.getDb(), controllers, serverMetrics);
 
         appApi.use('/', routerApi);
         appApi.use(express.static('public'));
@@ -276,7 +241,7 @@ var serve = function () {
         appUi.use(bodyParser.json());
         appUi.use(bodyParser.urlencoded({ extended: true }));
 
-        require('./lib/ui/routes')(routerUi, cfg, db, controllers, serverMetrics);
+        require('./lib/ui/routes')(routerUi, cfg, db.getDb(), controllers, serverMetrics);
 
         appUi.use('/', routerUi);
         appUi.use(express.static('public'));
@@ -300,12 +265,12 @@ module.exports = function (opts) {
     serve(opts.args);
 
   } else if (opts.csr) {
-    //console.log('csr args:', opts.args);
+    console.log('csr args:', opts.args);
 
-    connectDb()
+    db.connect()
     .then(function (status) {
-      //console.log('csr db:', status);
-      var csr = new Csr(db),
+      console.log('csr db:', status);
+      var csr = new Csr(db.getDb()),
         key;
 
       if (opts.args.length === 0) {
@@ -313,6 +278,7 @@ module.exports = function (opts) {
       }
 
       if (opts.args[0] === 'list') {  // partout csr list
+        console.log('in list');
         csr.all()
         .then(function (csrList) {
           //console.log('csrList:', csrList);

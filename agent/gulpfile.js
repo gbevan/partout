@@ -13,7 +13,9 @@ var gulp = require('gulp'),
     Q = require('q'),
     u = require('util'),
     printf = require('printf'),
-    os = require('os');
+    os = require('os'),
+    watch = require('gulp-watch'),
+    batch = require('gulp-batch');
 
 var env = process.env.NODE_ENV || 'development';
 console.log('Invoking gulp -', env);
@@ -108,7 +110,18 @@ gulp.task('mocha', function () {
 });
 
 gulp.task('watch-mocha', function () {
-  gulp.watch(['app.js', 'lib/**', 'test/**'], ['mocha']);
+  watch([
+    'gulpfile.js',
+    'app.js',
+    'lib/**',
+    'test/**'
+  ], {
+    ignoreInitial: false,
+    verbose: false,
+    readDelay: 1500 // filter duplicate changed events from Brackets
+  }, batch(function (events, done) {
+    gulp.start('mocha', done);
+  }));
 });
 
 gulp.task('docs', function (cb) {

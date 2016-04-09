@@ -4,7 +4,8 @@
 var os = require('os');
 
 var Cfg = function () {
-  var self = this;
+  var self = this,
+      isInTest = typeof GLOBAL.it === 'function';  // in Mocha test?
 
   //self.partout_master_hostname = '172.17.42.1';
   self.partout_master_hostname = os.hostname;
@@ -14,7 +15,11 @@ var Cfg = function () {
 
   //console.log('env:', process.env.NODE_ENV);
 
-  self.database_name = 'partout';
+  if (isInTest) {
+    self.database_name = 'partout-test';
+  } else {
+    self.database_name = 'partout';
+  }
 
   // Settings
   self.event_rate_divisor = 100;

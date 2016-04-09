@@ -7,7 +7,9 @@ var gulp = require('gulp'),
     gutil = require('gulp-util'),
     plugins = gulpLoadPlugins(),
     jsdoc = require('gulp-jsdoc3'),
-    del = require('del');
+    del = require('del'),
+    watch = require('gulp-watch'),
+    batch = require('gulp-batch');
 
 /*
  * Currently env does not determine the arangodb being selected here, as all
@@ -28,16 +30,29 @@ gulp.task('default', function () {
 
 gulp.task('mocha', function () {
   return gulp.src(['test/**/*.js'], { read: false })
-    .pipe(mocha({
-      reporter: 'spec',
-      globals: {
-        should: require('should').noConflict()
-      }
-    }));
+  .pipe(mocha({
+    reporter: 'spec',
+    globals: {
+      should: require('should').noConflict()
+    }
+  }));
 });
 
 gulp.task('watch-mocha', function () {
-  gulp.watch(['app.js', 'lib/**', 'etc/*.js', 'agent/lib/*.js', 'test/**'], ['mocha']);
+  watch([
+    'gulpfile.js',
+    'app.js',
+    'lib/**',
+    'etc/*.js',
+    'agent/lib/*.js',
+    'test/**'
+  ], {
+    ignoreInitial: false,
+    verbose: false,
+    readDelay: 1500 // filter duplicate changed events from Brackets
+  }, batch(function (events, done) {
+    gulp.start('mocha', done);
+  }));
 });
 
 gulp.task('docs', function (cb) {
