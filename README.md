@@ -1,7 +1,7 @@
 Partout
 =======
 
-The goal is to develop a pure Javascript/Node.js Data and Event Driven Policy Based Configuration Management tool for the Internet of Everything.
+The goal is to develop a pure Javascript/Node.js DevOps Data and Event Driven Policy Based Configuration Management tool for the Internet of Everything.
 
 "Partout" is french for "Everywhere"
 
