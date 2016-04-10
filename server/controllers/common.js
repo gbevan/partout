@@ -24,7 +24,8 @@
 /*jslint node: true, vars: true*/
 'use strict';
 
-var Q = require('q');
+var Q = require('q'),
+    assert = require('assert');
 
 /**
  * Controller Common prototype for collections.
@@ -147,6 +148,26 @@ var Common = function (db, name) {
     deleteAll: function () {
       var self = this;
       return self.collection.truncate();
+    },
+
+    upsert: function (doc) {
+      var self = this;
+      assert(doc !== undefined);
+      assert(doc._key !== undefined && doc._key !== '');
+
+      return self.queryOne({_key: doc._key})
+      .then(function (existing_doc) {
+        if (existing_doc) {
+          // Update
+          doc._id = existing_doc._id;
+          console.warn('updating doc:', doc);
+          return self.update(doc);
+        } else {
+          // create
+          console.warn('creating doc:', doc);
+          return self.save(doc);
+        }
+      });
     }
 
   };

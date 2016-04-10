@@ -121,6 +121,7 @@ describe('Db', function () {
     it ('should exist', function () {
       should(db.getDb).not.be.undefined;
     });
+
     it ('should be a function', function () {
       db.getDb.should.be.a.function;
     });

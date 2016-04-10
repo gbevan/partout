@@ -60,7 +60,7 @@ RemoteTests.prototype.run = function () {
     }
 
     test_remotes_file = test_remotes_file.toString();
-    console.log('test_remotes_file:', test_remotes_file);
+    //console.log('test_remotes_file:', test_remotes_file);
     var remote_list = test_remotes_file.split(/\r?\n/);
     remote_list = remote_list.map(function (v) { return v.trim(); });
 
@@ -104,11 +104,11 @@ RemoteTests.prototype.run = function () {
               status = (test_result.err ? 'FAILED' : 'OK');
 
           if (status !== 'OK') {
-            console.error('---------------------------------\n' + remote + ' : ' + status + ' : ' + res.statusCode);
+            console.error('---------------------------------\n' + remote + ' : ' + status + ' : ' + res.statusCode + ' : ' + test_result.time_taken + ' ms');
             console.error(test_result.stdout);
 
           } else {
-            console.info('---------------------------------\n' + remote + ' : ' + status + ' : ' + res.statusCode);
+            console.info('---------------------------------\n' + remote + ' : ' + status + ' : ' + res.statusCode + ' : ' + test_result.time_taken + ' ms');
           }
 
           //deferred.resolve(u.format('%s: %s', remote, (test_result.err ? 'failed' : 'ok')));

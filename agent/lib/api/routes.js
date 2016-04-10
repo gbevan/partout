@@ -51,7 +51,8 @@ var console = require('better-console'),
 // FIXME: restrict to authorised master (via ssl cert)
 var routesApi = function (r, cfg, db, controllers, serverMetrics) {
   var self = this,
-      nodegulp = path.join(pfs.resolveNodeDir(), 'gulp');
+      nodegulp = path.join(pfs.resolveNodeDir(), 'gulp'),
+      mochaTimeRe = /Finished .* after ([\d\.]+) (ms|s)$/m;
 
   /**
    * Middleware: Validate a master request is authorised
@@ -89,6 +90,17 @@ var routesApi = function (r, cfg, db, controllers, serverMetrics) {
         if (err) {
           console.error(err, stderr);
         }
+        var time_taken = -1;
+        if (stdout) {
+          var r = stdout.match(mochaTimeRe);
+          if (r) {
+            console.log('r:', r);
+            time_taken = parseFloat(r[1]);
+            if (r[2] === 's') {
+              time_taken *= 1000; // convert to ms
+            }
+          }
+        }
         var resobj = {
           platform: os.platform(),
           release: os.release(),
@@ -97,7 +109,8 @@ var routesApi = function (r, cfg, db, controllers, serverMetrics) {
           hostname: os.hostname(),
           err: err,
           stderr: stderr,
-          stdout: stdout
+          stdout: stdout,
+          time_taken: time_taken
         };
         res.send(resobj);
       });

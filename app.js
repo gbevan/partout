@@ -336,7 +336,7 @@ module.exports = function (opts) {
         })
         .done();
 
-      } else if (opts.args[0] === 'reject') { // partout csr reject ...
+      } else if (opts.args[0].match(/^(reject|delete)$/)) { // partout csr reject ...
         if (opts.args.length < 2) {
           console.error('Error missing csr key to reject');
           process.exit(1);
