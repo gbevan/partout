@@ -45,7 +45,7 @@ gulp.task('mocha', function () {
   })
 
   .once('end', function (stat) {
-    console.warn('stat:', stat);
+    //console.warn('stat:', stat);
     //console.info('Starting remote testers...');
     remoteTests.run()
     .then(function (test_promises) {
@@ -59,34 +59,34 @@ gulp.task('mocha', function () {
         console.info('Unit Test Summary:');
         console.info('==================\n');
         console.info(printf(
-            '   %-15s %20s %7s %7s %25s : %15s %s',
+            '   %-15s %20s %7s %7s %25s : %10s %s',
             'Remote'.slice(0, 15),
             'Hostname'.slice(0, 20),
             'Arch'.slice(0, 7),
             'Platform'.slice(0, 8),
             'Release'.slice(0, 25),
-            'Result'.slice(0, 15),
+            'Result'.slice(0, 10),
             'TimeTaken'
           ));
         console.info(printf(
-            '   %-15s %20s %7s %7s %25s : %15s %s',
+            '   %-15s %20s %7s %7s %25s : %10s %s',
             '------'.slice(0, 15),
             '--------'.slice(0, 20),
             '----'.slice(0, 7),
             '--------'.slice(0, 8),
             '-------'.slice(0, 25),
-            '------'.slice(0, 15),
+            '------'.slice(0, 10),
             '---------'
           ));
 
         console.info(printf(
-            '   %-15s %20s %7s %8s %25s : %15s',
+            '   %-15s %20s %7s %8s %25s : %10s',
             '*LOCAL',
             os.hostname().slice(0, 20),
             os.arch().slice(0, 7),
             os.platform().slice(0, 8),
             os.release().slice(0, 25),
-            localStatus.slice(0, 15)
+            localStatus.slice(0, 10)
           ));
 
         test_arr.forEach(function (t) {
@@ -95,13 +95,13 @@ gulp.task('mocha', function () {
             conMethod = console.warn;
           }
           conMethod(printf(
-            '   %-15s %20s %7s %8s %25s : %15s %d ms',
+            '   %-15s %20s %7s %8s %25s : %10s %d ms',
             t.remote.slice(0, 15),
             (t.test_result && t.test_result.hostname ? t.test_result.hostname : 'n/a').slice(0, 20),
             (t.test_result && t.test_result.arch ? t.test_result.arch : 'n/a').slice(0, 7),
             (t.test_result && t.test_result.platform ? t.test_result.platform : 'n/a').slice(0, 8),
             (t.test_result && t.test_result.release ? t.test_result.release : 'n/a').slice(0, 25),
-            t.result.slice(0, 15),
+            t.result.slice(0, 10),
             (isNaN(t.test_result.time_taken) ? -2 : t.test_result.time_taken)
           ));
         });
