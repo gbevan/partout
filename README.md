@@ -16,6 +16,12 @@ If you wish (and indeed you are invited) to contribute to this Open Source proje
     agree that your contributions do not infringe on any existing copyrighted or patented products to your
     knowledge.
 
+Features
+--------
+
+* Integration with operating system provided real-time notification of file system object changes (e.g. linux inotify) to trigger re-scan against policy - real-time repair...
+* Policy files compile to native machine code at runtime (expressed as a DSL in Javascript under Node.js).
+
 Platforms
 ---------
 
