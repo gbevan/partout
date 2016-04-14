@@ -44,7 +44,7 @@ Q.onerror = function (err) {
   console.error(err.stack);
 };
 
-var init_impl = function _impl() {  },
+var init_impl = function _impl() { this._id = '_impl'; },
     empty_impl = Object.create(init_impl);
 
 /**

@@ -27,12 +27,14 @@ var P2M = require('../../p2m'),
     console = require('better-console'),
     _ = require('lodash'),
     exec = require('child_process').exec,
+    spawn = require('child_process').spawn,
     path = require('path'),
     u = require('util'),
     pfs = new (require('../../pfs'))(),
     utils = new (require('../../utils'))(),
     os = require('os'),
-    Q = require('q');
+    Q = require('q'),
+    sArgv = require('string-argv');
 
 Q.longStackSupport = true;
 Q.onerror = function (err) {
@@ -60,14 +62,27 @@ var Package = P2M.Module(module.filename, function () {
 
       // get installed npm packages
 
-      exec(cmd, function (err, stdout, stderr) {
-        if (err) {
-          console.log(u.format('exec of `%s`:', cmd), err, stderr);
-          deferred.resolve({});
+      var stdout = '',
+          stderr = '';
 
-        } else {
-          //console.log('stdout:', stdout);
+      //exec(cmd, function (err, stdout, stderr) {
+      //var cp = exec(cmd, {maxBuffer: 2000 * 1024});
+      var cp = spawn(npm, sArgv.parseArgsStringToArgv('--global ls -json'));
 
+      cp.stdout.on('data', function (data) {
+        stdout += data;
+      });
+
+      cp.stderr.on('data', function (data) {
+        stderr += data;
+      });
+
+      cp.on('close', function (rc) {
+        utils.dlog('>>>>>>>>>>>>>>>>>>>>>>> rc:', rc);
+        utils.dlog('>>>>>>>>>>>>>>>>>>>>>>> stderr:', stderr);
+        utils.dlog('>>>>>>>>>>>>>>>>>>>>>>> stdout:', stdout);
+
+        if (rc === 0) {
           var npm = JSON.parse(stdout);
           //console.log('npm:', u.inspect(npm, {colors: true, depth: 5}));
 
@@ -85,11 +100,17 @@ var Package = P2M.Module(module.filename, function () {
 
           facts.installed_npm_packages = packages;
           //console.log('npm facts:', u.inspect(packages, {colors: true, depth: 5}));
-
-          deferred.resolve(facts);
         }
+
+        deferred.resolve(facts);
       });
-    }); // npm path exists
+
+      cp.on('error', function (err) {
+        console.log(u.format('exec of `%s`:', cmd), err, stderr);
+        deferred.resolve({});
+      });
+
+    }); // resolveNpm
 
   }) // facts
 

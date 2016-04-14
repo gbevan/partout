@@ -194,4 +194,8 @@ Utils.prototype.dlog = function () {
   }
 };
 
+Utils.prototype.escapeBackSlash = function (s) {
+  return s.replace(/\\/g, '\\\\');
+};
+
 module.exports = Utils;

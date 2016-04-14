@@ -29,9 +29,21 @@ gulp.task('default', function () {
   });
 });
 
+gulp.task('mocha1', function () {
+  var localStatus = 'OK';
+  return gulp.src(['test/**/*.js'], { read: false })
+  .pipe(mocha({
+    reporter: 'spec',
+    globals: {
+      should: require('should').noConflict()
+      //inMocha: true
+    }
+  }));
+});
+
 gulp.task('mocha', function () {
   var localStatus = 'OK';
-  return gulp.src(['test/*.js', 'test/*.p2'], { read: false })
+  return gulp.src(['test/**/*.js'], { read: false })
   .pipe(mocha({
     reporter: 'spec',
     globals: {
@@ -54,6 +66,8 @@ gulp.task('mocha', function () {
     })
     .done(function (test_arr) {
       //console.log('test_arr:', test_arr);
+      var conMethod;
+
       if (test_arr) {
         console.info('\n');
         console.info('Unit Test Summary:');
@@ -79,7 +93,11 @@ gulp.task('mocha', function () {
             '---------'
           ));
 
-        console.info(printf(
+        conMethod = console.info;
+        if (localStatus !== 'OK') {
+          conMethod = console.warn;
+        }
+        conMethod(printf(
             '   %-15s %20s %7s %8s %25s : %10s',
             '*LOCAL',
             os.hostname().slice(0, 20),
@@ -90,10 +108,11 @@ gulp.task('mocha', function () {
           ));
 
         test_arr.forEach(function (t) {
-          var conMethod = console.info;
+          conMethod = console.info;
           if (t.result !== 'OK') {
             conMethod = console.warn;
           }
+          //console.log('t:', t);
           conMethod(printf(
             '   %-15s %20s %7s %8s %25s : %10s %d ms',
             t.remote.slice(0, 15),
@@ -102,7 +121,7 @@ gulp.task('mocha', function () {
             (t.test_result && t.test_result.platform ? t.test_result.platform : 'n/a').slice(0, 8),
             (t.test_result && t.test_result.release ? t.test_result.release : 'n/a').slice(0, 25),
             t.result.slice(0, 10),
-            (isNaN(t.test_result.time_taken) ? -2 : t.test_result.time_taken)
+            (t.test_result && !isNaN(t.test_result.time_taken) ? t.test_result.time_taken : -2)
           ));
         });
         console.info('\n----\n');

@@ -17,7 +17,7 @@ GLOBAL.should = require('should');
 should.extend();
 
 describe('Ssl', function () {
-  console.log('in Ssl');
+  //console.log('in Ssl');
 
   var ssl,
       pemCA,
