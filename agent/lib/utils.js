@@ -194,6 +194,28 @@ Utils.prototype.dlog = function () {
   }
 };
 
+/**
+ * Start labelled timer, complete log the time taken by calling tloge(label).
+ * @param {string} label Label for the timer
+ */
+Utils.prototype.tlogs = function (label) {
+  var self = this;
+  if (GLOBAL.partout.opts.timing) {
+    console.time(label);
+  }
+};
+
+/**
+ * End labelled timer (see tlogs()).
+ * @param {string} label Label for the timer
+ */
+Utils.prototype.tloge = function (label) {
+  var self = this;
+  if (GLOBAL.partout.opts.timing) {
+    console.timeEnd(label);
+  }
+};
+
 Utils.prototype.escapeBackSlash = function (s) {
   return s.replace(/\\/g, '\\\\');
 };

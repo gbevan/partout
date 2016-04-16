@@ -84,19 +84,26 @@ module.exports = function (facts) {
     utils.dlog('****************************');
     utils.dlog('loading module file:', m);
     m = './' + m;
+    utils.tlogs('require module ' + m);
     var M = require(m),
         C = new M();
+    utils.tloge('require module ' + m);
     utils.dlog('M:', u.inspect(M, {colors: true, depth: 3}));
     utils.dlog('C:', u.inspect(C, {colors: true, depth: 3}));
 
     if (facts && C.getFacts) {
       facts_funcs.push(function (done) {
 
-        // TDOD: use just one getName()
+        // TODO: use just one getName()
         utils.dlog('modules/index: module instance name:', (C.getName ? C.getName() : M.getName()));
 
+        //if (m.match(/package/)) {
+        //  console.warn('calling getFacts in ' + m + ' from:\n', (new Error().stack));
+        //}
+        utils.tlogs('module ' + m + ' getFacts');
         C.getFacts(facts)
         .then(function (m_facts) {
+          utils.tloge('module ' + m + ' getFacts');
           //utils.dlog('modules/index: module returned facts:', m_facts);
           if (m_facts) {
             _.merge(facts, m_facts);

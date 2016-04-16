@@ -52,7 +52,7 @@ var console = require('better-console'),
 var routesApi = function (r, cfg, db, controllers, serverMetrics) {
   var self = this,
       nodegulp = path.join(pfs.resolveNodeDir(), 'gulp'),
-      mochaTimeRe = /Finished .* after ([\d\.]+) (ms|s)$/m;
+      mochaTimeRe = /Finished .* after ([\d\.]+) (ms|s|min)$/m;
 
   /**
    * Middleware: Validate a master request is authorised
@@ -98,7 +98,11 @@ var routesApi = function (r, cfg, db, controllers, serverMetrics) {
             time_taken = parseFloat(r[1]);
             if (r[2] === 's') {
               time_taken *= 1000; // convert to ms
+            } else if (r[2] === 'min') {
+              time_taken *= 60 * 1000;
             }
+          } else {
+            console.warn('REGEX NOT MATCH stdout:', stdout);
           }
         }
         var resobj = {

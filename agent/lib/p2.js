@@ -146,7 +146,9 @@ var P2 = function () {
   self._impl.end = function (cb) {
     var self = this;
     //console.log('end steps:', self.steps);
+    utils.tlogs('nimble steps');
     nimble.series(self.steps, function () {
+      utils.tloge('nimble steps');
       if (cb) {
         cb();
       }
@@ -374,9 +376,10 @@ var P2 = function () {
   var _modules;
 
   // Use globally cached facts
+  utils.tlogs('require modules');
   var module_promise;
   if (GLOBAL.p2 && GLOBAL.p2.facts) {
-    console.warn('>>> Using cached facts');
+    utils.dlog('>>> Using cached facts');
     self.facts = GLOBAL.p2.facts;
     //_modules = require('./modules')();
     module_promise = require('./modules')();
@@ -391,6 +394,7 @@ var P2 = function () {
 
   module_promise
   .then(function (_modules) {
+    utils.tloge('require modules');
     //console.log('p2 facts:', self.facts);
     self._impl.facts = self.facts;
     if (GLOBAL.p2) {

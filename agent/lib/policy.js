@@ -54,9 +54,14 @@ function Policy(args, opts) {
 
   //GLOBAL.P2M = P2M;
   GLOBAL.P2 = P2;
-  GLOBAL.p2 = new P2();
+  //GLOBAL.p2 = new P2();
+  //console.warn('GLOBAL.p2:', GLOBAL.p2);
+  utils.tlogs('new p2');
   new P2()
   .then(function (p2) {
+    utils.tloge('new p2');
+    //console.warn('new p2:', p2);
+    GLOBAL.p2 = p2;
     //console.log('p2 then:', p2);
 
     /** @global */
@@ -112,7 +117,7 @@ Policy.prototype.apply = function () {
       p2.end(function () {
 
         utils.vlog('### END OF APPLY ################################');
-        console.log('### END OF APPLY ################################ p:', p);
+        //console.log('### END OF APPLY ################################ p:', p);
         deferred.resolve();
       });
     })

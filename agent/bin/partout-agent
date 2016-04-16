@@ -45,6 +45,12 @@ var console = require('better-console'),
         shortName: 'd',
         type: 'bool',
         help: 'Show debugging messages'
+      },
+      {
+        name: 'timing',
+        shortName: 't',
+        type: 'bool',
+        help: 'Show timing log messages'
       }
     ]),
     parser = args.parser(process.argv),
