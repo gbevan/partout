@@ -212,9 +212,9 @@ var serve = function (args, master) {
   app.master_port = cfg.partout_master_port;
 
   // TODO: Move these to config file
-  app.apply_every_mins = 1; // 5
-  app.poll_manifest_every = 6;
-  app.poll_manifest_splay_secs = 30;
+  app.apply_every_mins = 5; // 5
+  app.poll_manifest_every = 3;
+  app.poll_manifest_splay_secs = 30;  // TODO: make this % of apply interval
 
   app.apply_count = 0;  // count for the modulus calc of polls for manifest
   app.apply_site_p2 = cfg.PARTOUT_AGENT_MANIFEST_SITE_P2;
