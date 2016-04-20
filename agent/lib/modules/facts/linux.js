@@ -202,6 +202,9 @@ var Facts = P2M.Module(module.filename, function () {
             }
           }
         });
+        if (facts.os_family === 'unknown' && facts.os_dist_name) {
+          facts.os_family = facts.os_dist_name;
+        }
         //console.log('facts:', facts);
         outer_deferred.resolve(facts);
       })

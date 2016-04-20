@@ -71,6 +71,18 @@ var P2Test = {
     });
 
     return deferred.promise;
+  },
+
+  getP2Facts: function () {
+    var deferred = Q.defer();
+
+    new Policy({}, {daemon: false, showfacts: false})
+    .done(function (policy) {
+      //console.log('facts:', GLOBAL.p2.facts);
+      deferred.resolve(GLOBAL.p2.facts);
+    });
+
+    return deferred.promise;
   }
 
 };

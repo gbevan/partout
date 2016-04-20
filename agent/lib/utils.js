@@ -32,8 +32,10 @@ var console = require('better-console'),
     mkdirp = require('mkdirp'),
     Q = require('q'),
     exec = require('child_process').exec,
+    spawn = require('child_process').spawn,
     _ = require('lodash'),
-    u = require('util');
+    u = require('util'),
+    os = require('os');
 
 Q.longStackSupport = true;
 
@@ -118,12 +120,70 @@ Utils.prototype.execToArray = function (cmd) {
 /**
  * Promisified exec
  * @param   {string} cmd Command to execute
+ * @param   {object} options Options for fs.exec
  * @returns {object} Promise (obj[0,1]=stdout, stderr), rejects with error
  */
-Utils.prototype.pExec = function (cmd) {
-  return Q.nfcall(exec, cmd);
+Utils.prototype.pExec = function (cmd, options) {
+  return Q.nfcall(exec, cmd, options);
 };
 
+/**
+ * Promisified spawn
+ * @param   {string} cmd Command to execute
+ * @param   {object} options Options for fs.exec
+ * @returns {object} Promise (obj[0,1,2]=rc, stdout, stderr), rejects with error
+ */
+Utils.prototype.pSpawn = function (cmd, args, options) {
+  var deferred = Q.defer(),
+      stdout = '',
+      stderr = '',
+      cp = spawn(cmd, args, options);
+
+  cp.on('error', function (err) {
+    deferred.reject(err);
+  });
+
+  cp.stdout.on('data', function (d) {
+    stdout += d;
+  });
+
+  cp.stderr.on('data', function (d) {
+    stderr += d;
+  });
+
+  cp.on('close', function (rc) {
+    //console.log('spawn:\nstdout:', stdout, '\nstderr:', stderr, '\nrc:', rc);
+    deferred.resolve([rc, stdout, stderr]);
+  });
+
+  return deferred.promise;
+};
+
+/**
+ * Run Powershell on windows host
+ * @param   {string}  pscmd Powershell command
+ * @returns {promise} promise (rc, stdout, stderr)
+ */
+Utils.prototype.runPs = function (pscmd) {
+  var self = this;
+  return self.pSpawn(
+    'powershell.exe',
+    [
+      '-ExecutionPolicy',
+      'Bypass',
+      '-command',
+      pscmd
+    ]
+  );
+};
+
+/**
+ * Validate options object
+ * @param   {string}  module    Module name
+ * @param   {object}  opts      Options to be validated
+ * @param   {object}  validopts Options to validate against
+ * @returns {boolean} Options passed validation true/false
+ */
 Utils.prototype.vetOps = function (module, opts, validopts) {
   var ok = true;
   _.forEach(opts, function (v, k) {
@@ -218,6 +278,33 @@ Utils.prototype.tloge = function (label) {
 
 Utils.prototype.escapeBackSlash = function (s) {
   return s.replace(/\\/g, '\\\\');
+};
+
+Utils.prototype.pIsAdmin = function () {
+  var self = this,
+      deferred = Q.defer();
+
+  if (os.platform() === 'win32') {
+    self.pExec('NET SESSION')
+    .fail(function (err) {
+      //console.error('pIsAdmin() NET SESSION err:', err);
+      deferred.resolve(false);
+    })
+    .done(function (res) {
+      var stdout = res[0],
+          stderr = res[1];
+
+      //console.log('pIsAdmin() NET SESSION stdout:', stdout);
+      //console.log('pIsAdmin() NET SESSION stderr:', stderr);
+
+      deferred.resolve(stderr.length === 0);
+    });
+
+  } else {
+    deferred.resolve((process.geteuid ? process.geteuid() : process.getuid()) === 0);
+  }
+
+  return deferred.promise;
 };
 
 module.exports = Utils;

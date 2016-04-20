@@ -78,9 +78,9 @@ var Package = P2M.Module(module.filename, function () {
       });
 
       cp.on('close', function (rc) {
-        utils.dlog('>>>>>>>>>>>>>>>>>>>>>>> rc:', rc);
-        utils.dlog('>>>>>>>>>>>>>>>>>>>>>>> stderr:', stderr);
-        utils.dlog('>>>>>>>>>>>>>>>>>>>>>>> stdout:', stdout);
+        //utils.dlog('>>>>>>>>>>>>>>>>>>>>>>> rc:', rc);
+        //utils.dlog('>>>>>>>>>>>>>>>>>>>>>>> stderr:', stderr);
+        //utils.dlog('>>>>>>>>>>>>>>>>>>>>>>> stdout:', stdout);
 
         if (rc === 0) {
           var npm = JSON.parse(stdout);
