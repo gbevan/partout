@@ -100,7 +100,7 @@ var User = P2M.Module(module.filename, function () {
         errmsg = '';
 
     utils.dlog('user linux: in action ############################ name:', opts.name, 'ensure:', opts.ensure);
-    console.log('user linux: in action ############################ name:', opts.name, 'ensure:', opts.ensure);
+    //console.log('user linux: in action ############################ name:', opts.name, 'ensure:', opts.ensure);
 
     if (opts.ensure.match(/^present$/)) {
       console.warn(u.format('Adding user %s', name));

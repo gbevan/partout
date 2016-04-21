@@ -25,7 +25,7 @@
 
 /*jshint -W030 */
 
-/*global describe, it, should, before*/
+/*global describe, it, should, before, run*/
 var Q = require('q'),
     tmp = require('tmp'),
     fs = require('fs'),
@@ -37,7 +37,11 @@ var Q = require('q'),
     os = require('os'),
     p2Test = require('../../lib/p2_test'),
     console = require('better-console'),
-    linuxUser = require('linux-user');
+    linuxUser;
+
+if (process.platform === 'linux') {
+  linuxUser = require('linux-user');
+}
 
 GLOBAL.should = require('should');
 should.extend();
@@ -47,119 +51,118 @@ Q.longStackSupport = true;
 // Simulate commandline options --verbose, --debug and --timing
 GLOBAL.partout = {opts: {verbose: false, debug: false, timing: false}};
 
-describe('Module user (nonpriviledged tests)', function () {
+var isAdmin = false;
+utils.pIsAdmin()
+.done(function (isA) {
+  isAdmin = isA;
 
-  var facts;
+  describe('Module user', function () {
 
-  before(function (done) {
-    p2Test.getP2Facts()
-    .done(function(newfacts) {
-      facts = newfacts;
-      done();
+    describe('Module user (nonpriviledged tests)', function () {
+
+      var facts;
+
+      before(function (done) {
+        p2Test.getP2Facts()
+        .done(function(newfacts) {
+          facts = newfacts;
+          done();
+        });
+      });
+
+      //////////
+      // facts
+      it('should provide facts', function () {
+        should(facts).not.be.undefined;
+        should(facts.p2module).be.defined;
+        should(facts.p2module.user).be.defined;
+        facts.p2module.user.loaded.should.be.true;
+      });
+
+      if (os.platform() !== 'win32') {
+        it('should provide facts for the root user', function () {
+          //console.log('facts.users', facts.users);
+          should(facts.users).not.be.undefined;
+          should(facts.users.root).be.defined;
+        });
+      } else {
+        it('should provide facts for the Administrator user', function () {
+          //console.log('facts.users', facts.users);
+          should(facts.users).not.be.undefined;
+          should(facts.users.Administrator).be.defined;
+        });
+      }
     });
-  });
 
-  //////////
-  // facts
-  it('should provide facts', function () {
-    should(facts).not.be.undefined;
-    should(facts.p2module).be.defined;
-    should(facts.p2module.user).be.defined;
-    facts.p2module.user.loaded.should.be.true;
-  });
+    describe('Module user (priviledged tests)', function () {
 
-  if (os.platform() !== 'win32') {
-    it('should provide facts for the root user', function () {
-      //console.log('facts.users', facts.users);
-      should(facts.users).not.be.undefined;
-      should(facts.users.root).be.defined;
-    });
-  } else {
-    it('should provide facts for the Administrator user', function () {
-      //console.log('facts.users', facts.users);
-      should(facts.users).not.be.undefined;
-      should(facts.users.Administrator).be.defined;
-    });
-  }
-});
+      ////////////
+      // actions
 
-describe('Module user (priviledged tests)', function () {
+      if (!isAdmin) {
+        it ('should skip user module tests when lacking required priviledges', function () { });
+        return;
+      }
 
-  ////////////
-  // actions
-  var isAdmin = false;
-  before(function (done) {
-    utils.pIsAdmin()
-    .done(function (isA) {
-      isAdmin = isA;
-      done();
-    });
-  });
+      //////////////////////////////
+      // Put priviledged tests here
 
-  //////////////////////////////
-  // Put priviledged tests here
+      var newUser = 'partouttest';
 
-  var newUser = 'partouttest';
-  if (os.platform() !== 'win32') {
-    it('should create test user ' + newUser, function (done) {
-      if (isAdmin) {
-        p2Test.runP2Str(
-          'p2\n' +
-          '.user(\'{{{ newUser }}}\')',
-          {
-            newUser: newUser
-          }
-        )
-        .then(function () {
-          // check user created
-          linuxUser.getUserInfo(newUser, function (err, userInfo) {
-            if (err) {
-              done(err);
-              return;
+      if (process.platform === 'linux') {
+
+        it('should create test user ' + newUser, function (done) {
+          p2Test.runP2Str(
+            'p2\n' +
+            '.user(\'{{{ newUser }}}\')',
+            {
+              newUser: newUser
             }
-            //console.log('new user info:', userInfo);
-            should(userInfo).not.be.undefined;
-            userInfo.username.should.equal(newUser);
+          )
+          .then(function () {
+            // check user created
+            linuxUser.getUserInfo(newUser, function (err, userInfo) {
+              if (err) {
+                done(err);
+                return;
+              }
+              should(userInfo).not.be.undefined;
+              userInfo.username.should.equal(newUser);
 
-            //linuxUser.removeUser(newUser, function (err) {
-            //  should(err).be.null;
               done();
-            //});
+            });
+          })
+          .done(null, function (err) {
+            done(err);
           });
-        })
-        .done(null, function (err) {
-          done(err);
         });
-      } else {
-        console.warn('Skipping tests for user module - lacking priviledges for test');
+
+        it('should remove test user ' + newUser, function (done) {
+          p2Test.runP2Str(
+            'p2\n' +
+            '.user(\'{{{ newUser }}}\', {ensure: \'absent\'})',
+            {
+              newUser: newUser
+            }
+          )
+          .then(function () {
+            // check user created
+            linuxUser.getUserInfo(newUser, function (err, userInfo) {
+              should(err).be.null;
+              should(userInfo).be.null;
+              done();
+            });
+          })
+          .done(null, function (err) {
+            done(err);
+          });
+        });
+
       }
+
     });
 
-    it('should remove test user ' + newUser, function (done) {
-      if (isAdmin) {
-        p2Test.runP2Str(
-          'p2\n' +
-          '.user(\'{{{ newUser }}}\', {ensure: \'absent\'})',
-          {
-            newUser: newUser
-          }
-        )
-        .then(function () {
-          // check user created
-          linuxUser.getUserInfo(newUser, function (err, userInfo) {
-            should(err).be.null;
-            should(userInfo).be.null;
-            done();
-          });
-        })
-        .done(null, function (err) {
-          done(err);
-        });
-      } else {
-        console.warn('Skipping tests for user module - lacking priviledges for test');
-      }
-    });
+    //run();
+  }); // outer describe
 
-  }
-
-});
+}); // isAdmin
