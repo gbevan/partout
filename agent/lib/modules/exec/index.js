@@ -29,7 +29,8 @@ var P2M = require('../../p2m'),
     os = require('os'),
     fs = require('fs'),
     exec = require('child_process').exec,
-    Q = require('q');
+    Q = require('q'),
+    utils = new (require('../../utils'))();
 
 Q.longStackSupport = true;
 Q.onerror = function (err) {
@@ -127,10 +128,10 @@ var Exec = P2M.Module(module.filename, function () {
       cmd = opts.cmd;
     }
 
-    console.log('Exec on node "' + os.hostname() + '", cmd:', cmd, ', opts:', JSON.stringify(opts));
+    utils.vlog('Exec on node "' + os.hostname() + '", cmd:', cmd, ', opts:', JSON.stringify(opts));
 
     function set_watcher(inWatch) {
-      console.log('Exec: inWatch:', inWatch, '_watch_state:', _watch_state, 'GLOBAL.p2_agent_opts.daemon:', GLOBAL.p2_agent_opts.daemon);
+      utils.dlog('Exec: inWatch:', inWatch, '_watch_state:', _watch_state, 'GLOBAL.p2_agent_opts.daemon:', GLOBAL.p2_agent_opts.daemon);
       if (/*!inWatch && */_watch_state && GLOBAL.p2_agent_opts.daemon) {
         console.log('>>> Exec: Starting watcher on file:', opts.creates);
         _impl.P2_unwatch(opts.creates);

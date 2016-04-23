@@ -126,14 +126,14 @@ var Command = P2M.Module(module.filename, function () {
 //      opts.shell = true;
 //    }
 
-    console.log('Command on node "' + os.hostname() + '", cmd:', cmd, ', opts:', JSON.stringify(opts));
+    utils.vlog('Command on node "' + os.hostname() + '", cmd:', cmd, ', opts:', JSON.stringify(opts));
 
 //    var sp_args = stringArgv(cmd);
 //    cmd = sp_args[0];
 //    sp_args.shift();
 
     function set_watcher(inWatch) {
-      console.log('Command: inWatch:', inWatch, '_watch_state:', _watch_state, 'GLOBAL.p2_agent_opts.daemon:', GLOBAL.p2_agent_opts.daemon);
+      utils.dlog('Command: inWatch:', inWatch, '_watch_state:', _watch_state, 'GLOBAL.p2_agent_opts.daemon:', GLOBAL.p2_agent_opts.daemon);
       if (/*!inWatch && */_watch_state && GLOBAL.p2_agent_opts.daemon) {
         console.log('>>> Command: Starting watcher on file:', opts.creates);
         _impl.P2_unwatch(opts.creates);
@@ -166,7 +166,7 @@ var Command = P2M.Module(module.filename, function () {
               stdout = res[1],
               stderr = res[2];
 
-          console.log('rc:', rc, 'stdout:', stdout, 'stderr:', stderr);
+          utils.dlog('rc:', rc, 'stdout:', stdout, 'stderr:', stderr);
           if (stderr) {
             console.error(stderr);
           }

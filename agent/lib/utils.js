@@ -144,11 +144,12 @@ Utils.prototype.pExec = function (cmd, options) {
  * @returns {object}  Promise (obj[0,1,2]=rc, stdout, stderr), rejects with error
  */
 Utils.prototype.pSpawn = function (cmd, args, options, resolve_to_childprocess) {
-  var deferred = Q.defer(),
+  var self = this,
+      deferred = Q.defer(),
       stdout = '',
       stderr = '';
 
-  console.log('pSpawn: cmd:', cmd, 'args:', args, 'options:', options);
+  self.dlog('pSpawn: cmd:', cmd, 'args:', args, 'options:', options);
   var cp = spawn(cmd, args, options);
 
   resolve_to_childprocess = (resolve_to_childprocess ? resolve_to_childprocess : false);
@@ -181,6 +182,13 @@ Utils.prototype.pSpawn = function (cmd, args, options, resolve_to_childprocess) 
   return deferred.promise;
 };
 
+/**
+ * Run shell command (cmd or sh), uses spawn instead of exec
+ * @param   {string}  pscmd                   Shell command
+ * @param   {object}  options                 Options passed to spawn
+ * @param   {boolean} resolve_to_childprocess promise resolves to async ChildProcess
+ * @returns {promise} promise (rc, stdout, stderr), rejects on spawn error
+ */
 Utils.prototype.runCmd = function (shellcmd, options, resolve_to_childprocess) {
   var self = this;
 
@@ -203,10 +211,10 @@ Utils.prototype.runCmd = function (shellcmd, options, resolve_to_childprocess) {
   );
 };
 
-
 /**
  * Run Powershell on windows host
  * @param   {string}  pscmd                   Powershell command
+ * @param   {object}  options                 Options passed to spawn
  * @param   {boolean} resolve_to_childprocess promise resolves to async ChildProcess
  * @returns {promise} promise (rc, stdout, stderr), rejects on spawn error
  */
