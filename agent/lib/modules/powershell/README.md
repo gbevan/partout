@@ -13,6 +13,6 @@ Options (from https://nodejs.org/api/child_process.html#child_process_child_proc
 | uid        | Number | Sets the user identity of the process. (See setuid(2).) |
 | gid        | Number | Sets the group identity of the process. (See setgid(2).) |
 
-will support:
+Also support:
 - creates: 'file' - test file does not exist, otherwise skip.
 - returns: expected return code on error to be ignored.
