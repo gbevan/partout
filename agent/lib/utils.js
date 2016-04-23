@@ -69,6 +69,14 @@ Utils.prototype.getBanner = function () {
   return self.banner;
 };
 
+Utils.prototype.isWin = function () {
+  return process.platform === 'win32';
+};
+
+Utils.prototype.isLinux = function () {
+  return process.platform === 'linux';
+};
+
 /**
  * Execute a shell command and return the results in an array of lines
  * @param {String}  cmd Command to run
@@ -129,15 +137,26 @@ Utils.prototype.pExec = function (cmd, options) {
 
 /**
  * Promisified spawn
- * @param   {string} cmd Command to execute
- * @param   {object} options Options for fs.exec
- * @returns {object} Promise (obj[0,1,2]=rc, stdout, stderr), rejects with error
+ * @param   {string}  cmd                     Command to execute
+ * @param   {array}   args                    Arguments
+ * @param   {object}  options                 Options for fs.spawn
+ * @param   {boolean} resolve_to_childprocess promise resolves to async ChildProcess
+ * @returns {object}  Promise (obj[0,1,2]=rc, stdout, stderr), rejects with error
  */
-Utils.prototype.pSpawn = function (cmd, args, options) {
+Utils.prototype.pSpawn = function (cmd, args, options, resolve_to_childprocess) {
   var deferred = Q.defer(),
       stdout = '',
-      stderr = '',
-      cp = spawn(cmd, args, options);
+      stderr = '';
+
+  console.log('pSpawn: cmd:', cmd, 'args:', args, 'options:', options);
+  var cp = spawn(cmd, args, options);
+
+  resolve_to_childprocess = (resolve_to_childprocess ? resolve_to_childprocess : false);
+
+  if (resolve_to_childprocess) {
+    deferred.resolve(cp);
+    return deferred.promise;
+  }
 
   cp.on('error', function (err) {
     deferred.reject(err);
@@ -152,6 +171,9 @@ Utils.prototype.pSpawn = function (cmd, args, options) {
   });
 
   cp.on('close', function (rc) {
+    stdout = (new Buffer(stdout)).toString('ascii');
+    //console.log('pSpawn: stdout:', stdout);
+    stderr = (new Buffer(stderr)).toString('ascii');
     //console.log('spawn:\nstdout:', stdout, '\nstderr:', stderr, '\nrc:', rc);
     deferred.resolve([rc, stdout, stderr]);
   });
@@ -159,13 +181,41 @@ Utils.prototype.pSpawn = function (cmd, args, options) {
   return deferred.promise;
 };
 
+Utils.prototype.runCmd = function (shellcmd, options, resolve_to_childprocess) {
+  var self = this;
+
+  options = (options ? options : {});
+  //options.shell = false; // force to false
+
+  var args = [];
+  if (self.isWin()) {
+    args = ['/s', '/c'];
+  } else {
+    args = ['-c'];
+  }
+  args.push(shellcmd);
+
+  return self.pSpawn(
+    (self.isWin() ? 'cmd' : 'sh'),
+    args,
+    options,
+    resolve_to_childprocess
+  );
+};
+
+
 /**
  * Run Powershell on windows host
- * @param   {string}  pscmd Powershell command
- * @returns {promise} promise (rc, stdout, stderr)
+ * @param   {string}  pscmd                   Powershell command
+ * @param   {boolean} resolve_to_childprocess promise resolves to async ChildProcess
+ * @returns {promise} promise (rc, stdout, stderr), rejects on spawn error
  */
-Utils.prototype.runPs = function (pscmd) {
+Utils.prototype.runPs = function (pscmd, options, resolve_to_childprocess) {
   var self = this;
+
+  options = (options ? options : {});
+  options.shell = false; // force to false
+
   return self.pSpawn(
     'powershell.exe',
     [
@@ -173,7 +223,9 @@ Utils.prototype.runPs = function (pscmd) {
       'Bypass',
       '-command',
       pscmd
-    ]
+    ],
+    options,
+    resolve_to_childprocess
   );
 };
 
