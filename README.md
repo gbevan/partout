@@ -48,10 +48,12 @@ Agent and Unit-Testing Policies
 Modules
 -------
 
-* [Facts](./agent/lib/modules/facts/README.md)
+* [Command](./agent/lib/modules/command/README.md)
 * [Exec](./agent/lib/modules/exec/README.md)
+* [Facts](./agent/lib/modules/facts/README.md)
 * [File](./agent/lib/modules/file/README.md)
 * [Package](./agent/lib/modules/package/README.md)
+* [Powershell](./agent/lib/modules/poweshell/README.md)
 * [Service](./agent/lib/modules/service/README.md)
 
 P2 Language - Policy Files
