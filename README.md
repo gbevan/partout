@@ -53,7 +53,7 @@ Modules
 * [Facts](./agent/lib/modules/facts/README.md)
 * [File](./agent/lib/modules/file/README.md)
 * [Package](./agent/lib/modules/package/README.md)
-* [Powershell](./agent/lib/modules/poweshell/README.md)
+* [Powershell](./agent/lib/modules/powershell/README.md)
 * [Service](./agent/lib/modules/service/README.md)
 
 P2 Language - Policy Files
