@@ -22,8 +22,18 @@ Features
 * Integration with operating system provided real-time notification of file system object changes (e.g. linux inotify) to trigger re-scan against policy - real-time repair...
 * Policy files compile to native machine code at runtime (expressed as a DSL in Javascript under Node.js).
 
-Platforms
----------
+Master Platforms
+----------------
+
+Currently supporting:
+* Linux
+
+### Prerequisites
+* Node.js v4 or above
+* ArangoDB (master only) - for Gentoo use ebuild overlay https://github.com/gbevan/portage-arangodb-overlay
+
+Agent Platforms
+---------------
 
 Platforms currently being developed and tested on are:
 
@@ -35,10 +45,8 @@ Platforms currently being developed and tested on are:
 
 (see Agent and Unit-Testing Policies below...)
 
-Prerequisites
--------------
+### Prerequisites
 * Node.js v4 or above
-* ArangoDB (master only)
 
 Agent and Unit-Testing Policies
 -------------------------------
