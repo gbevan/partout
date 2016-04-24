@@ -93,7 +93,7 @@ var apply = function (args, opts) {
     //console.log('policy:', policy);
     policy.apply()
     .then(function () {
-      console.log('policy.apply() resolved');
+      utils.dlog('policy.apply() resolved');
       deferred.resolve();
     })
     .done();

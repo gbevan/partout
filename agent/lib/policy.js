@@ -108,7 +108,7 @@ Policy.prototype.apply = function () {
       //console.log('policy p2:', p2);
       GLOBAL.p2 = p2;
       //GLOBAL.P2M = P2M;
-      GLOBAL.P2 = P2;
+      //GLOBAL.P2 = P2;
 
       //console.log('policy abs_a:', abs_a);
       var p = require(abs_a);

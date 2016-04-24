@@ -28,26 +28,18 @@ p2
 p2
 .end(function () {
   console.log('*** FINI ***');
-});
+})
 
-new P2()
 .node('officepc')
 .exec('echo hi new P2')
-.end();
 
-new P2()
 .select(function (f) {
   console.log(f.platform, ':', (f.platform === 'linux'));
   return f.platform === 'linux';
 })
 .exec('echo this is linux')
-.end(function () {
-  console.log('after linux match');
-});
 
-new P2()
 .select(/^off/)
 .exec('echo matched regexp')
-.end(function () {
-  console.log('after regexp');
-});
+
+;

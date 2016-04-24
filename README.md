@@ -67,9 +67,20 @@ Modules
 P2 Language - Policy Files
 --------------------------
 
-P2 is a globally available class for expressing the Partout Domain Specific Language (DSL).
+p2 is a globally instantiated object from the P2 class, which is the agent Domain Specific Declarative Language.
+This is implemented using chained javascript methods - and therefore policies are compiled to native machine code
+at run time.
 
-p2 is a globally instantiated object from the P2 class.
+Typically a policy file takes the form of:
+
+    p2
+    .exec('cmd')
+    .file('file-to-manage', content='whatever {{ Template}}', ...)
+    .powershell('some powershell')
+    ...
+    ;
+
+(See above Modules for details of the directives)
 
 Anatomy of a Module
 -------------------

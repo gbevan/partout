@@ -133,7 +133,7 @@ Provider.prototype.getProvider = function (facts, filename) {
       //console.log('getProvider resolving M:', M.runAction);
       deferred.resolve(M);
     } else {
-      utils.vlog(
+      utils.dlog(
         (self.getName ? self.getName() : 'n/a') + ': Provider not found for this OS');
       deferred.resolve();
     }
