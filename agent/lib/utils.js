@@ -150,6 +150,7 @@ Utils.prototype.pSpawn = function (cmd, args, options, resolve_to_childprocess) 
       stderr = '';
 
   self.dlog('pSpawn: cmd:', cmd, 'args:', args, 'options:', options);
+  //console.log('pSpawn: cmd:', cmd, 'args:', args, 'options:', options);
   var cp = spawn(cmd, args, options);
 
   resolve_to_childprocess = (resolve_to_childprocess ? resolve_to_childprocess : false);
@@ -338,6 +339,10 @@ Utils.prototype.tloge = function (label) {
 
 Utils.prototype.escapeBackSlash = function (s) {
   return s.replace(/\\/g, '\\\\');
+};
+
+Utils.prototype.winEscapeSpaces = function (s) {
+  return s.replace(/ /g, '^ ');
 };
 
 Utils.prototype.pIsAdmin = function () {

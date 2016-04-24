@@ -57,58 +57,69 @@ var Package = P2M.Module(module.filename, function () {
     self.resolveNpm()
     .then(function (npm) {
 
-      var cmd = u.format('"%s" --global ls -json', npm);
+      var cmd = u.format('%s --global ls -json', npm);
       //console.log('cmd:', cmd);
 
       // get installed npm packages
 
       var stdout = '',
-          stderr = '';
+          stderr = '',
+          args = [
+            '--global',
+            'ls',
+            '-json'
+            ];
 
       //exec(cmd, function (err, stdout, stderr) {
       //var cp = exec(cmd, {maxBuffer: 2000 * 1024});
-      var cp = spawn(npm, sArgv.parseArgsStringToArgv('--global ls -json'));
+      //var cp = spawn(npm, args);
+      utils.runCmd(cmd, {}, true)
+      .done(function(cp) {
 
-      cp.stdout.on('data', function (data) {
-        stdout += data;
-      });
+        cp.stdout.on('data', function (data) {
+          stdout += data;
+        });
 
-      cp.stderr.on('data', function (data) {
-        stderr += data;
-      });
+        cp.stderr.on('data', function (data) {
+          stderr += data;
+        });
 
-      cp.on('close', function (rc) {
-        //utils.dlog('>>>>>>>>>>>>>>>>>>>>>>> rc:', rc);
-        //utils.dlog('>>>>>>>>>>>>>>>>>>>>>>> stderr:', stderr);
-        //utils.dlog('>>>>>>>>>>>>>>>>>>>>>>> stdout:', stdout);
+        cp.on('close', function (rc) {
+          utils.dlog('>>>>>>>>>>>>>>>>>>>>>>> rc:', rc);
+          //console.log('>>>>>>>>>>>>>>>>>>>>>>> rc:', rc);
+          utils.dlog('>>>>>>>>>>>>>>>>>>>>>>> stderr:', stderr);
+          //console.log('>>>>>>>>>>>>>>>>>>>>>>> stderr:', stderr);
+          utils.dlog('>>>>>>>>>>>>>>>>>>>>>>> stdout:', stdout);
+          //console.log('>>>>>>>>>>>>>>>>>>>>>>> stdout:', stdout);
 
-        if (rc === 0) {
-          var npm = JSON.parse(stdout);
-          //console.log('npm:', u.inspect(npm, {colors: true, depth: 5}));
+          if (rc === 0) {
+            var npm = JSON.parse(stdout);
+            //console.log('npm:', u.inspect(npm, {colors: true, depth: 5}));
 
-          var deps = npm.dependencies;
-          _.forEach(deps, function (value, key) {
-            var p_obj = {
-              name: key,
-              version: value.version,
-              from: value.from,
-              resolved: value.resolved,
-              provider: 'npm'
-            };
-            packages[key] = p_obj;
-          });
+            var deps = npm.dependencies;
+            _.forEach(deps, function (value, key) {
+              var p_obj = {
+                name: key,
+                version: value.version,
+                from: value.from,
+                resolved: value.resolved,
+                provider: 'npm'
+              };
+              packages[key] = p_obj;
+            });
 
-          facts.installed_npm_packages = packages;
-          //console.log('npm facts:', u.inspect(packages, {colors: true, depth: 5}));
-        }
+            facts.installed_npm_packages = packages;
+            //console.log('npm facts:', u.inspect(packages, {colors: true, depth: 5}));
+          }
 
-        deferred.resolve(facts);
-      });
+          deferred.resolve(facts);
+        });
 
-      cp.on('error', function (err) {
-        console.log(u.format('exec of `%s`:', cmd), err, stderr);
-        deferred.resolve({});
-      });
+        cp.on('error', function (err) {
+          console.log(u.format('spawn of `%s`:', cmd), err, stderr);
+          deferred.resolve({});
+        });
+      }); // runCmd
 
     }); // resolveNpm
 
@@ -230,12 +241,19 @@ var Package = P2M.Module(module.filename, function () {
 Package.prototype.resolveNpm = function () {
   var deferred = Q.defer(),
       npm = path.join(pfs.resolveNodeDir(), 'npm');
+  //console.log('npm on node:', npm);
 
   pfs.pExists(npm)
   .done(function (exists) {
+    //console.log('npm exists:', exists);
     if (!exists) {
       npm = 'npm';
     }
+    //npm = utils.escapeBackSlash(npm);
+    if (utils.isWin()) {
+      npm = utils.winEscapeSpaces(npm);
+    }
+    //console.log('resolveNpm returning:', npm);
     deferred.resolve(npm);
   });
 
