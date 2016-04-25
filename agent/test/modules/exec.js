@@ -392,4 +392,52 @@ describe('Module exec', function () {
 
   }); // describe cwd
 
+  describe('Callback function for action complete', function () {
+
+    it('Should call the supplied callback function on success', function (done) {
+      var testFile = utils.escapeBackSlash(tmp.tmpNameSync() + '.TEST');
+      var cmd = 'p2\n' +
+        '.exec(\'echo OUT_STDOUT && echo OUT_STDERR >&2\', function (err, stdout, stderr) {\n' +
+        //'  console.warn(\'IN CALLBACK err:\', err);\n' +
+        '  var fs = require(\'fs\');\n' +
+        '  var status = \'\';\n' +
+        '  if (!err) status = \'No returned err object with return code\';\n' +
+        '  else if (err.code !== 0) status = err;\n' +
+        '  else if (stdout.trim() !== \'OUT_STDOUT\') status = \'STDOUT not passed\';\n' +
+        '  else if (stderr.trim() !== \'OUT_STDERR\') status = \'STDERR not passed\';\n' +
+        '  else status = \'SUCCESS\';\n' +
+        '  fs.writeFileSync(\'{{{ testFile }}}\', status);\n' +
+        //'  console.warn(\'at end\');\n' +
+        '});\n';
+      //console.log('cmd:', cmd);
+      p2Test.runP2Str(
+        cmd,
+        {
+          testFile: testFile
+        }
+      )
+      .then(function () {
+        return pfs.pExists(testFile);
+      })
+      .then(function (exists) {
+        exists.should.be.true;
+        return pfs.pReadFile(testFile);
+      })
+      .then(function (data) {
+        data = data.toString().trim();
+        data.should.equal('SUCCESS');
+        return pfs.pUnlink(testFile);
+      })
+      .then(function (err) {
+        should(err).be.undefined;
+        done();
+      })
+      .done(null, function (err) {
+        done(err);
+      });
+
+    });
+
+  });
+
 });
