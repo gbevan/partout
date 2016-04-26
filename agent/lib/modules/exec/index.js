@@ -170,10 +170,8 @@ var Exec = P2M.Module(module.filename, function () {
             if (err.code !== opts.returns) {
               var err2 = new Error('Return code does not match expected by returns option');
               err2.code = err.code;
-              throw err2;
+              err = err2;
             }
-          } else if (err && err.code !== 0) {
-            throw err;
           }
           if (opts.creates) {
             set_watcher(inWatch);
