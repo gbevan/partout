@@ -445,7 +445,7 @@ describe('Module exec', function () {
     it('Should call the supplied callback function on failure', function (done) {
       var testFile = utils.escapeBackSlash(tmp.tmpNameSync() + '.TEST');
       var cmd = 'p2\n' +
-        '.exec(\'echo OUT_STDOUT && echo OUT_STDERR >&2 && /bin/false\', function (err, stdout, stderr) {\n' +
+        '.exec(\'echo OUT_STDOUT && echo OUT_STDERR >&2 && exit 1\', function (err, stdout, stderr) {\n' +
         //'  console.warn(\'IN CALLBACK err:\', err);\n' +
         '  var fs = require(\'fs\');\n' +
         '  var status = \'\';\n' +
