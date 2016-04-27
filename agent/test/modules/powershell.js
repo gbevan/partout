@@ -391,5 +391,98 @@ if (utils.isWin()) {
 
     }); // describe cwd
 
+
+    describe('Callback function for action complete', function () {
+
+      it('Should call the supplied callback function on success', function (done) {
+        var testFile = utils.escapeBackSlash(tmp.tmpNameSync() + '.TEST');
+
+        var cmd = 'p2\n' +
+          '.powershell(\'Write-Output "OUT_STDOUT"; [Console]::Error.WriteLine("OUT_STDERR")\', function (rc, stdout, stderr) {\n' +
+          //'  console.warn(\'IN CALLBACK err:\', err);\n' +
+          '  var fs = require(\'fs\');\n' +
+          '  var status = \'FAILED\';\n' +
+          '  if (rc !== 0) status = rc;\n' +
+          '  else if (stdout.trim() !== \'OUT_STDOUT\') status = \'STDOUT not passed\';\n' +
+          '  else if (stderr.trim() !== \'OUT_STDERR\') status = \'STDERR not passed\';\n' +
+          '  else status = \'SUCCESS\';\n' +
+          '  fs.writeFileSync(\'{{{ testFile }}}\', status);\n' +
+          //'  console.warn(\'at end\');\n' +
+          '});\n';
+        //console.log('cmd:', cmd);
+        p2Test.runP2Str(
+          cmd,
+          {
+            testFile: testFile
+          }
+        )
+        .then(function () {
+          return pfs.pExists(testFile);
+        })
+        .then(function (exists) {
+          exists.should.be.true;
+          return pfs.pReadFile(testFile);
+        })
+        .then(function (data) {
+          data = data.toString().trim();
+          data.should.equal('SUCCESS');
+          return pfs.pUnlink(testFile);
+        })
+        .then(function (err) {
+          should(err).be.undefined;
+          done();
+        })
+        .done(null, function (err) {
+          done(err);
+        });
+
+      });
+
+      it('Should call the supplied callback function on failure', function (done) {
+        var testFile = utils.escapeBackSlash(tmp.tmpNameSync() + '.TEST');
+        var cmd = 'p2\n' +
+          '.powershell(\'Write-Output "OUT_STDOUT"; [Console]::Error.WriteLine("OUT_STDERR"); exit 1\', function (rc, stdout, stderr) {\n' +
+          //'  console.warn(\'IN CALLBACK err:\', err);\n' +
+          '  var fs = require(\'fs\');\n' +
+          '  var status = \'FAILED\';\n' +
+          '  if (stdout.trim() !== \'OUT_STDOUT\') status = \'STDOUT not passed\';\n' +
+          '  else if (stderr.trim() !== \'OUT_STDERR\') status = \'STDERR not passed\';\n' +
+          '  else if (rc !== 0) status = \'SUCCESS\';\n' +
+          '  fs.writeFileSync(\'{{{ testFile }}}\', status);\n' +
+          //'  console.warn(\'at end\');\n' +
+          '});\n';
+        //console.log('cmd:', cmd);
+        p2Test.runP2Str(
+          cmd,
+          {
+            testFile: testFile
+          }
+        )
+        .then(function () {
+          return pfs.pExists(testFile);
+        })
+        .then(function (exists) {
+          exists.should.be.true;
+          return pfs.pReadFile(testFile);
+        })
+        .then(function (data) {
+          data = data.toString().trim();
+          data.should.equal('SUCCESS');
+          return pfs.pUnlink(testFile);
+        })
+        .then(function (err) {
+          //console.log('then err:', err);
+          should(err).be.undefined;
+          done();
+        })
+        .done(null, function (err) {
+          done(err);
+        });
+
+      });
+
+    }); // describe callback function
+
+
   });
 } // isWin?

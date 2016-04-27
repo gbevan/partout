@@ -159,6 +159,7 @@ var Command = P2M.Module(module.filename, function () {
         console.log('Spawning command:', cmd/*, 'sp_args:', sp_args*/);
         utils.runCmd(cmd, opts)
         .fail(function (err) {
+          console.error('spawn failed for command:', cmd, 'err:', err);
           throw err;
         })
         .done(function (res) {

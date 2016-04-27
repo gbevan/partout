@@ -159,6 +159,7 @@ var Powershell = P2M.Module(module.filename, function () {
         console.log('Spawning powershell:', cmd/*, 'sp_args:', sp_args*/);
         utils.runPs(cmd, opts)
         .fail(function (err) {
+          console.error('spawn powershell failed for command:', cmd, 'err:', err);
           throw err;
         })
         .done(function (res) {
