@@ -1,5 +1,7 @@
 # Module: Exec
 
+Deprecated in favour of modules command and powershell.
+
      p2.node([...])
        .exec('a command', options, function (err, stdout, stderr) { ... });
 
@@ -22,5 +24,8 @@ Options (from https://nodejs.org/api/child_process.html):
 | gid        | Number | Sets the group identity of the process. (See setgid(2).) |
 
 also supports:
-- creates: 'file' - test file does not exist, otherwise skip.
-- returns: expected return code on error to be ignored.
+
+| Operand    | Type   | Description                                                |
+|:-----------|--------|:-----------------------------------------------------------|
+| creates    | String | 'file' - test file does not exist, otherwise skip.         |
+| returns    | Number |  expected return code on error to be ignored.              |

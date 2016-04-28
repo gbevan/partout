@@ -199,7 +199,7 @@ var Exec = P2M.Module(module.filename, function () {
           deferred.resolve();
         });
       });
-      //delete opts.creates;
+
     } else {
       _exec(false, false, function () {
         deferred.resolve();
@@ -209,8 +209,6 @@ var Exec = P2M.Module(module.filename, function () {
   });
 
 });
-
-
 
 
 module.exports = Exec;

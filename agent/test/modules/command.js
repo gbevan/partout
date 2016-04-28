@@ -480,5 +480,75 @@ describe('Module command', function () {
 
   }); // describe callback function
 
+  describe('onlyif', function () {
+
+    it('Policy should execute command if onlyif returns rc=0', function (done) {
+      this.timeout(240000);
+
+      utils.tlogs('tmpNameSync');
+      var testFile = utils.escapeBackSlash(tmp.tmpNameSync() + '.TEST');
+      utils.tloge('tmpNameSync');
+
+      p2Test.runP2Str(
+        'p2\n' +
+        '.command(\'echo SUCCESS > {{{ testFile }}}\', {onlyif: \'exit 0\'});\n',
+        {
+          testFile: testFile
+        }
+      )
+      .then(function () {
+        return pfs.pExists(testFile);
+      })
+      .then(function (exists) {
+        exists.should.be.true;
+        return pfs.pUnlink(testFile);
+      })
+      .then(function (err) {
+        should(err).be.undefined;
+        done();
+      })
+      .done(null, function (err) {
+        done(err);
+      });
+
+    });
+
+    it('Policy should not execute command if onlyif returns rc!=0', function (done) {
+      this.timeout(240000);
+
+      utils.tlogs('tmpNameSync');
+      var testFile = utils.escapeBackSlash(tmp.tmpNameSync() + '.TEST');
+      utils.tloge('tmpNameSync');
+
+      p2Test.runP2Str(
+        'p2\n' +
+        '.command(\'echo SUCCESS > {{{ testFile }}}\', {onlyif: \'exit 1\'});\n',
+        {
+          testFile: testFile
+        }
+      )
+      .then(function () {
+        return pfs.pExists(testFile);
+      })
+      .then(function (exists) {
+        exists.should.be.false;
+        if (exists) {
+          return pfs.pUnlink(testFile);
+        } else {
+          return Q();
+        }
+      })
+      .then(function (err) {
+        should(err).be.undefined;
+        done();
+      })
+      .done(null, function (err) {
+        done(err);
+      });
+
+    });
+
+  });
+
 
 });

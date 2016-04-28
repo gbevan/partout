@@ -156,47 +156,71 @@ var Command = P2M.Module(module.filename, function () {
         cb();
 
       } else {
-        console.log('Spawning command:', cmd/*, 'sp_args:', sp_args*/);
-        utils.runCmd(cmd, opts)
-        .fail(function (err) {
-          console.error('spawn failed for command:', cmd, 'err:', err);
-          throw err;
-        })
-        .done(function (res) {
-          var rc = res[0],
-              stdout = res[1],
-              stderr = res[2];
+        var onlyif_deferred = Q.defer();
+        if (opts.onlyif) {
+          console.log('command running onlyif:', opts.onlyif);
+          onlyif_deferred.resolve(utils.runCmd(opts.onlyif));
+        } else {
+          onlyif_deferred.resolve([0, undefined, undefined]);
+        }
 
-          utils.dlog('rc:', rc, 'stdout:', stdout, 'stderr:', stderr);
-          if (stderr) {
-            console.error(stderr);
+        onlyif_deferred.promise
+        .then(function (onlyif_res) {
+          console.log('command: onlyif_res:', onlyif_res);
+          var onlyif_rc = onlyif_res[0],
+              onlyif_stdout = onlyif_res[1],
+              onlyif_stderr = onlyif_res[2];
+
+          if (onlyif_rc !== 0) {
+            utils.vlog('command onlyif returned rc:', onlyif_rc, 'stdout:', onlyif_stdout, 'stderr:', onlyif_stderr);
+            cb();
+            return;
           }
-          if (stdout) {
-            console.log(stdout);
-          }
-          if (opts.returns) {
-            if (rc !== opts.returns) {
-              var err2 = new Error('Return code does not match expected by returns option');
-              err2.code = rc;
-              throw err2;
+
+          console.log('Spawning command:', cmd/*, 'sp_args:', sp_args*/);
+          utils.runCmd(cmd, opts)
+          .fail(function (err) {
+            console.error('spawn failed for command:', cmd, 'err:', err);
+            throw err;
+          })
+          .done(function (res) {
+            var rc = res[0],
+                stdout = res[1],
+                stderr = res[2];
+
+            utils.dlog('rc:', rc, 'stdout:', stdout, 'stderr:', stderr);
+            if (stderr) {
+              console.error(stderr);
             }
-          }
-          if (opts.creates) {
-            set_watcher(inWatch);
-          }
-          if (command_complete_cb) {
-            command_complete_cb(rc, stdout, stderr);
-          }
-          if (opts.creates) {
-            cb({
-              module: 'command',
-              object: opts.creates,
-              msg: 'target (re)created'
-            }); // next_step_callback or watcher callback
-          } else {
-            cb(); // next_step_callback or watcher callback
-          }
-        });
+            if (stdout) {
+              console.log(stdout);
+            }
+            if (opts.returns) {
+              if (rc !== opts.returns) {
+                var err2 = new Error('Return code does not match expected by returns option');
+                err2.code = rc;
+                throw err2;
+              }
+            }
+            if (opts.creates) {
+              set_watcher(inWatch);
+            }
+            if (command_complete_cb) {
+              command_complete_cb(rc, stdout, stderr);
+            }
+            if (opts.creates) {
+              cb({
+                module: 'command',
+                object: opts.creates,
+                msg: 'target (re)created'
+              }); // next_step_callback or watcher callback
+            } else {
+              cb(); // next_step_callback or watcher callback
+            }
+          });
+
+        }); // onlyif
+
       }
     }
 
