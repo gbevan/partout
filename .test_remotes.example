@@ -1,3 +1,9 @@
+# List your partout test agent hosts here
+#
+# LXD:
+#   Get list using:
+#     lxc list | egrep -v "(^\+|NAME)" | awk '{print $6;}'
+
 pi3
 172.16.0.131
 172.16.0.132
