@@ -158,22 +158,22 @@ all being well you should get a summary report of the unit-tests something like:
     Unit Test Summary:
     ==================
 
-       Remote                      Hostname    Arch Platform                   Release :     Result TimeTaken
-       ------                      --------    ---- --------                   ------- :     ------ ---------
-       *LOCAL                  officepc.net     x64    linux              4.4.6-gentoo :         OK
-       pi3                      raspberrypi     arm    linux                4.1.18-v7+ :         OK 25000 ms
-       192.168.0.129         Grahams_laptop     x64    win32                10.0.10586 :         OK 13000 ms
-       192.168.0.172              p-centos6     x64    linux              4.4.6-gentoo :         OK 4570 ms
-       192.168.0.173              p-centos7     x64    linux              4.4.6-gentoo :         OK 5310 ms
-       192.168.0.174               p-gentoo     x64    linux              4.4.6-gentoo :         OK 4170 ms
-       192.168.0.177          p-opensuse132     x64    linux              4.4.6-gentoo :         OK 3160 ms
-       192.168.0.175               LXC_NAME     x64    linux              4.4.6-gentoo :         OK 4390 ms
-       192.168.0.176              p-oracle7     x64    linux              4.4.6-gentoo :         OK 4470 ms
-       192.168.0.170             p-ubuntu14     x64    linux              4.4.6-gentoo :         OK 5120 ms
-       192.168.0.171             p-ubuntu16     x64    linux              4.4.6-gentoo :         OK 5160 ms
-
+       Remote                      Hostname    Arch Platform         Release                             OS :     Result TimeTaken
+       ------                      --------    ---- --------         -------                             -- :     ------ ---------
+       *LOCAL                  officepc.net     x64    linux    4.4.6-gentoo                                :         OK
+       pi3                      raspberrypi     arm    linux      4.1.18-v7+  Raspbian GNU/Linux 8 (jessie) :         OK 26000 ms
+       192.168.0.128         Grahams_laptop     x64    win32      10.0.10586             windows 10.0.10586 :         OK 13000 ms
+       192.168.0.172              p-centos6     x64    linux    4.4.6-gentoo                     CentOS 6.7 :         OK 5980 ms
+       192.168.0.173              p-centos7     x64    linux    4.4.6-gentoo          CentOS Linux 7 (Core) :         OK 6200 ms
+       192.168.0.174               p-gentoo     x64    linux    4.4.6-gentoo                   Gentoo/Linux :         OK 5580 ms
+       192.168.0.177          p-opensuse132     x64    linux    4.4.6-gentoo openSUSE 13.2 (Harlequin) (x86 :         OK 3800 ms
+       192.168.0.175               LXC_NAME     x64    linux    4.4.6-gentoo        Oracle Linux Server 6.7 :         OK 5910 ms
+       192.168.0.176              p-oracle7     x64    linux    4.4.6-gentoo        Oracle Linux Server 7.2 :         OK 6110 ms
+       192.168.0.170             p-ubuntu14     x64    linux    4.4.6-gentoo             Ubuntu 14.04.4 LTS :         OK 6960 ms
+       192.168.0.171             p-ubuntu16     x64    linux    4.4.6-gentoo               Ubuntu 16.04 LTS :         OK 6980 ms
 
     ----
+
 
 You can set gulp to watch your project's agent source files for changes and to run this suite of unit-tests
 every time you make a change to a file, by running:
