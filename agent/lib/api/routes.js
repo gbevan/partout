@@ -102,7 +102,7 @@ var routesApi = function (r, cfg, db, controllers, serverMetrics) {
               time_taken *= 60 * 1000;
             }
           } else {
-            console.warn('REGEX NOT MATCH stdout:', stdout);
+            console.log('REGEX NOT MATCH Time taken stdout:\n', stdout);
           }
         }
         var resobj = {

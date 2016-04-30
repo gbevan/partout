@@ -480,7 +480,7 @@ describe('Module command', function () {
 
   }); // describe callback function
 
-  describe('onlyif', function () {
+  describe('onlyif as a string', function () {
 
     it('Policy should execute command if onlyif returns rc=0', function (done) {
       this.timeout(240000);
@@ -548,7 +548,77 @@ describe('Module command', function () {
 
     });
 
-  });
+  }); // onlyif as a string
+
+  describe('onlyif as a file reference', function () {
+
+    it('Policy should execute command if onlyif returns rc=0', function (done) {
+      this.timeout(240000);
+
+      utils.tlogs('tmpNameSync');
+      var testFile = utils.escapeBackSlash(tmp.tmpNameSync() + '.TEST');
+      utils.tloge('tmpNameSync');
+
+      p2Test.runP2Str(
+        'p2\n' +
+        '.command(\'echo SUCCESS > {{{ testFile }}}\', {onlyif: {file: \'test/modules/files/cmd_test_rc_0.sh\'}});\n',
+        {
+          testFile: testFile
+        }
+      )
+      .then(function () {
+        return pfs.pExists(testFile);
+      })
+      .then(function (exists) {
+        exists.should.be.true;
+        return pfs.pUnlink(testFile);
+      })
+      .then(function (err) {
+        should(err).be.undefined;
+        done();
+      })
+      .done(null, function (err) {
+        done(err);
+      });
+
+    });
+
+    it('Policy should not execute command if onlyif returns rc!=0', function (done) {
+      this.timeout(240000);
+
+      utils.tlogs('tmpNameSync');
+      var testFile = utils.escapeBackSlash(tmp.tmpNameSync() + '.TEST');
+      utils.tloge('tmpNameSync');
+
+      p2Test.runP2Str(
+        'p2\n' +
+        '.command(\'echo SUCCESS > {{{ testFile }}}\', {onlyif: {file: \'test/modules/files/cmd_test_rc_1.sh\'}});\n',
+        {
+          testFile: testFile
+        }
+      )
+      .then(function () {
+        return pfs.pExists(testFile);
+      })
+      .then(function (exists) {
+        exists.should.be.false;
+        if (exists) {
+          return pfs.pUnlink(testFile);
+        } else {
+          return Q();
+        }
+      })
+      .then(function (err) {
+        should(err).be.undefined;
+        done();
+      })
+      .done(null, function (err) {
+        done(err);
+      });
+
+    });
+
+  }); // onlyif as a string
 
 
 });

@@ -19,4 +19,5 @@ also supports:
 |:-----------|--------|:-----------------------------------------------------------|
 | creates    | String | 'file' - test file does not exist, otherwise skip.         |
 | returns    | Number |  expected return code on error to be ignored.              |
-| onlyif     | String | command to test if exec should be run, rc=0 means run cmd  |
+| onlyif     | String | command to test if exec should be run, rc=0 means run cmd. |
+|            | Object | {file: 'filename'} execute content of file.   |

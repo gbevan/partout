@@ -45,6 +45,8 @@ Q.onerror = function (err) {
  * Exec module
  * ===========
  *
+ * Deprecated in favour of modules command and powershell.
+ *
  *     p2.node([...])
  *       .exec('a command', options, function (err, stdout, stderr) { ... });
  *

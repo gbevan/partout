@@ -31,6 +31,7 @@ var P2M = require('../../p2m'),
     spawn = require('child_process').spawn,
     Q = require('q'),
     utils = new (require('../../utils'))(),
+    pfs = new (require('../../pfs'))(),
     stringArgv = require('string-argv');
 
 Q.longStackSupport = true;
@@ -158,8 +159,41 @@ var Command = P2M.Module(module.filename, function () {
       } else {
         var onlyif_deferred = Q.defer();
         if (opts.onlyif) {
-          console.log('command running onlyif:', opts.onlyif);
-          onlyif_deferred.resolve(utils.runCmd(opts.onlyif));
+          var onlyif_content_deferred = Q.defer();
+
+          if (typeof(opts.onlyif) === 'object') { // handle {file:..., args:[...])}
+            if (opts.onlyif.file) {
+              pfs.pReadFile(opts.onlyif.file)
+              .done(function (onlyif_content) {
+                onlyif_content_deferred.resolve({script: onlyif_content.toString()/*, args: opts.onlyif.args*/});
+              });
+
+            } else {
+              throw 'onlyif object option(s) not supported';
+            }
+
+          } else {
+            onlyif_content_deferred.resolve({script: opts.onlyif, args: ''});  // TODO support args on string method
+          }
+
+          onlyif_content_deferred.promise
+          .done(function (onlyif_obj) {
+            console.log('***** onlyif_obj:', onlyif_obj);
+            var cmd = onlyif_obj.script,
+                args = onlyif_obj.args;
+            console.log('command running onlyif cmd:', cmd, 'args:', args);
+            onlyif_deferred.resolve(
+              utils.runCmd(
+                cmd,
+                {
+                  env: {
+                    ARGS: args
+                  }
+                }
+              )
+            );
+          });
+
         } else {
           onlyif_deferred.resolve([0, undefined, undefined]);
         }
