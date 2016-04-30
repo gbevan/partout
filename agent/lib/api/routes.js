@@ -105,11 +105,25 @@ var routesApi = function (r, cfg, db, controllers, serverMetrics) {
             console.log('REGEX NOT MATCH Time taken stdout:\n', stdout);
           }
         }
+        //console.log('FACTS:', GLOBAL.p2.facts);
+        var os_name = 'unknown';
+        if (GLOBAL.p2.facts.os_dist_pretty_name) {
+          os_name = GLOBAL.p2.facts.os_dist_pretty_name;
+        } else {
+          if (GLOBAL.p2.facts.os_family) {
+            os_name = GLOBAL.p2.facts.os_family;
+
+            if (GLOBAL.p2.facts.os_release) {
+              os_name += ' ' + GLOBAL.p2.facts.os_release;
+            }
+          }
+        }
         var resobj = {
           platform: os.platform(),
           release: os.release(),
           type: os.type(),
           arch: os.arch(),
+          os: os_name,
           hostname: os.hostname(),
           err: err,
           stderr: stderr,

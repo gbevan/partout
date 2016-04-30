@@ -157,7 +157,33 @@ var Facts = P2M.Module(module.filename, function () {
     var os_deferred = Q.defer();
     fs.exists('/etc/os-release', function (exists) {
       if (!exists) {
-        os_deferred.resolve();
+
+        // see if an early redhat dirivative
+        fs.exists('/etc/redhat-release', function (rh_exists) {
+          if (rh_exists) {
+            Q.nfcall(fs.readFile, '/etc/redhat-release')
+            .then(function (data) {
+              data = data.toString();
+              var rh = data.match(/(\w+)[^0-9]*([0-9.]+).*/);
+              if (rh) {
+                var pretty_name = 'UNKNOWN';
+                if (rh[1]) {
+                  pretty_name = rh[1];
+
+                  if (rh[2]) {
+                    pretty_name += ' ' + rh[2];
+                  }
+                }
+                var l_fact = ['os_dist_pretty_name', pretty_name];
+                promises.push(Q(l_fact));
+              }
+              os_deferred.resolve();
+            });
+          } else {
+            os_deferred.resolve();
+          }
+        });
+
       } else {
         Q.nfcall(fs.readFile, '/etc/os-release')
         .then(function (data) {
