@@ -265,11 +265,11 @@ module.exports = function (opts) {
     serve(opts.args);
 
   } else if (opts.csr) {
-    console.log('csr args:', opts.args);
+    //console.log('csr args:', opts.args);
 
     db.connect()
     .then(function (status) {
-      console.log('csr db:', status);
+      //console.log('csr db:', status);
       var csr = new Csr(db.getDb()),
         key;
 
@@ -278,7 +278,7 @@ module.exports = function (opts) {
       }
 
       if (opts.args[0] === 'list') {  // partout csr list
-        console.log('in list');
+        //console.log('in list');
         csr.all()
         .then(function (csrList) {
           //console.log('csrList:', csrList);
@@ -288,9 +288,9 @@ module.exports = function (opts) {
             var csrObj = ca.pki.certificationRequestFromPem(csrList[i].csr);
             var fingerprint = ca.pki.getPublicKeyFingerprint(csrObj.publicKey, {encoding: 'hex', delimiter: ':'});
             if (csrList[i].status === 'unsigned') {
-              console.warn('   ' + csrList[i]._key + ' : ' + csrList[i].status + ' : ' + fingerprint + ' : ' + csrList[i].lastSeen);
+              console.log(csrList[i]._key + ' : ' + csrList[i].status + ' : ' + fingerprint + ' : ' + csrList[i].lastSeen);
             } else {
-              console.info('   ' + csrList[i]._key + ' : ' + csrList[i].status + ' : ' + fingerprint + ' : ' + csrList[i].lastSeen);
+              console.info(csrList[i]._key + ' : ' + csrList[i].status + ' : ' + fingerprint + ' : ' + csrList[i].lastSeen);
             }
           }
         })
@@ -300,7 +300,7 @@ module.exports = function (opts) {
         .done();
 
       } else if (opts.args[0] === 'sign') { // partout csr sign
-        console.log('args legnth:', opts.args.length);
+        //console.log('args legnth:', opts.args.length);
         if (opts.args.length < 2) {
           console.error('Error: Missing csr key to sign');
           process.exit(1);

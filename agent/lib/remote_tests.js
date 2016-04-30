@@ -65,6 +65,7 @@ RemoteTests.prototype.run = function () {
     remote_list = remote_list.map(function (v) { return v.trim(); });
 
     remote_list.forEach(function (remote) {
+      remote = remote.replace(/#.*$/, '');
       remote = remote.trim();
       if (remote.match(/^$/)) {
         return;

@@ -134,6 +134,10 @@ firewall may need opening from windows nodes to permit node.js to talk to master
 Distributed Unit Testing
 ------------------------
 
+Ensure unit testing prerequisites are installed on each agent node:
+
+    bin/partout-agent apply etc/test_policies/prep.p2
+
 Once the test endpoints have been prepped the Agent's Mocha unit-testing REST API can be enabled by setting the following in the agents' partout_agent.conf.js file:
 
     /*
@@ -154,13 +158,20 @@ all being well you should get a summary report of the unit-tests something like:
     Unit Test Summary:
     ==================
 
-       Remote                      Hostname    Arch Platform                   Release : Result
-       ------                      --------    ---- --------                   ------- : ------
-       *LOCAL                  officepc.net     x64    linux            3.18.12-gentoo :     OK
-       pi3                      raspberrypi     arm    linux                4.1.18-v7+ :     OK
-       172.16.0.131                     ub1     x64    linux         3.13.0-77-generic :     OK
-       172.16.0.132     co7.openstack.local     x64    linux     3.10.0-327.el7.x86_64 :     OK
-       192.168.0.132         Grahams_laptop     x64    win32                10.0.10586 :     OK
+       Remote                      Hostname    Arch Platform                   Release :     Result TimeTaken
+       ------                      --------    ---- --------                   ------- :     ------ ---------
+       *LOCAL                  officepc.net     x64    linux              4.4.6-gentoo :         OK
+       pi3                      raspberrypi     arm    linux                4.1.18-v7+ :         OK 25000 ms
+       192.168.0.129         Grahams_laptop     x64    win32                10.0.10586 :         OK 13000 ms
+       192.168.0.172              p-centos6     x64    linux              4.4.6-gentoo :         OK 4570 ms
+       192.168.0.173              p-centos7     x64    linux              4.4.6-gentoo :         OK 5310 ms
+       192.168.0.174               p-gentoo     x64    linux              4.4.6-gentoo :         OK 4170 ms
+       192.168.0.177          p-opensuse132     x64    linux              4.4.6-gentoo :         OK 3160 ms
+       192.168.0.175               LXC_NAME     x64    linux              4.4.6-gentoo :         OK 4390 ms
+       192.168.0.176              p-oracle7     x64    linux              4.4.6-gentoo :         OK 4470 ms
+       192.168.0.170             p-ubuntu14     x64    linux              4.4.6-gentoo :         OK 5120 ms
+       192.168.0.171             p-ubuntu16     x64    linux              4.4.6-gentoo :         OK 5160 ms
+
 
     ----
 
@@ -169,7 +180,45 @@ every time you make a change to a file, by running:
 
     gulp watch-mocha
 
+DEVELOPMENT
+-----------
 
+### LXD/LXC Agents
+
+*NB: Guests using systemd will need to be run privileged (see below)
+
+See script ```launch_lxd_test_containers.sh``` for launching a selection of Linux containers for testing
+
+### NFS Agents from Git Sandbox
+
+Prereqs (Debian/Ubuntu):
+```bash
+# apt-get install -y nfs-client
+# curl -sL https://deb.nodesource.com/setup_5.x | sudo -E bash -
+# sudo apt-get install -y nodejs
+```
+
+Prereqs (RedHat/CentOS):
+```bash
+# curl --silent --location https://rpm.nodesource.com/setup_5.x | bash -
+# yum -y install nodejs
+```
+
+/etc/exports:
+```bash
+/home/????/Documents/Brackets/partout/agent  172.16.0.0/16(ro)
+```
+
+On OpenStack guests:
+```bash
+# mkdir -p /opt/partout/agent
+# mount -a
+```
+
+/etc/fstab:
+```bash
+??????:/home/????/Documents/Brackets/partout/agent  /opt/partout/agent nfs defaults,ro,intr 0 0
+```
 
 COPYRIGHT
 ---------

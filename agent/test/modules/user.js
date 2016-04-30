@@ -112,6 +112,7 @@ utils.pIsAdmin()
       if (process.platform === 'linux') {
 
         it('should create test user ' + newUser, function (done) {
+          this.timeout(20000);
           p2Test.runP2Str(
             'p2\n' +
             '.user(\'{{{ newUser }}}\')',

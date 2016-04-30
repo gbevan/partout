@@ -38,8 +38,10 @@ Agent Platforms
 Platforms currently being developed and tested on are:
 
 * Gentoo linux
-* Ubuntu Linux
-* CentOS Linux
+* Ubuntu Linux (14.04 & 16.04)
+* CentOS Linux (6 & 7)
+* OpenSuse 13.2
+* Oracle Linux (6 & 7)
 * Microsoft Windows 10
 * Raspberry Pi3 (Raspbian 8 jessie)
 
@@ -86,66 +88,16 @@ Anatomy of a Module
 -------------------
 * See [Anatomy of a Module](./docs/Anatomy_of_a_module.md)
 
-DEVELOPMENT
------------
-
-### LXD/LXC Agents
-
-*NB: Guests using systemd are not currently supported if running lxd containers unpriviledged.
-
-#### Ubuntu Trusty
-```bash
-$ lxc launch images:ubuntu/trusty/amd64 ubuntu
-$ lxc config device add ubuntu partout disk path=/opt/partout/agent source=/home/bev/Documents/Brackets/partout/agent
-$ lxc exec ubuntu bash
-```
-
-#### CentOS 6
-```bash
-$ lxc launch images:centos/6/amd64 centos6
-$ lxc config device add centos6 partout disk path=/opt/partout/agent source=/home/bev/Documents/Brackets/partout/agent
-$ lxc exec centos6 bash
-root@centos6 $ curl --silent --location https://rpm.nodesource.com/setup_5.x | bash -
-root@centos6 $ yum -y install nodejs
-
-```
-
-### NFS Agents from Git Sandbox
-
-Prereqs (Debian/Ubuntu):
-```bash
-# apt-get install -y nfs-client
-# curl -sL https://deb.nodesource.com/setup_5.x | sudo -E bash -
-# sudo apt-get install -y nodejs
-```
-
-Prereqs (RedHat/CentOS):
-```bash
-# curl --silent --location https://rpm.nodesource.com/setup_5.x | bash -
-# yum -y install nodejs
-```
-
-/etc/exports:
-```bash
-/home/????/Documents/Brackets/partout/agent  172.16.0.0/16(ro)
-```
-
-On OpenStack guests:
-```bash
-# mkdir -p /opt/partout/agent
-# mount -a
-```
-
-/etc/fstab:
-```bash
-??????:/home/????/Documents/Brackets/partout/agent  /opt/partout/agent nfs defaults,ro,intr 0 0
-```
-
 Design / Proposal / Brain-Storm Documents
 -----------------------------------------
 
 * [PoC bootstrapping agents over a RESTful API](./agent/docs/shell_rest_notes.md)
 * [Agent Event Sending Algorythmic Statistical Backoff for Scalability](./docs/Event_Sending_Statistical_Backoff.md)
+
+Quick Sign All Agent CSRs
+-------------------------
+
+    bin/partout csr | grep unsigned | awk '{print $1;}' | xargs -i@ bin/partout csr sign @; bin/partout csr
 
 ----
 

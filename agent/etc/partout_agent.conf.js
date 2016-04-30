@@ -11,7 +11,8 @@ var Cfg = function () {
 //  console.log('isInTest:', isInTest);
 //  console.log('GLOBAL.it:', GLOBAL.it);
 
-  self.partout_master_hostname = 'officepc.net';
+  //self.partout_master_hostname = 'officepc.net';
+  self.partout_master_hostname = '192.168.0.64';
   self.partout_master_port = 10443;
 
   self.partout_agent_port = 10444;

@@ -8,7 +8,8 @@ var Cfg = function () {
       isInTest = typeof GLOBAL.it === 'function';  // in Mocha test?
 
   //self.partout_master_hostname = '172.17.42.1';
-  self.partout_master_hostname = os.hostname;
+  //self.partout_master_hostname = os.hostname;
+  self.partout_master_hostname = '192.168.0.64';
 
   self.partout_ui_port = 11443;
   self.partout_api_port = 10443;
