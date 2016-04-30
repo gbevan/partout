@@ -5,7 +5,7 @@ The goal is to develop a pure Javascript/Node.js DevOps Data and Event Driven Po
 
 "Partout" is french for "Everywhere"
 
-\* THIS PROJECT IS UNDER INITIAL DEVELOPMENT AND IS NOT READY FOR \_ANY\_ FORM OF PRODUCTION USE *
+\* THIS PROJECT IS UNDER INITIAL DEVELOPMENT AND IS NOT READY FOR **ANY** FORM OF PRODUCTION USE \*
 
 Licensed under the GNU General Public License Version 3 (GPLv3 - see [COPYING](./COPYING)).
 
