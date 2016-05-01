@@ -485,9 +485,7 @@ describe('Module command', function () {
     it('Policy should execute command if onlyif returns rc=0', function (done) {
       this.timeout(240000);
 
-      utils.tlogs('tmpNameSync');
       var testFile = utils.escapeBackSlash(tmp.tmpNameSync() + '.TEST');
-      utils.tloge('tmpNameSync');
 
       p2Test.runP2Str(
         'p2\n' +
@@ -516,9 +514,7 @@ describe('Module command', function () {
     it('Policy should not execute command if onlyif returns rc!=0', function (done) {
       this.timeout(240000);
 
-      utils.tlogs('tmpNameSync');
       var testFile = utils.escapeBackSlash(tmp.tmpNameSync() + '.TEST');
-      utils.tloge('tmpNameSync');
 
       p2Test.runP2Str(
         'p2\n' +
@@ -555,9 +551,7 @@ describe('Module command', function () {
     it('Policy should execute command if onlyif returns rc=0', function (done) {
       this.timeout(240000);
 
-      utils.tlogs('tmpNameSync');
       var testFile = utils.escapeBackSlash(tmp.tmpNameSync() + '.TEST');
-      utils.tloge('tmpNameSync');
 
       p2Test.runP2Str(
         'p2\n' +
@@ -586,9 +580,7 @@ describe('Module command', function () {
     it('Policy should not execute command if onlyif returns rc!=0', function (done) {
       this.timeout(240000);
 
-      utils.tlogs('tmpNameSync');
       var testFile = utils.escapeBackSlash(tmp.tmpNameSync() + '.TEST');
-      utils.tloge('tmpNameSync');
 
       p2Test.runP2Str(
         'p2\n' +
@@ -618,7 +610,7 @@ describe('Module command', function () {
 
     });
 
-  }); // onlyif as a string
+  }); // onlyif as a file reference
 
 
 });

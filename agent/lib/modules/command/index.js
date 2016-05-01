@@ -52,23 +52,12 @@ Q.onerror = function (err) {
  *
  * Options (from https://nodejs.org/api/child_process.html#child_process_child_process_spawn_command_args_options):
  *
- * | Operand    | Type   | Description                                                |
- * |:-----------|--------|:-----------------------------------------------------------|
- * | cmd        | String | Title is taken as the command, otherwise, this argument can override it |
- * | cwd        | String | Current working directory of the child process |
- * | env        | Object | Environment key-value pairs |
- * | uid        | Number | Sets the user identity of the process. (See setuid(2).) |
- * | gid        | Number | Sets the group identity of the process. (See setgid(2).) |
- *
- * will support:
- * - creates: 'file' - test file does not exist, otherwise skip.
- * - returns: expected return code on error to be ignored.
+ * See README.md for DSL documentation.
  *
  * ---
  * TODO: remaining support
  *   - command (override)
  *   - logoutput
- *   - onlyif
  *   - refresh
  *   - refreshonly
  *   - tries
@@ -178,10 +167,10 @@ var Command = P2M.Module(module.filename, function () {
 
           onlyif_content_deferred.promise
           .done(function (onlyif_obj) {
-            console.log('***** onlyif_obj:', onlyif_obj);
+            //console.log('***** onlyif_obj:', onlyif_obj);
             var cmd = onlyif_obj.script,
                 args = onlyif_obj.args;
-            console.log('command running onlyif cmd:', cmd, 'args:', args);
+            //console.log('command running onlyif cmd:', cmd, 'args:', args);
             onlyif_deferred.resolve(
               utils.runCmd(
                 cmd,
@@ -200,7 +189,7 @@ var Command = P2M.Module(module.filename, function () {
 
         onlyif_deferred.promise
         .then(function (onlyif_res) {
-          console.log('command: onlyif_res:', onlyif_res);
+          //console.log('command: onlyif_res:', onlyif_res);
           var onlyif_rc = onlyif_res[0],
               onlyif_stdout = onlyif_res[1],
               onlyif_stderr = onlyif_res[2];
@@ -253,7 +242,7 @@ var Command = P2M.Module(module.filename, function () {
             }
           });
 
-        }); // onlyif
+        }); // onlyif_res
 
       }
     }

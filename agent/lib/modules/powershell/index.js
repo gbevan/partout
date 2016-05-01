@@ -31,6 +31,7 @@ var P2M = require('../../p2m'),
     spawn = require('child_process').spawn,
     Q = require('q'),
     utils = new (require('../../utils'))(),
+    pfs = new (require('../../pfs'))(),
     stringArgv = require('string-argv');
 
 Q.longStackSupport = true;
@@ -51,23 +52,12 @@ Q.onerror = function (err) {
  *
  * Options (from https://nodejs.org/api/child_process.html#child_process_child_process_spawn_command_args_options):
  *
- * | Operand    | Type   | Description                                                |
- * |:-----------|--------|:-----------------------------------------------------------|
- * | cmd        | String | Title is taken as the powershell, otherwise, this argument can override it |
- * | cwd        | String | Current working directory of the child process |
- * | env        | Object | Environment key-value pairs |
- * | uid        | Number | Sets the user identity of the process. (See setuid(2).) |
- * | gid        | Number | Sets the group identity of the process. (See setgid(2).) |
- *
- * will support:
- * - creates: 'file' - test file does not exist, otherwise skip.
- * - returns: expected return code on error to be ignored.
+ * See README.md for DSL documentation.
  *
  * ---
  * TODO: remaining support
  *   - command (override)
  *   - logoutput
- *   - onlyif
  *   - refresh
  *   - refreshonly
  *   - tries
@@ -156,47 +146,105 @@ var Powershell = P2M.Module(module.filename, function () {
         cb();
 
       } else {
-        console.log('Spawning powershell:', cmd/*, 'sp_args:', sp_args*/);
-        utils.runPs(cmd, opts)
-        .fail(function (err) {
-          console.error('spawn powershell failed for command:', cmd, 'err:', err);
-          throw err;
-        })
-        .done(function (res) {
-          var rc = res[0],
-              stdout = res[1],
-              stderr = res[2];
 
-          utils.dlog('rc:', rc, 'stdout:', stdout, 'stderr:', stderr);
-          if (stderr) {
-            console.error(stderr);
-          }
-          if (stdout) {
-            console.log(stdout);
-          }
-          if (opts.returns) {
-            if (rc !== opts.returns) {
-              var err2 = new Error('Return code does not match expected by returns option');
-              err2.code = rc;
-              throw err2;
+        var onlyif_deferred = Q.defer();
+        if (opts.onlyif) {
+          var onlyif_content_deferred = Q.defer();
+
+          if (typeof(opts.onlyif) === 'object') { // handle {file:..., args:[...])}
+            if (opts.onlyif.file) {
+              pfs.pReadFile(opts.onlyif.file)
+              .done(function (onlyif_content) {
+                onlyif_content_deferred.resolve({script: onlyif_content.toString()/*, args: opts.onlyif.args*/});
+              });
+
+            } else {
+              throw 'onlyif object option(s) not supported';
             }
-          }
-          if (opts.creates) {
-            set_watcher(inWatch);
-          }
-          if (command_complete_cb) {
-            command_complete_cb(rc, stdout, stderr);
-          }
-          if (opts.creates) {
-            cb({
-              module: 'powershell',
-              object: opts.creates,
-              msg: 'target (re)created'
-            }); // next_step_callback or watcher callback
+
           } else {
-            cb(); // next_step_callback or watcher callback
+            onlyif_content_deferred.resolve({script: opts.onlyif, args: ''});  // TODO support args on string method
           }
-        });
+
+          onlyif_content_deferred.promise
+          .done(function (onlyif_obj) {
+            //console.log('***** onlyif_obj:', onlyif_obj);
+            var cmd = onlyif_obj.script,
+                args = onlyif_obj.args;
+            //console.log('command running onlyif cmd:', cmd, 'args:', args);
+            onlyif_deferred.resolve(
+              utils.runPs(
+                cmd,
+                {
+                  env: {
+                    ARGS: args
+                  }
+                }
+              )
+            );
+          });
+
+        } else {
+          onlyif_deferred.resolve([0, undefined, undefined]);
+        }
+
+        onlyif_deferred.promise
+        .then(function (onlyif_res) {
+          //console.log('command: onlyif_res:', onlyif_res);
+          var onlyif_rc = onlyif_res[0],
+              onlyif_stdout = onlyif_res[1],
+              onlyif_stderr = onlyif_res[2];
+
+          if (onlyif_rc !== 0) {
+            utils.vlog('command onlyif returned rc:', onlyif_rc, 'stdout:', onlyif_stdout, 'stderr:', onlyif_stderr);
+            cb();
+            return;
+          }
+
+          console.log('Spawning powershell:', cmd/*, 'sp_args:', sp_args*/);
+          utils.runPs(cmd, opts)
+          .fail(function (err) {
+            console.error('spawn powershell failed for command:', cmd, 'err:', err);
+            throw err;
+          })
+          .done(function (res) {
+            var rc = res[0],
+                stdout = res[1],
+                stderr = res[2];
+
+            utils.dlog('rc:', rc, 'stdout:', stdout, 'stderr:', stderr);
+            if (stderr) {
+              console.error(stderr);
+            }
+            if (stdout) {
+              console.log(stdout);
+            }
+            if (opts.returns) {
+              if (rc !== opts.returns) {
+                var err2 = new Error('Return code does not match expected by returns option');
+                err2.code = rc;
+                throw err2;
+              }
+            }
+            if (opts.creates) {
+              set_watcher(inWatch);
+            }
+            if (command_complete_cb) {
+              command_complete_cb(rc, stdout, stderr);
+            }
+            if (opts.creates) {
+              cb({
+                module: 'powershell',
+                object: opts.creates,
+                msg: 'target (re)created'
+              }); // next_step_callback or watcher callback
+            } else {
+              cb(); // next_step_callback or watcher callback
+            }
+          });
+
+        }); // onlyif_res
+
       }
     }
 

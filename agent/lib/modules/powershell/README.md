@@ -13,6 +13,11 @@ Options (from https://nodejs.org/api/child_process.html#child_process_child_proc
 | uid        | Number | Sets the user identity of the process. (See setuid(2).) |
 | gid        | Number | Sets the group identity of the process. (See setgid(2).) |
 
-Also support:
-- creates: 'file' - test file does not exist, otherwise skip.
-- returns: expected return code on error to be ignored.
+also supports:
+
+| Operand    | Type   | Description                                                |
+|:-----------|--------|:-----------------------------------------------------------|
+| creates    | String | 'file' - test file does not exist, otherwise skip.         |
+| returns    | Number |  expected return code on error to be ignored.              |
+| onlyif     | String | powershell to test if exec should be run, rc=0 means run cmd. |
+|            | Object | {file: 'filename'} execute powershell content of file.   |
