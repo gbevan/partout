@@ -89,6 +89,7 @@ Provider.prototype.getProvider = function (facts, filename) {
   }
 
   utils.dlog('getProvider() srchJsList b4:', srchJsList);
+  //console.log('getProvider() srchJsList b4:', srchJsList);
   srchJsList = srchJsList.map(function (e) {
     if (!e) {
       return undefined;
@@ -108,6 +109,7 @@ Provider.prototype.getProvider = function (facts, filename) {
           var M = require(js),
               m = new M();
           utils.dlog('Provider m:', m);
+          //console.log('Provider m:', m);
 
           inner_deferred.resolve(m);  // was just M
         } else {
@@ -154,12 +156,17 @@ Provider.prototype._runAction = function (_impl, next_step_callback, inWatchFlag
   var self = this;
   utils.dlog('runAction filename:', self.moduleFileName);
   utils.dlog('provider runAction self:', self, 'stack:', (new Error().stack));
+  //console.log('provider runAction self:', self, 'stack:', (new Error().stack));
 
   self.getProvider(_impl.facts, self.moduleFileName)
   .then(function (PM) {
     utils.dlog('Provider runAction resolved PM:', PM);
+    //console.log('Provider runAction resolved PM:', PM);
+    //if (PM) {
+    //  console.log('runAction:', PM.runAction);
+    //}
     //console.warn('next_step_callback:', next_step_callback);
-    if (PM) {
+    if (PM && PM.runAction) {
       //args.unshift(next_step_callback);
       //args.unshift(_impl);
       PM.runAction.call(self, _impl, next_step_callback, inWatchFlag, title, opts, cb);

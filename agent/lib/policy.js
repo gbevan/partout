@@ -38,7 +38,8 @@ var console = require('better-console'),
 
 function Policy(args, opts) {
   var self = this,
-    deferred = Q.defer();
+      deferred = Q.defer();
+
   //console.log('Policy called with args:', args, 'opts:', opts);
   self.args = args;
   if (opts.app) {
@@ -61,7 +62,7 @@ function Policy(args, opts) {
   .then(function (p2) {
     utils.tloge('new p2');
     //console.warn('new p2:', p2);
-    GLOBAL.p2 = p2;
+    //GLOBAL.p2 = p2;
     //console.log('p2 then:', p2);
 
     /** @global */
