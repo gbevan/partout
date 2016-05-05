@@ -114,17 +114,5 @@ var Service = P2M.Module(module.filename, function () {
 
 });
 
-/*
-Service.prototype.runAction = function (_impl, next_step_callback, title, opts, command_complete_cb) {
-  var self = this;  // self is _impl
-
-  //next_step_callback(); // when finished
-  utils.callbackEvent(next_step_callback, _impl.facts, {
-    module: 'service',
-    object: opts.name,
-    msg: 'TODO runAction'
-  });
-};
-*/
 
 module.exports = Service;
