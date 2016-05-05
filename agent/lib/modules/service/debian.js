@@ -88,7 +88,7 @@ var Service = P2M.Module(module.filename, function () {
         errmsg = '',
         cmd = '';
 
-    utils.dlog('Package yum: in action ############################ name:', opts.name, 'ensure:', opts.ensure);
+    utils.dlog('Service debian: in action ############################ name:', opts.name, 'ensure:', opts.ensure);
 
     self.getStatus(opts.name)
     .done(function (status) {
@@ -228,7 +228,7 @@ var Service = P2M.Module(module.filename, function () {
 
 Service.prototype.getStatus = function (name) {
   var self = this,
-      service = {},
+      services = {},
       deferred = Q.defer();
   utils.dlog('service getStatus entered');
 
@@ -244,42 +244,14 @@ Service.prototype.getStatus = function (name) {
     var upstart = res[0],
         sysv = res[1];
 
-    service = sysv;
-    _.extend(service, upstart);
+    services = sysv;
+    _.extend(services, upstart);
 
     //console.log('name:', name, 'status:', service);
-    deferred.resolve(service);
+    deferred.resolve(services);
   });
   return deferred.promise;
 };
 
-/**
- * get Facts for this module provider
- * @param {Object} facts_so_far Facts discovered up to calling this module
- * @return {Object} Promise
-Service.getFacts = function (facts_so_far) {
-  var self = this,
-      facts = {},
-      deferred = Q.defer();
-
-  self.getStatus()
-  .done(function (services) {
-    facts.services = services;
-    deferred.resolve(facts);
-  });
-
-  return deferred.promise;
-};
- */
-
-Service.runAction = function (_impl, next_step_callback, title, opts, command_complete_cb) {
-  var self = this,
-      cmd = '';
-
-  //console.warn('IN RUNACTION Service Debian self:', self);
-
-
-
-};
 
 module.exports = Service;
