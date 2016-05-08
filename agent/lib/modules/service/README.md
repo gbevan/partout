@@ -14,10 +14,10 @@ Options:
 | Operand    | Type    | Description                                                | Availability |
 |:-----------|---------|:-----------------------------------------------------------|:-------------|
 | name       | String  | Name of the service to manage (defaults to title) | |
-| ensure     | String  | stopped|false, running|true (defaults to stopped) | |
+| ensure     | String  | stopped/false, running/true (defaults to stopped) | |
 | enabled    | Boolean | true, false, or for Windows: | |
 |            | String  | Manual, Automatic(true), Disabled(false), | (create) powershell >= 5.0 |
-|            |         | Deleted
+|            |         | Deleted | |
 |            |         | | |
 | exec       | String  | Executable binary executable (including path) and any optional arguments. If this option is defined and service does not exist, it will be created. | (only create) powershell >= 5.0 |
 | appdir     | String  | Application default directory | (create) powershell >= 5.0 |
