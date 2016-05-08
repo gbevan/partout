@@ -52,6 +52,7 @@ describe('Module file', function () {
     var testFile = utils.escapeBackSlash(tmp.tmpNameSync() + '.TEST');
 
     it('Policy should create file if ensure is present and no filter', function (done) {
+      this.timeout(10000);
 
       p2Test.runP2Str(
         'p2\n' +
@@ -71,7 +72,6 @@ describe('Module file', function () {
         should(err).be.undefined;
         done();
       })
-
       .done(null, function (err) {
         done(err);
       });

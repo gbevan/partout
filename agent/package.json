@@ -10,6 +10,7 @@
     "better-console": "^0.2.4",
     "express": "^4.13.1",
     "forever": "^0.15.1",
+    "gulp-filter": "^4.0.0",
     "linux-user": "git+https://github.com/gbevan/linux-user.git",
     "lodash": "^4.6.1",
     "mkdirp": "^0.5.1",

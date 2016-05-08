@@ -342,7 +342,8 @@ var serve = function (args, master) {
   app.run();
   setInterval(function () {
     app.run();
-  }, (app.apply_every_mins * 60 * 1000));
+  }, (app.apply_every_mins * 60 * 1000))
+  .unref();
   //})
   //.fail(function (err) {
   //  console.error('app run failed, err:', err);

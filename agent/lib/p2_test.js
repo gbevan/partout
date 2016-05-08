@@ -44,6 +44,10 @@ var P2Test = {
     var deferred = Q.defer(),
         p2 = Mustache.render(p2Str, vars, {});
 
+    p2 = utils.escapeBackSlash(p2);
+
+    //console.log('p2Test cmd:', p2);
+
     utils.tlogs('tmp.file');
     tmp.file({keep: false}, function (err, tpath, fd, cleanupcb) {
       utils.tloge('tmp.file');

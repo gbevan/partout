@@ -131,6 +131,26 @@ node bin\partout-agent --debug
 
 firewall may need opening from windows nodes to permit node.js to talk to master's network.
 
+#### Linux
+
+Install nfs client prereq(s):
+
+Ubuntu:
+```bash
+apt-get install nfs-common
+```
+
+Add the following entry to /etc/fstab
+
+```
+your-master-host:/yourpath/partout/agent  /opt/partout/agent nfs defaults,ro,nolock,intr 0 0
+```
+
+```bash
+mkdir -p /opt/partout/agent
+mount -a
+```
+
 Distributed Unit Testing
 ------------------------
 
@@ -151,7 +171,7 @@ of your target test endpoints.
 
 Test by running the following command in the agent subfolder:
 
-    gulp mocha
+    gulp mocha1
 
 all being well you should get a summary report of the unit-tests something like:
 

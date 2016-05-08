@@ -7,6 +7,7 @@ var gulp = require('gulp'),
     gutil = require('gulp-util'),
     plugins = gulpLoadPlugins(),
     jsdoc = require('gulp-jsdoc3'),
+    filter = require('gulp-filter'),
     del = require('del'),
     console = require('better-console'),
     remoteTests = new (require('./lib/remote_tests'))(),
@@ -20,6 +21,8 @@ var gulp = require('gulp'),
 var env = process.env.NODE_ENV || 'development';
 console.log('Invoking gulp -', env);
 
+var filter_files = filter(['**', '!**/files/*']);  // prevent test files from executing by gulp as tests in themselves
+
 gulp.task('default', function () {
   plugins.nodemon({
     script: 'bin/partout-agent',
@@ -32,6 +35,7 @@ gulp.task('default', function () {
 gulp.task('mocha1', function () {
   var localStatus = 'OK';
   return gulp.src(['test/**/*.js'], { read: false })
+  .pipe(filter_files)
   .pipe(mocha({
     reporter: 'spec',
     globals: {
@@ -44,6 +48,7 @@ gulp.task('mocha1', function () {
 gulp.task('mocha', function () {
   var localStatus = 'OK';
   return gulp.src(['test/**/*.js'], { read: false })
+  .pipe(filter_files)
   .pipe(mocha({
     reporter: 'spec',
     globals: {
@@ -130,6 +135,8 @@ gulp.task('mocha', function () {
         });
         console.info('\n----\n');
       }
+      //process.exit();
+      //exit();
     });
   })
   ;

@@ -177,6 +177,12 @@ Utils.prototype.pSpawn = function (cmd, args, options, resolve_to_childprocess) 
     //console.log('pSpawn: stdout:', stdout);
     stderr = (new Buffer(stderr)).toString('ascii');
     //console.log('spawn:\nstdout:', stdout, '\nstderr:', stderr, '\nrc:', rc);
+
+    if (rc !== 0 || stderr) {
+      console.log(stdout);
+      console.error(stderr);
+    }
+
     deferred.resolve([rc, stdout, stderr]);
   });
 
@@ -236,6 +242,26 @@ Utils.prototype.runPs = function (pscmd, options, resolve_to_childprocess) {
     options,
     resolve_to_childprocess
   );
+};
+
+/**
+ * Get Powershell version
+ * @returns {object} Object returned from $PSVersionTable e.g.: {PSVersion: {Major: 5, ...}, ...}
+ */
+Utils.prototype.getPsVersion = function () {
+  var self = this,
+      deferred = Q.defer();
+
+  self.runPs('$PSVersionTable | ConvertTo-Json -compress')
+  .done(function (res) {
+    var rc = res[0],
+        stdout = res[1],
+        stderr = res[2],
+        psVersion = (stdout ? JSON.parse(stdout) : {'PSVersion' : {'Major': -1}});
+    deferred.resolve(psVersion);
+  });
+
+  return deferred.promise;
 };
 
 /**

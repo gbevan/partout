@@ -97,15 +97,26 @@ var Service = P2M.Module(module.filename, function () {
     utils.dlog('Service index: in action ############################');
 
     opts.name = (opts.name ? opts.name : title);
-    opts.ensure = (opts.ensure ? opts.ensure : 'stopped');
-    opts.enabled = (opts.enabled !== undefined ? opts.enabled : (opts.ensure === 'running' ? true : false));
+    //opts.ensure = (opts.ensure ? opts.ensure : 'stopped');
+    //opts.enabled = (opts.enabled !== undefined ? opts.enabled : (opts.ensure === 'running' ? true : false));
 
     if (!utils.vetOps('Service', opts, {
       name: true,
       ensure: true,
-      enabled: true
+      enabled: true,
+
+      exec: true,
+      appdir: true,
+      application: true,
+      appparams: true,
+
+      srvuser: true,
+      dependson: true,
+      description: true,
+      displayname: true,
+      startuptype: true
     }) ) {
-      deferred.resolve();
+      deferred.reject(new Error('Invalid argument(s)'));
       return;
     }
 
@@ -115,6 +126,7 @@ var Service = P2M.Module(module.filename, function () {
 });
 
 
+/*
 Service.prototype.setProvider = function (facts) {
   if (facts.os_family === 'debian') {
     return 'debian';
@@ -126,7 +138,6 @@ Service.prototype.setProvider = function (facts) {
   return null;
 };
 
-/*
 Service.prototype.addStep = function (_impl, title, opts, command_complete_cb) {
   var self = this;  // self is p2 _impl DSL
 

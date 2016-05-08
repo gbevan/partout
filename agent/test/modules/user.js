@@ -94,7 +94,7 @@ utils.pIsAdmin()
       }
     });
 
-    describe('Module user (priviledged tests)', function () {
+    describe('(priviledged tests)', function () {
 
       ////////////
       // actions
