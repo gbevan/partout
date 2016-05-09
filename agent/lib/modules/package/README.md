@@ -17,3 +17,17 @@ Options:
 | name       | String  | Package name to install (defaults to title) |
 | ensure     | String  | present/installed, absent/purged, latest (default is present) |
 | provider   | String  | Override backend provider e.g.: apt, yum, rpm, etc |
+
+Platform Support (i.e. tested on):
+(incomplete module - no unit tests yet)
+
+| Platform/OS | Support Status |
+|:------------|:--------------:|
+| Linux/all   | &#x2718; |
+| Windows/10  | &#x2718; |
+| Pi/Raspbian jessie  | &#x2718; |
+
+Actions are available for these providers:
+* apt
+* npm
+* yum

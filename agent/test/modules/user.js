@@ -139,6 +139,7 @@ utils.pIsAdmin()
         });
 
         it('should remove test user ' + newUser, function (done) {
+          this.timeout(20000);
           p2Test.runP2Str(
             'p2\n' +
             '.user(\'{{{ newUser }}}\', {ensure: \'absent\'})',

@@ -29,3 +29,13 @@ Options:
 | description| String  | Description of this service | (create) powershell >= 5.0 |
 | displayname| String  | Display Name of this service | (create) powershell >= 5.0 |
 | provider   | String  | Override backend provider e.g.: debian, redhat, etc | &nbsp; |
+
+Platform Support (i.e. tested on):
+(incomplete module - incomplete unit tests)
+
+| Platform/OS | Support Status |
+|:------------|:--------------:|
+| Linux/all   | &#x2718; |
+| Windows/10  | &#x2713; |
+| Pi/Raspbian jessie  | &#x2718; |
+

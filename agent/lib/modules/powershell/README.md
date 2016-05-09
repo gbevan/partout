@@ -21,3 +21,9 @@ also supports:
 | returns    | Number |  expected return code on error to be ignored.              |
 | onlyif     | String | powershell to test if exec should be run, rc=0 means run cmd. |
 |            | Object | {file: 'filename'} execute powershell content of file.   |
+
+Platform Support (i.e. tested on):
+
+| Platform/OS | Support Status |
+|:------------|:--------------:|
+| Windows/10  | &#x2713; |

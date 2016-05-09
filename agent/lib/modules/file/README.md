@@ -26,3 +26,11 @@ Watches for real-time reapplication of policy when a file object is changed
     .file('your_file_to_watch', {ensure: 'file', content: 'template_file'})
     .watch(false)
     ...
+
+Platform Support (i.e. tested on):
+
+| Platform/OS | Support Status |
+|:------------|:--------------:|
+| Linux/all   | &#x2713; |
+| Windows/10  | &#x2713; |
+| Pi/Raspbian jessie  | &#x2713; |
