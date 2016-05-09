@@ -101,6 +101,7 @@ utils.pIsAdmin()
         .done(function (res) {
           //console.log('pre setup & delete service res:', res);
 
+          // TODO: Review appdir, application and appparams as they may be specific to nssm used in unit-test
           p2Test.runP2Str(
             'p2\n' +
             '.service(\'PartoutHelloWorld\', {\n' +
