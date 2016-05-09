@@ -3,9 +3,9 @@ Partout
 
 The goal is to develop a pure Javascript/Node.js DevOps Data and Event Driven Policy Based Configuration Management tool for the Internet of Everything.
 
-"Partout" is french for "Everywhere"
+"Partout" /paʀtu/ - is french for "Everywhere"
 
-\* THIS PROJECT IS UNDER INITIAL DEVELOPMENT AND IS NOT READY FOR **ANY** FORM OF PRODUCTION USE \*
+\* THIS PROJECT IS UNDER INITIAL DEVELOPMENT AND IS NOT READY FOR **ANY** FORM OF PRODUCTION USE YET \*
 
 Licensed under the GNU General Public License Version 3 (GPLv3 - see [COPYING](./COPYING)).
 
@@ -15,6 +15,8 @@ If you wish (and indeed you are invited) to contribute to this Open Source proje
     your assent for inclusion of your contributions to this project under this project's (GPLv3) license and
     agree that your contributions do not infringe on any existing copyrighted or patented products to your
     knowledge.
+
+ok, that's the boilerplate crud out of the way...
 
 Features
 --------
