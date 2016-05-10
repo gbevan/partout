@@ -24,6 +24,6 @@ also supports:
 
 Platform Support (i.e. tested on):
 
-| Platform/OS | Support Status |
-|:------------|:--------------:|
-| Windows/10  | &#x2713; |
+| Platform/OS | Support Status | Unit Tests |
+|:------------|:--------------:|:----------:|
+| Windows/10  | &#x2713; | &#x2713; |

@@ -29,8 +29,8 @@ Watches for real-time reapplication of policy when a file object is changed
 
 Platform Support (i.e. tested on):
 
-| Platform/OS | Support Status |
-|:------------|:--------------:|
-| Linux/all   | &#x2713; |
-| Windows/10  | &#x2713; |
-| Pi/Raspbian jessie  | &#x2713; |
+| Platform/OS | Support Status | Unit Tests |
+|:------------|:--------------:|:----------:|
+| Linux/all   | &#x2713; | &#x2713; |
+| Windows/10  | &#x2713; | &#x2713; |
+| Pi/Raspbian jessie  | &#x2713; | &#x2713; |
