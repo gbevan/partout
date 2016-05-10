@@ -18,16 +18,18 @@ Options:
 | ensure     | String  | present/installed, absent/purged, latest (default is present) |
 | provider   | String  | Override backend provider e.g.: apt, yum, rpm, etc |
 
-Platform Support (i.e. tested on):
+Provider Support:
 (incomplete module - no unit tests yet)
 
-| Platform/OS | Support Status |
-|:------------|:--------------:|
-| Linux/all   | &#x2718; |
-| Windows/10  | &#x2718; |
-| Pi/Raspbian jessie  | &#x2718; |
-
-Actions are available for these providers:
-* apt
-* npm
-* yum
+| Provider   | Support Status | Unit Tests |
+|:----------:|:--------------:|:----------:|
+| apt        | &#x2713;       | &#x2718;   |
+| gem        | &#x2718;       | &#x2718;   |
+| npm        | &#x2713;       | &#x2718;   |
+| pip        | &#x2718;       | &#x2718;   |
+| portage    | &#x2718;       | &#x2718;   |
+| rpm        | &#x2718;       | &#x2718;   |
+| yum        | &#x2713;       | &#x2718;   |
+| zypp       | &#x2718;       | &#x2718;   |
+| winfeature | &#x2718;       | &#x2718;   |
+| chocolatey | &#x2718;       | &#x2718;   |

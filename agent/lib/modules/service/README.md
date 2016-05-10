@@ -30,12 +30,14 @@ Options:
 | displayname| String  | Display Name of this service | (create) powershell >= 5.0 |
 | provider   | String  | Override backend provider e.g.: debian, redhat, etc | &nbsp; |
 
-Platform Support (i.e. tested on):
-(incomplete module - incomplete unit tests)
+Provider Support:
+(incomplete module - no unit tests yet)
 
-| Platform/OS | Support Status |
-|:------------|:--------------:|
-| Linux/all   | &#x2718; |
-| Windows/10  | &#x2713; |
-| Pi/Raspbian jessie  | &#x2718; |
-
+| Provider   | Support Status | Unit Tests |
+|:----------:|:--------------:|:----------:|
+| debian     | &#x2713;       | &#x2718;   | (wraps sysv, upstart, TODO: systemd) |
+| redhat     | &#x2718;       | &#x2718;   |
+| systemd    | &#x2718;       | &#x2718;   |
+| sysv       | &#x2713;       | &#x2718;   |
+| upstart    | &#x2713;       | &#x2718;   |
+| windows    | &#x2713;       | &#x2713;   |
