@@ -68,7 +68,7 @@ var Package = P2M.Module(module.filename, function () {
     // get installed packages for this OS
 
     // Debian-like OS's
-    exec('dpkg -l | tail -n +6', function (err, stdout, stderr) {
+    exec('dpkg-query -l | tail -n +6', function (err, stdout, stderr) {
       if (err) {
         console.log('exec of dpkg -l failed:', err, stderr);
         deferred.resolve({});
@@ -127,7 +127,7 @@ var Package = P2M.Module(module.filename, function () {
 
         if (!current_state) {
           console.info('Installing package:', opts.name);
-          exec('apt-get update && apt-get install -y ' + opts.name, function (err, stdout, stderr) {
+          exec('apt-get update && apt-get install --auto-remove -y ' + opts.name, function (err, stdout, stderr) {
             if (err) {
               console.error('apt-get install failed:', err, stderr);
             } else {
@@ -190,7 +190,7 @@ var Package = P2M.Module(module.filename, function () {
         if (current_state) {
           console.info('Removing package:', opts.name);
 
-          exec('apt-get purge -y ' + opts.name, function (err, stdout, stderr) {
+          exec(u.format('apt-get purge --auto-remove -y %s', opts.name), function (err, stdout, stderr) {
             if (err) {
               console.error('apt-get purge failed:', err, stderr);
             } else {

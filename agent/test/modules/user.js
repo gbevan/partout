@@ -58,11 +58,12 @@ utils.pIsAdmin()
 
   describe('Module user', function () {
 
-    describe('Module user (nonpriviledged tests)', function () {
+    describe('(nonpriviledged tests)', function () {
 
       var facts;
 
       before(function (done) {
+        this.timeout(10000);
         p2Test.getP2Facts()
         .done(function(newfacts) {
           facts = newfacts;

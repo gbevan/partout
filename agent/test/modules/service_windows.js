@@ -52,12 +52,17 @@ utils.pIsAdmin()
 .done(function (isA) {
   isAdmin = isA;
 
+  if (!isAdmin) {
+    return;
+  }
+
   describe('Module service on windows', function () {
 
     var facts,
         cwd = process.cwd();
 
     before(function (done) {
+      this.timeout(10000);
       p2Test.getP2Facts()
       .done(function(newfacts) {
         facts = newfacts;

@@ -380,11 +380,13 @@ var P2 = function () {
   var module_promise;
   if (GLOBAL.p2 && GLOBAL.p2.facts) {
     utils.dlog('>>> Using cached facts');
+    //console.log('>>> Using cached facts');
     self.facts = GLOBAL.p2.facts;
     //_modules = require('./modules')();
     module_promise = require('./modules')();
 
   } else {
+    //console.log('>>> Refreshing facts');
     self.facts = {
       p2module: {}
     };
@@ -395,11 +397,13 @@ var P2 = function () {
   module_promise
   .then(function (_modules) {
     utils.tloge('require modules');
+    //console.log('modules loaded with facts');
     //console.log('p2 facts:', self.facts);
     self._impl.facts = self.facts;
     if (GLOBAL.p2) {
       GLOBAL.p2.facts = self.facts;
     }
+    //console.log('p2.js facts.installed_packages[nginx]:', self.facts.installed_packages.nginx);
 
 
     /**
