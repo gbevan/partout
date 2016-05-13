@@ -23,7 +23,7 @@ Provider Support:
 
 | Provider   | Support Status | Unit Tests |
 |:----------:|:--------------:|:----------:|
-| apt        | &#x2713;       | &#x2718;   |
+| apt        | &#x2713;       | &#x2713;   |
 | gem        | &#x2718;       | &#x2718;   |
 | npm        | &#x2713;       | &#x2718;   |
 | pip        | &#x2718;       | &#x2718;   |

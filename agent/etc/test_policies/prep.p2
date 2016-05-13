@@ -8,38 +8,15 @@
 
 p2
 
-//.package('gulp', {
-//  ensure: 'absent',
-//  provider: 'npm'
-//})
-
 //.node(function (f) { return f.os_family !== 'windows'; })
 .package('gulp-cli', {
   ensure: 'latest',
   provider: 'npm'
 })
 
-//.node(function (f) { return f.os_family === 'windows'; })
-//.package('gulp', {
-//  ensure: 'latest',
-//  provider: 'npm'
-//})
 
-
-//.package('gulp-mocha', {
-//  ensure: 'latest',
-//  provider: 'npm'
-//})
-//
-//.package('gulp-load-plugins', {
-//  ensure: 'latest',
-//  provider: 'npm'
-//})
-//
-//.package('gulp-util', {
-//  ensure: 'latest',
-//  provider: 'npm'
-//})
-
-//.end();
+.node(function (f) { return f.platform === 'linux'; })
+.package('man', {
+  ensure: 'latest'
+})
 ;

@@ -52,7 +52,7 @@ utils.pIsAdmin()
 .done(function (isA) {
   isAdmin = isA;
 
-  describe('Module service', function () {
+  describe('Module package', function () {
 
     var facts,
         cwd = process.cwd();
@@ -77,4 +77,5 @@ utils.pIsAdmin()
 
   });
 
-}); // isAdmin
+});
+

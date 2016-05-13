@@ -78,11 +78,19 @@ var P2Test = {
   },
 
   getP2Facts: function () {
+//    args = (args ? args : {});
+
     var deferred = Q.defer();
+
+    if (GLOBAL.p2) {
+      delete GLOBAL.p2.facts;
+    }
+//    console.log('GLOBAL debug:', GLOBAL.partout.opts);
 
     new Policy({}, {daemon: false, showfacts: false})
     .done(function (policy) {
       //console.log('facts:', GLOBAL.p2.facts);
+      //console.log('p2_test.js GLOBAL.p2.facts.installed_packages[nginx]:', GLOBAL.p2.facts.installed_packages.nginx);
       deferred.resolve(GLOBAL.p2.facts);
     });
 
