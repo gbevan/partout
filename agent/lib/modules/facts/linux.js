@@ -220,7 +220,7 @@ var Facts = P2M.Module(module.filename, function () {
             facts[res[0]] = res[1];
 
             if (res[0] === 'os_dist_id_like') {
-              if (res[1].match(/rhel/)) {
+              if (res[1].match(/(rhel|fedora)/i)) {
                 facts.os_family = 'redhat';
               } else {
                 facts.os_family = res[1];
@@ -228,8 +228,19 @@ var Facts = P2M.Module(module.filename, function () {
             }
           }
         });
+
+        if (!facts.os_dist_name) {
+          if (facts.os_dist_pretty_name) {
+            facts.os_dist_name = (facts.os_dist_pretty_name.split(/\s+/))[0];
+          }
+        }
+
         if (facts.os_family === 'unknown' && facts.os_dist_name) {
-          facts.os_family = facts.os_dist_name;
+          if (facts.os_dist_name.match(/(oracle|centos)/i)) {
+            facts.os_family = 'redhat';
+          } else {
+            facts.os_family = facts.os_dist_name.toLowerCase();
+          }
         }
         //console.log('facts:', facts);
         outer_deferred.resolve(facts);

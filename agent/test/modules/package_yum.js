@@ -61,7 +61,7 @@ utils.pIsAdmin()
 })
 .done(function(facts) {
 
-  describe('Module package with apt provider', function () {
+  describe('Module package with yum provider', function () {
 
     var cwd = process.cwd();
 
@@ -76,8 +76,8 @@ utils.pIsAdmin()
     });
     */
 
-    if (facts.os_family === 'debian') {
-      var pkg = 'lolcat';
+    if (facts.os_family === 'redhat') {
+      var pkg = 'telnet';
 
       it('should install package ' + pkg, function (done) {
         this.timeout(120000);

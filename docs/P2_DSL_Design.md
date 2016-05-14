@@ -65,7 +65,7 @@ p2
 ### Structured Roles
 Folder layout to allow definition / installation of roles in a structured way, e.g. ```etc/roles/...```
 
-```javascript
+```
 |-- etc/
 |   `-- manifests/
 |   |   `-- site.pp
@@ -80,3 +80,17 @@ Would have a central index of registered roles, backed by GitHub (etc).
 The ```init.p2``` file would follow the same approach in defining the role as above [A Role Module](#a-role-module).
 
 The modules folder will allow modules to be embedded in the role package, and be specific to this role in it's scope.
+
+### Proposal for EventListener Based Dependencies and Triggers
+
+```javascript
+p2
+.anymodule('title', {
+  emit: 'service:openssh',
+  waitOn: 'file:/etc/ssh/sshd_config',
+  on: 'module:title'
+})
+```
+* emit: Causes an event to be emitted - this will actually be enabled by default to emit event 'module:title'.
+* waitOn: Do not run the policy immediately, wait on the event specified.
+* on: Run the policy immediately, but also re-run it on receiving the specified event.

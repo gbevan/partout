@@ -133,6 +133,7 @@ Service.prototype.getStatus = function (name) {
 
   self._getSysvEnabled()
   .then(function (sysv_enabled) {
+    //console.log('sysv_enabled:', sysv_enabled);
 
     utils.execToArray('service --status-all 2>&1')
     .then(function (res) {

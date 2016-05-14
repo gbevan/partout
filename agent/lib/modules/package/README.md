@@ -19,7 +19,7 @@ Options:
 | provider   | String  | Override backend provider e.g.: apt, yum, rpm, etc |
 
 Provider Support:
-(incomplete module - no unit tests yet)
+(incomplete module)
 
 | Provider   | Support Status | Unit Tests |
 |:----------:|:--------------:|:----------:|
@@ -29,7 +29,7 @@ Provider Support:
 | pip        | &#x2718;       | &#x2718;   |
 | portage    | &#x2718;       | &#x2718;   |
 | rpm        | &#x2718;       | &#x2718;   |
-| yum        | &#x2713;       | &#x2718;   |
+| yum        | &#x2713;       | &#x2713;   |
 | zypp       | &#x2718;       | &#x2718;   |
 | winfeature | &#x2718;       | &#x2718;   |
 | chocolatey | &#x2718;       | &#x2718;   |
