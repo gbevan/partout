@@ -30,7 +30,9 @@ var P2M = require('../../p2m'),
     fs = require('fs'),
     exec = require('child_process').exec,
     Q = require('q'),
-    utils = new(require('../../utils'))();
+    utils = new(require('../../utils'))(),
+    pfs = new (require('../../pfs'))(),
+    sysv = new (require('./sysv'))();
 
 Q.longStackSupport = true;
 Q.onerror = function (err) {
@@ -60,40 +62,71 @@ var Service = P2M.Module(module.filename, function () {
       cmd = '';
     //console.log('redhat getFacts()');
 
-    //utils.execToArray('/usr/bin/gdbus call --system --dest org.freedesktop.systemd1 --object-path /org/freedesktop/systemd1 --method org.freedesktop.systemd1.Manager.ListUnits')
-    utils.execToArray('/usr/bin/systemctl list-units *.service | grep "\.service"')
-    .then(function (res) {
-      //console.log('res:', res);
-      var u_lines = res.outlines;
-      //console.log('u_lines:', u_lines);
+    var sysv_promise = sysv.getFacts(facts_so_far),
+        systemd_deferred = Q.defer();
 
-      /*
-       * parse each line for status
-       * e.g.
-       * sshd.service                           loaded active running OpenSSH server daemon
-       */
-      var services = {};
-      u_lines.forEach(function (ul) {
-        var ul_m = ul.match(/^(\S+)\s+(\w+)\s+(\w+)\s+(\w+)\s+(.*)/);
-        if (ul_m) {
-          var u_name = ul_m[1],
-              u_desired = ul_m[3],
-              u_status = ul_m[4];
-          services[u_name] = {
-            desired: u_desired,
-            actual: u_status,
-            provider: 'systemd'
-          };
-        }
-      });
-      deferred.resolve({services: services});
-    })
-    .fail(function (err) {
-      console.error('Service getFacts failed:', err, '\n', err.stacktrace);
-      deferred.resolve();
-    })
-    .done();
-  })
+    pfs.pExists('/usr/bin/systemctl')
+    .then(function (systemd) {
+      //console.log('redhat systemd');
+
+      if (!systemd) {
+        systemd_deferred.resolve();
+        return;
+      }
+
+      //utils.execToArray('/usr/bin/gdbus call --system --dest org.freedesktop.systemd1 --object-path /org/freedesktop/systemd1 --method org.freedesktop.systemd1.Manager.ListUnits')
+      utils.execToArray('/usr/bin/systemctl list-units *.service | grep "\.service"')
+      .then(function (res) {
+        //console.log('res:', res);
+        var u_lines = res.outlines;
+        //console.log('u_lines:', u_lines);
+
+        /*
+         * parse each line for status
+         * e.g.
+         * sshd.service                           loaded active running OpenSSH server daemon
+         */
+        var services = {};
+        u_lines.forEach(function (ul) {
+          var ul_m = ul.match(/^(\S+)\s+(\w+)\s+(\w+)\s+(\w+)\s+(.*)/);
+          if (ul_m) {
+            var u_name = ul_m[1],
+                u_desired = ul_m[3],
+                u_status = ul_m[4];
+            services[u_name] = {
+              desired: u_desired,
+              actual: u_status,
+              provider: 'systemd'
+            };
+          }
+        });
+        systemd_deferred.resolve({services: services});
+      })
+      .fail(function (err) {
+        console.error('Service redhat getFacts failed:', err, '\n', err.stack);
+        systemd_deferred.resolve();
+      })
+      .done();
+    });
+
+    Q.all([sysv_promise, systemd_deferred.promise])
+    .then(function (p_arr) {
+      var facts = {services: {}},
+          sysv_facts = p_arr[0],
+          systemd_facts = p_arr[1];
+
+      if (sysv_facts) {
+        facts.services = sysv_facts.services;
+      }
+
+      if (systemd_facts) {
+        _.merge(facts, systemd_facts);
+      }
+
+      deferred.resolve(facts);
+    });
+
+  }) // facts
 
   ///////////////
   // Run Action
