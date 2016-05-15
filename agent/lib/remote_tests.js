@@ -120,10 +120,11 @@ RemoteTests.prototype.run = function () {
           });
         });
       });
+      //req.setTimeout(500000);
       req.end();
 
       req.on('error', function (err) {
-        console.error('---------------------------------\n' + remote + ' : ' + err.code + '\n');
+        console.error('---------------------------------\n' + remote + ' : ' + err.code + ' ERROR\n');
         console.error(err);
         console.error(err.stack);
         deferred.resolve({
@@ -131,6 +132,17 @@ RemoteTests.prototype.run = function () {
             result: err.code
           });
       });
+
+      req.on('timeout', function (err) {
+        console.error('---------------------------------\n' + remote + ' : ' + err.code + ' TIMEDOUT\n');
+        console.error(err);
+        console.error(err.stack);
+        deferred.resolve({
+            remote: remote,
+            result: err.code
+          });
+      });
+
 
     });
     deferred.resolve(test_promises);
