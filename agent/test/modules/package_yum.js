@@ -53,13 +53,13 @@ utils.pIsAdmin()
 .then(function (isA) {
   isAdmin = isA;
 
-  if (!isAdmin) {
-    return;
-  }
-
   return p2Test.getP2Facts();
 })
 .done(function(facts) {
+
+  if (!isAdmin) {
+    return;
+  }
 
   describe('Module package with yum provider', function () {
 
