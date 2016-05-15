@@ -63,7 +63,7 @@ utils.pIsAdmin()
       var facts;
 
       before(function (done) {
-        this.timeout(10000);
+        this.timeout(60000);
         p2Test.getP2Facts()
         .done(function(newfacts) {
           facts = newfacts;

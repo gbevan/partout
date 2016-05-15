@@ -52,14 +52,13 @@ var isAdmin = false;
 utils.pIsAdmin()
 .then(function (isA) {
   isAdmin = isA;
-
-  if (!isAdmin) {
-    return;
-  }
-
   return p2Test.getP2Facts();
 })
 .done(function(facts) {
+  //console.log('package_apt: facts:', facts);
+  if (!isAdmin) {
+    return;
+  }
 
   describe('Module package with apt provider', function () {
 

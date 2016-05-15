@@ -80,6 +80,8 @@ var routesApi = function (r, cfg, db, controllers, serverMetrics) {
   r.post('/mocha', requestMasterCertAuthorized, function (req, res, next) {
     console.warn('REST /mocha called');
 
+    res.connection.setTimeout(600 * 1000);  // prevent timeout of long runnning tests, e.g. on pi
+
     pfs.pExists(nodegulp)
     .done(function (exists) {
       var gulp = (exists ? nodegulp : 'gulp'),
@@ -94,7 +96,7 @@ var routesApi = function (r, cfg, db, controllers, serverMetrics) {
         if (stdout) {
           var r = stdout.match(mochaTimeRe);
           if (r) {
-            console.log('r:', r);
+            console.log(new Date() + ' r:', r);
             time_taken = parseFloat(r[1]);
             if (r[2] === 's') {
               time_taken *= 1000; // convert to ms
@@ -130,6 +132,7 @@ var routesApi = function (r, cfg, db, controllers, serverMetrics) {
           stdout: stdout,
           time_taken: time_taken
         };
+        console.warn('RETURNING resobj:', resobj);
         res.send(resobj);
       });
     });

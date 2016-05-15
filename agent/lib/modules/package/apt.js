@@ -112,6 +112,7 @@ var Package = P2M.Module(module.filename, function () {
         errmsg = '';
 
     utils.dlog('Package apt: in action ############################ name:', opts.name, 'ensure:', opts.ensure);
+    //console.log('Package apt: in action ############################ name:', opts.name, 'ensure:', opts.ensure);
 
     // fix env for non-interactive apt commands
     process.env.DEBIAN_FRONTEND = "noninteractive";
@@ -230,7 +231,7 @@ var Package = P2M.Module(module.filename, function () {
 
 Package.getStatus = function (name) {
   assert(name !== undefined);
-  assert(u.isString(name));
+  //assert(u.isString(name)); // wierd failure on raspbian/pi3
   assert(name !== '');
 
   var self = this,

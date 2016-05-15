@@ -58,7 +58,7 @@ utils.pIsAdmin()
         cwd = process.cwd();
 
     before(function (done) {
-      this.timeout(10000);
+      this.timeout(60000);
       p2Test.getP2Facts()
       .done(function(newfacts) {
         facts = newfacts;

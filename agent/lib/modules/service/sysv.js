@@ -94,31 +94,123 @@ Service.prototype._getRunLevel = function () {
 };
 
 /**
+ * Get services statuses from service --status-all
+ * @returns {object} services
+ */
+Service.prototype.getServiceAll = function () {
+  var deferred = Q.defer(),
+      services = {};
+
+  // XXX: May need to readdir /etc/init.d/ for executable scripts to preseed services...
+
+  utils.execToArray('service --status-all 2>&1')
+  .done(function (res) {
+    var sysv_lines = res.outlines,
+        inner_deferreds = [];
+
+    _.forEach(sysv_lines, function (sysv_line) {
+      var sysv_m1 = sysv_line.match(/^\s*\[\s*(\+|\-|\?)\s*\]\s*(.*)/),
+          sysv_m2 = sysv_line.match(/^([\w\-]+).*(stopped|running).*/);
+      //console.log('service debian sysv_m:', sysv_m);
+      var sysv_desired = 'unknown',
+          sysv_name,
+          sysv_status;
+      if (sysv_m1) {
+        sysv_name = sysv_m1[2];
+        sysv_status = sysv_m1[1];
+        sysv_status = (sysv_status === '+' ? 'running' : (sysv_status === '-' ? 'stopped' : 'unknown'));
+      } else if (sysv_m2) {
+        sysv_name = sysv_m2[1];
+        sysv_status = sysv_m2[2];
+      } else {
+        return; // next in forEach sysv_lines
+      }
+
+      services[sysv_name] = {
+        desired: sysv_desired,
+        actual: sysv_status,
+        provider: 'sysv'
+      };
+
+    });
+    deferred.resolve(services);
+  });
+
+  return deferred.promise;
+};
+
+/**
  * Get sysv services that are enabled for the current runlevel
  * @returns {Object} Promise -> {service: true, ...}
  */
-Service.prototype._getSysvEnabled = function () {
+Service.prototype._getSysvEnabled = function (services) {
   var self = this,
       deferred = Q.defer();
 
   self._getRunLevel()
-  .then(function (runlevel) {
+  .done(function (runlevel) {
     // get list of file links in /etc/rc?.d/S??name for desired state
     Q.nfcall(fs.readdir, '/etc/rc' + runlevel + '.d/')
-    .then(function (files) {
-      var file_hash = {};
+    .done(function (files) {
+      //var file_hash = {};
 
       files.forEach(function (e) {
-        var me = e.match(/^S\d+(.*)/);
+        var me = e.match(/^S(\d{2})(.*)/);
         if (me) {
-          file_hash[me[1]] = true;
+          var desired_state = 'start',
+              order = me[1],
+              name = me[2];
+          //file_hash[me[1]] = true;
+          if (services[name]) {
+            services[name].desired = desired_state;
+            services[name].order = order;
+          } else {
+            services[name] = {
+              desired: desired_state,
+              actual: 'unknown',
+              order: order,
+              provider: 'sysv'
+            };
+          }
         }
       });
-      deferred.resolve(file_hash);
-    })
-    .done();
-  })
-  .done();
+      deferred.resolve(services);
+    });
+  });
+
+  return deferred.promise;
+};
+
+Service.prototype._getSysvStatus = function (services) {
+  var self = this,
+      deferred = Q.defer(),
+      inner_deferreds = [];
+
+  _.forEach(services, function(s, name) {
+    var d = Q.defer();
+    inner_deferreds.push(d.promise);
+
+    if (s.actual === 'unknown') {
+      utils.execToArray('service ' + name + ' status')
+      .then(function (res) {
+        s.actual = (res.rc === 0 ? 'running' : 'stopped');
+        d.resolve();
+      })
+      .fail(function (err) {
+        s.actual = 'unknown';
+        d.resolve();
+      })
+      .done();
+    } else {
+      d.resolve();
+    }
+
+  });
+
+  Q.all(inner_deferreds)
+  .done(function () {
+    deferred.resolve(services);
+  });
 
   return deferred.promise;
 };
@@ -131,79 +223,22 @@ Service.prototype.getStatus = function (name) {
   var self = this,
       deferred = Q.defer();
 
-  self._getSysvEnabled()
-  .then(function (sysv_enabled) {
-    //console.log('sysv_enabled:', sysv_enabled);
-
-    utils.execToArray('service --status-all 2>&1')
-    .then(function (res) {
-      var sysv_lines = res.outlines,
-          inner_deferreds = [];
-
-      _.forEach(sysv_lines, function (sysv_line) {
-        var sysv_m = sysv_line.match(/^\s*\[\s*(\+|\-|\?)\s*\]\s*(.*)/);
-        //console.log('service debian sysv_m:', sysv_m);
-        if (sysv_m) {
-          var sysv_name = sysv_m[2],
-            sysv_status = sysv_m[1],
-            sysv_desired = (!sysv_enabled ? 'unknown' : (sysv_enabled[sysv_name] ? 'start' : 'stop'));
-
-          sysv_status = (sysv_status === '+' ? 'running' : (sysv_status === '-' ? 'stopped' : 'unknown'));
-          var d = Q.defer();
-          inner_deferreds.push(d.promise);
-
-          if (sysv_status === 'unknown') {
-
-            utils.execToArray('service ' + sysv_name + ' status')
-            .then(function (res) {
-              d.resolve({
-                sysv_name: sysv_name,
-                sysv_status: (res.rc === 0 ? 'running' : 'stopped'),
-                sysv_desired: sysv_desired
-              });
-            })
-            .fail(function (err) {
-              d.resolve({
-                sysv_name: sysv_name,
-                sysv_status: 'unknown',
-                sysv_desired: sysv_desired
-              });
-            })
-            .done();
-          } else {
-            d.resolve({
-              sysv_name: sysv_name,
-              sysv_status: sysv_status,
-              sysv_desired: sysv_desired
-            });
-          }
-
-        }
-      });
-      Q.all(inner_deferreds)
-      .done(function (statuses) {
-        var services = {};
-
-        statuses.forEach(function (s) {
-          services[s.sysv_name] = {
-            desired: s.sysv_desired,
-            actual: s.sysv_status,
-            provider: 'sysv'
-          };
-        });
-
-        if (name) {
-          deferred.resolve(services[name]);
-        } else {
-          deferred.resolve(services);
-        }
-      });
-
-    })
-    .done();
-
+  self.getServiceAll()
+  .then(function (services) {
+    return self._getSysvEnabled(services);
   })
-  .done();
+  .then(function (services) {
+    return self._getSysvStatus(services);
+  })
+  .done(function (services) {
+
+    if (name) {
+      deferred.resolve(services[name]);
+    } else {
+      deferred.resolve(services);
+    }
+
+  });
 
   return deferred.promise;
 };

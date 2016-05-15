@@ -47,6 +47,10 @@ Q.longStackSupport = true;
 // Simulate commandline options --verbose, --debug and --timing
 GLOBAL.partout = {opts: {verbose: false, debug: false, timing: false}};
 
+if (!utils.isWin()) {
+  return;
+}
+
 var isAdmin = false;
 utils.pIsAdmin()
 .done(function (isA) {
@@ -62,7 +66,7 @@ utils.pIsAdmin()
         cwd = process.cwd();
 
     before(function (done) {
-      this.timeout(10000);
+      this.timeout(60000);
       p2Test.getP2Facts()
       .done(function(newfacts) {
         facts = newfacts;
