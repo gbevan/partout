@@ -69,13 +69,13 @@ utils.pIsAdmin()
     it('should provide services facts', function () {
       should(facts).not.be.undefined;
       should(facts.p2module).not.be.undefined;
-      should(facts.p2module.service).not.be.undefined;
-      facts.p2module.service.loaded.should.be.true;
-      // TODO: should(facts.services).not.be.undefined;
+      should(facts.p2module.package).not.be.undefined;
+      facts.p2module.package.loaded.should.be.true;
+      if (!utils.isWin() && facts.os_family !== 'gentoo') {
+        should(facts.installed_packages).not.be.undefined;
+      }
     });
-
 
   });
 
 });
-

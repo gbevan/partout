@@ -57,7 +57,7 @@ utils.pIsAdmin()
 })
 .done(function(facts) {
 
-  if (facts.os_family !== 'redhat') {
+  if (facts.os_family !== 'suse') {
     return;
   }
 
@@ -65,14 +65,14 @@ utils.pIsAdmin()
     return;
   }
 
-  describe('Module package with yum provider', function () {
+  describe('Module package with zypp provider', function () {
 
     var cwd = process.cwd();
 
     var pkg = 'telnet';
 
     it('should install package ' + pkg, function (done) {
-      this.timeout(120000);
+      this.timeout(10000);
       //console.log('package_apt debian');
 
       p2Test.runP2Str(
@@ -98,7 +98,7 @@ utils.pIsAdmin()
             //console.log('got facts');
             should(facts).not.be.undefined;
             should(facts.installed_packages).not.be.undefined;
-            //console.log('facts.installed_packages ' + pkg + ':', facts.installed_packages[pkg]);
+            console.log('facts.installed_packages ' + pkg + ':', facts.installed_packages[pkg]);
             should(facts.installed_packages[pkg]).not.be.undefined;
 
             //console.log('facts ok calling done()');
@@ -115,7 +115,7 @@ utils.pIsAdmin()
     });
 
     it('should uninstall package ' + pkg, function (done) {
-      this.timeout(120000);
+      this.timeout(10000);
       //console.log('package_apt debian');
 
       p2Test.runP2Str(

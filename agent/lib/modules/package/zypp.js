@@ -2,7 +2,7 @@
     Partout [Everywhere] - Policy-Based Configuration Management for the
     Data-Driven-Infrastructure.
 
-    Copyright (C) 2015-2016  Graham Lee Bevan <graham.bevan@ntlworld.com>
+    Copyright (C) 2016 Graham Lee Bevan <graham.bevan@ntlworld.com>
 
     This file is part of Partout.
 
@@ -56,7 +56,7 @@ var Package = P2M.Module(module.filename, function () {
   // Gather facts
   .facts(function (deferred, facts_so_far) {
     var self = this;
-    utils.dlog('in package yum facts()');
+    utils.dlog('in package zypp facts()');
 
     // get installed packages for this OS from rpm.js
     deferred.resolve(rpm.getFacts(facts_so_far));
@@ -74,12 +74,12 @@ var Package = P2M.Module(module.filename, function () {
         command_complete_cb = args.cb, // cb is policy provided optional call back on completion
         errmsg = '';
 
-    utils.dlog('Package yum: in action ############################ name:', opts.name, 'ensure:', opts.ensure);
+    utils.dlog('Package zypp: in action ############################ name:', opts.name, 'ensure:', opts.ensure);
 
     // Get current status and version from rpm
     rpm.getStatus(opts.name)
     .then(function (current_state) {
-      utils.dlog('Package yum: current_state:', current_state);
+      utils.dlog('Package zypp: current_state:', current_state);
 
       // PRESENT / INSTALLED / LATEST
       if (opts.ensure.match(/^(present|installed|latest)$/)) {
@@ -87,19 +87,14 @@ var Package = P2M.Module(module.filename, function () {
         if (!current_state) { // not installed
           console.info('Installing package:', opts.name);
 
-          exec('yum install -y ' + opts.name, function (err, stdout, stderr) {
+          exec('zypper --non-interactive install ' + opts.name, function (err, stdout, stderr) {
             if (err) {
-              console.error('yum install failed:', err, stderr);
+              console.error('zypper install failed:', err, stderr);
             } else {
               // add to facts
               _impl.facts.installed_packages[opts.name] = {};  // next facts run will populate
             }
             if (command_complete_cb) command_complete_cb(err, stdout, stderr);
-//            utils.callbackEvent(next_step_callback, _impl.facts, {
-//              module: 'package',
-//              object: opts.name,
-//              msg: 'install ' + (err ? err : 'ok')
-//            });
             _impl.qEvent({
               module: 'package',
               object: opts.name,
@@ -110,35 +105,17 @@ var Package = P2M.Module(module.filename, function () {
 
         } else if (opts.ensure === 'latest') {
           // LATEST
-          exec('yum -q check-updates ' + opts.name + ' | tail -n +2', function (err, stdout, stderr) {
+          exec('zypper --non-interactive upgrade ' + opts.name + ' | tail -n +2', function (err, stdout, stderr) {
             if (err) {
-              console.error('yum check-updates failed:', err, stderr);
+              console.error('zypper update failed:', err, stderr);
             }
-            var line = stdout.trim();
-
-            if (line !== '') { // update available?
-              console.info('Upgrading package:', opts.name);
-              exec('yum -y update ' + opts.name, function (err, stdout, stderr) {
-                if (err) {
-                  console.error('yum update failed:', err, stderr);
-                }
-                if (command_complete_cb) command_complete_cb(err, stdout, stderr);
-//                utils.callbackEvent(next_step_callback, _impl.facts, {
-//                  module: 'package',
-//                  object: opts.name,
-//                  msg: 'upgrade ' + (err ? err : 'ok')
-//                });
-                _impl.qEvent({
-                  module: 'package',
-                  object: opts.name,
-                  msg: 'upgrade ' + (err ? err : 'ok')
-                });
-                deferred.resolve();
-              });
-            } else {
-              //next_step_callback();
-              deferred.resolve();
-            }
+            if (command_complete_cb) command_complete_cb(err, stdout, stderr);
+            _impl.qEvent({
+              module: 'package',
+              object: opts.name,
+              msg: 'upgrade ' + (err ? err : 'ok')
+            });
+            deferred.resolve();
           });
         }
 
@@ -148,18 +125,13 @@ var Package = P2M.Module(module.filename, function () {
         if (current_state) { // installed?y
           console.info('Removing package:', opts.name);
 
-          exec('yum -y erase ' + opts.name, function (err, stdout, stderr) {
+          exec('zypper --non-interactive remove ' + opts.name, function (err, stdout, stderr) {
             if (err) {
-              console.error('yum erase failed:', err, stderr);
+              console.error('zypp erase failed:', err, stderr);
             } else {
               delete _impl.facts.installed_packages[opts.name];
             }
             if (command_complete_cb) command_complete_cb(err, stdout, stderr);
-//            utils.callbackEvent(next_step_callback, _impl.facts, {
-//              module: 'package',
-//              object: opts.name,
-//              msg: 'uninstall ' + (err ? err : 'ok')
-//            });
             _impl.qEvent({
               module: 'package',
               object: opts.name,
