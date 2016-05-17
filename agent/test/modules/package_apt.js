@@ -56,6 +56,11 @@ utils.pIsAdmin()
 })
 .done(function(facts) {
   //console.log('package_apt: facts:', facts);
+
+  if (facts.os_family !== 'debian') {
+    return;
+  }
+
   if (!isAdmin) {
     return;
   }
@@ -64,94 +69,80 @@ utils.pIsAdmin()
 
     var cwd = process.cwd();
 
-    /*
-    it('should provide services facts', function () {
-      should(facts).not.be.undefined;
-      should(facts.p2module).not.be.undefined;
-      should(facts.p2module.service).not.be.undefined;
-      facts.p2module.service.loaded.should.be.true;
-      // TODO: should(facts.services).not.be.undefined;
-      //console.log('facts:', facts);
-    });
-    */
+    var pkg = 'lolcat';
 
-    if (facts.os_family === 'debian') {
-      var pkg = 'lolcat';
+    it('should install package ' + pkg, function (done) {
+      this.timeout(120000);
+      //console.log('package_apt debian');
 
-      it('should install package ' + pkg, function (done) {
-        this.timeout(120000);
-        //console.log('package_apt debian');
+      GLOBAL.partout = {opts: {verbose: false, debug: false, timing: false}};
 
-        GLOBAL.partout = {opts: {verbose: false, debug: false, timing: false}};
+      p2Test.runP2Str(
+        'p2\n' +
+        '.package(\'' + pkg + '\', {\n' +
+        '  ensure: \'absent\'' +
+        '});'
+      )
+      .then(function (res_absent) {
+        //console.log('made absent');
 
         p2Test.runP2Str(
           'p2\n' +
           '.package(\'' + pkg + '\', {\n' +
-          '  ensure: \'absent\'' +
+          '  ensure: \'present\'' +
           '});'
         )
-        .then(function (res_absent) {
-          //console.log('made absent');
-
-          p2Test.runP2Str(
-            'p2\n' +
-            '.package(\'' + pkg + '\', {\n' +
-            '  ensure: \'present\'' +
-            '});'
-          )
-          .then(function (res_present) {
-            //console.log('made present');
-
-            p2Test.getP2Facts()
-            .then(function(facts) {
-              //console.log('got facts');
-              GLOBAL.partout = {opts: {verbose: false, debug: false, timing: false}};
-              should(facts).not.be.undefined;
-              should(facts.installed_packages).not.be.undefined;
-              //console.log('facts.installed_packages ' + pkg + ':', facts.installed_packages[pkg]);
-              should(facts.installed_packages[pkg]).not.be.undefined;
-
-              //console.log('facts ok calling done()');
-              done();
-            })
-            .done(null, function (err) {
-              done(err);
-            });
-          });
-        })
-        .done(null, function (err) {
-          done(err);
-        });
-      });
-
-      it('should uninstall package ' + pkg, function (done) {
-        this.timeout(120000);
-        //console.log('package_apt debian');
-
-        p2Test.runP2Str(
-          'p2\n' +
-          '.package(\'' + pkg + '\', {\n' +
-          '  ensure: \'absent\'' +
-          '});'
-        )
-        .then(function (res_absent) {
-          //console.log('made absend');
+        .then(function (res_present) {
+          //console.log('made present');
 
           p2Test.getP2Facts()
           .then(function(facts) {
+            //console.log('got facts');
+            GLOBAL.partout = {opts: {verbose: false, debug: false, timing: false}};
             should(facts).not.be.undefined;
             should(facts.installed_packages).not.be.undefined;
-            should(facts.installed_packages.nginx).be.undefined;
+            //console.log('facts.installed_packages ' + pkg + ':', facts.installed_packages[pkg]);
+            should(facts.installed_packages[pkg]).not.be.undefined;
 
+            //console.log('facts ok calling done()');
             done();
+          })
+          .done(null, function (err) {
+            done(err);
           });
-        })
-        .done(null, function (err) {
-          done(err);
         });
+      })
+      .done(null, function (err) {
+        done(err);
       });
+    });
 
-    }
+    it('should uninstall package ' + pkg, function (done) {
+      this.timeout(120000);
+      //console.log('package_apt debian');
+
+      p2Test.runP2Str(
+        'p2\n' +
+        '.package(\'' + pkg + '\', {\n' +
+        '  ensure: \'absent\'' +
+        '});'
+      )
+      .then(function (res_absent) {
+        //console.log('made absend');
+
+        p2Test.getP2Facts()
+        .then(function(facts) {
+          should(facts).not.be.undefined;
+          should(facts.installed_packages).not.be.undefined;
+          should(facts.installed_packages.nginx).be.undefined;
+
+          done();
+        });
+      })
+      .done(null, function (err) {
+        done(err);
+      });
+    });
 
   });
 

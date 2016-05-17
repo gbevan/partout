@@ -127,6 +127,9 @@ Package.prototype.setProvider = function (facts) {
 
   } else if (facts.os_family === 'redhat') {
     return 'yum';
+
+  } else if (facts.os_family === 'suse') {
+    return 'zypp';
   }
 
   return null;

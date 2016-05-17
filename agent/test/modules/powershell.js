@@ -395,6 +395,7 @@ if (utils.isWin()) {
     describe('Callback function for action complete', function () {
 
       it('Should call the supplied callback function on success', function (done) {
+        this.timeout(60000);
         var testFile = utils.escapeBackSlash(tmp.tmpNameSync() + '.TEST');
 
         var cmd = 'p2\n' +
@@ -439,6 +440,7 @@ if (utils.isWin()) {
       });
 
       it('Should call the supplied callback function on failure', function (done) {
+        this.timeout(60000);
         var testFile = utils.escapeBackSlash(tmp.tmpNameSync() + '.TEST');
         var cmd = 'p2\n' +
           '.powershell(\'Write-Output "OUT_STDOUT"; [Console]::Error.WriteLine("OUT_STDERR"); exit 1\', function (rc, stdout, stderr) {\n' +
