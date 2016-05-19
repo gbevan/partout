@@ -130,6 +130,9 @@ Package.prototype.setProvider = function (facts) {
 
   } else if (facts.os_family === 'suse') {
     return 'zypp';
+
+  } else if (facts.os_family === 'windows') {
+    return 'winfeature';
   }
 
   return null;

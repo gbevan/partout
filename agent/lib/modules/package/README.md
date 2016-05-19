@@ -31,5 +31,5 @@ Provider Support:
 | rpm        | &#x2718;       | &#x2718;   |
 | yum        | &#x2713;       | &#x2713;   |
 | zypp       | &#x2713;       | &#x2713;   |
-| winfeature | &#x2718;       | &#x2718;   |
+| winfeature | &#x2713;       | &#x2713;   |
 | chocolatey | &#x2718;       | &#x2718;   |
