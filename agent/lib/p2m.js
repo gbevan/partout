@@ -120,8 +120,9 @@ P2M.prototype.action = function (fn, action_args) {
   }
 
   if (action_args.immediate) {
+    console.log('****************** action immediate');
     self.runAction = function (_impl, next_step_callback, inWatchFlag, title, opts, cb) {
-      utils.dlog('P2M in runAction()');
+      //utils.dlog('P2M in runAction() arguments:', arguments);
 
       var deferred = Q.defer();
 
@@ -137,6 +138,8 @@ P2M.prototype.action = function (fn, action_args) {
 
       deferred.promise
       .done(next_step_callback);
+
+      //return _impl;
 
     };
     return self;

@@ -1,0 +1,25 @@
+/*jslint node: true */
+'use strict';
+
+/* global p2 */
+p2
+.command('echo before role def')
+
+.role('testRole', {
+  p2: function () {
+    p2
+    .command('echo from testRole')
+    ;
+  }
+})
+
+.command('echo after role def');
+
+var res = p2
+.testRole();
+console.log('++++ res:', res);
+
+res
+.command('echo "********** AFTER testRole **********"')
+
+;
