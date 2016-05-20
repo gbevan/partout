@@ -78,7 +78,6 @@ var Role = P2M.Module(module.filename, function () {
         command_complete_cb = args.cb, // cb is policy provided optional call back on completion
         errmsg = '',
         name = title;
-    console.log('1st action name:', name);
 
     if (opts.p2) {
       //opts.p2.call(self);
@@ -101,14 +100,11 @@ var Role = P2M.Module(module.filename, function () {
 
   }, {immediate: true}) // action
 
-  /*
   .action(function (args) {
     var deferred = args.deferred;
 
-    console.log('2nd action');
     deferred.resolve();
   })
-  */
   ;
 
 });

@@ -436,16 +436,15 @@ var P2 = function () {
 
         var c = new _modules[m]();
         //console.log('p2 m:', _modules[m].prototype);
-        console.log('c:', c);
+        //console.log('c:', c);
 
         if (c.runAction) {
           var immedArgs = [_impl, undefined, false];
           immedArgs.push.apply(immedArgs, arguments);
-          console.log('immedArgs:', u.inspect(immedArgs, {colors: true, depth: 2}));
           c.runAction.apply(c, immedArgs);
 
         } else {
-          console.error(u.format('module %s has no runAction method', m));
+          utils.vlog(u.format('module %s has no runAction method', m));
         }
 
         if (c.addStep) {
@@ -453,7 +452,6 @@ var P2 = function () {
         } else {
           console.error(u.format('module %s has no addStep/action method, action ignored', m));
         }
-        console.log('p2: after runAction or addStep - returning _impl');
         return _impl;
       };
 

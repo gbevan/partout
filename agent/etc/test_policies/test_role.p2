@@ -13,13 +13,10 @@ p2
   }
 })
 
-.command('echo after role def');
+.command('echo after role def')
 
-var res = p2
-.testRole();
-console.log('++++ res:', res);
+.testRole()
 
-res
 .command('echo "********** AFTER testRole **********"')
 
 ;
