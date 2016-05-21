@@ -21,3 +21,7 @@ p2
 .testRole('myTestRole', {option: value, ...})
 ;
 ```
+
+| Provider   | Support Status | Unit Tests |
+|:----------:|:--------------:|:----------:|
+| n/a        | &#x2713;       | &#x2713;   |
