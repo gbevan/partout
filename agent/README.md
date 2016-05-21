@@ -7,6 +7,8 @@ Prerequisites
 It is preferred to have Node.js pre-installed for Partout (the alternative is that Partout will see if there is
 a suitable copy of Node.js available on the Master for download, during the bootstrap process).
 
+Minimum required version of Node.js is v4.
+
 To prep your agent's OS with Node.js:
 
 see https://nodejs.org/en/download/package-manager/
@@ -35,6 +37,7 @@ Install from https://nodejs.org/en  select LTS (Long Term Support) or Latest Sta
     tar xvf node-v4.4.0-linux-armv7l.tar.xz
     ln -s node-v4.4.0-linux-armv7l.tar.xz node
 ```
+Add /opt/partout/node/bin to your path.
 
 ### Notes
 

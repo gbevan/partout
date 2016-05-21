@@ -1,0 +1,18 @@
+/*jslint node: true */
+'use strict';
+
+/* global p2 */
+p2
+.command('echo start of include, before role def')
+
+.role('testRole', {
+  p2: function () {
+    p2
+    .command('echo from testRole')
+    ;
+  }
+})
+
+.command('echo end of include, after role def')
+
+;
