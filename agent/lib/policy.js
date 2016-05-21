@@ -99,7 +99,8 @@ Policy.prototype.apply = function () {
     deferred = Q.defer();
   _.each(self.args, function (a) {
 
-    var abs_a = path.resolve(a);
+    var abs_a = path.resolve(a),
+        abs_dir = path.dirname(abs_a);
 
     delete require.cache[abs_a];
     p2.P2_watchers_close();
@@ -110,6 +111,7 @@ Policy.prototype.apply = function () {
       GLOBAL.p2 = p2;
       //GLOBAL.P2M = P2M;
       //GLOBAL.P2 = P2;
+      GLOBAL.p2.__p2dirname = abs_dir;
 
       //console.log('policy abs_a:', abs_a);
       var p = require(abs_a);

@@ -1,0 +1,11 @@
+/*jslint node: true */
+'use strict';
+
+/* global p2 */
+p2
+.role('_testRole_', {
+  p2: function (title, opts) {
+    p2
+    .command('echo ' + title + ': ' + opts.arg1 + ' > ' + opts.testFile);
+  }
+});

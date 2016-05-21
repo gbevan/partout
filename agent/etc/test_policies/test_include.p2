@@ -1,0 +1,17 @@
+/*jslint node: true */
+'use strict';
+
+/* global p2 */
+p2
+.command('echo before include')
+
+//.include('./etc/test_policies/test_include_inc.p2')
+.include('test_include_inc.p2')
+
+.command('echo after include')
+
+.testRole()
+
+.command('echo "********** AFTER testRole **********"')
+
+;
