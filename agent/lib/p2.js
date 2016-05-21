@@ -436,6 +436,17 @@ var P2 = function () {
 
         var c = new _modules[m]();
         //console.log('p2 m:', _modules[m].prototype);
+        //console.log('c:', c);
+
+        if (c.runAction) {
+          var immedArgs = [_impl, undefined, false];
+          immedArgs.push.apply(immedArgs, arguments);
+          c.runAction.apply(c, immedArgs);
+
+        } else {
+          utils.vlog(u.format('module %s has no runAction method', m));
+        }
+
         if (c.addStep) {
           c.addStep.apply(c, args);
         } else {

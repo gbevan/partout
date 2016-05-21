@@ -31,6 +31,7 @@ var P2M = require('../../p2m'),
     spawn = require('child_process').spawn,
     Q = require('q'),
     utils = new (require('../../utils'))(),
+    u = require('util'),
     pfs = new (require('../../pfs'))(),
     stringArgv = require('string-argv');
 
@@ -200,10 +201,10 @@ var Command = P2M.Module(module.filename, function () {
             return;
           }
 
-          console.log('Spawning command:', cmd/*, 'sp_args:', sp_args*/);
+          console.info(u.format('Spawning command: `%s`', cmd)/*, 'sp_args:', sp_args*/);
           utils.runCmd(cmd, opts)
           .fail(function (err) {
-            console.error('spawn failed for command:', cmd, 'err:', err);
+            console.error(u.format('spawn failed for command: `%s`', cmd), 'err:', err);
             throw err;
           })
           .done(function (res) {

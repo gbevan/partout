@@ -81,6 +81,60 @@ The ```init.p2``` file would follow the same approach in defining the role as ab
 
 The modules folder will allow modules to be embedded in the role package, and be specific to this role in it's scope.
 
+### Zoned Policies
+Need to be able to split out policies/roles etc for different zones, e.g. Development, Testing and Production.
+Or by business unit and staging, e.g. Finance/Development, Testing & Production, Manufacturing/..., etc.
+
+#### The Default Zone
+Any node not allocated to a zone will use the default zone, which is as it currently stands:
+```
+|-- etc/
+|   `-- manifests/
+|   |   `-- site.pp
+```
+
+#### Defined Zones
+```
+|-- etc/
+|   `-- manifests/
+|   |   `-- Development/
+|   |       `-- site.pp etc
+|   |   `-- Testing/
+|   |       `-- site.pp etc
+|   |   `-- Production/
+|   |       `-- site.pp etc
+
+```
+
+```
+|-- etc/
+|   `-- manifests/
+|   |   `-- Finance/
+|   |       `-- Development/
+|   |           `-- site.pp etc
+|   |       `-- Testing/
+|   |           `-- site.pp etc
+|   |       `-- Production/
+|   |           `-- site.pp etc
+...
+
+```
+
+
+### Include Statement
+Include files into policy:
+
+```javascript
+p2.
+...
+.include('roles/chocolatey.p2')
+...
+.chocolatey_present()
+.package(...)
+...
+
+```
+
 ### Proposal for EventListener Based Dependencies and Triggers
 
 ```javascript
