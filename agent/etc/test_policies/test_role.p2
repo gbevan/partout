@@ -1,6 +1,8 @@
 /*jslint node: true */
 'use strict';
 
+var u = require('util');
+
 /* global p2 */
 p2
 .command('echo before role def')
@@ -13,10 +15,22 @@ p2
   }
 })
 
+.role('testRole2', {
+  p2: function (title, opts) {
+    p2
+    .command(u.format('echo from testRole2 title: %s, opts.arg1: %s', title, opts.arg1))
+    ;
+  }
+})
+
 .command('echo after role def')
 
 .testRole()
 
-.command('echo "********** AFTER testRole **********"')
+.testRole2('test2 title', {
+  arg1: 'this is arg #1'
+})
+
+.command('echo "********** AFTER testRoles 1&2 **********"')
 
 ;

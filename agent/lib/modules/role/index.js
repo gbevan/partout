@@ -30,6 +30,7 @@ var P2M = require('../../p2m'),
     fs = require('fs'),
     Q = require('q'),
     utils = new (require('../../utils'))(),
+    u = require('util'),
     pfs = new (require('../../pfs'))(),
     stringArgv = require('string-argv');
 
@@ -80,13 +81,18 @@ var Role = P2M.Module(module.filename, function () {
         name = title;
 
     if (opts.p2) {
-      //opts.p2.call(self);
-      _impl[name] = function () {
+
+      if (_impl[name]) {
+        console.error(u.format('ERROR: Cannot add new role, name "%s" already exists'), name);
+        deferred.resolv();
+        return;
+      }
+      _impl[name] = function (mod_title, mod_opts) {
 
         /*
          * add passed p2 args dsl to addSteps in the p2 _impl
          */
-        opts.p2();
+        opts.p2(mod_title, mod_opts);
 
         /*
          * as this called from chained _impl dsl directives

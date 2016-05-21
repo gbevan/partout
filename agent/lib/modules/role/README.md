@@ -5,7 +5,7 @@ Roles are dynamically created modules, that can be expressed either using P2M DS
 ```javascript
 p2
 .role('testRole', {
-  p2: function () {
+  p2: function (title, opts) {
     p2
     .command('echo from testRole')
     ;
@@ -18,6 +18,6 @@ this can then be used later:
 
 ```javascript
 p2
-.testRole()
+.testRole('myTestRole', {option: value, ...})
 ;
 ```

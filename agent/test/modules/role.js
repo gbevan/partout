@@ -59,8 +59,9 @@ describe('Module role', function () {
       '  p2: function () {\n' +
       '    p2\n' +
       '    .command(\'echo SUCCESS > {{{ testFile }}}\');\n' +
-      '  }' +
-      '})' +
+      '  }\n' +
+      '})\n' +
+      '.file(\'{{{ testFile }}}\', {ensure: \'absent\'})\n' +
       '._testRole_();',
       {
         testFile: testFile
@@ -71,6 +72,49 @@ describe('Module role', function () {
     })
     .then(function (exists) {
       exists.should.be.true;
+      return pfs.pUnlink(testFile);
+    })
+    .then(function (err) {
+      should(err).be.undefined;
+      done();
+    })
+    .done(null, function (err) {
+      done(err);
+    });
+
+  });
+
+  it('Policy should create a role taking a title and options that can spawn command', function (done) {
+    this.timeout(240000);
+
+    var testFile = utils.escapeBackSlash(tmp.tmpNameSync() + '.TEST');
+
+    p2Test.runP2Str(
+      'p2\n' +
+      '.role(\'_testRole_\', {\n' +
+      '  p2: function (title, opts) {\n' +
+      '    p2\n' +
+      '    .command(\'echo \' + title + \': \' + opts.arg1 + \' > {{{ testFile }}}\');\n' +
+      '  }\n' +
+      '})\n' +
+      '.file(\'{{{ testFile }}}\', {ensure: \'absent\'})\n' +
+      '._testRole_(\'MyTitle\', {arg1: \'MyArgument1\'});',
+      {
+        testFile: testFile
+      }
+    )
+    .then(function () {
+      return pfs.pExists(testFile);
+    })
+    .then(function (exists) {
+      exists.should.be.true;
+      return pfs.pReadFile(testFile);
+    })
+    .then(function (data) {
+      should(data).not.be.undefined;
+      data = data.toString().trim();
+      data.should.equal('MyTitle: MyArgument1');
+
       return pfs.pUnlink(testFile);
     })
     .then(function (err) {
