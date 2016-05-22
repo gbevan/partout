@@ -54,9 +54,9 @@ gulp.task('mocha', function () {
   .pipe(filter_files)
   .pipe(mocha({
     reporter: 'spec',
-//    globals: {
-//      should: require('should').noConflict()
-//    }
+    globals: {
+      should: require('should').noConflict()
+    }
   }))
 
   .once('error', function () {
