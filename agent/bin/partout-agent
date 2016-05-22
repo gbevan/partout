@@ -51,6 +51,18 @@ var console = require('better-console'),
         shortName: 't',
         type: 'bool',
         help: 'Show timing log messages'
+      },
+      {
+        name: 'env',
+        shortName: 'e',
+        type: 'string',
+        help: 'Specify agent\'s environment'
+      },
+      {
+        name: 'yes',
+        shortName: 'y',
+        type: 'bool',
+        help: 'Assume yes to any questions, including accepting the master\'s ssl certificate fingerprint'
       }
     ]),
     parser = args.parser(process.argv),
@@ -65,6 +77,8 @@ if (parsed.help) {
 if (parsed.debug) {
   parsed.verbose = true;
 }
+
+console.log('parsed:', parsed);
 
 /*
  * validate minimum versioj of node

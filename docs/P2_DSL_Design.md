@@ -81,19 +81,20 @@ The ```init.p2``` file would follow the same approach in defining the role as ab
 
 The modules folder will allow modules to be embedded in the role package, and be specific to this role in it's scope.
 
-### Zoned Policies
-Need to be able to split out policies/roles etc for different zones, e.g. Development, Testing and Production.
+### Policy Environments
+Need to be able to split out policies/roles etc for different environments, e.g. Development, Testing and Production.
 Or by business unit and staging, e.g. Finance/Development, Testing & Production, Manufacturing/..., etc.
 
-#### The Default Zone
-Any node not allocated to a zone will use the default zone, which is as it currently stands:
+#### The Default Environment
+Any node not allocated to an environment will use the default one, which is as it currently stands:
 ```
 |-- etc/
 |   `-- manifests/
 |   |   `-- site.pp
 ```
+(paths are from partout master)
 
-#### Defined Zones
+#### Defined Environments
 ```
 |-- etc/
 |   `-- manifests/
@@ -105,6 +106,8 @@ Any node not allocated to a zone will use the default zone, which is as it curre
 |   |       `-- site.pp etc
 
 ```
+(paths are from partout master)
+
 
 ```
 |-- etc/
@@ -119,6 +122,19 @@ Any node not allocated to a zone will use the default zone, which is as it curre
 ...
 
 ```
+
+#### Registering an Agent in an Environment
+
+```bash
+# /opt/partout/agent/bin/partout-agent --env Development
+```
+
+This creates a file
+```
+/var/opt/partout/environment
+```
+
+this file can be later editted to switch a node between environments.
 
 
 ### Include Statement

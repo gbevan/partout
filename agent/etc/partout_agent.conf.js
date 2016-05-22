@@ -2,7 +2,9 @@
 'use strict';
 
 var path = require('path'),
-    os = require('os');
+    os = require('os'),
+    pfs = new (require('../lib/pfs'))(),
+    Q = require('q');
 
 var Cfg = function () {
   var self = this,
@@ -35,6 +37,9 @@ var Cfg = function () {
       self.PARTOUT_VARDIR = '/var/opt/partout';
     }
   }
+
+  self.PARTOUT_AGENT_ENVIRONMENT_FILE = path.join(self.PARTOUT_VARDIR, 'environment');
+
   self.PARTOUT_ETCDIR = path.join('.', 'etc');
   self.PARTOUT_MASTER_ETCDIR = 'etc';
   self.PARTOUT_MASTER_MANIFEST_DIR = path.join(self.PARTOUT_MASTER_ETCDIR, 'manifest');
@@ -43,7 +48,44 @@ var Cfg = function () {
 
   self.PARTOUT_AGENT_SSL_DIR = path.join(self.PARTOUT_VARDIR, 'ssl');
   self.PARTOUT_AGENT_MANIFEST_DIR = path.join(self.PARTOUT_VARDIR, 'manifest');
-  self.PARTOUT_AGENT_MANIFEST_SITE_P2 = path.join(self.PARTOUT_AGENT_MANIFEST_DIR, 'site.p2');
+  //self.PARTOUT_AGENT_MANIFEST_SITE_P2 = path.join(self.PARTOUT_AGENT_MANIFEST_DIR, 'site.p2');
+
+  // allow call from agent app.js to set paths for environment
+  self.setEnvironment = function (optenv) {
+
+    // Save environment if specified as option (--env)
+    var deferred = Q.defer(),
+        env_deferred = Q.defer();
+
+    pfs.pExists(self.PARTOUT_AGENT_ENVIRONMENT_FILE)
+    .done(function (exists) {
+      if (!exists || optenv) {
+        // create/write it
+        var env = (optenv ? optenv : 'default');
+        pfs.pWriteFile(self.PARTOUT_AGENT_ENVIRONMENT_FILE, env)
+        .done(function () {
+          env_deferred.resolve(env);
+        });
+      } else {
+        // read it
+        pfs.pReadFile(self.PARTOUT_AGENT_ENVIRONMENT_FILE)
+        .done(function (env) {
+          env_deferred.resolve(env.toString().trim());
+        });
+      }
+    });
+
+    env_deferred
+    .promise
+    .done(function (env) {
+      self.environment = env;
+      self.PARTOUT_AGENT_MANIFEST_SITE_P2 = path.join(self.PARTOUT_AGENT_MANIFEST_DIR, env, 'site.p2');
+      deferred.resolve(env);
+    });
+
+    return deferred.promise;
+  };
+  self.setEnvironment();  // assumes default until the environment file is created
 
   /*
    * defaults for agent to master event throttling

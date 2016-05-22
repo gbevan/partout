@@ -285,12 +285,14 @@ module.exports = function (opts) {
 
           //console.warn('CSRs:');
           for (var i in csrList) {
-            var csrObj = ca.pki.certificationRequestFromPem(csrList[i].csr);
-            var fingerprint = ca.pki.getPublicKeyFingerprint(csrObj.publicKey, {encoding: 'hex', delimiter: ':'});
+            var csrObj = ca.pki.certificationRequestFromPem(csrList[i].csr),
+                fingerprint = ca.pki.getPublicKeyFingerprint(csrObj.publicKey, {encoding: 'hex', delimiter: ':'}),
+                logrow = csrList[i]._key + ' : ' + csrList[i].status + ' : ' + fingerprint + ' : ' + csrList[i].lastSeen + ' : env:' + csrList[i].env;
+
             if (csrList[i].status === 'unsigned') {
-              console.log(csrList[i]._key + ' : ' + csrList[i].status + ' : ' + fingerprint + ' : ' + csrList[i].lastSeen);
+              console.log(logrow);
             } else {
-              console.info(csrList[i]._key + ' : ' + csrList[i].status + ' : ' + fingerprint + ' : ' + csrList[i].lastSeen);
+              console.info(logrow);
             }
           }
         })

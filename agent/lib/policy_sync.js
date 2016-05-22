@@ -172,31 +172,39 @@ Policy_Sync.prototype.sync = function (srcfolder, destfolder) {
     console.warn('Master API SSL fingerprint (SHA256):\n' + self.master_fingerprint);
     console.warn(new Array(self.master_fingerprint.length + 1).join('='));
 
-    if (self.accepted_master_fingerprint === '') {
-      console.warn('Accept new master SSL as trusted, after verifying the above fingerprint (y/n):');
+    if (self.app.opts.yes) {
+      console.warn('Accepting (--yes) new master SSL as trusted');
+      deferred.resolve(self.save_master_fingerprint(self.master_fingerprint));
 
-      var rl = readline.createInterface({
-        input: process.stdin,
-        output: process.stdout
-      });
-      rl.question('(y/n)? ', function (answer) {
-        rl.close();
-        if (answer !== 'y') {
-          var errmsg = 'Error: Master SSL fingerprint not accepted! aborting...';
-          console.error(errmsg);
-          throw new Error(errmsg);
-        }
-
-        deferred.resolve(self.save_master_fingerprint(self.master_fingerprint));
-      });
-
-    } else if (self.accepted_master_fingerprint !== self.master_fingerprint) {
-      var errmsg = 'Error: Master SSL fingerprint does not match accepted fingerprint! aborting...';
-      console.error(errmsg);
-      throw new Error(errmsg);
     } else {
-      deferred.resolve();
-    }
+
+      if (self.accepted_master_fingerprint === '') {
+        console.warn('Accept new master SSL as trusted, after verifying the above fingerprint (y/n):');
+
+        var rl = readline.createInterface({
+          input: process.stdin,
+          output: process.stdout
+        });
+        rl.question('(y/n)? ', function (answer) {
+          rl.close();
+          if (answer !== 'y') {
+            var errmsg = 'Error: Master SSL fingerprint not accepted! aborting...';
+            console.error(errmsg);
+            throw new Error(errmsg);
+          }
+
+          deferred.resolve(self.save_master_fingerprint(self.master_fingerprint));
+        });
+
+      } else if (self.accepted_master_fingerprint !== self.master_fingerprint) {
+        var errmsg = 'Error: Master SSL fingerprint does not match accepted fingerprint! aborting...';
+        console.error(errmsg);
+        throw new Error(errmsg);
+      } else {
+        deferred.resolve();
+      }
+
+    } // --yes
     return deferred.promise;
   })
   .then(function () {
