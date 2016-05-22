@@ -4,8 +4,7 @@
 var os = require('os');
 
 var Cfg = function () {
-  var self = this,
-      isInTest = typeof GLOBAL.it === 'function';  // in Mocha test?
+  var self = this;
 
   //self.partout_master_hostname = '172.17.42.1';
   //self.partout_master_hostname = os.hostname;
@@ -16,7 +15,7 @@ var Cfg = function () {
 
   //console.log('env:', process.env.NODE_ENV);
 
-  if (isInTest) {
+  if (global.INMOCHA) {
     self.database_name = 'partout-test';
   } else {
     self.database_name = 'partout';
