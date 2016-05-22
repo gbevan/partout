@@ -279,12 +279,16 @@ Policy_Sync.prototype.sync = function (srcfolder, destfolder) {
                 }
                 done();
               });
+            } else {
+              done();
             }
-            done();
           });
         });
         //console.log('tasks:', tasks);
-        nimble.series(tasks, function () { outer_deferred.resolve(); });
+        nimble.series(tasks, function () {
+          console.info('sync complete');
+          outer_deferred.resolve();
+        });
 
       });
 

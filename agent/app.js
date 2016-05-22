@@ -212,7 +212,7 @@ var serve = function (opts, master, env) {
 
   app.environment = env;
   app.opts = opts;
-  console.log('app.opts:', app.opts);
+  //console.log('app.opts:', app.opts);
 
   // TODO: parameterise from a js file
   app.master_hostname = cfg.partout_master_hostname;
@@ -382,33 +382,31 @@ module.exports = function (opts) {
     .then(function () {
 
       // Save environment if specified as option (--env)
-      cfg.setEnvironment(opts.env)
-      .done(function (env) {
-        opts.env = env;
+      var env = cfg.setEnvironment(opts.env);
+      opts.env = env;
 
-        console.info('Environment:', opts.env);
+      console.info('Environment:', opts.env);
 
-        var master = new Master(cfg, https);
+      var master = new Master(cfg, https);
 
-        // Start a keep-alive - for handling Agent CSR signing delay
-        var reexec = function () {
-          process.nextTick(function () {
-            checkCert(master, opts.env)
-            .then(function (result) {
-              if (result) {
-                serve(opts, master, opts.env);
-              } else {
-                setTimeout(function () {
-                  reexec();
-                }, 60 * 1000); // TODO: Splay timing
-              }
-            })
-            .done();
-          });
-        };
-        reexec();
+      // Start a keep-alive - for handling Agent CSR signing delay
+      var reexec = function () {
+        process.nextTick(function () {
+          checkCert(master, opts.env)
+          .then(function (result) {
+            if (result) {
+              serve(opts, master, opts.env);
+            } else {
+              setTimeout(function () {
+                reexec();
+              }, 60 * 1000); // TODO: Splay timing
+            }
+          })
+          .done();
+        });
+      };
+      reexec();
 
-      }); // env_deferred
 
     })
     .done();

@@ -81,6 +81,8 @@ var Cfg = function () {
 
     self.environment = env;
     self.PARTOUT_AGENT_MANIFEST_SITE_P2 = path.join(self.PARTOUT_AGENT_MANIFEST_DIR, env, 'site.p2');
+
+    return env;
   };
   self.setEnvironment();  // assumes default until the environment file is created
 

@@ -78,7 +78,7 @@ if (parsed.debug) {
   parsed.verbose = true;
 }
 
-console.log('parsed:', parsed);
+//console.log('parsed:', parsed);
 
 /*
  * validate minimum versioj of node
