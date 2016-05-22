@@ -1,5 +1,6 @@
 /*jslint browser: true, node: true, vars: true*/
 'use strict';
+global.INMOCHA = true;
 
 var gulp = require('gulp'),
     mocha = require('gulp-mocha'),
@@ -21,6 +22,8 @@ var gulp = require('gulp'),
 var env = process.env.NODE_ENV || 'development';
 console.log('Invoking gulp -', env);
 
+Q.longStackSupport = true;
+
 var filter_files = filter(['**', '!**/files/*']);  // prevent test files from executing by gulp as tests in themselves
 
 gulp.task('default', function () {
@@ -40,8 +43,8 @@ gulp.task('mocha1', function () {
     reporter: 'spec',
     globals: {
       should: require('should').noConflict()
-      //inMocha: true
     }
+//    globals: ['INMOCHA']
   }));
 });
 
@@ -53,7 +56,6 @@ gulp.task('mocha', function () {
     reporter: 'spec',
     globals: {
       should: require('should').noConflict()
-      //inMocha: true
     }
   }))
 

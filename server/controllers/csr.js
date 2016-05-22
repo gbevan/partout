@@ -42,7 +42,7 @@ var Csr = function (db) {
   Object.setPrototypeOf(self, Common(db, 'csrs'));
 
 
-  self.register = function (agent_uuid, ip, csr) {
+  self.register = function (agent_uuid, ip, csr, env) {
     var self = this,
       deferred = Q.defer(),
       now = new Date();
@@ -64,6 +64,7 @@ var Csr = function (db) {
         var newDoc = {
           _key: ((agent_uuid && agent_uuid !== '') ? agent_uuid : uuid.v4()),
           ip: ip,
+          env: env,
           csr: csr,
           status: 'unsigned',
           lastSeen: now
@@ -87,6 +88,7 @@ var Csr = function (db) {
           //console.log('doc:', doc);
           doc.csr = csr;
           doc.lastSeen = now;
+          doc.env = env;
           self.collection.update(doc._id, doc)
           .then(function () {
             deferred.resolve(doc);

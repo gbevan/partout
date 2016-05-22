@@ -61,6 +61,8 @@ var Facts = P2M.Module(module.filename, function () {
     var UUIDFile = path.join(cfg.PARTOUT_VARDIR, 'UUID');
 
     var myFacts = {
+      environment: cfg.environment,
+
       p2module: {
         facts: {
           loaded: true

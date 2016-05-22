@@ -55,10 +55,11 @@ Q.longStackSupport = true;
 var MYUUID_FILE = path.join(cfg.PARTOUT_VARDIR, 'UUID');
 var MYUUID = (fs.existsSync(MYUUID_FILE) ? fs.readFileSync(MYUUID_FILE).toString() : '');
 
-var _sendCsr = function (master) {
+var _sendCsr = function (master, env) {
   var deferred = Q.defer();
   master.post('/agentcsr', {
     uuid: MYUUID,
+    env: env,
     csr: fs.readFileSync(ssl.agentCsrFile).toString()
   })
   .then(function (resp) {
@@ -102,7 +103,7 @@ var apply = function (args, opts) {
   return deferred.promise;
 };
 
-var checkCert = function (args, master) {
+var checkCert = function (master, env) {
   var deferred = Q.defer();
 
   console.info('=============================');
@@ -141,7 +142,7 @@ var checkCert = function (args, master) {
             // Send csr to master
             console.warn('Sending agent certificate signing request to master');
 
-            _sendCsr(master)
+            _sendCsr(master, env)
             .then(function(resp) {
               console.log('response to new csr:', resp.status);
 
@@ -150,7 +151,7 @@ var checkCert = function (args, master) {
 
           });
         } else {
-          _sendCsr(master)
+          _sendCsr(master, env)
           .then(function(resp) {
             //console.log('type:', typeof(resp));
             console.warn('response to existing csr:', resp.status);
@@ -180,10 +181,12 @@ var checkCert = function (args, master) {
   return deferred.promise;
 };
 
-var serve = function (args, master) {
+var serve = function (opts, master, env) {
   console.info('========================');
   console.info('Starting Policy Agent...');
   console.info('========================');
+
+  var args = opts.args;
 
   sslKey = fs.readFileSync(privateKeyFile);
   sslCert = fs.readFileSync(certFile);
@@ -203,8 +206,13 @@ var serve = function (args, master) {
         rejectUnauthorized: false
       };
 
+
   master.set_agent_cert(sslKey, sslCert);
   master.set_app(app);
+
+  app.environment = env;
+  app.opts = opts;
+  //console.log('app.opts:', app.opts);
 
   // TODO: parameterise from a js file
   app.master_hostname = cfg.partout_master_hostname;
@@ -290,6 +298,10 @@ var serve = function (args, master) {
     if ((app.apply_count++ % app.poll_manifest_every) === 0) {
 
       setTimeout(function () {
+
+        // TODO: handle environment in sync
+        // policy_sync.sync(self.app.environment, cfg.PARTOUT_AGENT_MANIFEST_DIR)
+
         policy_sync.sync(cfg.PARTOUT_MASTER_MANIFEST_DIR, cfg.PARTOUT_AGENT_MANIFEST_DIR)
         .then(function () {
           //console.log('sync done');
@@ -368,15 +380,22 @@ module.exports = function (opts) {
     utils.dlog('Ensuring path:', cfg.PARTOUT_VARDIR);
     Q.nfcall(pfs.ensurePath, cfg.PARTOUT_VARDIR)
     .then(function () {
+
+      // Save environment if specified as option (--env)
+      var env = cfg.setEnvironment(opts.env);
+      opts.env = env;
+
+      console.info('Environment:', opts.env);
+
       var master = new Master(cfg, https);
 
       // Start a keep-alive - for handling Agent CSR signing delay
       var reexec = function () {
         process.nextTick(function () {
-          checkCert(opts.args, master)
+          checkCert(master, opts.env)
           .then(function (result) {
             if (result) {
-              serve(opts.args, master);
+              serve(opts, master, opts.env);
             } else {
               setTimeout(function () {
                 reexec();
@@ -387,6 +406,8 @@ module.exports = function (opts) {
         });
       };
       reexec();
+
+
     })
     .done();
 

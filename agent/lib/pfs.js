@@ -148,9 +148,26 @@ Pfs.prototype.ensurePath = function (path, cb) {
  */
 Pfs.prototype.pExists = function (path) {
   var deferred = Q.defer();
+
+  /*
+   *fs.exists is now deprecated
   fs.exists(path, function (exists) {
     deferred.resolve(exists);
   });
+   */
+
+  fs.stat(path, function (err, stat) {
+    if (err) {
+      if (err.code === 'ENOENT') {
+        deferred.resolve(false);
+        return;
+      }
+      throw err;
+    }
+
+    deferred.resolve(true);
+  });
+
   return deferred.promise;
 };
 

@@ -2,14 +2,17 @@
 'use strict';
 
 var path = require('path'),
-    os = require('os');
+    os = require('os'),
+    fs = require('fs'),
+    Q = require('q'),
+    u = require('util');
+
+Q.longStackSupport = true;
 
 var Cfg = function () {
-  var self = this,
-      isInTest = typeof GLOBAL.it === 'function';  // in Mocha test?
+  var self = this;
 
-//  console.log('isInTest:', isInTest);
-//  console.log('GLOBAL.it:', GLOBAL.it);
+  //console.log('global:', u.inspect(GLOBAL, {colors: true, depth: 1}));
 
   //self.partout_master_hostname = 'officepc.net';
   self.partout_master_hostname = '192.168.0.64';
@@ -29,12 +32,15 @@ var Cfg = function () {
       throw new Error('Unsupported version of Windows');
     }
   } else {
-    if (isInTest) {
+    if (global.INMOCHA) {
       self.PARTOUT_VARDIR = '/tmp/var/opt/partout';
     } else {
       self.PARTOUT_VARDIR = '/var/opt/partout';
     }
   }
+
+  self.PARTOUT_AGENT_ENVIRONMENT_FILE = path.join(self.PARTOUT_VARDIR, 'environment');
+
   self.PARTOUT_ETCDIR = path.join('.', 'etc');
   self.PARTOUT_MASTER_ETCDIR = 'etc';
   self.PARTOUT_MASTER_MANIFEST_DIR = path.join(self.PARTOUT_MASTER_ETCDIR, 'manifest');
@@ -43,7 +49,42 @@ var Cfg = function () {
 
   self.PARTOUT_AGENT_SSL_DIR = path.join(self.PARTOUT_VARDIR, 'ssl');
   self.PARTOUT_AGENT_MANIFEST_DIR = path.join(self.PARTOUT_VARDIR, 'manifest');
-  self.PARTOUT_AGENT_MANIFEST_SITE_P2 = path.join(self.PARTOUT_AGENT_MANIFEST_DIR, 'site.p2');
+  //self.PARTOUT_AGENT_MANIFEST_SITE_P2 = path.join(self.PARTOUT_AGENT_MANIFEST_DIR, 'site.p2');
+
+  // allow call from agent app.js to set paths for environment
+  self.setEnvironment = function (optenv) {
+
+    // Save environment if specified as option (--env)
+    var stat,
+        env;
+
+    try {
+      stat = fs.statSync(self.PARTOUT_AGENT_ENVIRONMENT_FILE);
+    } catch (err) {
+      if (err.code !== 'ENOENT') {
+        throw err;
+      }
+    }
+
+    if (!stat || optenv) {
+      // create/write it
+      env = (optenv ? optenv : 'default');
+
+      if (!global.INMOCHA) {
+        fs.writeFileSync(self.PARTOUT_AGENT_ENVIRONMENT_FILE, env);
+      }
+
+    } else {
+      // read it
+      env = fs.readFileSync(self.PARTOUT_AGENT_ENVIRONMENT_FILE).toString();
+    }
+
+    self.environment = env;
+    self.PARTOUT_AGENT_MANIFEST_SITE_P2 = path.join(self.PARTOUT_AGENT_MANIFEST_DIR, env, 'site.p2');
+
+    return env;
+  };
+  self.setEnvironment();  // assumes default until the environment file is created
 
   /*
    * defaults for agent to master event throttling
@@ -62,7 +103,6 @@ var Cfg = function () {
    * !!!THIS MUST BE DISABLED FOR PRODUCTION!!!
    */
   self.partout_agent_permit_mocha_api = true;
-
 };
 
 module.exports = Cfg;
