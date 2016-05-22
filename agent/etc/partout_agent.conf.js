@@ -3,15 +3,16 @@
 
 var path = require('path'),
     os = require('os'),
-    pfs = new (require('../lib/pfs'))(),
-    Q = require('q');
+    fs = require('fs'),
+    Q = require('q'),
+    u = require('util');
+
+Q.longStackSupport = true;
 
 var Cfg = function () {
-  var self = this,
-      isInTest = typeof GLOBAL.it === 'function';  // in Mocha test?
+  var self = this;
 
-//  console.log('isInTest:', isInTest);
-//  console.log('GLOBAL.it:', GLOBAL.it);
+  //console.log('global:', u.inspect(GLOBAL, {colors: true, depth: 1}));
 
   //self.partout_master_hostname = 'officepc.net';
   self.partout_master_hostname = '192.168.0.64';
@@ -31,7 +32,7 @@ var Cfg = function () {
       throw new Error('Unsupported version of Windows');
     }
   } else {
-    if (isInTest) {
+    if (global.INMOCHA) {
       self.PARTOUT_VARDIR = '/tmp/var/opt/partout';
     } else {
       self.PARTOUT_VARDIR = '/var/opt/partout';
@@ -54,36 +55,32 @@ var Cfg = function () {
   self.setEnvironment = function (optenv) {
 
     // Save environment if specified as option (--env)
-    var deferred = Q.defer(),
-        env_deferred = Q.defer();
+    var stat,
+        env;
 
-    pfs.pExists(self.PARTOUT_AGENT_ENVIRONMENT_FILE)
-    .done(function (exists) {
-      if (!exists || optenv) {
-        // create/write it
-        var env = (optenv ? optenv : 'default');
-        pfs.pWriteFile(self.PARTOUT_AGENT_ENVIRONMENT_FILE, env)
-        .done(function () {
-          env_deferred.resolve(env);
-        });
-      } else {
-        // read it
-        pfs.pReadFile(self.PARTOUT_AGENT_ENVIRONMENT_FILE)
-        .done(function (env) {
-          env_deferred.resolve(env.toString().trim());
-        });
+    try {
+      stat = fs.statSync(self.PARTOUT_AGENT_ENVIRONMENT_FILE);
+    } catch (err) {
+      if (err.code !== 'ENOENT') {
+        throw err;
       }
-    });
+    }
 
-    env_deferred
-    .promise
-    .done(function (env) {
-      self.environment = env;
-      self.PARTOUT_AGENT_MANIFEST_SITE_P2 = path.join(self.PARTOUT_AGENT_MANIFEST_DIR, env, 'site.p2');
-      deferred.resolve(env);
-    });
+    if (!stat || optenv) {
+      // create/write it
+      env = (optenv ? optenv : 'default');
 
-    return deferred.promise;
+      if (!global.INMOCHA) {
+        fs.writeFileSync(self.PARTOUT_AGENT_ENVIRONMENT_FILE, env);
+      }
+
+    } else {
+      // read it
+      env = fs.readFileSync(self.PARTOUT_AGENT_ENVIRONMENT_FILE).toString();
+    }
+
+    self.environment = env;
+    self.PARTOUT_AGENT_MANIFEST_SITE_P2 = path.join(self.PARTOUT_AGENT_MANIFEST_DIR, env, 'site.p2');
   };
   self.setEnvironment();  // assumes default until the environment file is created
 
@@ -104,7 +101,6 @@ var Cfg = function () {
    * !!!THIS MUST BE DISABLED FOR PRODUCTION!!!
    */
   self.partout_agent_permit_mocha_api = true;
-
 };
 
 module.exports = Cfg;
