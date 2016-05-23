@@ -1,0 +1,11 @@
+/*jslint node:true */
+'use strict';
+
+/*global p2*/
+p2
+
+.chocolatey('installed', {
+  ensure: 'present'
+})
+
+;

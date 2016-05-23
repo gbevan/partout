@@ -132,6 +132,50 @@ Pfs.prototype.hashWalk = function (folder, excludere, cb) {
 };
 
 /**
+ * Asynchronously walk a folder tree
+ * .git files are filtered out.
+ * @param {String} folder   folder to hash
+ * @param {RegExp} excludere regexp to exclude matches (optional)
+ * @returns promise (manifest), where manifest is {filename:{relname:string}
+ */
+Pfs.prototype.walk = function (folder, excludere, cb) {
+  var self = this,
+      walker = walk.walk(folder),
+      manifest = {},
+      folder_re = new RegExp('^' + folder + '/'),
+      deferred = Q.defer();
+
+  walker.on('file', function (root, fstats, next) {
+    if (fstats.name.match(/^\.git/)) {
+      next();
+      return;
+    }
+    var f = path.join(root, fstats.name),
+      relname = f.replace(folder_re, '');
+
+    if (excludere && f.match(excludere)) {
+      next();
+      return;
+    }
+
+    manifest[f] = {
+      root: root,
+      file: fstats.name,
+      relname: relname,
+      fullname: f
+    };
+
+    next();
+  });
+
+  walker.on('end', function () {
+    deferred.resolve(manifest);
+  });
+
+  return deferred.promise;
+};
+
+/**
  * mkdir -p ...
  * @param {String} folder path to recursively create
  * @param {Function} callback (err)

@@ -30,6 +30,7 @@ var console = require('better-console'),
     P2 = require('./p2'),
     path = require('path'),
     Q = require('q'),
+    pfs = new (require('./pfs'))(),
     utils = new (require('./utils'))();
 
 //GLOBAL.p2 = new P2();
@@ -113,15 +114,25 @@ Policy.prototype.apply = function () {
       //GLOBAL.P2 = P2;
       GLOBAL.p2.__p2dirname = abs_dir;
 
-      //console.log('policy abs_a:', abs_a);
-      var p = require(abs_a);
+      /*
+       * Load core roles
+       */
+      pfs.walk('lib/roles')
+      .done(function (roles_manifest) {
+        _.each(roles_manifest, function (robj, rfile) {
+          require(path.resolve(rfile));
+        });
 
-      // execute the accrued steps
-      p2.end(function () {
+        //console.log('policy abs_a:', abs_a);
+        require(abs_a);
 
-        utils.vlog('### END OF APPLY ################################');
-        //console.log('### END OF APPLY ################################ p:', p);
-        deferred.resolve();
+        // execute the accrued steps
+        p2.end(function () {
+
+          utils.vlog('### END OF APPLY ################################');
+          //console.log('### END OF APPLY ################################ p:', p);
+          deferred.resolve();
+        });
       });
     })
     .done();
