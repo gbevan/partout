@@ -13,8 +13,27 @@ p2
   p2: function (title, opts) {
     p2
 
-    .node(function (f) { return f.os_family === 'windows' && opts.ensure === 'present'; })
-    .powershell('(iex ((new-object net.webclient).DownloadString(\'https://chocolatey.org/install.ps1\')))>$null 2>&1')
+    .node(function (f) {
+      return f.os_family === 'windows' && opts.ensure === 'present';
+    })
+
+    /*
+     * TODO: move the test for choco to another p2 directive to get current status
+     */
+    .powershell(p2.heredoc(function () {/*
+    # powershell
+    try {
+      $r = choco;
+    } catch {
+      $r = ""
+    };
+    if ($r -eq "") {
+      (iex ((new-object net.webclient).DownloadString('https://chocolatey.org/install.ps1')))>$null 2>&1;
+      "Installed"
+    } else {
+      "Already Installed"
+    }
+    */}))
 
     ;
   }

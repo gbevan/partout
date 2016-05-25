@@ -36,7 +36,8 @@ var console = require('better-console'),
     querystring = require('querystring'),
     Q = require('q'),
     u = require('util'),
-    utils = new (require('./utils'))();
+    utils = new (require('./utils'))(),
+    heredoc = require('heredoc');
 
 Q.longStackSupport = true;
 Q.onerror = function (err) {
@@ -351,6 +352,24 @@ var P2 = function () {
       console.info('Partout Event:', o);
     }
   };
+
+  /**
+   * convert multi-line comment in function to string, for use as here documents
+   * e.g.
+   *    str = p2.heredoc(function () {/*
+   *    this is a
+   *      multi-line
+   *        string...
+   *    });
+   * @function
+   * @memberof P2
+   * @param {Function} heredoc function () {\/* multi-line-strin \*\/}
+   */
+  self._impl.heredoc = heredoc;
+
+  /**********************************************************************************
+   * p2 file imports and actions
+   */
 
   /**
    * push action step on to the list to execute by .end()
