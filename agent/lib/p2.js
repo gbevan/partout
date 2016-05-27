@@ -146,7 +146,6 @@ var P2 = function () {
    */
   self._impl.end = function (cb) {
     var self = this;
-    //console.log('end steps:', self.steps);
     utils.tlogs('nimble steps');
     nimble.series(self.steps, function () {
       utils.tloge('nimble steps');
@@ -370,6 +369,15 @@ var P2 = function () {
   /**********************************************************************************
    * p2 file imports and actions
    */
+
+  /**
+   * initialise the action queue (in steps)
+   * @function
+   * @memberof p2
+   */
+  self._impl.clear_actions = function () {
+    self._impl.steps = [];
+  };
 
   /**
    * push action step on to the list to execute by .end()

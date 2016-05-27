@@ -152,7 +152,6 @@ P2M.prototype.action = function (fn, action_args) {
    * @param {function} cb    callback to DSL
    */
   self.addStep = function (_impl, title, opts, cb) {
-
     if (!opts) {
       opts = {};
     }
@@ -169,6 +168,7 @@ P2M.prototype.action = function (fn, action_args) {
     utils.dlog('p2m addStep opts: %s', u.inspect(opts, {colors: true, depth: 2}));
 
     if (_impl.ifNode()) {
+
       _impl.push_action(function (nextStepCb, inWatchFlag) {
         var deferred = Q.defer();
 

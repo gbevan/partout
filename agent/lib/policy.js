@@ -33,15 +33,11 @@ var console = require('better-console'),
     pfs = new (require('./pfs'))(),
     utils = new (require('./utils'))();
 
-//GLOBAL.p2 = new P2();
-//GLOBAL.P2 = P2;
-//console.log('GLOBAL:', GLOBAL);
-
 function Policy(args, opts) {
   var self = this,
       deferred = Q.defer();
 
-  //console.log('Policy called with args:', args, 'opts:', opts);
+  //console.log('Policy called with args:', args, 'opts:', opts, 'STACK:', (new Error()).stack);
   self.args = args;
   if (opts.app) {
     self.app = opts.app;
@@ -54,17 +50,11 @@ function Policy(args, opts) {
     p2.P2_watchers_close();
   }
 
-  //GLOBAL.P2M = P2M;
-  GLOBAL.P2 = P2;
-  //GLOBAL.p2 = new P2();
-  //console.warn('GLOBAL.p2:', GLOBAL.p2);
+  //GLOBAL.P2 = P2;
   utils.tlogs('new p2');
   new P2()
   .then(function (p2) {
     utils.tloge('new p2');
-    //console.warn('new p2:', p2);
-    //GLOBAL.p2 = p2;
-    //console.log('p2 then:', p2);
 
     /** @global */
     GLOBAL.p2 = p2;
@@ -93,11 +83,11 @@ function Policy(args, opts) {
   return deferred.promise;
 }
 
-//Policy.prototype.... = function () {} ;
-
 Policy.prototype.apply = function () {
   var self = this,
     deferred = Q.defer();
+
+  // TODO: nimble actions in this each loop
   _.each(self.args, function (a) {
 
     var abs_a = path.resolve(a),
@@ -105,37 +95,30 @@ Policy.prototype.apply = function () {
 
     delete require.cache[abs_a];
     p2.P2_watchers_close();
-    //GLOBAL.p2 = new P2();
-    new P2()
-    .then(function (p2) {
-      //console.log('policy p2:', p2);
-      GLOBAL.p2 = p2;
-      //GLOBAL.P2M = P2M;
-      //GLOBAL.P2 = P2;
-      GLOBAL.p2.__p2dirname = abs_dir;
+    p2.clear_actions();
 
-      /*
-       * Load core roles
-       */
-      pfs.walk('lib/roles')
-      .done(function (roles_manifest) {
-        _.each(roles_manifest, function (robj, rfile) {
-          require(path.resolve(rfile));
-        });
+    p2.__p2dirname = abs_dir;
 
-        //console.log('policy abs_a:', abs_a);
-        require(abs_a);
-
-        // execute the accrued steps
-        p2.end(function () {
-
-          utils.vlog('### END OF APPLY ################################');
-          //console.log('### END OF APPLY ################################ p:', p);
-          deferred.resolve();
-        });
+    /*
+     * Load core roles
+     */
+    pfs.walk('lib/roles')
+    .done(function (roles_manifest) {
+      _.each(roles_manifest, function (robj, rfile) {
+        require(path.resolve(rfile));
       });
-    })
-    .done();
+
+      require(abs_a);
+
+      // execute the accrued steps
+      p2.end(function () {
+
+        utils.vlog('### END OF APPLY ################################');
+        deferred.resolve();
+      });
+    });
+//    })
+//    .done();
   });
   return deferred.promise;
 };

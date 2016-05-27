@@ -59,9 +59,11 @@ var P2Test = {
       fs.write(fd, p2, 0, 'utf8', function (err) {
 
         utils.tlogs('new Policy');
+        //console.log('tpath contents:\n', fs.readFileSync(tpath).toString());
         new Policy([tpath], {apply: true})
         .done(function (policy) {
           utils.tloge('new Policy');
+
 
           utils.tlogs('policy apply');
           policy.apply()
