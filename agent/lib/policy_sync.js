@@ -34,7 +34,8 @@ var console = require('better-console'),
     Q = require('q'),
     pki = require('node-forge').pki,
     forge = require('node-forge'),
-    readline = require('readline');
+    readline = require('readline'),
+    deleteEmpty = require('delete-empty');
 
 /**
  * @class
@@ -211,7 +212,7 @@ Policy_Sync.prototype.sync = function (srcfolder, destfolder) {
 
     console.info('syncing from:', srcfolder, 'to:', destfolder);
     //self.get_manifest(function (manifest) {
-    self.app.master.get('/manifest')
+    self.app.master.get('/manifest?environment=' + self.app.cfg.environment)
     .fail(function (err) {
       console.error('Sync failed, err:', err);
       outer_deferred.reject(err);
@@ -284,6 +285,17 @@ Policy_Sync.prototype.sync = function (srcfolder, destfolder) {
             }
           });
         });
+
+        // remove empty folders under destfolder
+        tasks.push(function (done) {
+          console.log('destfolder:', destfolder);
+          deleteEmpty(destfolder, {force: true}, function (err, deleted) {
+            console.log('err:', err);
+            console.log('empty dirs deleted:', deleted);
+            done();
+          });
+        });
+
         //console.log('tasks:', tasks);
         nimble.series(tasks, function () {
           console.info('sync complete');
