@@ -166,6 +166,10 @@ var Command = P2M.Module(module.filename, function () {
               throw 'onlyif object option(s) not supported';
             }
 
+          } else if (typeof(opts.onlyif) === 'function') {
+            var res = opts.onlyif(p2.facts);
+            onlyif_deferred.resolve([(res ? 0 : -1), undefined, undefined]);
+
           } else {
             onlyif_content_deferred.resolve({script: opts.onlyif, args: ''});  // TODO support args on string method
           }

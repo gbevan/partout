@@ -21,6 +21,7 @@ also supports:
 | returns    | Number |  expected return code on error to be ignored.              |
 | onlyif     | String | command to test if exec should be run, rc=0 means run cmd. |
 |            | Object | {file: 'filename'} execute content of file.   |
+|            | Function | function (facts) {...} return true/false. |
 
 Platform Support (i.e. tested on):
 

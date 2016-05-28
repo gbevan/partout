@@ -100,7 +100,7 @@ Policy.prototype.apply = function () {
      */
     _.each(require.cache, function (v, k) {
       if (k.match(p2Re)) {
-        console.log('policy: deleting require.cache: k', k);
+        //console.log('policy: deleting require.cache: k', k);
         delete require.cache[k];
       }
     });
@@ -117,9 +117,9 @@ Policy.prototype.apply = function () {
     pfs.walk('lib/roles')
     .done(function (roles_manifest) {
       _.each(roles_manifest, function (robj, rfile) {
-        console.log('policy: robj:', robj);
+        //console.log('policy: robj:', robj);
         var r = require(path.resolve(rfile));
-        console.log('policy: r:', u.inspect(r, {colors: true, depth: 3}));
+        //console.log('policy: r:', u.inspect(r, {colors: true, depth: 3}));
       });
 
       //console.log('policy after roles p2.chocolatey:', p2.chocolatey);
