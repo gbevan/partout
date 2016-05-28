@@ -380,6 +380,27 @@ var P2 = function () {
    */
   self._impl.heredoc = heredoc;
 
+  /**
+   * Check if this node's facts has a class assigned (in agent_classes)
+   * @param   {[[Type]]} c [[Description]]
+   * @returns {[[Type]]} [[Description]]
+   */
+  self._impl.hasClass = function (c) {
+    return (self.facts.agent_classes[c] === true);
+  };
+
+  /**
+   * dump discovered facts
+   * @function
+   * @memberof P2
+   */
+  self._impl.dumpFacts = function () {
+    self._impl.push_action(function (queuecb) {
+      console.log(u.inspect(self.facts, {colors: true, depth: 2}));
+      queuecb();
+    });
+  };
+
   /**********************************************************************************
    * p2 file imports and actions
    */
@@ -429,7 +450,8 @@ var P2 = function () {
   } else {
     //console.log('>>> Refreshing facts');
     self.facts = {
-      p2module: {}
+      p2module: {},
+      agent_classes: {}
     };
     //_modules = require('./modules')(self.facts);
     module_promise = require('./modules')(self.facts);
@@ -454,7 +476,7 @@ var P2 = function () {
      */
     self._impl.print_facts = function () {
       if (GLOBAL.p2_agent_opts && GLOBAL.p2_agent_opts.showfacts) {
-        console.log(JSON.stringify(self.facts, null, 2));
+        console.log(u.inspect(self.facts, {colors: true, depth: 2}));
       }
     };
 

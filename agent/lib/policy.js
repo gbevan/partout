@@ -92,9 +92,20 @@ Policy.prototype.apply = function () {
   _.each(self.args, function (a) {
 
     var abs_a = path.resolve(a),
-        abs_dir = path.dirname(abs_a);
+        abs_dir = path.dirname(abs_a),
+        p2Re = new RegExp(/\.p2$/);
 
-    delete require.cache[abs_a];
+    /*
+     * remove previously load .p2 modules and roles, for reloading
+     */
+    _.each(require.cache, function (v, k) {
+      if (k.match(p2Re)) {
+        console.log('policy: deleting require.cache: k', k);
+        delete require.cache[k];
+      }
+    });
+
+    //delete require.cache[abs_a];
     p2.P2_watchers_close();
     p2.clear_actions();
 
@@ -106,9 +117,9 @@ Policy.prototype.apply = function () {
     pfs.walk('lib/roles')
     .done(function (roles_manifest) {
       _.each(roles_manifest, function (robj, rfile) {
-        //console.log('policy: robj:', robj);
+        console.log('policy: robj:', robj);
         var r = require(path.resolve(rfile));
-        //console.log('policy: r:', u.inspect(r, {colors: true, depth: 3}));
+        console.log('policy: r:', u.inspect(r, {colors: true, depth: 3}));
       });
 
       //console.log('policy after roles p2.chocolatey:', p2.chocolatey);

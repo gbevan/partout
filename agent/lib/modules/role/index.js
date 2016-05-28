@@ -83,17 +83,18 @@ var Role = P2M.Module(module.filename, function () {
         errmsg = '',
         name = title;
 
-    if (opts.p2) {
 
-      if (_impl[name]) {
-        console.error(u.format('ERROR: Cannot add new role, name "%s" already exists'), name);
-        deferred.resolv();
-        return;
-      }
+    if (_impl[name]) {
+      console.error(u.format('ERROR: Cannot add new role, name "%s" already exists'), name);
+      deferred.resolv();
+      return;
+    }
 
-      //console.log('Creating module ' + name + ' from role');
-      _impl[name] = function (mod_title, mod_opts) {
-        //console.log('in module instance:', name);
+    //console.log('Creating module ' + name + ' from role');
+    _impl[name] = function (mod_title, mod_opts) {
+      //console.log('in module instance:', name);
+
+      if (_impl.ifNode()) {
 
         /*
          * push role's facts gatherer function onto p2 steps
@@ -114,23 +115,25 @@ var Role = P2M.Module(module.filename, function () {
           });
         }
 
-        /*
-         * add passed p2 args dsl to addSteps in the p2 _impl
-         */
-        // defer pushing on to actions so facts run first
-        _impl.push_action(function (cb) {
-          opts.p2(mod_title, mod_opts); // pushes it's own actions to run next
-          cb();
-        });
+        if (opts.p2) {
+          /*
+           * add passed p2 args dsl to addSteps in the p2 _impl
+           */
+          // defer pushing on to actions so facts run first
+          _impl.push_action(function (cb) {
+            opts.p2(mod_title, mod_opts); // pushes it's own actions to run next
+            cb();
+          });
+        }
 
-        /*
-         * as this called from chained _impl dsl directives
-         * we must return _impl to continue the dsl chaining
-         */
-        return _impl;
-      };
-    }
-    //console.log('_impl.chocolatey:', _impl.chocolatey);
+      } // ifNode
+
+      /*
+       * as this called from chained _impl dsl directives
+       * we must return _impl to continue the dsl chaining
+       */
+      return _impl;
+    };
 
     deferred.resolve();
 

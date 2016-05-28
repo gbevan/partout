@@ -1,0 +1,24 @@
+/*jslint node: true */
+'use strict';
+/*global p2*/
+
+p2
+
+.role('classify', {
+  facts: function (deferred, facts_so_far, title, opts) {
+    console.log('in classify facts');
+    var facts = {
+      p2role: {
+        classify: {
+          loaded: true
+        }
+      },
+      agent_classes: {}
+    };
+
+    facts.agent_classes[title] = true;
+
+    deferred.resolve(facts);
+  },
+
+});
