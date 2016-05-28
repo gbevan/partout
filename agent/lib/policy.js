@@ -31,7 +31,8 @@ var console = require('better-console'),
     path = require('path'),
     Q = require('q'),
     pfs = new (require('./pfs'))(),
-    utils = new (require('./utils'))();
+    utils = new (require('./utils'))(),
+    u = require('util');
 
 function Policy(args, opts) {
   var self = this,
@@ -105,8 +106,12 @@ Policy.prototype.apply = function () {
     pfs.walk('lib/roles')
     .done(function (roles_manifest) {
       _.each(roles_manifest, function (robj, rfile) {
-        require(path.resolve(rfile));
+        //console.log('policy: robj:', robj);
+        var r = require(path.resolve(rfile));
+        //console.log('policy: r:', u.inspect(r, {colors: true, depth: 3}));
       });
+
+      //console.log('policy after roles p2.chocolatey:', p2.chocolatey);
 
       require(abs_a);
 
@@ -117,8 +122,6 @@ Policy.prototype.apply = function () {
         deferred.resolve();
       });
     });
-//    })
-//    .done();
   });
   return deferred.promise;
 };

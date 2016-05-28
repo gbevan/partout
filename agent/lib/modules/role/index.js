@@ -23,6 +23,7 @@
 /*jslint node: true, nomen: true */
 'use strict';
 
+/*global p2*/
 var P2M = require('../../p2m'),
     console = require('better-console'),
     _ = require('lodash'),
@@ -71,6 +72,8 @@ var Role = P2M.Module(module.filename, function () {
   // Action handler
   .action(function (args) {
 
+    //console.log('role in action args:', args);
+
     var deferred = args.deferred,
         inWatchFlag = args.inWatchFlag,
         _impl = args._impl,
@@ -87,12 +90,38 @@ var Role = P2M.Module(module.filename, function () {
         deferred.resolv();
         return;
       }
+
+      //console.log('Creating module ' + name + ' from role');
       _impl[name] = function (mod_title, mod_opts) {
+        //console.log('in module instance:', name);
+
+        /*
+         * push role's facts gatherer function onto p2 steps
+         */
+        if (opts.facts) {
+          // TODO: wrap with function (...) {}
+          _impl.push_action(function (cb) {
+            var facts_deferred = Q.defer();
+
+            opts.facts(facts_deferred, _impl.facts, mod_title, mod_opts);
+
+            facts_deferred
+            .promise
+            .done(function (role_facts) {
+              _.merge(_impl.facts, role_facts);
+              cb();
+            });
+          });
+        }
 
         /*
          * add passed p2 args dsl to addSteps in the p2 _impl
          */
-        opts.p2(mod_title, mod_opts);
+        // defer pushing on to actions so facts run first
+        _impl.push_action(function (cb) {
+          opts.p2(mod_title, mod_opts); // pushes it's own actions to run next
+          cb();
+        });
 
         /*
          * as this called from chained _impl dsl directives
@@ -101,8 +130,10 @@ var Role = P2M.Module(module.filename, function () {
         return _impl;
       };
     }
+    //console.log('_impl.chocolatey:', _impl.chocolatey);
 
     deferred.resolve();
+
 
   }, {immediate: true}) // action
 

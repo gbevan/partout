@@ -146,13 +146,27 @@ var P2 = function () {
    */
   self._impl.end = function (cb) {
     var self = this;
-    utils.tlogs('nimble steps');
+
+    // async loop shifting tasks from the steps queue
+    var t = self.steps.shift();
+    if (!t) {
+      cb();
+    } else {
+      t(function () { // step queuecb
+        self.end(cb);
+      });
+    }
+
+
+    /*
     nimble.series(self.steps, function () {
       utils.tloge('nimble steps');
       if (cb) {
         cb();
       }
     });
+    */
+
     return self;
   };
 
@@ -386,14 +400,14 @@ var P2 = function () {
    * @param {Function} action
    */
   self._impl.push_action = function (action) {
-    self._impl.steps.push(function (nimblecb) {
+    self._impl.steps.push(function (queuecb) {
       //console.warn('Executing a step');
       action.call(self, function (o) {
         //console.log('o:', o);
         if (o && o.msg && o.msg.length > 0) {
           self._impl.sendevent(o);
         }
-        nimblecb();
+        queuecb();
       });
     });
   };
