@@ -2,6 +2,8 @@
 'use strict';
 /*global p2*/
 
+var utils = new (require('../utils'))();
+
 p2
 
 /**
@@ -10,28 +12,57 @@ p2
  *    ensure: 'present'
  */
 .role('chocolatey', {
+
+  // Role facts gathering run in P2 actions (not as part of initial facts discovery)
+  facts: function (deferred, facts_so_far, title, opts) {
+    var facts = {
+      p2role: {
+        chocolatey: {
+          loaded: true
+        }
+      }
+    };
+
+    if (facts_so_far.hasOwnProperty('chocolatey_installed')) {
+      deferred.resolve();
+    } else {
+      utils.runPs(p2.heredoc(function () {/*
+        # powershell
+        try {
+          $r = choco
+        } catch {
+          $r = ""
+        };
+        if ($r -eq "") {
+          $FALSE
+        } else {
+          $TRUE
+        }
+      */}))
+      .done(function (res_array) {
+        var rc = res_array[0],
+            stdout = res_array[1],
+            stderr = res_array[2];
+
+        stdout = stdout.trim();
+        facts.chocolatey_installed = (stdout === 'True');
+        deferred.resolve(facts);
+      });
+    }
+
+  },
+
   p2: function (title, opts) {
     p2
 
     .node(function (f) {
-      return f.os_family === 'windows' && opts.ensure === 'present';
+      return f.os_family === 'windows' && opts.ensure === 'present' && !f.chocolatey_installed;
     })
 
-    /*
-     * TODO: move the test for choco to another p2 directive to get current status
-     */
     .powershell(p2.heredoc(function () {/*
     # powershell
-    try {
-      $r = choco;
-    } catch {
-      $r = ""
-    };
-    if ($r -eq "") {
+    if ("{{ chocolatey_installed }}" -eq "false") {
       (iex ((new-object net.webclient).DownloadString('https://chocolatey.org/install.ps1')))>$null 2>&1;
-      "Installed"
-    } else {
-      "Already Installed"
     }
     */}))
 

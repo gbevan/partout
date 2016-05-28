@@ -32,6 +32,7 @@ var P2M = require('../../p2m'),
     Q = require('q'),
     utils = new (require('../../utils'))(),
     pfs = new (require('../../pfs'))(),
+    Mustache = require('mustache'),
     stringArgv = require('string-argv');
 
 Q.longStackSupport = true;
@@ -111,6 +112,8 @@ var Powershell = P2M.Module(module.filename, function () {
     if (opts.cmd) {
       cmd = opts.cmd;
     }
+
+    cmd = Mustache.render(cmd, p2.facts);
 
 //    if (!opts.shell) {
 //      opts.shell = true;
