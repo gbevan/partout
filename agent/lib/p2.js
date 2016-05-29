@@ -31,6 +31,7 @@ var console = require('better-console'),
     nimble = require('nimble'),
     os = require('os'),
     exec = require('child_process').exec,
+    path = require('path'),
     fs = require('fs'),
     EventEmitter = require('events').EventEmitter,
     querystring = require('querystring'),
@@ -137,6 +138,15 @@ var P2 = function () {
   var self = this,
     deferred = Q.defer();
   self._impl = Object.create(init_impl);
+
+  /**
+   * require module from partout's agent library (for use in agent manifests/roles)
+   * @param   {string} name module name
+   * @returns {object} loaded module
+   */
+  self._impl.require = function (name) {
+    return require(path.join(self._impl.core_lib_path, name));
+  };
 
   /**
    * execute accrued actions
@@ -265,6 +275,9 @@ var P2 = function () {
     }
     return self;
   };
+
+  // store __dirname for agent manifests to locate agent core modules
+  self._impl.core_lib_path = __dirname;
 
   // LIFO stack for steps (to allow roles to push their nested steps to the front of the queue)
   self._impl.steps_stack = [];
