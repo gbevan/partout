@@ -23,6 +23,7 @@
 /*jslint node: true, nomen: true */
 'use strict';
 
+/*global p2*/
 var P2M = require('../../p2m'),
     console = require('better-console'),
     _ = require('lodash'),
@@ -113,7 +114,11 @@ var Powershell = P2M.Module(module.filename, function () {
       cmd = opts.cmd;
     }
 
-    cmd = Mustache.render(cmd, p2.facts);
+    cmd = Mustache.render(cmd, {
+      title: title,
+      opts: opts,
+      f: p2.facts
+    });
 
 //    if (!opts.shell) {
 //      opts.shell = true;

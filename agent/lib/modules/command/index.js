@@ -115,7 +115,11 @@ var Command = P2M.Module(module.filename, function () {
       cmd = opts.cmd;
     }
 
-    cmd = Mustache.render(cmd, p2.facts);
+    cmd = Mustache.render(cmd, {
+      title: title,
+      opts: opts,
+      f: p2.facts
+    });
 
 //    if (!opts.shell) {
 //      opts.shell = true;
@@ -168,7 +172,15 @@ var Command = P2M.Module(module.filename, function () {
 
           } else if (typeof(opts.onlyif) === 'function') {
             var res = opts.onlyif(p2.facts);
-            onlyif_deferred.resolve([(res ? 0 : -1), undefined, undefined]);
+            // expect boolean or promise on boolean
+            if (Q.isPromise(res)) {
+              res
+              .done(function (rc) {
+                onlyif_deferred.resolve([(rc ? 0 : -1), undefined, undefined]);
+              });
+            } else {
+              onlyif_deferred.resolve([(res ? 0 : -1), undefined, undefined]);
+            }
 
           } else {
             onlyif_content_deferred.resolve({script: opts.onlyif, args: ''});  // TODO support args on string method

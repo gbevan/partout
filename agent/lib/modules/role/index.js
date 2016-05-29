@@ -121,7 +121,13 @@ var Role = P2M.Module(module.filename, function () {
            */
           // defer pushing on to actions so facts run first
           _impl.push_action(function (cb) {
+
+            p2.pushSteps(); // save steps state
+
             opts.p2(mod_title, mod_opts); // pushes it's own actions to run next
+
+            p2.flattenSteps(); // pop previous steps state after new steps
+
             cb();
           });
         }

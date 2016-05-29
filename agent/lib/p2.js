@@ -266,9 +266,10 @@ var P2 = function () {
     return self;
   };
 
+  // LIFO stack for steps (to allow roles to push their nested steps to the front of the queue)
+  self._impl.steps_stack = [];
 
-  //self.steps = [];
-  //self._impl.steps = self.steps;
+  // FIFO queue of action steps from p2 manifests
   self._impl.steps = [];
 
   self._impl.nodes = [];
@@ -415,12 +416,34 @@ var P2 = function () {
   };
 
   /**
+   * Push current steps on steps_stack
+   * @function
+   * @memberof p2
+   */
+  self._impl.pushSteps = function () {
+    self._impl.steps_stack.push(self._impl.steps);
+    self._impl.steps = [];
+  };
+
+  /**
+   * Flatten current steps with steps previously pushed onto steps_stack
+   * @function
+   * @memberod p2
+   */
+  self._impl.flattenSteps = function () {
+    var newSteps = self._impl.steps;
+    self._impl.steps = newSteps.concat(self._impl.steps_stack.pop());
+  };
+
+  /**
    * push action step on to the list to execute by .end()
    * @function
    * @memberof P2
    * @param {Function} action
    */
   self._impl.push_action = function (action) {
+    var method;
+
     self._impl.steps.push(function (queuecb) {
       //console.warn('Executing a step');
       action.call(self, function (o) {
@@ -433,7 +456,6 @@ var P2 = function () {
     });
   };
 
-  //console.log('P2 this:', this);
 
   var _modules;
 
