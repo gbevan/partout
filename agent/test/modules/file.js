@@ -151,7 +151,7 @@ describe('Module file', function () {
         '.file(\'{{{ testFile }}}\', {ensure: \'present\', content: \'{{{ template }}}\', is_template: true});',
         {
           testFile: testFile,
-          template: '{{ platform }}'
+          template: '{{ f.platform }}'
         }
       )
       .then(function () {

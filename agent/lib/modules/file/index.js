@@ -118,9 +118,14 @@ var File = P2M.Module(module.filename, function () {
         errmsg = '',
         file = title;
 
+    opts.ensure = (opts.ensure ? opts.ensure : 'present');
+
     if (opts.path) {
       file = opts.path;
     }
+
+    self.opts = opts;
+    self.title = title;
 
     var _watch_state = (opts.watch ? true : _impl._watch_state);
 
@@ -238,8 +243,7 @@ File.prototype._ensure_content = function (file, data, is_template) {
   }
 
   if (is_template) {
-    //console.log('+++ template: p2.facts:', p2.facts, 'p2:', p2, 'self:', self, 'self.facts:', self.facts);
-    data = Mustache.render(data, p2.facts);
+    data = Mustache.render(data, {title: self.title, opts: self.opts, f: p2.facts});
   }
 
   var d_hash = pfs.hash(data);

@@ -94,13 +94,11 @@ var Role = P2M.Module(module.filename, function () {
     _impl[name] = function (mod_title, mod_opts) {
       //console.log('in module instance:', name);
 
-      if (_impl.ifNode()) {
-
-        /*
-         * push role's facts gatherer function onto p2 steps
-         */
+      /*
+       * push role's facts gatherer function onto p2 steps
+       */
+      function push_refreshFacts () {
         if (opts.facts) {
-          // TODO: wrap with function (...) {}
           _impl.push_action(function (cb) {
             var facts_deferred = Q.defer();
 
@@ -109,11 +107,40 @@ var Role = P2M.Module(module.filename, function () {
             facts_deferred
             .promise
             .done(function (role_facts) {
-              _.merge(_impl.facts, role_facts);
+              //console.log('role_facts:', role_facts);
+              _.merge(_impl.facts.p2role, role_facts.p2role);
+              _.each(role_facts, function (v, k) {
+                if (!k.match(/^(p2role)$/)) {
+                  _impl.facts[k] = v;
+                }
+              });
               cb();
             });
           });
         }
+      }
+
+      if (_impl.ifNode()) {
+//
+//        /*
+//         * push role's facts gatherer function onto p2 steps
+//         */
+//        if (opts.facts) {
+//          _impl.push_action(function (cb) {
+//            var facts_deferred = Q.defer();
+//
+//            opts.facts(facts_deferred, _impl.facts, mod_title, mod_opts);
+//
+//            facts_deferred
+//            .promise
+//            .done(function (role_facts) {
+//              _.merge(_impl.facts, role_facts);
+//              cb();
+//            });
+//          });
+//        }
+
+        //push_refreshFacts();
 
         if (opts.p2) {
           /*
@@ -124,7 +151,11 @@ var Role = P2M.Module(module.filename, function () {
 
             p2.pushSteps(); // save steps state
 
+            push_refreshFacts();
+
             opts.p2(mod_title, mod_opts); // pushes it's own actions to run next
+
+            push_refreshFacts();
 
             p2.flattenSteps(); // pop previous steps state after new steps
 
