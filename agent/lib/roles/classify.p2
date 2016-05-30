@@ -20,4 +20,8 @@ p2
     deferred.resolve(facts);
   },
 
+  p2: function (title, opts) {
+    // XXX: dummy - forces fact method above
+  }
+
 });

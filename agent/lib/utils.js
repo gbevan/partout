@@ -78,6 +78,57 @@ Utils.prototype.isLinux = function () {
 };
 
 /**
+ * Syncronous function to read and parse /etc/os-release on linux os's
+ * Used in unit-tests.
+ * @returns {object} parsed contents of os-release as an object of key/value pairs
+ */
+Utils.prototype.get_linux_os_release_Sync = function () {
+  var self = this;
+
+  if (!self.isLinux()) {
+    return;
+  }
+
+  var os_rel;
+  try {
+    os_rel = fs.readFileSync('/etc/os-release').toString();
+  } catch (e) {
+    if (e.code === 'ENOENT') {
+      return;
+    }
+    throw e;
+  }
+
+  if (!os_rel) {
+    return;
+  }
+
+  var os_lines = os_rel.split(/\r?\n/),
+      os_obj = {};
+  os_lines.forEach(function (os_line) {
+    var m = os_line.match(/^(\w+)="*?([^"]*)"*?/);
+    if (m) {
+      os_obj[m[1]] = m[2];
+    }
+  });
+
+  return os_obj;
+};
+
+/**
+ * Syncronous test for Debian OS.
+ * Used in unit tests.
+ * @returns {boolean} true if debian
+ */
+Utils.prototype.isDebianSync = function () {
+  var self = this;
+
+  var os_obj = self.get_linux_os_release_Sync();
+
+  return os_obj.ID_LIKE === 'debian';
+};
+
+/**
  * Execute a shell command and return the results in an array of lines
  * @param {String}  cmd Command to run
  * @returns {Promise} with err, lines, stderr
