@@ -278,6 +278,10 @@ Pfs.prototype.pChown = function (path, uid, gid) {
   return Q.nfcall(fs.chown, path, uid, gid);
 };
 
+Pfs.prototype.pReadDir = function (path) {
+  return Q.nfcall(fs.readdir, path);
+};
+
 Pfs.prototype.pReadFile = function (file, options) {
   return Q.nfcall(fs.readFile, file, options);
 };

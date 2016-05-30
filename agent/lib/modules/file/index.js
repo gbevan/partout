@@ -226,7 +226,7 @@ File.prototype._ensure_content = function (file, data, is_template) {
       record = '',
       deferred = Q.defer();
 
-  //console.log('_ensure_content file:', file, ' data:', data);
+  utils.dlog('_ensure_content file:', file, ' data:', data);
 
   if (typeof(data) === 'object') {
     if (data.file) {
@@ -266,14 +266,18 @@ File.prototype._ensure_content = function (file, data, is_template) {
  * @returns {Object}  Promise (from _ensuere_content) resolves to record string
  */
 File.prototype._ensure_file = function (file, srcfile, is_template) {
-  var self = this;
+  var self = this,
+      deferred = Q.defer();
+
   utils.dlog('_ensure_file(' + file + ',', srcfile + ')');
-  return pfs.pReadFile(srcfile)
+  pfs.pReadFile(srcfile)
   .done(function (data) {
     data = data.toString();
     utils.dlog('data:', data);
-    return self._ensure_content(file, data, is_template);
+    deferred.resolve(self._ensure_content(file, data, is_template));
   });
+
+  return deferred.promise;
 };
 
 /**
