@@ -126,9 +126,13 @@ var Package = P2M.Module(module.filename, function () {
       if (opts.ensure.match(/^(present|installed|latest)$/)) {
         //console.log('ensure present');
 
-        if (!current_state) {
-          console.info('Installing package:', opts.name);
-          exec('apt-get update && apt-get install --auto-remove -y ' + opts.name, function (err, stdout, stderr) {
+        // TODO: version option needs more thought!!!
+
+
+        if (!current_state || (opts.version && opts.version !== current_state.version)) {
+          console.log('current_state:', current_state);
+          console.info('Installing package:', opts.name /*+ (opts.version ? u.format('=%s', opts.version) : '')*/);
+          exec('apt-get update && apt-get install --auto-remove -y ' + opts.name /*+ (opts.version ? u.format('=%s', opts.version) : '')*/, function (err, stdout, stderr) {
             if (err) {
               console.error('apt-get install failed:', err, stderr);
             } else {

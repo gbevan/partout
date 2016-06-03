@@ -1,7 +1,7 @@
 # Module: File
 
     p2.node([...])
-       .file('file or title', options, function (err, stdout, stderr) { ... });
+       .file('file or title', options, function (err) { ... });
 
 Options:
 

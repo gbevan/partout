@@ -241,6 +241,8 @@ var serve = function (opts, master, env) {
   app.uuid = MYUUID;
   //app.master.set_uuid(app.uuid);
 
+  app.inRun = false;
+
   process.on('SIGINT', function () {
     app.sendevent({
       module: 'app',
@@ -293,6 +295,8 @@ var serve = function (opts, master, env) {
 
   app.run = function () {
     console.log('### START #######################################################');
+    app.inRun = true;
+
     var splay = (app.apply_count === 0 ? 0 : app.poll_manifest_splay_secs * 1000 * Math.random()) ;
 
     if ((app.apply_count++ % app.poll_manifest_every) === 0) {
@@ -307,6 +311,7 @@ var serve = function (opts, master, env) {
           //console.log('sync done');
 
           app._apply(function () {
+            app.inRun = false;
             console.log('### FINISHED POLICY (after sync) ###########################################');
           });
         })
@@ -316,6 +321,7 @@ var serve = function (opts, master, env) {
           console.warn('policy_sync call failed, will continue to run existing cached manifest (if available)');
 
           app._apply(function () {
+            app.inRun = false;
             console.log('### FINISHED POLICY (after FAILED sync) ###########################################');
           });
         })
@@ -324,6 +330,7 @@ var serve = function (opts, master, env) {
 
     } else {
       app._apply(function () {
+        app.inRun = false;
         console.log('### FINISHED POLICY (no sync) ##############################################');
       });
     }
@@ -353,7 +360,11 @@ var serve = function (opts, master, env) {
   //.then(function () {
   app.run();
   setInterval(function () {
-    app.run();
+    if (!app.inRun) {
+      app.run();
+    } else {
+      console.warn('Previous policy overran apply interval, skipping...');
+    }
   }, (app.apply_every_mins * 60 * 1000))
   .unref();
   //})
