@@ -216,25 +216,44 @@ Utils.prototype.pSpawn = function (cmd, args, options, resolve_to_childprocess) 
   });
 
   cp.stdout.on('data', function (d) {
+    d = d.toString();
+    //console.log(d);
     stdout += d;
   });
 
   cp.stderr.on('data', function (d) {
+    d = d.toString();
+    //console.warn(d);
     stderr += d;
   });
 
-  cp.on('close', function (rc) {
-    stdout = (new Buffer(stdout)).toString('ascii');
-    //console.log('pSpawn: stdout:', stdout);
-    stderr = (new Buffer(stderr)).toString('ascii');
-    //console.log('spawn:\nstdout:', stdout, '\nstderr:', stderr, '\nrc:', rc);
+  /*
+   * use exit as close is not guaranteed if spawning a daemon process
+   */
+  cp.on('exit', function (rc, signal) {
+    console.log('pSpawn exit rc:', rc, 'signal:', signal);
 
-    if (rc !== 0 || stderr) {
+    if (rc !== 0 || signal !== null || stderr) {
       console.log(stdout);
       console.error(stderr);
     }
 
     deferred.resolve([rc, stdout, stderr]);
+  });
+
+  cp.on('close', function (rc) {
+    console.log('pSpawn close');
+    //stdout = (new Buffer(stdout)).toString('ascii');
+    //console.log('pSpawn: stdout:', stdout);
+    //stderr = (new Buffer(stderr)).toString('ascii');
+    //console.log('spawn:\nstdout:', stdout, '\nstderr:', stderr, '\nrc:', rc);
+
+//    if (rc !== 0 || stderr) {
+//      console.log(stdout);
+//      console.error(stderr);
+//    }
+
+    //deferred.resolve([rc, stdout, stderr]);
   });
 
   return deferred.promise;
