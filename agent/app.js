@@ -359,20 +359,17 @@ var serve = function (opts, master, env) {
   });
   //.then(function () {
   app.run();
-  setInterval(function () {
-    if (!app.inRun) {
-      app.run();
-    } else {
-      console.warn('Previous policy overran apply interval, skipping...');
-    }
-  }, (app.apply_every_mins * 60 * 1000))
-  .unref();
-  //})
-  //.fail(function (err) {
-  //  console.error('app run failed, err:', err);
-  //  console.log(err.stack);
-  //})
-  //.done();
+
+  if (!app.opts.once) {
+    setInterval(function () {
+      if (!app.inRun) {
+        app.run();
+      } else {
+        console.warn('Previous policy overran apply interval, skipping...');
+      }
+    }, (app.apply_every_mins * 60 * 1000))
+    .unref();
+  }
 
 };
 

@@ -59,6 +59,11 @@ var console = require('better-console'),
         help: 'Specify agent\'s environment'
       },
       {
+        name: 'once',
+        type: 'bool',
+        help: 'Apply policy once and exit (allows for CSR signing and install process)'
+      },
+      {
         name: 'yes',
         shortName: 'y',
         type: 'bool',
