@@ -294,6 +294,8 @@ var serve = function (opts, master, env) {
   };
 
   app.run = function () {
+    var deferred = Q.defer();
+
     console.log('### START #######################################################');
     app.inRun = true;
 
@@ -313,6 +315,7 @@ var serve = function (opts, master, env) {
           app._apply(function () {
             app.inRun = false;
             console.log('### FINISHED POLICY (after sync) ###########################################');
+            deferred.resolve();
           });
         })
         .fail(function (err) {
@@ -323,6 +326,7 @@ var serve = function (opts, master, env) {
           app._apply(function () {
             app.inRun = false;
             console.log('### FINISHED POLICY (after FAILED sync) ###########################################');
+            deferred.resolve();
           });
         })
         .done();
@@ -332,8 +336,11 @@ var serve = function (opts, master, env) {
       app._apply(function () {
         app.inRun = false;
         console.log('### FINISHED POLICY (no sync) ##############################################');
+        deferred.resolve();
       });
     }
+
+    return deferred.promise;
   };
 
   router.use(morgan('combined'));
@@ -358,12 +365,20 @@ var serve = function (opts, master, env) {
     msg: 'Partout-Agent has (re)started https server'
   });
   //.then(function () {
-  app.run();
+  app.run()
+  .done(function () {
+    if (opts.once) {
+      process.exit(0);
+    }
+  });
 
   if (!app.opts.once) {
     setInterval(function () {
       if (!app.inRun) {
         app.run();
+//        .done(function () {
+//          console.log('run complete in loop');
+//        });
       } else {
         console.warn('Previous policy overran apply interval, skipping...');
       }

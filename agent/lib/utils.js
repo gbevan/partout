@@ -231,7 +231,7 @@ Utils.prototype.pSpawn = function (cmd, args, options, resolve_to_childprocess) 
    * use exit as close is not guaranteed if spawning a daemon process
    */
   cp.on('exit', function (rc, signal) {
-    console.log('pSpawn exit rc:', rc, 'signal:', signal);
+    self.dlog('pSpawn exit rc:', rc, 'signal:', signal);
 
     if (rc !== 0 || signal !== null || stderr) {
       console.log(stdout);
@@ -242,18 +242,7 @@ Utils.prototype.pSpawn = function (cmd, args, options, resolve_to_childprocess) 
   });
 
   cp.on('close', function (rc) {
-    console.log('pSpawn close');
-    //stdout = (new Buffer(stdout)).toString('ascii');
-    //console.log('pSpawn: stdout:', stdout);
-    //stderr = (new Buffer(stderr)).toString('ascii');
-    //console.log('spawn:\nstdout:', stdout, '\nstderr:', stderr, '\nrc:', rc);
-
-//    if (rc !== 0 || stderr) {
-//      console.log(stdout);
-//      console.error(stderr);
-//    }
-
-    //deferred.resolve([rc, stdout, stderr]);
+    self.dlog('pSpawn close');
   });
 
   return deferred.promise;

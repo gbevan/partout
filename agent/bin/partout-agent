@@ -60,6 +60,7 @@ var console = require('better-console'),
       },
       {
         name: 'once',
+        shortName: '1',
         type: 'bool',
         help: 'Apply policy once and exit (allows for CSR signing and install process)'
       },

@@ -253,7 +253,7 @@ File.prototype._ensure_content = function (file, data, is_template) {
   }
 
   var d_hash = pfs.hash(data);
-  console.log('File: comparing file hash:', f_hash, '-> content hash:', d_hash);
+  console.log(u.format('File: %s: comparing file hash: %s -> content hash: %s', file, f_hash, d_hash));
   if (f_hash != d_hash) {
     //console.warn('File: updating file content:\n' + data);
     pfs.pWriteFile(file, data)
@@ -372,7 +372,7 @@ File.prototype._opt_ensure = function (file, opts, err, stats, _impl, inWatchFla
               if (r) {
                 _impl.qEvent({module: 'file', object: file, msg: r});
               }
-              console.log('update file r: ' + r);
+              //console.log('update file r: ' + r);
               ensure_deferred.resolve(r !== undefined && r !== '');
             });
           } else {
