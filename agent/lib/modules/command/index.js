@@ -239,9 +239,17 @@ var Command = P2M.Module(module.filename, function () {
             if (stdout) {
               console.log(stdout);
             }
+
+            var err2;
             if (opts.returns) {
               if (rc !== opts.returns) {
-                var err2 = new Error('Return code does not match expected by returns option');
+                err2 = new Error('Return code does not match expected by returns option');
+                err2.code = rc;
+                throw err2;
+              }
+            } else {
+              if (rc !== 0) {
+                err2 = new Error('None zero return code returned');
                 err2.code = rc;
                 throw err2;
               }

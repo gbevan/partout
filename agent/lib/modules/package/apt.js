@@ -132,28 +132,33 @@ var Package = P2M.Module(module.filename, function () {
         if (!current_state || (opts.version && opts.version !== current_state.version)) {
           console.log('current_state:', current_state);
           console.info('Installing package:', opts.name /*+ (opts.version ? u.format('=%s', opts.version) : '')*/);
-          exec('apt-get update && apt-get install --auto-remove -y ' + opts.name /*+ (opts.version ? u.format('=%s', opts.version) : '')*/, function (err, stdout, stderr) {
-            if (err) {
-              console.error('apt-get install failed:', err, stderr);
-            } else {
-              _impl.facts.installed_packages[opts.name] = {};  // next facts run will populate
+          exec(
+            'apt-get update && apt-get -q -y install --auto-remove ' + opts.name /*+ (opts.version ? u.format('=%s', opts.version) : '')*/,
+            {env: process.env},
+            function (err, stdout, stderr) {
+              console.log('stdout:', stdout, 'stderr:', stderr);
+              if (err) {
+                console.error('apt-get install failed:', err, stderr);
+              } else {
+                _impl.facts.installed_packages[opts.name] = {};  // next facts run will populate
+              }
+              if (command_complete_cb) command_complete_cb(err, stdout, stderr);
+
+              // TODO: EXTEND USAGE...
+  //            utils.callbackEvent(next_step_callback, _impl.facts, {
+  //              module: 'package',
+  //              object: opts.name,
+  //              msg: 'install ' + (err ? err : 'ok')
+  //            });
+              _impl.qEvent({
+                module: 'package',
+                object: opts.name,
+                msg: 'install ' + (err ? err : 'ok')
+              });
+              deferred.resolve();
+
             }
-            if (command_complete_cb) command_complete_cb(err, stdout, stderr);
-
-            // TODO: EXTEND USAGE...
-//            utils.callbackEvent(next_step_callback, _impl.facts, {
-//              module: 'package',
-//              object: opts.name,
-//              msg: 'install ' + (err ? err : 'ok')
-//            });
-            _impl.qEvent({
-              module: 'package',
-              object: opts.name,
-              msg: 'install ' + (err ? err : 'ok')
-            });
-            deferred.resolve();
-
-          });
+          );
 
         } else if (opts.ensure === 'latest') {
           // LATEST

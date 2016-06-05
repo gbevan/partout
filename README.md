@@ -96,8 +96,8 @@ Design / Proposal / Brain-Storm Documents
 * [PoC bootstrapping agents over a RESTful API](./agent/docs/shell_rest_notes.md)
 * [Agent Event Sending Algorythmic Statistical Backoff for Scalability](./docs/Event_Sending_Statistical_Backoff.md)
 
-Quick Sign All Agent CSRs
--------------------------
+Quick Sign All Pending Agent SSL CSRs
+-------------------------------------
 
     bin/partout csr | grep unsigned | awk '{print $1;}' | xargs -i@ bin/partout csr sign @; bin/partout csr
 
