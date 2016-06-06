@@ -191,7 +191,7 @@ var Command = P2M.Module(module.filename, function () {
             //console.log('***** onlyif_obj:', onlyif_obj);
             var cmd = onlyif_obj.script,
                 args = onlyif_obj.args;
-            //console.log('command running onlyif cmd:', cmd, 'args:', args);
+            utils.dlog('command running onlyif cmd:', cmd, 'args:', args);
             onlyif_deferred.resolve(
               utils.runCmd(
                 cmd,
@@ -210,7 +210,7 @@ var Command = P2M.Module(module.filename, function () {
 
         onlyif_deferred.promise
         .then(function (onlyif_res) {
-          //console.log('command: onlyif_res:', onlyif_res);
+          utils.dlog('command: onlyif_res:', onlyif_res);
           var onlyif_rc = onlyif_res[0],
               onlyif_stdout = onlyif_res[1],
               onlyif_stderr = onlyif_res[2];
