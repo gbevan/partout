@@ -108,6 +108,15 @@ var Facts = P2M.Module(module.filename, function () {
       os_hostname: os.hostname(),
     };
 
+    // resolve os_nics with keyed ipv4/6 elements
+    _.each(myFacts.os_nics, function (v, k) {
+      myFacts.os_nics[k] = {'list': v};
+
+      v.forEach(function (addr_obj) {
+        myFacts.os_nics[k][addr_obj.family.toLowerCase()] = addr_obj;
+      });
+    });
+
     //_.merge(facts_so_far, myFacts);
 
     deferred.resolve(myFacts);

@@ -410,7 +410,7 @@ var P2 = function () {
    */
   self._impl.dumpFacts = function () {
     self._impl.push_action(function (queuecb) {
-      console.log(u.inspect(self.facts, {colors: true, depth: 2}));
+      console.log(u.inspect(self.facts, {colors: true, depth: 6}));
       queuecb();
     });
   };
@@ -511,7 +511,7 @@ var P2 = function () {
      */
     self._impl.print_facts = function () {
       if (GLOBAL.p2_agent_opts && GLOBAL.p2_agent_opts.showfacts) {
-        console.log(u.inspect(self.facts, {colors: true, depth: 2}));
+        console.log(u.inspect(self.facts, {colors: true, depth: 6}));
       }
     };
 
