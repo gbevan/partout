@@ -141,33 +141,28 @@ var Service = P2M.Module(module.filename, function () {
         if (opts.ensure === 'stopped') {
           if (status.actual === 'running') {
             cmd = 'service ' + opts.name + ' stop';
-            utils.pExec(cmd)
-            .fail(function (err) {
-              console.error('Service command failed: ', cmd);
-              console.error(err.stack);
-//              utils.callbackEvent(next_step_callback, _impl.facts, {
-//                module: 'service',
-//                object: opts.name,
-//                msg: 'service stop failed: ' + err
-//              });
-              _impl.qEvent({
-                module: 'service',
-                object: opts.name,
-                msg: 'service stop failed: ' + err
-              });
-              deferred.resolve();
-            })
-            .done(function () {
-//              utils.callbackEvent(next_step_callback, _impl.facts, {
-//                module: 'service',
-//                object: opts.name,
-//                msg: 'stopped'
-//              });
-              _impl.qEvent({
-                module: 'service',
-                object: opts.name,
-                msg: 'stopped'
-              });
+            utils.pSpawn(cmd, {shell: true})
+            .done(function (res) {
+              var rc = res[0],
+                  stdout = res[1],
+                  stderr = res[2];
+
+              if (rc !== 0) {
+                console.warn('Service stop command failed: ', cmd, 'rc:', rc, 'stderr:', stderr);
+                _impl.qEvent({
+                  module: 'service',
+                  object: opts.name,
+                  msg: 'service stop failed: rc:' + rc + ', stderr:' + stderr
+                });
+              } else {
+                console.log('Service stop command ok: ', cmd, 'rc:', rc, 'stderr:', stderr);
+                _impl.qEvent({
+                  module: 'service',
+                  object: opts.name,
+                  msg: 'stopped'
+                });
+              }
+
               deferred.resolve();
             });
           } else {
@@ -178,32 +173,28 @@ var Service = P2M.Module(module.filename, function () {
         } else if (opts.ensure === 'running') {
           if (status.actual !== 'running') {
             cmd = 'service ' + opts.name + ' start';
-            utils.pExec(cmd)
-            .fail(function (err) {
-              console.error('Service command failed: ', cmd);
-//              utils.callbackEvent(next_step_callback, _impl.facts, {
-//                module: 'service',
-//                object: opts.name,
-//                msg: 'service start failed: ' + err
-//              });
-              _impl.qEvent({
-                module: 'service',
-                object: opts.name,
-                msg: 'service start failed: ' + err
-              });
-              deferred.resolve();
-            })
-            .done(function () {
-//              utils.callbackEvent(next_step_callback, _impl.facts, {
-//                module: 'service',
-//                object: opts.name,
-//                msg: 'started'
-//              });
-              _impl.qEvent({
-                module: 'service',
-                object: opts.name,
-                msg: 'started'
-              });
+            utils.pSpawn(cmd, {shell: true})
+            .done(function (res) {
+              var rc = res[0],
+                  stdout = res[1],
+                  stderr = res[2];
+
+              if (rc !== 0) {
+                console.error('Service start command failed: ', cmd, 'rc:', rc, 'stderr:', stderr);
+                _impl.qEvent({
+                  module: 'service',
+                  object: opts.name,
+                  msg: 'service start failed: rc:' + rc + ', stderr:' + stderr
+                });
+              } else {
+                console.log('Service start command ok: ', cmd, 'rc:', rc, 'stderr:', stderr);
+                _impl.qEvent({
+                  module: 'service',
+                  object: opts.name,
+                  msg: 'started'
+                });
+              }
+
               deferred.resolve();
             });
           } else {
