@@ -232,12 +232,17 @@ var Command = P2M.Module(module.filename, function () {
                 stdout = res[1],
                 stderr = res[2];
 
-            utils.dlog('rc:', rc, 'stdout:', stdout, 'stderr:', stderr);
+            utils.dlog('command: rc:', rc, 'stdout:', stdout, 'stderr:', stderr);
+            //console.log('command: rc:', rc, 'stdout:', stdout, 'stderr:', stderr);
             if (stderr) {
               console.error(stderr);
             }
             if (stdout) {
               console.log(stdout);
+            }
+
+            if (command_complete_cb) {
+              command_complete_cb(rc, stdout, stderr);
             }
 
             var err2;
@@ -257,9 +262,9 @@ var Command = P2M.Module(module.filename, function () {
             if (opts.creates) {
               set_watcher(inWatch);
             }
-            if (command_complete_cb) {
-              command_complete_cb(rc, stdout, stderr);
-            }
+//            if (command_complete_cb) {
+//              command_complete_cb(rc, stdout, stderr);
+//            }
             if (opts.creates) {
               cb({
                 module: 'command',
@@ -269,7 +274,12 @@ var Command = P2M.Module(module.filename, function () {
             } else {
               cb(); // next_step_callback or watcher callback
             }
-          });
+          })
+//          .fail(function (err) {
+//            console.error('fail err:', err);
+//          })
+//          done()
+          ;
 
         }); // onlyif_res
 

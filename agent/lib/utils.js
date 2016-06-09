@@ -232,17 +232,24 @@ Utils.prototype.pSpawn = function (cmd, args, options, resolve_to_childprocess) 
    */
   cp.on('exit', function (rc, signal) {
     self.dlog('pSpawn exit rc:', rc, 'signal:', signal);
+    //console.log('pSpawn exit rc:', rc, 'signal:', signal);
 
     if (rc !== 0 || signal !== null || stderr) {
-      console.log(stdout);
-      console.error(stderr);
+      console.log('stdout:', stdout);
+      console.error('stderr:', stderr);
     }
 
-    deferred.resolve([rc, stdout, stderr]);
+    if (stdout || stderr) {
+      deferred.resolve([rc, stdout, stderr]);
+    }
   });
 
   cp.on('close', function (rc) {
     self.dlog('pSpawn close');
+    //console.log('pSpawn close rc:', rc);
+    //console.log('stdout:', stdout);
+    //console.error('stderr:', stderr);
+    deferred.resolve([rc, stdout, stderr]);
   });
 
   return deferred.promise;
