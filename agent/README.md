@@ -174,7 +174,7 @@ of your target test endpoints.
 
 Test by running the following command in the agent subfolder:
 
-    gulp mocha1
+    gulp mocha
 
 all being well you should get a summary report of the unit-tests something like:
 
@@ -203,6 +203,8 @@ every time you make a change to a file, by running:
 
     gulp watch-mocha
 
+However, these tests are now getting quite exhaustive and they take a few minutes to run...
+
 DEVELOPMENT
 -----------
 
@@ -218,7 +220,7 @@ Prereqs (Debian/Ubuntu):
 ```bash
 # apt-get install -y nfs-client
 # curl -sL https://deb.nodesource.com/setup_5.x | sudo -E bash -
-# sudo apt-get install -y nodejs
+# apt-get install -y nodejs
 ```
 
 Prereqs (RedHat/CentOS):

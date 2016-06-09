@@ -83,23 +83,22 @@ var Role = P2M.Module(module.filename, function () {
         errmsg = '',
         name = title;
 
-    if (opts.p2) {
 
-      if (_impl[name]) {
-        console.error(u.format('ERROR: Cannot add new role, name "%s" already exists'), name);
-        deferred.resolv();
-        return;
-      }
+    if (_impl[name]) {
+      console.error(u.format('ERROR: Cannot add new role, name "%s" already exists'), name);
+      deferred.resolv();
+      return;
+    }
 
-      //console.log('Creating module ' + name + ' from role');
-      _impl[name] = function (mod_title, mod_opts) {
-        //console.log('in module instance:', name);
+    //console.log('Creating module ' + name + ' from role');
+    _impl[name] = function (mod_title, mod_opts) {
+      //console.log('in module instance:', name);
 
-        /*
-         * push role's facts gatherer function onto p2 steps
-         */
+      /*
+       * push role's facts gatherer function onto p2 steps
+       */
+      function push_refreshFacts () {
         if (opts.facts) {
-          // TODO: wrap with function (...) {}
           _impl.push_action(function (cb) {
             var facts_deferred = Q.defer();
 
@@ -108,29 +107,70 @@ var Role = P2M.Module(module.filename, function () {
             facts_deferred
             .promise
             .done(function (role_facts) {
-              _.merge(_impl.facts, role_facts);
+              //console.log('role_facts:', role_facts);
+              _.merge(_impl.facts.p2role, role_facts.p2role);
+              _.each(role_facts, function (v, k) {
+                if (!k.match(/^(p2role)$/)) {
+                  _impl.facts[k] = v;
+                }
+              });
               cb();
             });
           });
         }
+      }
 
-        /*
-         * add passed p2 args dsl to addSteps in the p2 _impl
-         */
-        // defer pushing on to actions so facts run first
-        _impl.push_action(function (cb) {
-          opts.p2(mod_title, mod_opts); // pushes it's own actions to run next
-          cb();
-        });
+      if (_impl.ifNode()) {
+//
+//        /*
+//         * push role's facts gatherer function onto p2 steps
+//         */
+//        if (opts.facts) {
+//          _impl.push_action(function (cb) {
+//            var facts_deferred = Q.defer();
+//
+//            opts.facts(facts_deferred, _impl.facts, mod_title, mod_opts);
+//
+//            facts_deferred
+//            .promise
+//            .done(function (role_facts) {
+//              _.merge(_impl.facts, role_facts);
+//              cb();
+//            });
+//          });
+//        }
 
-        /*
-         * as this called from chained _impl dsl directives
-         * we must return _impl to continue the dsl chaining
-         */
-        return _impl;
-      };
-    }
-    //console.log('_impl.chocolatey:', _impl.chocolatey);
+        //push_refreshFacts();
+
+        if (opts.p2) {
+          /*
+           * add passed p2 args dsl to addSteps in the p2 _impl
+           */
+          // defer pushing on to actions so facts run first
+          _impl.push_action(function (cb) {
+
+            p2.pushSteps(); // save steps state
+
+            push_refreshFacts();
+
+            opts.p2(mod_title, mod_opts); // pushes it's own actions to run next
+
+            push_refreshFacts();
+
+            p2.flattenSteps(); // pop previous steps state after new steps
+
+            cb();
+          });
+        }
+
+      } // ifNode
+
+      /*
+       * as this called from chained _impl dsl directives
+       * we must return _impl to continue the dsl chaining
+       */
+      return _impl;
+    };
 
     deferred.resolve();
 

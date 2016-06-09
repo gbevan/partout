@@ -118,9 +118,14 @@ var File = P2M.Module(module.filename, function () {
         errmsg = '',
         file = title;
 
+    opts.ensure = (opts.ensure ? opts.ensure : 'present');
+
     if (opts.path) {
       file = opts.path;
     }
+
+    self.opts = opts;
+    self.title = title;
 
     var _watch_state = (opts.watch ? true : _impl._watch_state);
 
@@ -139,7 +144,7 @@ var File = P2M.Module(module.filename, function () {
 
       // Handle ensure option
       self._opt_ensure(file, opts, err, stats, _impl, inWatchFlag, deferred)
-      .done(function () {
+      .done(function (changed) {
 
         fs.lstat(file, function (err, stats) {
 
@@ -182,6 +187,7 @@ var File = P2M.Module(module.filename, function () {
               });
             }
 
+
             // pass updated status to caller (p2 steps) with optional event data
             /*
             var o,
@@ -196,6 +202,11 @@ var File = P2M.Module(module.filename, function () {
             }
             deferred.resolve(utils.makeCallbackEvent(_impl.facts, o));
             */
+            //cb(err);  // TODO: Feedback if an action was taken...
+
+            if (cb) {
+              cb(changed);
+            }
             deferred.resolve();
 
           }); // _opt_mode
@@ -226,7 +237,7 @@ File.prototype._ensure_content = function (file, data, is_template) {
       record = '',
       deferred = Q.defer();
 
-  //console.log('_ensure_content file:', file, ' data:', data);
+  utils.dlog('_ensure_content file:', file, ' data:', data);
 
   if (typeof(data) === 'object') {
     if (data.file) {
@@ -238,12 +249,11 @@ File.prototype._ensure_content = function (file, data, is_template) {
   }
 
   if (is_template) {
-    //console.log('+++ template: p2.facts:', p2.facts, 'p2:', p2, 'self:', self, 'self.facts:', self.facts);
-    data = Mustache.render(data, p2.facts);
+    data = Mustache.render(data, {title: self.title, opts: self.opts, f: p2.facts});
   }
 
   var d_hash = pfs.hash(data);
-  console.log('File: comparing file hash:', f_hash, '-> content hash:', d_hash);
+  console.log(u.format('File: %s: comparing file hash: %s -> content hash: %s', file, f_hash, d_hash));
   if (f_hash != d_hash) {
     //console.warn('File: updating file content:\n' + data);
     pfs.pWriteFile(file, data)
@@ -266,14 +276,18 @@ File.prototype._ensure_content = function (file, data, is_template) {
  * @returns {Object}  Promise (from _ensuere_content) resolves to record string
  */
 File.prototype._ensure_file = function (file, srcfile, is_template) {
-  var self = this;
+  var self = this,
+      deferred = Q.defer();
+
   utils.dlog('_ensure_file(' + file + ',', srcfile + ')');
-  return pfs.pReadFile(srcfile)
+  pfs.pReadFile(srcfile)
   .done(function (data) {
     data = data.toString();
     utils.dlog('data:', data);
-    return self._ensure_content(file, data, is_template);
+    deferred.resolve(self._ensure_content(file, data, is_template));
   });
+
+  return deferred.promise;
 };
 
 /**
@@ -285,7 +299,7 @@ File.prototype._ensure_file = function (file, srcfile, is_template) {
  * @param   {object}  _impl       DSL
  * @param   {boolean} inWatchFlag flag in watch
  * @param   {object}  deferred    Q deferred object to resolve
- * @returns {object}  ensure_promise
+ * @returns {object}  ensure_promise - boolean true = action taken, else false
  */
 File.prototype._opt_ensure = function (file, opts, err, stats, _impl, inWatchFlag, deferred) {
   var self = this,
@@ -305,7 +319,7 @@ File.prototype._opt_ensure = function (file, opts, err, stats, _impl, inWatchFla
             pfs.pRmdir(file)
             .done(function () {
               _impl.qEvent({module: 'file', object: file, msg: 'Deleted directory.'});
-              ensure_deferred.resolve();
+              ensure_deferred.resolve(true);
             });
           } else {
             console.warn('Deleting file', file);
@@ -313,11 +327,11 @@ File.prototype._opt_ensure = function (file, opts, err, stats, _impl, inWatchFla
             .done(function () {
               _impl.qEvent({module: 'file', object: file, msg: 'Deleted file.'});
               //ensure_deferred.resolve('Deleted file. ');
-              ensure_deferred.resolve();
+              ensure_deferred.resolve(true);
             });
           }
         } else {
-          ensure_deferred.resolve(); // no action taken
+          ensure_deferred.resolve(false); // no action taken
         }
         break;
 
@@ -343,12 +357,12 @@ File.prototype._opt_ensure = function (file, opts, err, stats, _impl, inWatchFla
                 if (r) {
                   _impl.qEvent({module: 'file', object: file, msg: r});
                 }
-                //ensure_deferred.resolve(record + r);
-                ensure_deferred.resolve();
+                console.log('create file');
+                ensure_deferred.resolve(true);
               });
             } else {
               //ensure_deferred.resolve(record);
-              ensure_deferred.resolve();
+              ensure_deferred.resolve(true);
             }
           });
         } else {
@@ -358,12 +372,12 @@ File.prototype._opt_ensure = function (file, opts, err, stats, _impl, inWatchFla
               if (r) {
                 _impl.qEvent({module: 'file', object: file, msg: r});
               }
-              //ensure_deferred.resolve(record + r);
-              ensure_deferred.resolve();
+              //console.log('update file r: ' + r);
+              ensure_deferred.resolve(r !== undefined && r !== '');
             });
           } else {
             //ensure_deferred.resolve(record);
-            ensure_deferred.resolve();
+            ensure_deferred.resolve(false);
           }
         }
         break;
@@ -374,13 +388,13 @@ File.prototype._opt_ensure = function (file, opts, err, stats, _impl, inWatchFla
           pfs.pMkdir(file)
           .done(function () {
             _impl.qEvent({module: 'file', object: file, msg: 'Created directory. '});
-            ensure_deferred.resolve();
+            ensure_deferred.resolve(true);
           });
         } else if (!stats.isDirectory()) {
           console.error('Error:', file, 'exists and is not a directory');
-          ensure_deferred.resolve();
+          ensure_deferred.resolve(false);
         } else {
-          ensure_deferred.resolve(); // no action taken
+          ensure_deferred.resolve(false); // no action taken
         }
         break;
 
@@ -395,7 +409,7 @@ File.prototype._opt_ensure = function (file, opts, err, stats, _impl, inWatchFla
           pfs.pSymlink(opts.target, file, 'file')
           .done(function () {
             _impl.qEvent({module: 'file', object: file, msg: 'Created link. '});
-            ensure_deferred.resolve();
+            ensure_deferred.resolve(true);
           });
         } else if (err) {
           throw (err);
@@ -403,7 +417,7 @@ File.prototype._opt_ensure = function (file, opts, err, stats, _impl, inWatchFla
         } else if (!stats.isDirectory()) {
           console.error('Error:', file, 'exists and is not a link');
           _impl.qEvent({module: 'file', object: file, level: 'error', msg: 'Exists and is not a link'});
-          ensure_deferred.resolve();
+          ensure_deferred.resolve(false);
         }
         break;
 
@@ -413,7 +427,7 @@ File.prototype._opt_ensure = function (file, opts, err, stats, _impl, inWatchFla
         throw (new Error(msg));
     } // switch opts.ensure
   } else {
-    ensure_deferred.resolve(); // done nothing
+    ensure_deferred.resolve(false); // done nothing
   } // if ensure
 
   return ensure_deferred.promise;

@@ -140,6 +140,10 @@ var Facts = P2M.Module(module.filename, function () {
       } else {
         var objpklCmd = u.format('/usr/bin/python -c "import json; import pickle; F=open(\'%s\'); O=pickle.load(F); print json.dumps(O.ec2_metadata)"', objpkl);
         utils.pExec(objpklCmd)
+        .fail(function (err) {
+          utils.vlog('Warning: extract of ec2_metadata from cloud-init failed:', err);
+          cloud_deferred.resolve(["ec2_metadata", {}]);
+        })
         .then(function (jsonStr) {
           utils.dlog('ec2_metadata jsonStr:', jsonStr[0]);
           var cloudObj = JSON.parse(jsonStr[0]);

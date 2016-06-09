@@ -92,9 +92,20 @@ Policy.prototype.apply = function () {
   _.each(self.args, function (a) {
 
     var abs_a = path.resolve(a),
-        abs_dir = path.dirname(abs_a);
+        abs_dir = path.dirname(abs_a),
+        p2Re = new RegExp(/\.p2$/);
 
-    delete require.cache[abs_a];
+    /*
+     * remove previously load .p2 modules and roles, for reloading
+     */
+    _.each(require.cache, function (v, k) {
+      if (k.match(p2Re)) {
+        //console.log('policy: deleting require.cache: k', k);
+        delete require.cache[k];
+      }
+    });
+
+    //delete require.cache[abs_a];
     p2.P2_watchers_close();
     p2.clear_actions();
 

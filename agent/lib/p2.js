@@ -31,6 +31,7 @@ var console = require('better-console'),
     nimble = require('nimble'),
     os = require('os'),
     exec = require('child_process').exec,
+    path = require('path'),
     fs = require('fs'),
     EventEmitter = require('events').EventEmitter,
     querystring = require('querystring'),
@@ -137,6 +138,15 @@ var P2 = function () {
   var self = this,
     deferred = Q.defer();
   self._impl = Object.create(init_impl);
+
+  /**
+   * require module from partout's agent library (for use in agent manifests/roles)
+   * @param   {string} name module name
+   * @returns {object} loaded module
+   */
+  self._impl.require = function (name) {
+    return require(path.join(self._impl.core_lib_path, name));
+  };
 
   /**
    * execute accrued actions
@@ -266,9 +276,13 @@ var P2 = function () {
     return self;
   };
 
+  // store __dirname for agent manifests to locate agent core modules
+  self._impl.core_lib_path = __dirname;
 
-  //self.steps = [];
-  //self._impl.steps = self.steps;
+  // LIFO stack for steps (to allow roles to push their nested steps to the front of the queue)
+  self._impl.steps_stack = [];
+
+  // FIFO queue of action steps from p2 manifests
   self._impl.steps = [];
 
   self._impl.nodes = [];
@@ -380,6 +394,27 @@ var P2 = function () {
    */
   self._impl.heredoc = heredoc;
 
+  /**
+   * Check if this node's facts has a class assigned (in agent_classes)
+   * @param   {[[Type]]} c [[Description]]
+   * @returns {[[Type]]} [[Description]]
+   */
+  self._impl.hasClass = function (c) {
+    return (self.facts.agent_classes[c] === true);
+  };
+
+  /**
+   * dump discovered facts
+   * @function
+   * @memberof P2
+   */
+  self._impl.dumpFacts = function () {
+    self._impl.push_action(function (queuecb) {
+      console.log(u.inspect(self.facts, {colors: true, depth: 6}));
+      queuecb();
+    });
+  };
+
   /**********************************************************************************
    * p2 file imports and actions
    */
@@ -394,12 +429,34 @@ var P2 = function () {
   };
 
   /**
+   * Push current steps on steps_stack
+   * @function
+   * @memberof p2
+   */
+  self._impl.pushSteps = function () {
+    self._impl.steps_stack.push(self._impl.steps);
+    self._impl.steps = [];
+  };
+
+  /**
+   * Flatten current steps with steps previously pushed onto steps_stack
+   * @function
+   * @memberod p2
+   */
+  self._impl.flattenSteps = function () {
+    var newSteps = self._impl.steps;
+    self._impl.steps = newSteps.concat(self._impl.steps_stack.pop());
+  };
+
+  /**
    * push action step on to the list to execute by .end()
    * @function
    * @memberof P2
    * @param {Function} action
    */
   self._impl.push_action = function (action) {
+    var method;
+
     self._impl.steps.push(function (queuecb) {
       //console.warn('Executing a step');
       action.call(self, function (o) {
@@ -412,7 +469,6 @@ var P2 = function () {
     });
   };
 
-  //console.log('P2 this:', this);
 
   var _modules;
 
@@ -429,7 +485,8 @@ var P2 = function () {
   } else {
     //console.log('>>> Refreshing facts');
     self.facts = {
-      p2module: {}
+      p2module: {},
+      agent_classes: {}
     };
     //_modules = require('./modules')(self.facts);
     module_promise = require('./modules')(self.facts);
@@ -454,7 +511,7 @@ var P2 = function () {
      */
     self._impl.print_facts = function () {
       if (GLOBAL.p2_agent_opts && GLOBAL.p2_agent_opts.showfacts) {
-        console.log(JSON.stringify(self.facts, null, 2));
+        console.log(u.inspect(self.facts, {colors: true, depth: 6}));
       }
     };
 

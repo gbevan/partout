@@ -126,29 +126,82 @@ var Package = P2M.Module(module.filename, function () {
       if (opts.ensure.match(/^(present|installed|latest)$/)) {
         //console.log('ensure present');
 
-        if (!current_state) {
-          console.info('Installing package:', opts.name);
-          exec('apt-get update && apt-get install --auto-remove -y ' + opts.name, function (err, stdout, stderr) {
-            if (err) {
-              console.error('apt-get install failed:', err, stderr);
-            } else {
-              _impl.facts.installed_packages[opts.name] = {};  // next facts run will populate
-            }
-            if (command_complete_cb) command_complete_cb(err, stdout, stderr);
+        // TODO: version option needs more thought!!!
 
-            // TODO: EXTEND USAGE...
-//            utils.callbackEvent(next_step_callback, _impl.facts, {
-//              module: 'package',
-//              object: opts.name,
-//              msg: 'install ' + (err ? err : 'ok')
-//            });
+
+        if (!current_state || (opts.version && opts.version !== current_state.version)) {
+          console.log('current_state:', current_state);
+          console.info('Installing package:', opts.name /*+ (opts.version ? u.format('=%s', opts.version) : '')*/);
+//          exec(
+//            'apt-get update && apt-get -q -y install --auto-remove ' + opts.name /*+ (opts.version ? u.format('=%s', opts.version) : '')*/,
+//            {env: process.env},
+//            function (err, stdout, stderr) {
+//              console.log('stdout:', stdout, 'stderr:', stderr);
+//              if (err) {
+//                console.error('apt-get install failed:', err, stderr);
+//              } else {
+//                _impl.facts.installed_packages[opts.name] = {};  // next facts run will populate
+//              }
+//              if (command_complete_cb) command_complete_cb(err, stdout, stderr);
+//
+//              // TODO: EXTEND USAGE...
+//  //            utils.callbackEvent(next_step_callback, _impl.facts, {
+//  //              module: 'package',
+//  //              object: opts.name,
+//  //              msg: 'install ' + (err ? err : 'ok')
+//  //            });
+//              _impl.qEvent({
+//                module: 'package',
+//                object: opts.name,
+//                msg: 'install ' + (err ? err : 'ok')
+//              });
+//              deferred.resolve();
+//
+//            }
+//          );
+
+          utils.pSpawn(
+            u.format('apt-get update && apt-get -q -y install --auto-remove %s; echo "after install rc=$?"', opts.name),
+            [],
+            {
+              shell: true
+            }
+          )
+          .fail(function (err) {
             _impl.qEvent({
               module: 'package',
               object: opts.name,
-              msg: 'install ' + (err ? err : 'ok')
+              msg: 'install failed err:' + err
             });
             deferred.resolve();
-
+          })
+          .done(function (res) {
+            var rc = res[0],
+                stdout = res[1],
+                stderr = res[2];
+            if (stdout) {
+              console.log(stdout);
+            }
+            if (stderr) {
+              console.error(stderr);
+            }
+            if (rc !== 0) {
+              console.error(u.format('Install package %s failed', opts.name));
+              _impl.qEvent({
+                module: 'package',
+                object: opts.name,
+                msg: 'install failed rc:' + rc
+              });
+            } else {
+              console.log(u.format('Install package %s ok', opts.name));
+              _impl.facts.installed_packages[opts.name] = {};  // next facts run will populate
+              _impl.qEvent({
+                module: 'package',
+                object: opts.name,
+                msg: 'install ok'
+              });
+            }
+            deferred.resolve();
           });
 
         } else if (opts.ensure === 'latest') {

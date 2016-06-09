@@ -1,7 +1,7 @@
 # Module: File
 
     p2.node([...])
-       .file('file or title', options, function (err, stdout, stderr) { ... });
+       .file('file or title', options, function (err) { ... });
 
 Options:
 
@@ -34,3 +34,12 @@ Platform Support (i.e. tested on):
 | Linux/all   | &#x2713; | &#x2713; |
 | Windows/10  | &#x2713; | &#x2713; |
 | Pi/Raspbian jessie  | &#x2713; | &#x2713; |
+
+Templates:
+
+Uses Mustache so variables can be inserted e.g.:
+```
+{{ title }}
+{{ opts.something }}
+{{ f.factname }}
+```

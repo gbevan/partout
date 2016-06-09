@@ -115,7 +115,11 @@ var Command = P2M.Module(module.filename, function () {
       cmd = opts.cmd;
     }
 
-    cmd = Mustache.render(cmd, p2.facts);
+    cmd = Mustache.render(cmd, {
+      title: title,
+      opts: opts,
+      f: p2.facts
+    });
 
 //    if (!opts.shell) {
 //      opts.shell = true;
@@ -166,6 +170,18 @@ var Command = P2M.Module(module.filename, function () {
               throw 'onlyif object option(s) not supported';
             }
 
+          } else if (typeof(opts.onlyif) === 'function') {
+            var res = opts.onlyif(p2.facts);
+            // expect boolean or promise on boolean
+            if (Q.isPromise(res)) {
+              res
+              .done(function (rc) {
+                onlyif_deferred.resolve([(rc ? 0 : -1), undefined, undefined]);
+              });
+            } else {
+              onlyif_deferred.resolve([(res ? 0 : -1), undefined, undefined]);
+            }
+
           } else {
             onlyif_content_deferred.resolve({script: opts.onlyif, args: ''});  // TODO support args on string method
           }
@@ -175,7 +191,7 @@ var Command = P2M.Module(module.filename, function () {
             //console.log('***** onlyif_obj:', onlyif_obj);
             var cmd = onlyif_obj.script,
                 args = onlyif_obj.args;
-            //console.log('command running onlyif cmd:', cmd, 'args:', args);
+            utils.dlog('command running onlyif cmd:', cmd, 'args:', args);
             onlyif_deferred.resolve(
               utils.runCmd(
                 cmd,
@@ -194,7 +210,7 @@ var Command = P2M.Module(module.filename, function () {
 
         onlyif_deferred.promise
         .then(function (onlyif_res) {
-          //console.log('command: onlyif_res:', onlyif_res);
+          utils.dlog('command: onlyif_res:', onlyif_res);
           var onlyif_rc = onlyif_res[0],
               onlyif_stdout = onlyif_res[1],
               onlyif_stderr = onlyif_res[2];
@@ -216,16 +232,29 @@ var Command = P2M.Module(module.filename, function () {
                 stdout = res[1],
                 stderr = res[2];
 
-            utils.dlog('rc:', rc, 'stdout:', stdout, 'stderr:', stderr);
+            utils.dlog('command: rc:', rc, 'stdout:', stdout, 'stderr:', stderr);
+            //console.log('command: rc:', rc, 'stdout:', stdout, 'stderr:', stderr);
             if (stderr) {
               console.error(stderr);
             }
             if (stdout) {
               console.log(stdout);
             }
+
+            if (command_complete_cb) {
+              command_complete_cb(rc, stdout, stderr);
+            }
+
+            var err2;
             if (opts.returns) {
               if (rc !== opts.returns) {
-                var err2 = new Error('Return code does not match expected by returns option');
+                err2 = new Error('Return code does not match expected by returns option');
+                err2.code = rc;
+                throw err2;
+              }
+            } else {
+              if (rc !== 0) {
+                err2 = new Error('None zero return code returned');
                 err2.code = rc;
                 throw err2;
               }
@@ -233,9 +262,9 @@ var Command = P2M.Module(module.filename, function () {
             if (opts.creates) {
               set_watcher(inWatch);
             }
-            if (command_complete_cb) {
-              command_complete_cb(rc, stdout, stderr);
-            }
+//            if (command_complete_cb) {
+//              command_complete_cb(rc, stdout, stderr);
+//            }
             if (opts.creates) {
               cb({
                 module: 'command',
@@ -245,7 +274,12 @@ var Command = P2M.Module(module.filename, function () {
             } else {
               cb(); // next_step_callback or watcher callback
             }
-          });
+          })
+//          .fail(function (err) {
+//            console.error('fail err:', err);
+//          })
+//          done()
+          ;
 
         }); // onlyif_res
 

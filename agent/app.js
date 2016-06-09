@@ -241,6 +241,8 @@ var serve = function (opts, master, env) {
   app.uuid = MYUUID;
   //app.master.set_uuid(app.uuid);
 
+  app.inRun = false;
+
   process.on('SIGINT', function () {
     app.sendevent({
       module: 'app',
@@ -292,7 +294,11 @@ var serve = function (opts, master, env) {
   };
 
   app.run = function () {
+    var deferred = Q.defer();
+
     console.log('### START #######################################################');
+    app.inRun = true;
+
     var splay = (app.apply_count === 0 ? 0 : app.poll_manifest_splay_secs * 1000 * Math.random()) ;
 
     if ((app.apply_count++ % app.poll_manifest_every) === 0) {
@@ -307,7 +313,9 @@ var serve = function (opts, master, env) {
           //console.log('sync done');
 
           app._apply(function () {
+            app.inRun = false;
             console.log('### FINISHED POLICY (after sync) ###########################################');
+            deferred.resolve();
           });
         })
         .fail(function (err) {
@@ -316,7 +324,9 @@ var serve = function (opts, master, env) {
           console.warn('policy_sync call failed, will continue to run existing cached manifest (if available)');
 
           app._apply(function () {
+            app.inRun = false;
             console.log('### FINISHED POLICY (after FAILED sync) ###########################################');
+            deferred.resolve();
           });
         })
         .done();
@@ -324,9 +334,13 @@ var serve = function (opts, master, env) {
 
     } else {
       app._apply(function () {
+        app.inRun = false;
         console.log('### FINISHED POLICY (no sync) ##############################################');
+        deferred.resolve();
       });
     }
+
+    return deferred.promise;
   };
 
   router.use(morgan('combined'));
@@ -351,17 +365,26 @@ var serve = function (opts, master, env) {
     msg: 'Partout-Agent has (re)started https server'
   });
   //.then(function () {
-  app.run();
-  setInterval(function () {
-    app.run();
-  }, (app.apply_every_mins * 60 * 1000))
-  .unref();
-  //})
-  //.fail(function (err) {
-  //  console.error('app run failed, err:', err);
-  //  console.log(err.stack);
-  //})
-  //.done();
+  app.run()
+  .done(function () {
+    if (opts.once) {
+      process.exit(0);
+    }
+  });
+
+  if (!app.opts.once) {
+    setInterval(function () {
+      if (!app.inRun) {
+        app.run();
+//        .done(function () {
+//          console.log('run complete in loop');
+//        });
+      } else {
+        console.warn('Previous policy overran apply interval, skipping...');
+      }
+    }, (app.apply_every_mins * 60 * 1000))
+    .unref();
+  }
 
 };
 

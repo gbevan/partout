@@ -71,7 +71,13 @@ var Cfg = function () {
       env = (optenv ? optenv : 'default');
 
       if (!global.INMOCHA) {
-        fs.writeFileSync(self.PARTOUT_AGENT_ENVIRONMENT_FILE, env);
+        try {
+          fs.writeFileSync(self.PARTOUT_AGENT_ENVIRONMENT_FILE, env);
+        } catch (e) {
+          if (e.code !== 'ENOENT') {
+            throw e;
+          }
+        }
       }
 
     } else {
