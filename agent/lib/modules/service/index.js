@@ -114,11 +114,17 @@ var Service = P2M.Module(module.filename, function () {
       dependson: true,
       description: true,
       displayname: true,
-      startuptype: true
+      startuptype: true,
+
+      on: true
     }) ) {
       deferred.reject(new Error('Invalid argument(s)'));
       return;
     }
+
+//  if (opts.on) {
+//    self.on(opts.on);
+//  }
 
     deferred.resolve();
   });

@@ -23,6 +23,7 @@
 /*jslint node: true, nomen: true */
 'use strict';
 
+/*global p2*/
 var console = require('better-console'),
     Provider = require('./provider'),
     Q = require('q'),
@@ -169,8 +170,13 @@ P2M.prototype.action = function (fn, action_args) {
 
     if (_impl.ifNode()) {
 
+      if (opts.on) {
+        self.on(opts.on);
+      }
+
       _impl.push_action(function (nextStepCb, inWatchFlag) {
-        var deferred = Q.defer();
+        var deferred = Q.defer(),
+            ev_prefix = u.format('%s:%s', self._name, title);
 
         utils.dlog('p2m addStep calling fn (action) title: %s opts: %s', title, u.inspect(opts, {colors: true, depth: 2}));
 
@@ -186,13 +192,39 @@ P2M.prototype.action = function (fn, action_args) {
         deferred.promise
         .fail(function (err) {
           console.error(u.format('error: module %s err: %s', self.name, err));
+          _impl.emitter.emit(u.format('%s:%s', ev_prefix, 'fatal'), err);
         })
         .then(function (o) {
-          utils.dlog('calling provider _runAction()');
-          self._runAction(_impl, nextStepCb, inWatchFlag, title, opts, cb);
 
-          //utils.dlog('p2m addStep() action resolved with: %s', u.inspect(o, {colors: true, depth: 2}));
-          //utils.callbackEvent(nextStepCb, _impl.facts, o); // move to next policy directive in p2
+          var nextStepFn = function (o, dontCallCb) {
+            if (o && o.result) {
+              var evname = u.format('%s:%s', ev_prefix, o.result);
+
+              console.log(u.format(
+                'p2m: %s title: %s - nextStepFn() deferred resolved to o: %s, emitting: %s',
+                self._name,
+                title,
+                u.inspect(o, {colors: true, depth: 2}),
+                evname
+              ));
+              //console.log('STACK:\n', (new Error()).stack);
+
+              _impl.emitter.emit(evname, {
+                eventname: evname,
+                module: self._name,
+                title: title,
+                opts: opts
+              });
+            }
+            if (!dontCallCb) {
+              nextStepCb(o);
+            }
+          };
+
+          nextStepFn(o, true);
+
+          utils.dlog('calling provider _runAction()');
+          self._runAction(_impl, nextStepFn, inWatchFlag, title, opts, cb);
         })
         .done();
       });
@@ -239,6 +271,30 @@ P2M.prototype.facts = function (fn) {
   };
 
   return self;
+};
+
+/**
+ * Create a listener to fire events
+ * @param {object} evdef Event handler defs {'module:title:result': 'action' | function () {} | [ ], ...}
+ */
+P2M.prototype.on = function (evdef) {
+  var self = this;
+
+  _.each(evdef, function (h, k) {
+    console.log('Adding listener for:', k);
+
+    if (typeof(h) === 'function') {
+
+      p2.emitter.on(k, function () {
+        p2.pushSteps();
+        h.apply(this, arguments);
+        p2.flattenSteps();
+      });
+
+    } else {
+      throw 'Unsupported on event handler type: ' + typeof(h);
+    }
+  });
 };
 
 

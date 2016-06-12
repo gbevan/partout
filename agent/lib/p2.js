@@ -21,7 +21,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/*jslint node: true, nomen: true, vars: true*/
+/*jslint node: true, nomen: true, vars: true, esversion: 6*/
 'use strict';
 
 /*global GLOBAL */
@@ -33,12 +33,15 @@ var console = require('better-console'),
     exec = require('child_process').exec,
     path = require('path'),
     fs = require('fs'),
-    EventEmitter = require('events').EventEmitter,
+    //EventEmitter = require('events').EventEmitter,
     querystring = require('querystring'),
     Q = require('q'),
     u = require('util'),
     utils = new (require('./utils'))(),
     heredoc = require('heredoc');
+
+const EventEmitter = require('events');
+class P2Emitter extends EventEmitter {}
 
 Q.longStackSupport = true;
 Q.onerror = function (err) {
@@ -137,7 +140,10 @@ var P2_watchers_close = function () {
 var P2 = function () {
   var self = this,
     deferred = Q.defer();
+
   self._impl = Object.create(init_impl);
+
+  self._impl.emitter = new P2Emitter();
 
   /**
    * require module from partout's agent library (for use in agent manifests/roles)
