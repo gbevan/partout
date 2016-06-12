@@ -125,7 +125,7 @@ Utils.prototype.isDebianSync = function () {
 
   var os_obj = self.get_linux_os_release_Sync();
 
-  return os_obj.ID_LIKE === 'debian';
+  return os_obj && os_obj.ID_LIKE === 'debian';
 };
 
 /**
@@ -190,7 +190,7 @@ Utils.prototype.pExec = function (cmd, options) {
  * Promisified spawn
  * @param   {string}  cmd                     Command to execute
  * @param   {array}   args                    Arguments
- * @param   {object}  options                 Options for fs.spawn
+ * @param   {object}  options                 Options for fs.spawn (note shell option not supported on node v4) - use wrapper method runCmd
  * @param   {boolean} resolve_to_childprocess promise resolves to async ChildProcess
  * @returns {object}  Promise (obj[0,1,2]=rc, stdout, stderr), rejects with error
  */
@@ -201,7 +201,6 @@ Utils.prototype.pSpawn = function (cmd, args, options, resolve_to_childprocess) 
       stderr = '';
 
   self.dlog('pSpawn: cmd:', cmd, 'args:', args, 'options:', options);
-  //console.log('pSpawn: cmd:', cmd, 'args:', args, 'options:', options);
   var cp = spawn(cmd, args, options);
 
   resolve_to_childprocess = (resolve_to_childprocess ? resolve_to_childprocess : false);

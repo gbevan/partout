@@ -190,7 +190,11 @@ var File = P2M.Module(module.filename, function () {
             if (cb) {
               cb(changed);
             }
-            deferred.resolve((changed ? {result: 'changed'} : undefined));
+            var result = {};
+            if (changed) {
+              result.result = 'changed';
+            }
+            deferred.resolve(result);
 
           }); // _opt_mode
 

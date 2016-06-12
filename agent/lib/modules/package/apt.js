@@ -160,12 +160,8 @@ var Package = P2M.Module(module.filename, function () {
 //            }
 //          );
 
-          utils.pSpawn(
-            u.format('apt-get update && apt-get -q -y install --auto-remove %s; echo "after install rc=$?"', opts.name),
-            [],
-            {
-              shell: true
-            }
+          utils.runCmd(
+            u.format('apt-get update && apt-get -q -y install --auto-remove %s; echo "after install rc=$?"', opts.name)
           )
           .fail(function (err) {
             _impl.qEvent({
@@ -173,7 +169,7 @@ var Package = P2M.Module(module.filename, function () {
               object: opts.name,
               msg: 'install failed err:' + err
             });
-            deferred.resolve();
+            deferred.resolve({result: 'failed'});
           })
           .done(function (res) {
             var rc = res[0],
@@ -192,6 +188,7 @@ var Package = P2M.Module(module.filename, function () {
                 object: opts.name,
                 msg: 'install failed rc:' + rc
               });
+              deferred.resolve({result: 'failed'});
             } else {
               console.log(u.format('Install package %s ok', opts.name));
               _impl.facts.installed_packages[opts.name] = {};  // next facts run will populate
@@ -200,8 +197,8 @@ var Package = P2M.Module(module.filename, function () {
                 object: opts.name,
                 msg: 'install ok'
               });
+              deferred.resolve({result: 'changed'});
             }
-            deferred.resolve();
           });
 
         } else if (opts.ensure === 'latest') {
@@ -225,7 +222,7 @@ var Package = P2M.Module(module.filename, function () {
                 object: opts.name,
                 msg: 'upgrade ' + (err ? err : 'ok')
               });
-              deferred.resolve();
+              deferred.resolve({result: (err ? 'failed' : 'changed')});
             });
           } else {
             //next_step_callback();
@@ -261,7 +258,7 @@ var Package = P2M.Module(module.filename, function () {
               object: opts.name,
               msg: 'uninstall ' + (err ? err : 'ok')
             });
-            deferred.resolve();
+            deferred.resolve({result: (err ? 'failed' : 'changed')});
           });
 
         } else {

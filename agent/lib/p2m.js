@@ -127,6 +127,7 @@ P2M.prototype.action = function (fn, action_args) {
       var deferred = Q.defer();
 
       utils.dlog('p2m runAction (immediate) calling fn (action) title: %s opts: %s', title, u.inspect(opts, {colors: true, depth: 2}));
+
       fn.call(self, {
         deferred: deferred,
         inWatchFlag: inWatchFlag,
@@ -275,12 +276,12 @@ P2M.prototype.facts = function (fn) {
 
 /**
  * Create a listener to fire events
- * @param {object} evdef Event handler defs {'module:title:result': 'action' | function () {} | [ ], ...}
+ * @param {object} evdefs Event handler defs {'module:title:result': 'action' | function () {} | [ ], ...}
  */
-P2M.prototype.on = function (evdef) {
+P2M.prototype.on = function (evdefs) {
   var self = this;
 
-  _.each(evdef, function (h, k) {
+  _.each(evdefs, function (h, k) {
     console.log('Adding listener for:', k);
 
     if (typeof(h) === 'function') {

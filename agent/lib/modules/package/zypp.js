@@ -100,7 +100,7 @@ var Package = P2M.Module(module.filename, function () {
               object: opts.name,
               msg: 'install ' + (err ? err : 'ok')
             });
-            deferred.resolve();
+            deferred.resolve({result: (err ? 'failed' : 'changed')});
           });
 
         } else if (opts.ensure === 'latest') {
@@ -115,7 +115,7 @@ var Package = P2M.Module(module.filename, function () {
               object: opts.name,
               msg: 'upgrade ' + (err ? err : 'ok')
             });
-            deferred.resolve();
+            deferred.resolve({result: (err ? 'failed' : 'changed')});
           });
         }
 
@@ -137,7 +137,7 @@ var Package = P2M.Module(module.filename, function () {
               object: opts.name,
               msg: 'uninstall ' + (err ? err : 'ok')
             });
-            deferred.resolve();
+            deferred.resolve({result: (err ? 'failed' : 'changed')});
           });
 
         } else {

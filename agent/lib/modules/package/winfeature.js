@@ -110,7 +110,7 @@ var Package = P2M.Module(module.filename, function () {
               msg: 'install ' + (rc ? 'rc=' + rc : 'ok')
             });
 
-            deferred.resolve();
+            deferred.resolve({result: (rc ? 'failed' : 'changed')});
           });
 
         }
@@ -138,7 +138,7 @@ var Package = P2M.Module(module.filename, function () {
               msg: 'uninstall ' + (rc ? 'rc=' + rc : 'ok')
             });
 
-            deferred.resolve();
+            deferred.resolve({result: (rc ? 'failed' : 'changed')});
           });
 
         } else {
