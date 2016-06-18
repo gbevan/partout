@@ -33,15 +33,16 @@ var console = require('better-console'),
     exec = require('child_process').exec,
     path = require('path'),
     fs = require('fs'),
-    //EventEmitter = require('events').EventEmitter,
+    EventEmitter = require('events').EventEmitter,
     querystring = require('querystring'),
     Q = require('q'),
     u = require('util'),
     utils = new (require('./utils'))(),
     heredoc = require('heredoc');
 
-const EventEmitter = require('events');
-class P2Emitter extends EventEmitter {}
+
+var P2Emitter = function () {};
+u.inherits(P2Emitter, EventEmitter);
 
 Q.longStackSupport = true;
 Q.onerror = function (err) {
@@ -146,6 +147,17 @@ var P2 = function () {
   self._impl.emitter = new P2Emitter();
 
   /**
+   * Set a listener for a p2 event
+   * .on('package:rabbitmq-server:changed', function () { ... }
+   * @returns {object} p2 dsl object
+   */
+  self._impl.on = function () {
+    var self = this;
+    self.emitter.on.apply(self, arguments);
+    return self;
+  };
+
+  /**
    * require module from partout's agent library (for use in agent manifests/roles)
    * @param   {string} name module name
    * @returns {object} loaded module
@@ -168,7 +180,9 @@ var P2 = function () {
     if (!t) {
       cb();
     } else {
+      utils.dlog('end(): calling action t() t:', t);
       t(function () { // step queuecb
+        utils.dlog('end(): callback from t()');
         self.end(cb);
       });
     }
@@ -464,14 +478,28 @@ var P2 = function () {
     var method;
 
     self._impl.steps.push(function (queuecb) {
-      //console.warn('Executing a step');
-      action.call(self, function (o) {
-        //console.log('o:', o);
+      utils.dlog('push_action: step action:', action);
+      var p = action.call(self, function (o) {
+        utils.dlog('push_action: step DEPRECATED callback o:', o);
         if (o && o.msg && o.msg.length > 0) {
           self._impl.sendevent(o);
         }
         queuecb();
       });
+
+      if (p && Q.isPromise(p)) {
+        p
+        .done(function (o) {
+          utils.dlog('push_action: step promise resolved to o:', o);
+          queuecb();
+
+        }, function (err) {
+          utils.dlog('push_action: step promise rejected with err:', err);
+          console.error(err);
+          console.error(err.stack);
+          queuecb();  /// XXX: ???
+        });
+      }
     });
   };
 

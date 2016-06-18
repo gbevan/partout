@@ -63,6 +63,7 @@ describe('Module command', function () {
       p2
       .command('MYTEST', {cmd: 'echo SUCCESS > {{{ testFile }}}'})
       .emitter.on('command:MYTEST:changed', function () {
+        //console.log('**** in EVENT');
         p2
         .file('{{{ testFileEv }}}', {ensure: 'present'})
         ;

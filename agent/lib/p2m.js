@@ -29,7 +29,8 @@ var console = require('better-console'),
     Q = require('q'),
     u = require('util'),
     utils = new (require('./utils'))(),
-    _ = require('lodash');
+    _ = require('lodash'),
+    heredoc = require('heredoc');
 
 Q.longStackSupport = true;
 Q.onerror = function (err) {
@@ -227,7 +228,12 @@ P2M.prototype.action = function (fn, action_args) {
           utils.dlog('calling provider _runAction()');
           self._runAction(_impl, nextStepFn, inWatchFlag, title, opts, cb);
         })
-        .done();
+        .done(null, function (err) {
+          console.error(heredoc(function () {/*
+********************************************************
+*** P2M Caught Error:
+          */}), err);
+        });
       });
     }
 
@@ -296,6 +302,7 @@ P2M.prototype.on = function (evdefs) {
       throw 'Unsupported on event handler type: ' + typeof(h);
     }
   });
+
 };
 
 
