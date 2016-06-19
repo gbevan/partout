@@ -153,7 +153,10 @@ var P2 = function () {
    */
   self._impl.on = function () {
     var self = this;
-    self.emitter.on.apply(self, arguments);
+    console.log('on() Adding listener for:', arguments[0]);
+    //self.emitter.on.apply(self, arguments);
+    self.emitter.on.apply(self.emitter, arguments);
+    console.log('on() count:', self.emitter.listenerCount(arguments[0]));
     return self;
   };
 
@@ -479,6 +482,7 @@ var P2 = function () {
 
     self._impl.steps.push(function (queuecb) {
       utils.dlog('push_action: step action:', action);
+
       var p = action.call(self, function (o) {
         utils.dlog('push_action: step DEPRECATED callback o:', o);
         if (o && o.msg && o.msg.length > 0) {

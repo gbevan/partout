@@ -138,8 +138,15 @@ P2M.prototype.action = function (fn, action_args) {
         cb: cb
       });
 
-      deferred.promise
-      .done(next_step_callback);
+      return deferred.promise
+      .done(next_step_callback, function (err) {
+        console.error(heredoc(function () {/*
+********************************************************
+*** P2M (action) Caught Error:
+        */}), err);
+
+        console.log('Stack:', (new Error()).stack);
+      });
 
       //return _impl;
 
@@ -211,12 +218,16 @@ P2M.prototype.action = function (fn, action_args) {
               ));
               //console.log('STACK:\n', (new Error()).stack);
 
-              _impl.emitter.emit(evname, {
+              var hadListeners = _impl.emitter.emit(evname, {
                 eventname: evname,
                 module: self._name,
                 title: title,
                 opts: opts
               });
+
+              if (!hadListeners) {
+                console.warn(u.format('p2m: event %s had no listeners', evname));
+              }
             }
             if (!dontCallCb) {
               nextStepCb(o);
@@ -231,8 +242,10 @@ P2M.prototype.action = function (fn, action_args) {
         .done(null, function (err) {
           console.error(heredoc(function () {/*
 ********************************************************
-*** P2M Caught Error:
+*** P2M addStep Caught Error:
           */}), err);
+
+          console.log('Stack:', (new Error()).stack);
         });
       });
     }

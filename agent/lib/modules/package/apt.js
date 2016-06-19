@@ -273,6 +273,10 @@ var Package = P2M.Module(module.filename, function () {
       }
 
     }) // current_state
+    .fail(function (err) {
+      console.error('in fail() err:', err);
+      deferred.reject(err);
+    })
     .done();
 
   }, {immediate: true});
@@ -291,7 +295,6 @@ Package.getStatus = function (name) {
   .then(function (res) {
     var installed = '',
         candidate = '';
-    //console.log('getStatus res:', res);
     res.outlines.forEach(function (line) {
       var m = line.match(/^\s*(Installed|Candidate):\s*(.*)$/);
       if (m) {
@@ -305,6 +308,10 @@ Package.getStatus = function (name) {
     });
     if (installed === '(none)') {
       deferred.resolve();
+
+    } else if (installed === '') {
+      deferred.reject(new Error('Unable to locate package'));
+
     } else {
       deferred.resolve({
         status: 'installed',
@@ -314,7 +321,7 @@ Package.getStatus = function (name) {
     }
   })
   .fail(function (err) {
-    deferred.resolve();
+    deferred.reject(new Error('Unable to locate package'));
   })
   .done();
 
