@@ -141,7 +141,7 @@ var Service = P2M.Module(module.filename, function () {
         if (opts.ensure === 'stopped') {
           if (status.actual === 'running') {
             cmd = 'service ' + opts.name + ' stop';
-            utils.pSpawn(cmd, {shell: true})
+            utils.runCmd(cmd)
             .done(function (res) {
               var rc = res[0],
                   stdout = res[1],
@@ -154,6 +154,7 @@ var Service = P2M.Module(module.filename, function () {
                   object: opts.name,
                   msg: 'service stop failed: rc:' + rc + ', stderr:' + stderr
                 });
+                deferred.resolve({result: 'failed'});
               } else {
                 console.log('Service stop command ok: ', cmd, 'rc:', rc, 'stderr:', stderr);
                 _impl.qEvent({
@@ -161,9 +162,9 @@ var Service = P2M.Module(module.filename, function () {
                   object: opts.name,
                   msg: 'stopped'
                 });
+                deferred.resolve({result: 'changed'});
               }
 
-              deferred.resolve();
             });
           } else {
 //            next_step_callback();
@@ -173,7 +174,7 @@ var Service = P2M.Module(module.filename, function () {
         } else if (opts.ensure === 'running') {
           if (status.actual !== 'running') {
             cmd = 'service ' + opts.name + ' start';
-            utils.pSpawn(cmd, {shell: true})
+            utils.runCmd(cmd)
             .done(function (res) {
               var rc = res[0],
                   stdout = res[1],
@@ -186,6 +187,7 @@ var Service = P2M.Module(module.filename, function () {
                   object: opts.name,
                   msg: 'service start failed: rc:' + rc + ', stderr:' + stderr
                 });
+                deferred.resolve({result: 'failed'});
               } else {
                 console.log('Service start command ok: ', cmd, 'rc:', rc, 'stderr:', stderr);
                 _impl.qEvent({
@@ -193,9 +195,9 @@ var Service = P2M.Module(module.filename, function () {
                   object: opts.name,
                   msg: 'started'
                 });
+                deferred.resolve({result: 'changed'});
               }
 
-              deferred.resolve();
             });
           } else {
 //            next_step_callback();

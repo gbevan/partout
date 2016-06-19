@@ -151,7 +151,7 @@ var Powershell = P2M.Module(module.filename, function () {
         if (opts.creates) {
           set_watcher(inWatch);
         }
-        cb();
+        cb('skipped');
 
       } else {
 
@@ -205,7 +205,7 @@ var Powershell = P2M.Module(module.filename, function () {
 
           if (onlyif_rc !== 0) {
             utils.vlog('command onlyif returned rc:', onlyif_rc, 'stdout:', onlyif_stdout, 'stderr:', onlyif_stderr);
-            cb();
+            cb('skipped');
             return;
           }
 
@@ -227,9 +227,22 @@ var Powershell = P2M.Module(module.filename, function () {
             if (stdout) {
               console.log(stdout);
             }
+            var err2;
             if (opts.returns) {
               if (rc !== opts.returns) {
-                var err2 = new Error('Return code does not match expected by returns option');
+                cb('failed');
+
+                // XXX: is it correct to throw an error here?
+                err2 = new Error('Return code does not match expected by returns option');
+                err2.code = rc;
+                throw err2;
+              }
+            } else {
+              if (rc !== 0) {
+                cb('failed');
+
+                // XXX: is it correct to throw an error here?
+                err2 = new Error('None zero return code returned');
                 err2.code = rc;
                 throw err2;
               }
@@ -240,6 +253,8 @@ var Powershell = P2M.Module(module.filename, function () {
             if (command_complete_cb) {
               command_complete_cb(rc, stdout, stderr);
             }
+
+            /*
             if (opts.creates) {
               cb({
                 module: 'powershell',
@@ -249,6 +264,8 @@ var Powershell = P2M.Module(module.filename, function () {
             } else {
               cb(); // next_step_callback or watcher callback
             }
+            */
+            cb('changed');
           });
 
         }); // onlyif_res
@@ -259,14 +276,14 @@ var Powershell = P2M.Module(module.filename, function () {
     // handle 'extra' options
     if (opts.creates) {
       fs.exists(opts.creates, function (exists) {
-        _spawn(exists, false, function () {
-          deferred.resolve();
+        _spawn(exists, false, function (result) {
+          deferred.resolve({result: result});
         });
       });
       //delete opts.creates;
     } else {
-      _spawn(false, false, function () {
-        deferred.resolve();
+      _spawn(false, false, function (result) {
+        deferred.resolve({result: result});
       });
     }
 

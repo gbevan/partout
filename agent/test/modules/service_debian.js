@@ -84,6 +84,8 @@ utils.pIsAdmin()
     });
 
     it('should ensure ntp is stopped', function (done) {
+      this.timeout(60000);
+
       p2Test.runP2Str(
         heredoc.strip(function () {/*
         p2
@@ -116,6 +118,8 @@ utils.pIsAdmin()
     });
 
     it('should ensure ntp is running', function (done) {
+      this.timeout(60000);
+
       p2Test.runP2Str(
         heredoc.strip(function () {/*
         p2
@@ -148,6 +152,8 @@ utils.pIsAdmin()
     });
 
     it('should ensure ntp is stopped again', function (done) {
+      this.timeout(60000);
+
       p2Test.runP2Str(
         heredoc.strip(function () {/*
         p2

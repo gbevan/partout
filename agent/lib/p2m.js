@@ -23,12 +23,14 @@
 /*jslint node: true, nomen: true */
 'use strict';
 
+/*global p2*/
 var console = require('better-console'),
     Provider = require('./provider'),
     Q = require('q'),
     u = require('util'),
     utils = new (require('./utils'))(),
-    _ = require('lodash');
+    _ = require('lodash'),
+    heredoc = require('heredoc');
 
 Q.longStackSupport = true;
 Q.onerror = function (err) {
@@ -126,6 +128,7 @@ P2M.prototype.action = function (fn, action_args) {
       var deferred = Q.defer();
 
       utils.dlog('p2m runAction (immediate) calling fn (action) title: %s opts: %s', title, u.inspect(opts, {colors: true, depth: 2}));
+
       fn.call(self, {
         deferred: deferred,
         inWatchFlag: inWatchFlag,
@@ -135,8 +138,15 @@ P2M.prototype.action = function (fn, action_args) {
         cb: cb
       });
 
-      deferred.promise
-      .done(next_step_callback);
+      return deferred.promise
+      .done(next_step_callback, function (err) {
+        console.error(heredoc(function () {/*
+********************************************************
+*** P2M (action) Caught Error:
+        */}), err);
+
+        console.log('Stack:', (new Error()).stack);
+      });
 
       //return _impl;
 
@@ -169,8 +179,13 @@ P2M.prototype.action = function (fn, action_args) {
 
     if (_impl.ifNode()) {
 
+      if (opts.on) {
+        self.on(opts.on);
+      }
+
       _impl.push_action(function (nextStepCb, inWatchFlag) {
-        var deferred = Q.defer();
+        var deferred = Q.defer(),
+            ev_prefix = u.format('%s:%s', self._name, title);
 
         utils.dlog('p2m addStep calling fn (action) title: %s opts: %s', title, u.inspect(opts, {colors: true, depth: 2}));
 
@@ -186,15 +201,52 @@ P2M.prototype.action = function (fn, action_args) {
         deferred.promise
         .fail(function (err) {
           console.error(u.format('error: module %s err: %s', self.name, err));
+          _impl.emitter.emit(u.format('%s:%s', ev_prefix, 'fatal'), err);
         })
         .then(function (o) {
-          utils.dlog('calling provider _runAction()');
-          self._runAction(_impl, nextStepCb, inWatchFlag, title, opts, cb);
 
-          //utils.dlog('p2m addStep() action resolved with: %s', u.inspect(o, {colors: true, depth: 2}));
-          //utils.callbackEvent(nextStepCb, _impl.facts, o); // move to next policy directive in p2
+          var nextStepFn = function (o, dontCallCb) {
+            if (o && o.result) {
+              var evname = u.format('%s:%s', ev_prefix, o.result);
+
+              console.log(u.format(
+                'p2m: %s title: %s - nextStepFn() deferred resolved to o: %s, emitting: %s',
+                self._name,
+                title,
+                u.inspect(o, {colors: true, depth: 2}),
+                evname
+              ));
+              //console.log('STACK:\n', (new Error()).stack);
+
+              var hadListeners = _impl.emitter.emit(evname, {
+                eventname: evname,
+                module: self._name,
+                title: title,
+                opts: opts
+              });
+
+              if (!hadListeners) {
+                console.warn(u.format('p2m: event %s had no listeners', evname));
+              }
+            }
+            if (!dontCallCb) {
+              nextStepCb(o);
+            }
+          };
+
+          nextStepFn(o, true);
+
+          utils.dlog('calling provider _runAction()');
+          self._runAction(_impl, nextStepFn, inWatchFlag, title, opts, cb);
         })
-        .done();
+        .done(null, function (err) {
+          console.error(heredoc(function () {/*
+********************************************************
+*** P2M addStep Caught Error:
+          */}), err);
+
+          console.log('Stack:', (new Error()).stack);
+        });
       });
     }
 
@@ -239,6 +291,31 @@ P2M.prototype.facts = function (fn) {
   };
 
   return self;
+};
+
+/**
+ * Create a listener to fire events
+ * @param {object} evdefs Event handler defs {'module:title:result': 'action' | function () {} | [ ], ...}
+ */
+P2M.prototype.on = function (evdefs) {
+  var self = this;
+
+  _.each(evdefs, function (h, k) {
+    console.log('Adding listener for:', k);
+
+    if (typeof(h) === 'function') {
+
+      p2.emitter.on(k, function () {
+        p2.pushSteps();
+        h.apply(this, arguments);
+        p2.flattenSteps();
+      });
+
+    } else {
+      throw 'Unsupported on event handler type: ' + typeof(h);
+    }
+  });
+
 };
 
 

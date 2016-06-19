@@ -143,6 +143,7 @@ var Service = P2M.Module(module.filename, function () {
     utils.dlog('Service redhat: in action TODO: ############################ name:', opts.name, 'ensure:', opts.ensure);
 
     deferred.resolve();
+    //deferred.resolve({result: 'changed'});
   }, {immediate: true}); // action
 
 });

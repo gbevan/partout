@@ -33,7 +33,8 @@ var P2M = require('../../p2m'),
     utils = new (require('../../utils'))(),
     u = require('util'),
     pfs = new (require('../../pfs'))(),
-    stringArgv = require('string-argv');
+    stringArgv = require('string-argv'),
+    heredoc = require('heredoc');
 
 Q.longStackSupport = true;
 Q.onerror = function (err) {
@@ -147,19 +148,38 @@ var Role = P2M.Module(module.filename, function () {
            * add passed p2 args dsl to addSteps in the p2 _impl
            */
           // defer pushing on to actions so facts run first
-          _impl.push_action(function (cb) {
+          _impl.push_action(function (/*cb*/) {
+            var deferred = Q.defer();
 
             p2.pushSteps(); // save steps state
 
             push_refreshFacts();
 
-            opts.p2(mod_title, mod_opts); // pushes it's own actions to run next
+            utils.dlog('role: action: calling p2:', opts.p2);
+            var role_promise = opts.p2(mod_title, mod_opts); // pushes it's own actions to run next
 
-            push_refreshFacts();
+            if (!Q.isPromise(role_promise)) {
+              role_promise = Q();
+            }
+            role_promise
+            .done(function () {
+              utils.dlog('role_promise resolved');
+              push_refreshFacts();
 
-            p2.flattenSteps(); // pop previous steps state after new steps
+              p2.flattenSteps(); // pop previous steps state after new steps
 
-            cb();
+              //cb();
+              deferred.resolve();
+
+            }, function (err) {
+              console.error(heredoc(function () {/*
+********************************************************
+*** Role Module Caught Error:
+              */}), err);
+              deferred.reject(err);
+            });
+
+            return deferred.promise;
           });
         }
 

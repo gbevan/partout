@@ -86,7 +86,17 @@ var Include = P2M.Module(module.filename, function () {
 
     //console.log('CWD:', process.cwd());
     //console.log('absfile:', absfile);
-    require(absfile);
+
+    if (!absfile.match(/\.(p2|js)$/)) {
+      absfile = u.format('%s.p2', absfile);
+    }
+
+    try {
+      require(absfile);
+    } catch (e) {
+      console.error('failed to include file:', absfile);
+      throw(e);
+    }
 
     deferred.resolve();
 

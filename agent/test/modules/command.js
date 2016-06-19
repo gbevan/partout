@@ -35,7 +35,8 @@ var Q = require('q'),
     path = require('path'),
     utils = new (require('../../lib/utils'))(),
     os = require('os'),
-    p2Test = require('../../lib/p2_test');
+    p2Test = require('../../lib/p2_test'),
+    heredoc = require('heredoc');
 
 GLOBAL.should = require('should');
 should.extend();
@@ -52,16 +53,26 @@ GLOBAL.partout = {opts: {verbose: false, debug: false, timing: false}};
 
 describe('Module command', function () {
 
-  it('Policy should spawn command without filter', function (done) {
+  it('Policy should spawn command without filter and generate an event', function (done) {
     this.timeout(240000);
 
-    var testFile = utils.escapeBackSlash(tmp.tmpNameSync() + '.TEST');
+    var testFile = utils.escapeBackSlash(tmp.tmpNameSync() + '.TEST'),
+        testFileEv = utils.escapeBackSlash(tmp.tmpNameSync() + '.TEST_EV');
 
-    p2Test.runP2Str(
-      'p2\n' +
-      '.command(\'echo SUCCESS > {{{ testFile }}}\');\n',
+    p2Test.runP2Str(heredoc(function () {/*
+      p2
+      .command('MYTEST', {cmd: 'echo SUCCESS > {{{ testFile }}}'})
+      .emitter.on('command:MYTEST:changed', function () {
+        //console.log('**** in EVENT');
+        p2
+        .file('{{{ testFileEv }}}', {ensure: 'present'})
+        ;
+      })
+      ;
+      */}),
       {
-        testFile: testFile
+        testFile: testFile,
+        testFileEv: testFileEv
       }
     )
     .then(function () {
@@ -70,6 +81,15 @@ describe('Module command', function () {
     .then(function (exists) {
       exists.should.be.true;
       return pfs.pUnlink(testFile);
+    })
+    .then(function (err) {
+      should(err).be.undefined;
+
+      return pfs.pExists(testFileEv);
+    })
+    .then(function (exists) {
+      exists.should.be.true;
+      return pfs.pUnlink(testFileEv);
     })
     .then(function (err) {
       should(err).be.undefined;

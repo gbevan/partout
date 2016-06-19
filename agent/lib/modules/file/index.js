@@ -187,27 +187,14 @@ var File = P2M.Module(module.filename, function () {
               });
             }
 
-
-            // pass updated status to caller (p2 steps) with optional event data
-            /*
-            var o,
-                record = (ensure_record || '') + (mode_record || '');
-            if (record && record !== '') {
-              o = {
-                module: 'file',
-                object: file,
-                msg: record
-              };
-              utils.dlog('file ensure resolve o:', o);
-            }
-            deferred.resolve(utils.makeCallbackEvent(_impl.facts, o));
-            */
-            //cb(err);  // TODO: Feedback if an action was taken...
-
             if (cb) {
               cb(changed);
             }
-            deferred.resolve();
+            var result = {};
+            if (changed) {
+              result.result = 'changed';
+            }
+            deferred.resolve(result);
 
           }); // _opt_mode
 

@@ -159,7 +159,6 @@ var Package = P2M.Module(module.filename, function () {
             exec(cmd, function (err, stdout, stderr) {
               if (err) {
                 console.error(u.format('exec of `%s`:', cmd), err, stderr);
-                deferred.resolve();
               }
               if (stderr && stderr.length > 0) {
                 console.warn(u.format('exec of `%s`: stderr: %s'), cmd, stderr);
@@ -170,7 +169,8 @@ var Package = P2M.Module(module.filename, function () {
                 object: opts.name,
                 msg: 'npm install ' + (err ? err : 'ok')
               });
-              deferred.resolve();
+              //deferred.resolve();
+              deferred.resolve({result: (err ? 'failed' : 'changed')});
             }); // exec install
 
           } else if (opts.ensure === 'latest') {
@@ -191,7 +191,7 @@ var Package = P2M.Module(module.filename, function () {
                   object: opts.name,
                   msg: 'npm upgrade ' + (err ? err : 'ok')
                 });
-                deferred.resolve();
+                deferred.resolve({result: (err ? 'failed' : 'changed')});
               });
 
             } else {
@@ -220,7 +220,7 @@ var Package = P2M.Module(module.filename, function () {
                 object: opts.name,
                 msg: 'npm uninstall ' + (err ? err : 'ok')
               });
-              deferred.resolve();
+              deferred.resolve({result: (err ? 'failed' : 'changed')});
             });
 
           } else {

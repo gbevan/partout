@@ -86,24 +86,27 @@ var Service = P2M.Module(module.filename, function () {
         _impl = args._impl,
         title = args.title,
         opts = args.opts,
-        command_complete_cb = args.cb;
+        command_complete_cb = args.cb,
+        result = {};
 
     utils.dlog('Service windows: in action ############################ name:', opts.name, 'ensure:', opts.ensure);
-    console.log('Service windows: in action ############################ name:', opts.name, 'ensure:', opts.ensure, 'opts:', opts);
 
     self.getStatus(opts.name)
     .done(function (status) {
       //console.log('service status:', status);
 
       self.handleExec(opts, status)
-      .then(function () {
+      .then(function (res) {
+        _.merge(result, res);
         return self.handleEnabled(opts, status);
       })
-      .then(function () {
+      .then(function (res) {
+        _.merge(result, res);
         return self.handleEnsure(opts, status);
       })
-      .then(function () {
-        deferred.resolve();
+      .then(function (res) {
+        _.merge(result, res);
+        deferred.resolve(result);
       })
       ;
 
@@ -228,7 +231,7 @@ Service.prototype.handleExec = function (opts, status) {
 //        console.log(stdout);
 //        console.error(stderr);
 //      }
-      deferred.resolve();
+      deferred.resolve({result: 'changed'});
     });
 
   });
@@ -265,7 +268,7 @@ Service.prototype.handleEnabled = function (opts, status) {
       )
       .done(function (res) {
         //console.log('Deleted res:', res);
-        deferred.resolve();
+        deferred.resolve({result: 'changed'});
       });
       return;
     }
@@ -300,7 +303,7 @@ Service.prototype.handleEnabled = function (opts, status) {
       var rc = res[0],
           stdout = res[1],
           stderr = res[2];
-      deferred.resolve();
+      deferred.resolve({result: 'changed'});
     });
 
   }); // PsVersion
@@ -366,7 +369,7 @@ Service.prototype.handleEnsure = function (opts, status) {
       var rc = res[0],
           stdout = res[1],
           stderr = res[2];
-      deferred.resolve();
+      deferred.resolve({result: 'changed'});
     });
 
   }); // PsVersion

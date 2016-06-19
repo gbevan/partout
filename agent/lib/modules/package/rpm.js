@@ -184,6 +184,7 @@ var Package = P2M.Module(module.filename, function () {
     */
 
     deferred.resolve();
+    // deferred.resolve({result: (err ? 'failed' : 'changed')});
   }, {immediate: true}); // action
 
 });
