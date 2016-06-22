@@ -122,8 +122,8 @@ P2M.prototype.action = function (fn, action_args) {
   }
 
   if (action_args.immediate) {
-    self.runAction = function (_impl, next_step_callback, inWatchFlag, title, opts, cb) {
-      //utils.dlog('P2M in runAction() arguments:', arguments);
+    self.runAction = function (_impl, inWatchFlag, title, opts, cb) {
+      utils.dlog('P2M in runAction() arguments:', arguments);
 
       var deferred = Q.defer();
 
@@ -139,13 +139,20 @@ P2M.prototype.action = function (fn, action_args) {
       });
 
       return deferred.promise
-      .done(next_step_callback, function (err) {
-        console.error(heredoc(function () {/*
-********************************************************
-*** P2M (action) Caught Error:
-        */}), err);
+      .fail(function (err) {
 
-        console.log('Stack:', (new Error()).stack);
+        console.error(u.format(heredoc(function () {/*
+********************************************************
+*** title: %s
+*** P2M (action) Caught Error:
+%s
+%s
+        */}), title, err, err.stack));
+
+        //console.log('Stack:', (new Error()).stack);
+
+        return Q.reject('fail from p2m runAction (immediate)');
+
       });
 
       //return _impl;
@@ -184,7 +191,8 @@ P2M.prototype.action = function (fn, action_args) {
       }
 
       _impl.push_action(function (nextStepCb, inWatchFlag) {
-        var deferred = Q.defer(),
+        var outer_deferred = Q.defer(),
+            deferred = Q.defer(),
             ev_prefix = u.format('%s:%s', self._name, title);
 
         utils.dlog('p2m addStep calling fn (action) title: %s opts: %s', title, u.inspect(opts, {colors: true, depth: 2}));
@@ -204,12 +212,14 @@ P2M.prototype.action = function (fn, action_args) {
           _impl.emitter.emit(u.format('%s:%s', ev_prefix, 'fatal'), err);
         })
         .then(function (o) {
+          utils.dlog('p2m: addStep: fn ev_prefix:', ev_prefix, 'o:', o);
 
           var nextStepFn = function (o, dontCallCb) {
+            utils.dlog('p2m: in nextStepFn');
             if (o && o.result) {
               var evname = u.format('%s:%s', ev_prefix, o.result);
 
-              console.log(u.format(
+              utils.dlog(u.format(
                 'p2m: %s title: %s - nextStepFn() deferred resolved to o: %s, emitting: %s',
                 self._name,
                 title,
@@ -225,28 +235,54 @@ P2M.prototype.action = function (fn, action_args) {
                 opts: opts
               });
 
-              if (!hadListeners) {
+              if (!hadListeners && utils.isDebug()) {
                 console.warn(u.format('p2m: event %s had no listeners', evname));
               }
             }
             if (!dontCallCb) {
-              nextStepCb(o);
+              //nextStepCb(o);
+              if (utils.isDebug()) {
+                console.warn('p2m: nextStepFn b4 resolving outer title:', title);
+              }
+              outer_deferred.resolve('p2m: nextStepFn outer resolved title:' + title);
             }
           };
 
-          nextStepFn(o, true);
+          nextStepFn(o, true);  //true
 
           utils.dlog('calling provider _runAction()');
-          self._runAction(_impl, nextStepFn, inWatchFlag, title, opts, cb);
-        })
-        .done(null, function (err) {
-          console.error(heredoc(function () {/*
-********************************************************
-*** P2M addStep Caught Error:
-          */}), err);
 
-          console.log('Stack:', (new Error()).stack);
-        });
+          var _runRet = self._runAction(
+            _impl,
+            inWatchFlag,
+            title,
+            opts,
+            cb
+          );
+
+          utils.dlog('p2m: addStep: _runRet:', _runRet);
+          return _runRet
+          .then(function (o) {  // DEBUG
+            if (utils.isDebug()) {
+              console.warn('_runRet resolved o:', o);
+            }
+            nextStepFn(o, false);
+          }, function (err) {
+            console.error('p2m: _runRet promise rejected err:', err);
+            outer_deferred.reject(err);
+          });
+        })
+//        .done(null, function (err) {
+//          console.error(heredoc(function () {/*
+//********************************************************
+//*** P2M addStep Caught Error:
+//          */}), err);
+//
+//          console.log('Stack:', (new Error()).stack);
+//        })
+        ;
+
+        return outer_deferred.promise;
       });
     }
 

@@ -91,7 +91,7 @@ var Role = P2M.Module(module.filename, function () {
       return;
     }
 
-    //console.log('Creating module ' + name + ' from role');
+    console.warn('Creating module ' + name + ' from role');
     _impl[name] = function (mod_title, mod_opts) {
       //console.log('in module instance:', name);
 
@@ -100,14 +100,14 @@ var Role = P2M.Module(module.filename, function () {
        */
       function push_refreshFacts () {
         if (opts.facts) {
-          _impl.push_action(function (cb) {
+          _impl.push_action(function () {
             var facts_deferred = Q.defer();
 
             opts.facts(facts_deferred, _impl.facts, mod_title, mod_opts);
 
-            facts_deferred
+            return facts_deferred
             .promise
-            .done(function (role_facts) {
+            .then(function (role_facts) {
               //console.log('role_facts:', role_facts);
               _.merge(_impl.facts.p2role, role_facts.p2role);
               _.each(role_facts, function (v, k) {
@@ -115,7 +115,7 @@ var Role = P2M.Module(module.filename, function () {
                   _impl.facts[k] = v;
                 }
               });
-              cb();
+              return 'Role: refreshFacts complete';
             });
           });
         }
@@ -148,7 +148,7 @@ var Role = P2M.Module(module.filename, function () {
            * add passed p2 args dsl to addSteps in the p2 _impl
            */
           // defer pushing on to actions so facts run first
-          _impl.push_action(function (/*cb*/) {
+          _impl.push_action(function () {
             var deferred = Q.defer();
 
             p2.pushSteps(); // save steps state
@@ -168,7 +168,6 @@ var Role = P2M.Module(module.filename, function () {
 
               p2.flattenSteps(); // pop previous steps state after new steps
 
-              //cb();
               deferred.resolve();
 
             }, function (err) {

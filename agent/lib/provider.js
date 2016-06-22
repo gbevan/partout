@@ -151,14 +151,15 @@ Provider.prototype.getProvider = function (facts, filename) {
  * @param {object}   _impl              DSL implementation
  * @param {function} next_step_callback Callback for next step in p2
  * @param {Array}    args               ???
+ * @return {Promise}
  */
-Provider.prototype._runAction = function (_impl, next_step_callback, inWatchFlag, title, opts, cb) {
+Provider.prototype._runAction = function (_impl, /*next_step_callback,*/ inWatchFlag, title, opts, cb) {
   var self = this;
   utils.dlog('runAction filename:', self.moduleFileName);
   utils.dlog('provider runAction self:', self, 'stack:', (new Error().stack));
   //console.log('provider runAction self:', self, 'stack:', (new Error().stack));
 
-  self.getProvider(_impl.facts, self.moduleFileName)
+  return self.getProvider(_impl.facts, self.moduleFileName)
   .then(function (PM) {
     utils.dlog('Provider runAction resolved PM:', PM);
     //console.log('Provider runAction resolved PM:', PM);
@@ -169,12 +170,26 @@ Provider.prototype._runAction = function (_impl, next_step_callback, inWatchFlag
     if (PM && PM.runAction) {
       //args.unshift(next_step_callback);
       //args.unshift(_impl);
-      PM.runAction.call(self, _impl, next_step_callback, inWatchFlag, title, opts, cb);
+
+      //return PM.runAction.call(self, _impl, next_step_callback, inWatchFlag, title, opts, cb);
+      return PM.runAction.call(
+        self,
+        _impl,
+        //next_step_callback,
+        //function () { console.warn('provider: Deprecated callback to _runAction title:', title); },
+        inWatchFlag,
+        title,
+        opts,
+        cb
+      );
+
     } else {
-      next_step_callback();
+      //next_step_callback();  // TODO: Deprecate
+      return Q('no further runAction - title:' + title);
     }
   })
-  .done();
+  //.done()
+  ;
 };
 
 /**

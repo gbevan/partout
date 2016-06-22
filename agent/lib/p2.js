@@ -183,22 +183,18 @@ var P2 = function () {
     if (!t) {
       cb();
     } else {
+      if (utils.isDebug()) {
+        console.warn('>>> START ACTION >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
+      }
       utils.dlog('end(): calling action t() t:', t);
       t(function () { // step queuecb
         utils.dlog('end(): callback from t()');
+        if (utils.isDebug()) {
+          console.warn('<<< END ACTION <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<');
+        }
         self.end(cb);
       });
     }
-
-
-    /*
-    nimble.series(self.steps, function () {
-      utils.tloge('nimble steps');
-      if (cb) {
-        cb();
-      }
-    });
-    */
 
     return self;
   };
@@ -481,26 +477,27 @@ var P2 = function () {
     var method;
 
     self._impl.steps.push(function (queuecb) {
-      utils.dlog('push_action: step action:', action);
+      utils.dlog('p2: push_action: step action:', action);
 
-      var p = action.call(self, function (o) {
-        utils.dlog('push_action: step DEPRECATED callback o:', o);
-        if (o && o.msg && o.msg.length > 0) {
-          self._impl.sendevent(o);
-        }
-        queuecb();
-      });
+      var p = action.call(self);
+
+      if (utils.isDebug()) {
+        console.warn('p2: push_action action.call returned p:', p);
+        console.warn('p2: push_action p is promise:', Q.isPromise(p));
+      }
 
       if (p && Q.isPromise(p)) {
         p
         .done(function (o) {
-          utils.dlog('push_action: step promise resolved to o:', o);
+          utils.dlog('p2: push_action: step promise resolved to o:', o);
           queuecb();
 
         }, function (err) {
-          utils.dlog('push_action: step promise rejected with err:', err);
+          utils.dlog('p2: push_action: step promise rejected with err:', err);
           console.error(err);
           console.error(err.stack);
+          console.warn('flushing action queue of remaining steps for abort...');
+          self._impl.clear_actions();
           queuecb();  /// XXX: ???
         });
       }
@@ -575,7 +572,8 @@ var P2 = function () {
         //console.log('c:', c);
 
         if (c.runAction) {
-          var immedArgs = [_impl, undefined, false];
+          //var immedArgs = [_impl, undefined, false];
+          var immedArgs = [_impl, false];
           immedArgs.push.apply(immedArgs, arguments);
           c.runAction.apply(c, immedArgs);
 
