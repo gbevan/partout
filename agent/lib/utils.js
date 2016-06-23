@@ -392,6 +392,9 @@ Utils.prototype.callbackEvent = function (next_step_callback, facts, o) {
   }
 };
 
+Utils.prototype.isVerbose = function () {
+  return GLOBAL.partout.opts.verbose;
+};
 Utils.prototype.vlog = function () {
   var self = this;
   if (GLOBAL.partout.opts.verbose) {
@@ -399,6 +402,9 @@ Utils.prototype.vlog = function () {
   }
 };
 
+Utils.prototype.isDebug = function () {
+  return GLOBAL.partout.opts.debug;
+};
 Utils.prototype.dlog = function () {
   var self = this;
   if (GLOBAL.partout.opts.debug) {
