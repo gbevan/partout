@@ -233,7 +233,8 @@ Utils.prototype.pSpawn = function (cmd, args, options, resolve_to_childprocess) 
     self.dlog('pSpawn exit rc:', rc, 'signal:', signal);
     //console.log('pSpawn exit rc:', rc, 'signal:', signal);
 
-    if (rc !== 0 || signal !== null || stderr) {
+    //if (rc !== 0 || signal !== null || stderr) {
+    if (rc !== 0 || signal !== null) {
       console.log('stdout:', stdout);
       console.error('stderr:', stderr);
     }

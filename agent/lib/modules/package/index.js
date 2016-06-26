@@ -29,7 +29,9 @@ var /*Provider = require('../../provider'),*/
     utils = new (require('../../utils.js'))(),
     P2M = require('../../p2m'),
     npm = new (require('./npm'))(),
-    Q = require('q');
+    pip = new (require('./pip'))(),
+    Q = require('q'),
+    _ = require('lodash');
 
 // Q.longStackSupport = true;
 
@@ -76,19 +78,26 @@ var Package = P2M.Module(module.filename, function () {
   ////////////////
   // Gather facts
   .facts(function (deferred, facts_so_far) {
-
-    // get npm pkgs
-    npm.getFacts(facts_so_far)
-    .done(function (facts) {
-//      if (!facts) {
-//        facts = {};
-//      }
-
-      facts.p2module = {
+    var facts = {
+      p2module: {
         package: {
           loaded: true
         }
-      };
+      }
+    };
+
+    // get npm pkgs
+    npm.getFacts(facts_so_far)
+    .then(function (npmfacts) {
+
+      _.merge(facts, npmfacts);
+
+      return pip.getFacts(facts_so_far);
+    })
+    .done(function (pipfacts) {
+
+      _.merge(facts, pipfacts);
+
       //console.log('package facts:', facts);
       deferred.resolve(facts);
     });

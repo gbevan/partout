@@ -130,7 +130,7 @@ var Package = P2M.Module(module.filename, function () {
 
 
         if (!current_state || (opts.version && opts.version !== current_state.version)) {
-          console.log('current_state:', current_state);
+          utils.dlog('current_state:', current_state);
           console.info('Installing package:', opts.name /*+ (opts.version ? u.format('=%s', opts.version) : '')*/);
 //          exec(
 //            'apt-get update && apt-get -q -y install --auto-remove ' + opts.name /*+ (opts.version ? u.format('=%s', opts.version) : '')*/,
@@ -161,7 +161,7 @@ var Package = P2M.Module(module.filename, function () {
 //          );
 
           utils.runCmd(
-            u.format('apt-get update && apt-get -q -y install --auto-remove %s; echo "after install rc=$?"', opts.name)
+            u.format('apt-get update && apt-get -q -y install --auto-remove %s', opts.name)
           )
           .fail(function (err) {
             _impl.qEvent({
@@ -175,13 +175,14 @@ var Package = P2M.Module(module.filename, function () {
             var rc = res[0],
                 stdout = res[1],
                 stderr = res[2];
-            if (stdout) {
-              console.log(stdout);
-            }
-            if (stderr) {
-              console.error(stderr);
-            }
+
             if (rc !== 0) {
+              if (stdout) {
+                console.log(stdout);
+              }
+              if (stderr) {
+                console.error(stderr);
+              }
               console.error(u.format('Install package %s failed', opts.name));
               _impl.qEvent({
                 module: 'package',
@@ -204,7 +205,7 @@ var Package = P2M.Module(module.filename, function () {
         } else if (opts.ensure === 'latest') {
           // LATEST
           if (current_state.version !== current_state.candidate) {
-            //console.info('Upgrading package:', opts.name);
+            console.info('Upgrading package:', opts.name);
             exec('apt-get upgrade -y ' + opts.name, function (err, stdout, stderr) {
               if (err) {
                 console.error('apt-get upgrade failed:', err, stderr);

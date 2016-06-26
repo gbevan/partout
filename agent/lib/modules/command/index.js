@@ -283,13 +283,21 @@ var Command = P2M.Module(module.filename, function () {
     if (opts.creates) {
       fs.exists(opts.creates, function (exists) {
         _spawn(exists, false, function (result) {
-          deferred.resolve({result: result});
+          if (result === 'failed') {
+            deferred.reject({result: result});
+          } else {
+            deferred.resolve({result: result});
+          }
         });
       });
       //delete opts.creates;
     } else {
       _spawn(false, false, function (result) {
-        deferred.resolve({result: result});
+        if (result === 'failed') {
+          deferred.reject({result: result});
+        } else {
+          deferred.resolve({result: result});
+        }
       });
     }
 
