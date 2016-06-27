@@ -12,7 +12,7 @@ p2
           loaded: true
         }
       },
-      agent_classes: {}
+      agent_classes: (facts_so_far.agent_classes || {})
     };
 
     facts.agent_classes[title] = true;

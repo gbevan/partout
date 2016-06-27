@@ -24,7 +24,7 @@
 /*jslint node: true, nomen: true, vars: true, esversion: 6*/
 'use strict';
 
-/*global GLOBAL */
+/*global GLOBAL, p2 */
 
 var console = require('better-console'),
     _ = require('lodash'),
@@ -41,14 +41,29 @@ var console = require('better-console'),
     heredoc = require('heredoc');
 
 
-var P2Emitter = function () {};
+var P2Emitter = function () {
+  var self = this;
+  EventEmitter.call(self);
+  return self;
+};
+P2Emitter.prototype.on = function (eventName, listener) {
+  var self = this;
+  self.addListener(eventName, function () {
+    p2.pushSteps();
+    listener.apply(this, arguments);
+    p2.flattenSteps();
+  });
+
+};
 u.inherits(P2Emitter, EventEmitter);
+
 
 Q.longStackSupport = true;
 Q.onerror = function (err) {
   console.error(err);
   console.error(err.stack);
 };
+
 
 var init_impl = function _impl() { this._id = '_impl'; },
     empty_impl = Object.create(init_impl);
@@ -186,13 +201,18 @@ var P2 = function () {
       if (utils.isDebug()) {
         console.warn('>>> START ACTION >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
       }
+
       utils.dlog('end(): calling action t() t:', t);
       t(function () { // step queuecb
         utils.dlog('end(): callback from t()');
+
         if (utils.isDebug()) {
           console.warn('<<< END ACTION <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<');
         }
-        self.end(cb);
+
+        process.nextTick(function () {
+          self.end(cb);
+        });
       });
     }
 

@@ -302,14 +302,14 @@ File.prototype._opt_ensure = function (file, opts, err, stats, _impl, inWatchFla
       case 'absent':
         if (!err && stats) {
           if (stats.isDirectory()) {
-            console.warn('Deleting directory', file);
+            console.info('Deleting directory', file);
             pfs.pRmdir(file)
             .done(function () {
               _impl.qEvent({module: 'file', object: file, msg: 'Deleted directory.'});
               ensure_deferred.resolve(true);
             });
           } else {
-            console.warn('Deleting file', file);
+            console.info('Deleting file', file);
             pfs.pUnlink(file)
             .done(function () {
               _impl.qEvent({module: 'file', object: file, msg: 'Deleted file.'});
@@ -325,7 +325,7 @@ File.prototype._opt_ensure = function (file, opts, err, stats, _impl, inWatchFla
       case 'present':
       case 'file':
         if (err && err.code === 'ENOENT') {
-          console.warn('Creating file', file);
+          console.info('Creating file', file);
 
           // Unwatch and force new watcher
           //_impl.P2_unwatch(file);
@@ -371,7 +371,7 @@ File.prototype._opt_ensure = function (file, opts, err, stats, _impl, inWatchFla
 
       case 'directory':
         if (err && err.code === 'ENOENT') {
-          console.warn('Creating directory', file);
+          console.info('Creating directory', file);
           pfs.pMkdir(file)
           .done(function () {
             _impl.qEvent({module: 'file', object: file, msg: 'Created directory. '});
@@ -392,7 +392,7 @@ File.prototype._opt_ensure = function (file, opts, err, stats, _impl, inWatchFla
           throw (new Error(msg));
         }
         if (err && err.code === 'ENOENT') {
-          console.warn('Creating link', file);
+          console.info('Creating link', file);
           pfs.pSymlink(opts.target, file, 'file')
           .done(function () {
             _impl.qEvent({module: 'file', object: file, msg: 'Created link. '});

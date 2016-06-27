@@ -9,6 +9,7 @@ Options:
 |:------------|---------|:---------------------------------------|
 | path        | String  | File path, overrides title             |
 | ensure      | String  | Present, absent, file, directory, link |
+| target      | String  | target for symlink  |
 | content     | String  | Content of file, can be object containing {file: 'filaname'} or {template: 'template file'} |
 | is_template | Boolean | Content is a template                  |
 | mode        | String  | Octal file mode                        |
