@@ -401,10 +401,12 @@ File.prototype._opt_ensure = function (file, opts, err, stats, _impl, inWatchFla
         } else if (err) {
           throw (err);
 
-        } else if (!stats.isDirectory()) {
+        } else if (!stats.isSymbolicLink()) {
           console.error('Error:', file, 'exists and is not a link');
           _impl.qEvent({module: 'file', object: file, level: 'error', msg: 'Exists and is not a link'});
           ensure_deferred.resolve(false);
+        } else {
+          ensure_deferred.resolve(false); // no action taken
         }
         break;
 

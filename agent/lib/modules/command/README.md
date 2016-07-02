@@ -7,7 +7,7 @@ Options (from https://nodejs.org/api/child_process.html#child_process_child_proc
 
 | Operand    | Type   | Description                                                |
 |:-----------|--------|:-----------------------------------------------------------|
-| cmd        | String | Title is taken as trhe command, otherwise, this argument can override it. On linux/unix this is a shell command, on windows this is a DOS command - see powershell module for another option. |
+| cmd        | String | Title is taken as trhe command, otherwise, this argument can override it. On linux/unix this is a shell command, on windows this is a DOS command - see powershell module for another option. Supports moustache template strings. |
 | cwd        | String | Current working directory of the child process |
 | env        | Object | Environment key-value pairs |
 | uid        | Number | Sets the user identity of the process. (See setuid(2).) |
@@ -17,11 +17,11 @@ also supports:
 
 | Operand    | Type   | Description                                                |
 |:-----------|--------|:-----------------------------------------------------------|
-| creates    | String | 'file' - test file does not exist, otherwise skip.         |
+| creates    | String | 'file' - test file does not exist, otherwise skip. Supports moustache template strings.         |
 | returns    | Number |  expected return code on error to be ignored.              |
 | onlyif     | String | command to test if exec should be run, rc=0 means run cmd. |
 |            | Object | {file: 'filename'} execute content of file.   |
-|            | Function | function (facts) {...} return true/false. |
+|            | Function | function (facts) {...} return true/false or a promise resolving to true/false. |
 
 Platform Support (i.e. tested on):
 
