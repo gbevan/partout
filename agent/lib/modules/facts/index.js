@@ -117,6 +117,13 @@ var Facts = P2M.Module(module.filename, function () {
       });
     });
 
+    myFacts.cfg = {};
+    _.forEach(cfg, function (v, k) {
+      if (k.match(/^PARTOUT_.*$/i)) {
+        myFacts.cfg[k] = v;
+      }
+    });
+
     //_.merge(facts_so_far, myFacts);
 
     deferred.resolve(myFacts);

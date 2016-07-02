@@ -121,6 +121,14 @@ var Command = P2M.Module(module.filename, function () {
       f: p2.facts
     });
 
+    if (opts.creates) {
+      opts.creates = Mustache.render(opts.creates, {
+        title: title,
+        opts: opts,
+        f: p2.facts
+      });
+    }
+
 //    if (!opts.shell) {
 //      opts.shell = true;
 //    }
