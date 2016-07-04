@@ -168,10 +168,10 @@ var P2 = function () {
    */
   self._impl.on = function () {
     var self = this;
-    console.log('on() Adding listener for:', arguments[0]);
+    utils.dlog('on() Adding listener for:', arguments[0]);
     //self.emitter.on.apply(self, arguments);
     self.emitter.on.apply(self.emitter, arguments);
-    console.log('on() count:', self.emitter.listenerCount(arguments[0]));
+    utils.dlog('on() count:', self.emitter.listenerCount(arguments[0]));
     return self;
   };
 

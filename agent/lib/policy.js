@@ -115,7 +115,7 @@ Policy.prototype.apply = function () {
      * Load core roles
      */
     pfs.walk('lib/roles')
-    .done(function (roles_manifest) {
+    .then(function (roles_manifest) {
       _.each(roles_manifest, function (robj, rfile) {
         //console.log('policy: robj:', robj);
         var r = require(path.resolve(rfile));
@@ -132,6 +132,10 @@ Policy.prototype.apply = function () {
         utils.vlog('### END OF APPLY ################################');
         deferred.resolve();
       });
+    })
+    .done(null, function (err) {
+      console.error('Policy load of roles failed');
+      deferred.reject(err);
     });
   });
   return deferred.promise;

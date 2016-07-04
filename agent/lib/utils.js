@@ -235,8 +235,14 @@ Utils.prototype.pSpawn = function (cmd, args, options, resolve_to_childprocess) 
 
     //if (rc !== 0 || signal !== null || stderr) {
     if (rc !== 0 || signal !== null) {
-      console.log('stdout:', stdout);
-      console.error('stderr:', stderr);
+      //console.log('utils.runCmd:', cmd, args);
+      //console.log('RC:', rc, 'signal:', signal);
+      //console.log('stdout:', stdout);
+//      console.error('Command:', cmd, args, 'failed with none zero return code');
+//      if (stderr && stderr.trim() !== '') {
+//        console.error(stderr);
+//      }
+//      console.error('utils.runCmd:', (new Error()).stack);
     }
 
     if (stdout || stderr) {

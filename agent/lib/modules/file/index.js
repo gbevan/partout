@@ -144,7 +144,7 @@ var File = P2M.Module(module.filename, function () {
 
       // Handle ensure option
       self._opt_ensure(file, opts, err, stats, _impl, inWatchFlag, deferred)
-      .done(function (changed) {
+      .then(function (changed) {
 
         fs.lstat(file, function (err, stats) {
 
@@ -200,6 +200,11 @@ var File = P2M.Module(module.filename, function () {
 
         }); // inner fs.stat
 
+      })
+
+      .done(null, function (err) {
+        //console.warn('file action err:', err);
+        deferred.reject(err);
       }); // ensure_deferred
 
     }); // fs.stat
@@ -240,8 +245,8 @@ File.prototype._ensure_content = function (file, data, is_template) {
   }
 
   var d_hash = pfs.hash(data);
-  console.log(u.format('File: %s: comparing file hash: %s -> content hash: %s', file, f_hash, d_hash));
   if (f_hash != d_hash) {
+    console.info(u.format('File: %s: updating file, hash: %s -> content hash: %s', file, f_hash, d_hash));
     //console.warn('File: updating file content:\n' + data);
     pfs.pWriteFile(file, data)
     .done(function () {
@@ -268,10 +273,14 @@ File.prototype._ensure_file = function (file, srcfile, is_template) {
 
   utils.dlog('_ensure_file(' + file + ',', srcfile + ')');
   pfs.pReadFile(srcfile)
-  .done(function (data) {
+  .then(function (data) {
     data = data.toString();
     utils.dlog('data:', data);
     deferred.resolve(self._ensure_content(file, data, is_template));
+  })
+  .done(null, function (err) {
+    //console.warn('in file _ensure_file error handler');
+    deferred.reject(err);
   });
 
   return deferred.promise;
@@ -344,7 +353,7 @@ File.prototype._opt_ensure = function (file, opts, err, stats, _impl, inWatchFla
                 if (r) {
                   _impl.qEvent({module: 'file', object: file, msg: r});
                 }
-                console.log('create file');
+                //console.log('create file');
                 ensure_deferred.resolve(true);
               });
             } else {
@@ -355,13 +364,18 @@ File.prototype._opt_ensure = function (file, opts, err, stats, _impl, inWatchFla
         } else {
           if (opts.content !== undefined) {
             self._ensure_content(file, opts.content, opts.is_template)
-            .done(function (r) {
+            .then(function (r) {
               if (r) {
                 _impl.qEvent({module: 'file', object: file, msg: r});
               }
               //console.log('update file r: ' + r);
               ensure_deferred.resolve(r !== undefined && r !== '');
-            });
+            })
+            .done(null, function (err) {
+              //console.warn('file action after _ensure_content err:', err);
+              ensure_deferred.reject(err);
+            })
+            ;
           } else {
             //ensure_deferred.resolve(record);
             ensure_deferred.resolve(false);
@@ -446,7 +460,7 @@ File.prototype._opt_mode = function (file, opts, stats, _impl) {
       if (opts.mode.match(/^0[0-9]{3}$/)) {
         var m = parseInt(mode_prefix + opts.mode.slice(1), 8); // as octal
         if (m !== stats.mode) {
-          console.log('File: mode', stats.mode.toString(8), 'should be', m.toString(8));
+          console.info('File:', file, 'chmod mode', stats.mode.toString(8), '->', m.toString(8));
           pfs.pChmod(file, m)
           .done(function () {
             _impl.qEvent({

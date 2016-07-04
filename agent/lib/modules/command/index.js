@@ -156,7 +156,7 @@ var Command = P2M.Module(module.filename, function () {
 
     function _spawn(exists, inWatch, cb) {
       if (exists) {
-        console.log('Command: skipped due to target already exists (creates)');
+        console.log('Command:', title, 'skipped due to target already exists (creates):', opts.creates);
         if (opts.creates) {
           set_watcher(inWatch);
         }
@@ -259,18 +259,20 @@ var Command = P2M.Module(module.filename, function () {
                 cb('failed');
 
                 // XXX: is it correct to throw an error here?
-                err2 = new Error('Return code does not match expected by returns option');
-                err2.code = rc;
-                throw err2;
+//                err2 = new Error('Return code does not match expected by returns option');
+//                err2.code = rc;
+//                throw err2;
+                return;
               }
             } else {
               if (rc !== 0) {
                 cb('failed');
 
                 // XXX: is it correct to throw an error here?
-                err2 = new Error('None zero return code returned');
-                err2.code = rc;
-                throw err2;
+//                err2 = new Error('None zero return code returned');
+//                err2.code = rc;
+//                throw err2;
+                return;
               }
             }
             if (opts.creates) {
@@ -291,7 +293,9 @@ var Command = P2M.Module(module.filename, function () {
     if (opts.creates) {
       fs.exists(opts.creates, function (exists) {
         _spawn(exists, false, function (result) {
+          //console.log('command (with exists)', title, 'result:', result);
           if (result === 'failed') {
+            console.warn('rejecting on failure');
             deferred.reject({result: result});
           } else {
             deferred.resolve({result: result});
@@ -301,7 +305,9 @@ var Command = P2M.Module(module.filename, function () {
       //delete opts.creates;
     } else {
       _spawn(false, false, function (result) {
+        //console.log('command', title, 'result:', result);
         if (result === 'failed') {
+          console.warn('rejecting on failure');
           deferred.reject({result: result});
         } else {
           deferred.resolve({result: result});

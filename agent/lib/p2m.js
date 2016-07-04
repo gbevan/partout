@@ -207,10 +207,10 @@ P2M.prototype.action = function (fn, action_args) {
         });
 
         deferred.promise
-        .fail(function (err) {
-          console.error(u.format('error: module %s err: %s', self.name, err));
-          _impl.emitter.emit(u.format('%s:%s', ev_prefix, 'fatal'), err);
-        })
+//        .fail(function (err) {
+//          console.error(u.format('error: module %s err:', self._name), err);
+//          _impl.emitter.emit(u.format('%s:%s', ev_prefix, 'fatal'), err);
+//        })
         .then(function (o) {
           utils.dlog('p2m: addStep: fn ev_prefix:', ev_prefix, 'o:', o);
 
@@ -272,14 +272,15 @@ P2M.prototype.action = function (fn, action_args) {
             outer_deferred.reject(err);
           });
         })
-//        .done(null, function (err) {
-//          console.error(heredoc(function () {/*
-//********************************************************
-//*** P2M addStep Caught Error:
-//          */}), err);
-//
-//          console.log('Stack:', (new Error()).stack);
-//        })
+        .done(null, function (err) {
+          console.error(heredoc(function () {/*
+********************************************************
+*** P2M addStep Caught Error:
+          */}), err);
+
+          //console.log('Stack:', (new Error()).stack);
+          outer_deferred.reject(err);
+        })
         ;
 
         return outer_deferred.promise;
@@ -337,7 +338,7 @@ P2M.prototype.on = function (evdefs) {
   var self = this;
 
   _.each(evdefs, function (h, k) {
-    console.log('Adding listener for:', k);
+    utils.dlog('Adding listener for:', k);
 
     if (typeof(h) === 'function') {
 
