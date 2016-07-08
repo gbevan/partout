@@ -273,10 +273,11 @@ P2M.prototype.action = function (fn, action_args) {
           });
         })
         .done(null, function (err) {
-          console.error(heredoc(function () {/*
+          console.error(u.format(heredoc(function () {/*
 ********************************************************
+*** %s: %s
 *** P2M addStep Caught Error:
-          */}), err);
+          */}), self._name, title), err);
 
           //console.log('Stack:', (new Error()).stack);
           outer_deferred.reject(err);
@@ -343,6 +344,7 @@ P2M.prototype.on = function (evdefs) {
     if (typeof(h) === 'function') {
 
       p2.emitter.on(k, function () {
+        console.info(u.format('(p2m) Event Triggered: %s', k));
         p2.pushSteps();
         h.apply(this, arguments);
         p2.flattenSteps();

@@ -95,12 +95,12 @@ if (node_version < 4) {
   process.exit(1);
 }
 
-delete GLOBAL.p2;
-delete GLOBAL.P2;
+delete global.p2;
+delete global.P2;
 
 // make options like verbose global
-GLOBAL.partout = {};
-GLOBAL.partout.opts = parsed;
+global.partout = {};
+global.partout.opts = parsed;
 
 /*
  * partout-agent [apply | serve] site.json ...

@@ -24,7 +24,7 @@
 /*jslint node: true, nomen: true, vars: true, esversion: 6*/
 'use strict';
 
-/*global GLOBAL, p2 */
+/*global global, p2 */
 
 var console = require('better-console'),
     _ = require('lodash'),
@@ -166,11 +166,15 @@ var P2 = function () {
    * .on('package:rabbitmq-server:changed', function () { ... }
    * @returns {object} p2 dsl object
    */
-  self._impl.on = function () {
+  self._impl.on = function (ev, fn) {
     var self = this;
-    utils.dlog('on() Adding listener for:', arguments[0]);
-    //self.emitter.on.apply(self, arguments);
-    self.emitter.on.apply(self.emitter, arguments);
+
+    utils.dlog('on() Adding listener for:', ev);
+    //self.emitter.on.apply(self.emitter, arguments);
+    self.emitter.on.call(self.emitter, ev, function () {
+      console.info(u.format('(p2) Event Triggered: %s', ev));
+      return fn.apply(this, arguments);
+    });
     utils.dlog('on() count:', self.emitter.listenerCount(arguments[0]));
     return self;
   };
@@ -377,8 +381,8 @@ var P2 = function () {
    */
   self._impl.sendevent = function (o) {
     //console.log('sendevent, p2_agent_opts:', u.inspect(GLOBAL.p2_agent_opts, {colors: true, depth: 3}));
-    if (o && GLOBAL.p2_agent_opts.app) {
-      GLOBAL.p2_agent_opts.app.sendevent(o);
+    if (o && global.p2_agent_opts.app) {
+      global.p2_agent_opts.app.sendevent(o);
     }
     /*
     var app = GLOBAL.p2_agent_opts.app,
@@ -411,8 +415,8 @@ var P2 = function () {
   //self._impl.sendevent = GLOBAL.p2_agent_opts.app.sendevent;
 
   self._impl.qEvent = function (o) {
-    if (GLOBAL.p2_agent_opts.app) {
-      var master =  GLOBAL.p2_agent_opts.app.master;
+    if (global.p2_agent_opts.app) {
+      var master =  global.p2_agent_opts.app.master;
       master.qEvent(self.facts, o);
     } else {
       console.info('Partout Event:', o);
@@ -475,6 +479,8 @@ var P2 = function () {
   self._impl.pushSteps = function () {
     self._impl.steps_stack.push(self._impl.steps);
     self._impl.steps = [];
+
+    return self._impl;
   };
 
   /**
@@ -485,6 +491,9 @@ var P2 = function () {
   self._impl.flattenSteps = function () {
     var newSteps = self._impl.steps;
     self._impl.steps = newSteps.concat(self._impl.steps_stack.pop());
+    //console.warn('!!! flattenSteps: concat steps:', u.inspect(self._impl.steps, {colors: true, depth: 3}));
+
+    return self._impl;
   };
 
   /**
@@ -530,10 +539,10 @@ var P2 = function () {
   // Use globally cached facts
   utils.tlogs('require modules');
   var module_promise;
-  if (GLOBAL.p2 && GLOBAL.p2.facts) {
+  if (global.p2 && global.p2.facts) {
     utils.dlog('>>> Using cached facts');
     //console.log('>>> Using cached facts');
-    self.facts = GLOBAL.p2.facts;
+    self.facts = global.p2.facts;
     //_modules = require('./modules')();
     module_promise = require('./modules')();
 
@@ -553,8 +562,8 @@ var P2 = function () {
     //console.log('modules loaded with facts');
     //console.log('p2 facts:', self.facts);
     self._impl.facts = self.facts;
-    if (GLOBAL.p2) {
-      GLOBAL.p2.facts = self.facts;
+    if (global.p2) {
+      global.p2.facts = self.facts;
     }
     //console.log('p2.js facts.installed_packages[nginx]:', self.facts.installed_packages.nginx);
 
@@ -565,7 +574,7 @@ var P2 = function () {
      * @memberof P2
      */
     self._impl.print_facts = function () {
-      if (GLOBAL.p2_agent_opts && GLOBAL.p2_agent_opts.showfacts) {
+      if (global.p2_agent_opts && global.p2_agent_opts.showfacts) {
         console.log(u.inspect(self.facts, {colors: true, depth: 6}));
       }
     };

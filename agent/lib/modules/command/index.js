@@ -242,12 +242,12 @@ var Command = P2M.Module(module.filename, function () {
 
             utils.dlog('command: rc:', rc, 'stdout:', stdout, 'stderr:', stderr);
             //console.log('command: rc:', rc, 'stdout:', stdout, 'stderr:', stderr);
-            if (stderr) {
-              console.error(stderr);
-            }
-            if (stdout) {
-              console.log(stdout);
-            }
+//            if (stderr) {
+//              console.error(stderr);
+//            }
+//            if (stdout) {
+//              console.log(stdout);
+//            }
 
             if (command_complete_cb) {
               command_complete_cb(rc, stdout, stderr);
@@ -256,6 +256,12 @@ var Command = P2M.Module(module.filename, function () {
             var err2;
             if (opts.returns) {
               if (rc !== opts.returns) {
+                if (stderr) {
+                  console.error(stderr);
+                }
+                if (stdout) {
+                  console.log(stdout);
+                }
                 cb('failed');
 
                 // XXX: is it correct to throw an error here?
@@ -266,6 +272,12 @@ var Command = P2M.Module(module.filename, function () {
               }
             } else {
               if (rc !== 0) {
+                if (stderr) {
+                  console.error(stderr);
+                }
+                if (stdout) {
+                  console.log(stdout);
+                }
                 cb('failed');
 
                 // XXX: is it correct to throw an error here?

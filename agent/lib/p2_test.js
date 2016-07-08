@@ -84,16 +84,16 @@ var P2Test = {
 
     var deferred = Q.defer();
 
-    if (GLOBAL.p2) {
-      delete GLOBAL.p2.facts;
+    if (global.p2) {
+      delete global.p2.facts;
     }
-//    console.log('GLOBAL debug:', GLOBAL.partout.opts);
+//    console.log('global debug:', global.partout.opts);
 
     new Policy({}, {daemon: false, showfacts: false})
     .done(function (policy) {
-      //console.log('facts:', GLOBAL.p2.facts);
-      //console.log('p2_test.js GLOBAL.p2.facts.installed_packages[nginx]:', GLOBAL.p2.facts.installed_packages.nginx);
-      deferred.resolve(GLOBAL.p2.facts);
+      //console.log('facts:', global.p2.facts);
+      //console.log('p2_test.js global.p2.facts.installed_packages[nginx]:', global.p2.facts.installed_packages.nginx);
+      deferred.resolve(global.p2.facts);
     });
 
     return deferred.promise;

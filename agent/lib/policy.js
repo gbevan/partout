@@ -23,7 +23,7 @@
 /*jslint node: true, nomen: true, regexp: true, vars: true*/
 'use strict';
 
-/*global GLOBAL, p2 */
+/*global global, p2 */
 var console = require('better-console'),
     _ = require('lodash'),
     P2M = require('./p2m'),
@@ -47,21 +47,21 @@ function Policy(args, opts) {
     }
   }
 
-  if (GLOBAL.p2) {
+  if (global.p2) {
     p2.P2_watchers_close();
   }
 
-  //GLOBAL.P2 = P2;
+  //global.P2 = P2;
   utils.tlogs('new p2');
   new P2()
   .then(function (p2) {
     utils.tloge('new p2');
 
     /** @global */
-    GLOBAL.p2 = p2;
+    global.p2 = p2;
 
     /** @global */
-    GLOBAL.p2_agent_opts = self.opts = opts;
+    global.p2_agent_opts = self.opts = opts;
 
     // Post facts to master
     if (self.master) {
