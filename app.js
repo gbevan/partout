@@ -50,7 +50,8 @@ var console = require('better-console'),
     Csr = require('./server/controllers/csr.js'),
     Agent = require('./server/controllers/agent.js'),
     utils = new (require('./agent/lib/utils'))(),
-    serverMetrics = new (require('./lib/server_metrics'))();
+    serverMetrics = new (require('./lib/server_metrics'))(),
+    _ = require('lodash');
 
 Q.longStackSupport = true;
 
@@ -282,6 +283,8 @@ module.exports = function (opts) {
         csr.all()
         .then(function (csrList) {
           //console.log('csrList:', csrList);
+
+          csrList = _.sortBy(csrList, function (o) { return o.lastSeen; });
 
           //console.warn('CSRs:');
           for (var i in csrList) {
