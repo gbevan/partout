@@ -102,37 +102,41 @@ var Service = P2M.Module(module.filename, function () {
 
       var deferred_enabled = Q.defer();
 
-      if (opts.enabled) {
-        if (status.desired !== 'start') {
-          if (status.provider === 'sysv') {
-            deferred_enabled.resolve(sysv.setEnabled(opts.name));
+      if (opts.hasOwnProperty('enabled')) {
+        if (opts.enabled) {
+          if (status.desired !== 'start') {
+            if (status.provider === 'sysv') {
+              deferred_enabled.resolve(sysv.setEnabled(opts.name));
 
-          } else if (status.provider === 'upstart') {
-            deferred_enabled.resolve(upstart.setEnabled(opts.name));
+            } else if (status.provider === 'upstart') {
+              deferred_enabled.resolve(upstart.setEnabled(opts.name));
 
+            } else {
+              console.error('Unsupported provider reported for debian service status:', status.provider);
+              deferred_enabled.resolve();
+            }
           } else {
-            console.error('Unsupported provider reported for debian service status:', status.provider);
             deferred_enabled.resolve();
           }
-        } else {
-          deferred_enabled.resolve();
-        }
 
-      } else { // disable
-        if (status.desired !== 'stop') {
-          if (status.provider === 'sysv') {
-            deferred_enabled.resolve(sysv.setDisabled(opts.name));
+        } else { // disable
+          if (status.desired !== 'stop') {
+            if (status.provider === 'sysv') {
+              deferred_enabled.resolve(sysv.setDisabled(opts.name));
 
-          } else if (status.provider === 'upstart') {
-            deferred_enabled.resolve(upstart.setDisabled(opts.name));
+            } else if (status.provider === 'upstart') {
+              deferred_enabled.resolve(upstart.setDisabled(opts.name));
 
+            } else {
+              console.error('Unsupported provider reported for debian service status:', status.provider);
+              deferred_enabled.resolve();
+            }
           } else {
-            console.error('Unsupported provider reported for debian service status:', status.provider);
             deferred_enabled.resolve();
           }
-        } else {
-          deferred_enabled.resolve();
         }
+      } else {
+        deferred_enabled.resolve();
       }
 
       deferred_enabled.promise

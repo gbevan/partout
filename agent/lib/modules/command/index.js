@@ -250,7 +250,12 @@ var Command = P2M.Module(module.filename, function () {
 //            }
 
             if (command_complete_cb) {
-              command_complete_cb(rc, stdout, stderr);
+              try {
+                command_complete_cb(rc, stdout, stderr);
+              } catch (err) {
+                console.error(err);
+                cb('failed');
+              }
             }
 
             var err2;
