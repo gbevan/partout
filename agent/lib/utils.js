@@ -263,7 +263,7 @@ Utils.prototype.pSpawn = function (cmd, args, options, resolve_to_childprocess) 
 
 /**
  * Run shell command (cmd or sh), uses spawn instead of exec
- * @param   {string}  pscmd                   Shell command
+ * @param   {string}  shellcmd                Shell command
  * @param   {object}  options                 Options passed to spawn
  * @param   {boolean} resolve_to_childprocess promise resolves to async ChildProcess
  * @returns {promise} promise (rc, stdout, stderr), rejects on spawn error
@@ -474,6 +474,13 @@ Utils.prototype.pIsAdmin = function () {
   }
 
   return deferred.promise;
+};
+
+/**
+ * util func to split a string into an array of lines
+ */
+Utils.prototype.splitLines = function (str) {
+  return str.split(/\r?\n/g);
 };
 
 module.exports = Utils;

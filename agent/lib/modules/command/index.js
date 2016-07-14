@@ -104,7 +104,7 @@ var Command = P2M.Module(module.filename, function () {
         inWatchFlag = args.inWatchFlag,
         _impl = args._impl,
         title = args.title,
-        opts = args.opts,
+        opts = (args.opts ? args.opts : {}),
         command_complete_cb = args.cb, // cb is policy provided optional call back on completion
         errmsg = '',
         cmd = title;
@@ -127,6 +127,10 @@ var Command = P2M.Module(module.filename, function () {
         opts: opts,
         f: p2.facts
       });
+    }
+
+    if (!opts.env) {
+      opts.env = process.env;
     }
 
 //    if (!opts.shell) {
@@ -229,10 +233,10 @@ var Command = P2M.Module(module.filename, function () {
             return;
           }
 
-          console.info(u.format('Spawning command: `%s`', cmd)/*, 'sp_args:', sp_args*/);
+          console.info(u.format('Spawning command: `%s`', title)/*, 'sp_args:', sp_args*/);
           utils.runCmd(cmd, opts)
           .fail(function (err) {
-            console.error(u.format('spawn failed for command: `%s`', cmd), 'err:', err);
+            console.error(u.format('spawn failed for command: `%s`', title), 'err:', err);
             throw err;
           })
           .done(function (res) {

@@ -89,6 +89,64 @@ var Facts = P2M.Module(module.filename, function () {
       return deferred.promise;
     }
 
+    /**
+     * Get cpu data parsed from /proc/cpuinfo
+     * @returns {Promise} resolves to ['cpuinfo': {...}]
+     */
+    function getCpuInfo() {
+      var deferred = Q.defer(),
+          cpuinfoFile = '/proc/cpuinfo',
+          cpu_facts = {},
+          re = /^([^:\t]*)\s+:\s+(.*)$/,
+          reFlags = /vmx|svm/;
+
+      cpu_facts.hw_accel_enabled = false;
+
+      pfs.pExists(cpuinfoFile)
+      .done(function (exists) {
+        if (!exists) {
+          deferred.resolve(['cpuinfo'], null);
+          return;
+        }
+
+        pfs.pReadFile(cpuinfoFile)
+        .done(function (buf) {
+          var cpuinfo_str = buf.toString(),
+              lines = utils.splitLines(cpuinfo_str),
+              processor;
+
+          lines.forEach(function (line) {
+            var m = line.match(re);
+
+            if (m) {
+              var label = m[1],
+                  value = m[2].trim();
+
+              if (label === 'processor') {
+                processor = value;
+              }
+              if (cpu_facts[processor] === undefined) {
+                cpu_facts[processor] = {};
+              }
+
+              if (processor !== undefined) {
+                cpu_facts[processor][label] = value;
+              }
+
+              if (label === 'flags' && value.search(reFlags)) {
+                cpu_facts.hw_accel_enabled = true;
+              }
+            }
+
+          });
+
+          deferred.resolve(['cpuinfo', cpu_facts]);
+        });
+      });
+
+      return deferred.promise;
+    }
+
     var UUIDFile = path.join(cfg.PARTOUT_VARDIR, 'UUID');
 
     var facts = {};
@@ -125,7 +183,9 @@ var Facts = P2M.Module(module.filename, function () {
     _.forEach(files, function (file) {
       promises.push(tryRead(file));
     });
-    //console.log('promises:', promises);
+
+    // get /proc/cpuinfo
+    promises.push(getCpuInfo());
 
     /*
      * if cloud-init has an obj.pkl - load it as facts
@@ -214,11 +274,11 @@ var Facts = P2M.Module(module.filename, function () {
     });
 
     os_deferred.promise
-    .then(function () {
+    .done(function () {
       facts.os_family = 'unknown';
 
       Q.all(promises)
-      .then(function (ar) {
+      .done(function (ar) {
         _.forEach(ar, function (res) {
           if (res) {
             facts[res[0]] = res[1];
@@ -249,9 +309,11 @@ var Facts = P2M.Module(module.filename, function () {
         //console.log('facts:', facts);
         outer_deferred.resolve(facts);
       })
-      .done();
+      //.done();
+      ;
     })
-    .done();
+    //.done();
+    ;
 
     return outer_deferred.promise;
   })

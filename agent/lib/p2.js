@@ -169,13 +169,22 @@ var P2 = function () {
   self._impl.on = function (ev, fn) {
     var self = this;
 
-    utils.dlog('on() Adding listener for:', ev);
-    //self.emitter.on.apply(self.emitter, arguments);
-    self.emitter.on.call(self.emitter, ev, function () {
-      console.info(u.format('(p2) Event Triggered: %s', ev));
-      return fn.apply(this, arguments);
-    });
-    utils.dlog('on() count:', self.emitter.listenerCount(arguments[0]));
+    if (self.ifNode()) {
+
+      utils.dlog('on() Adding listener for:', ev);
+      //self.emitter.on.apply(self.emitter, arguments);
+      self.emitter.on.call(self.emitter, ev, function () {
+        console.info(u.format('(p2) Event Triggered: %s', ev));
+
+        p2.pushSteps(); // save steps state
+        var res = fn.apply(this, arguments);
+        p2.flattenSteps(); // pop previous steps state after new steps
+
+        return res;
+      });
+      utils.dlog('on() count:', self.emitter.listenerCount(arguments[0]));
+
+    }
     return self;
   };
 
