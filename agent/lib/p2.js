@@ -207,15 +207,24 @@ var P2 = function () {
     var self = this;
 
     // async loop shifting tasks from the steps queue
-    var t = self.steps.shift();
-    if (!t) {
+    var tobj = self.steps.shift();
+
+    if (!tobj) {
       cb();
+
     } else {
+      var tnode = tobj.node,
+          t = tobj.fn;
+
       if (utils.isDebug()) {
         console.warn('>>> START ACTION >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
       }
 
+      utils.dlog('end(): calling action tnode:', tnode);
+      self._node_select = tnode;
+
       utils.dlog('end(): calling action t() t:', t);
+
       t(function () { // step queuecb
         utils.dlog('end(): callback from t()');
 
@@ -241,7 +250,17 @@ var P2 = function () {
   self._impl.node = function (select) {
     var self = this;
     self._node_select = select;
+    utils.dlog('node() _node_select:', self._node_select);
     return self;
+  };
+
+  /**
+   * Get the current node state
+   * @returns {any} contents of _impl._node_select.
+   */
+  self._impl.getNode = function () {
+    var self = this;
+    return self._node_select;
   };
 
   /**
@@ -254,25 +273,31 @@ var P2 = function () {
       i;
     var select = self._node_select;
 
+    utils.dlog('ifNode(): select:', select);
 
     if (select === undefined) {
+      utils.dlog('ifNode(): undefined -> pass');
       return true;
     }
     if (typeof (select) === 'boolean') {
+      utils.dlog('ifNode(): boolean ->', select);
       return select;
 
     } else if (typeof (select) === 'function') {
       //console.log('in ifNode facts:', self.facts);
       if (select(self.facts)) {
+        utils.dlog('ifNode(): function -> pass');
         //console.log('function returning true');
         return true;
       }
+      utils.dlog('ifNode(): function -> skip');
       return false;
 
     } else if (select instanceof RegExp) {
       //console.log('in RegExp:');
       if (os.hostname().match(select)) {
         //console.log('RegExp match');
+        utils.dlog('ifNode(): regex -> pass');
         return true;
       }
 
@@ -285,9 +310,10 @@ var P2 = function () {
       for (i in self.nodes) {
         if (self.nodes.hasOwnProperty(i)) {
           var node = self.nodes[i];
-          //console.log('node:', node, 'hostname:', os.hostname());
+          utils.dlog('node:', node, 'hostname:', os.hostname());
           if (os.hostname() === node) {
             //console.log('node match');
+            utils.dlog('ifNode(): string|array -> pass');
             return true;
           }
         }
@@ -298,6 +324,7 @@ var P2 = function () {
     //process.exit(0);
     //return null;
     //console.log('empty_impl:', empty_impl);
+    utils.dlog('ifNode(): fall through to -> skip');
     return false;
   };
   /**
@@ -486,6 +513,7 @@ var P2 = function () {
    * @memberof p2
    */
   self._impl.pushSteps = function () {
+    utils.dlog('p2 pushSteps()');
     self._impl.steps_stack.push(self._impl.steps);
     self._impl.steps = [];
 
@@ -498,6 +526,7 @@ var P2 = function () {
    * @memberod p2
    */
   self._impl.flattenSteps = function () {
+    utils.dlog('p2 flattenSteps()');
     var newSteps = self._impl.steps;
     self._impl.steps = newSteps.concat(self._impl.steps_stack.pop());
     //console.warn('!!! flattenSteps: concat steps:', u.inspect(self._impl.steps, {colors: true, depth: 3}));
@@ -514,32 +543,38 @@ var P2 = function () {
   self._impl.push_action = function (action) {
     var method;
 
-    self._impl.steps.push(function (queuecb) {
-      utils.dlog('p2: push_action: step action:', action);
+    self._impl.steps.push({
+      // node state when pushed onto steps
+      node: self._impl._node_select,
+      // task function to exec sequentially
+      fn: function (queuecb) {
+        utils.dlog('p2: push_action: step action:', action);
 
-      var p = action.call(self);
+        var p = action.call(self);
 
-      if (utils.isDebug()) {
-        console.warn('p2: push_action action.call returned p:', p);
-        console.warn('p2: push_action p is promise:', Q.isPromise(p));
+        if (utils.isDebug()) {
+          console.warn('p2: push_action action.call returned p:', p);
+          console.warn('p2: push_action p is promise:', Q.isPromise(p));
+        }
+
+        if (p && Q.isPromise(p)) {
+          p
+          .done(function (o) {
+            utils.dlog('p2: push_action: step promise resolved to o:', o);
+            queuecb();
+
+          }, function (err) {
+            utils.dlog('p2: push_action: step promise rejected with err:', err);
+            console.error(err);
+            console.error(err.stack);
+            console.warn('flushing action queue of remaining steps for abort...');
+            self._impl.clear_actions();
+            queuecb();  /// XXX: ???
+          });
+        }
       }
 
-      if (p && Q.isPromise(p)) {
-        p
-        .done(function (o) {
-          utils.dlog('p2: push_action: step promise resolved to o:', o);
-          queuecb();
-
-        }, function (err) {
-          utils.dlog('p2: push_action: step promise rejected with err:', err);
-          console.error(err);
-          console.error(err.stack);
-          console.warn('flushing action queue of remaining steps for abort...');
-          self._impl.clear_actions();
-          queuecb();  /// XXX: ???
-        });
-      }
-    });
+    }); // push
   };
 
 

@@ -91,7 +91,7 @@ var Role = P2M.Module(module.filename, function () {
       return;
     }
 
-    console.warn('Creating module ' + name + ' from role');
+    console.info('Creating module ' + name + ' from role');
     _impl[name] = function (mod_title, mod_opts) {
       //console.log('in module instance:', name);
 
@@ -162,8 +162,8 @@ var Role = P2M.Module(module.filename, function () {
               role_promise = Q();
             }
             role_promise
-            .done(function () {
-              utils.dlog('role_promise resolved');
+            .done(function (role_res) {
+              utils.dlog('role_promise resolved - role_res:', role_res);
               push_refreshFacts();
 
               p2.flattenSteps(); // pop previous steps state after new steps

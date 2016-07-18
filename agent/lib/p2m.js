@@ -182,14 +182,16 @@ P2M.prototype.action = function (fn, action_args) {
       self.provider = opts.provider;
     }
 
-    utils.dlog('p2m addStep opts: %s', u.inspect(opts, {colors: true, depth: 2}));
+    utils.dlog('p2m addStep title: %s, opts: %s', title, u.inspect(opts, {colors: true, depth: 2}));
 
     if (_impl.ifNode()) {
+      utils.dlog('p2m: passed ifNode()');
 
       if (opts.on) {
         self.on(opts.on);
       }
 
+      // Push action on to sync queue
       _impl.push_action(function (nextStepCb, inWatchFlag) {
         var outer_deferred = Q.defer(),
             deferred = Q.defer(),
@@ -286,6 +288,8 @@ P2M.prototype.action = function (fn, action_args) {
 
         return outer_deferred.promise;
       });
+    } else {
+      utils.dlog('SKIPPING due to ifNode() check');
     }
 
   };
