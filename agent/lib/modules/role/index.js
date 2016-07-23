@@ -149,6 +149,8 @@ var Role = P2M.Module(module.filename, function () {
            */
           // defer pushing on to actions so facts run first
           _impl.push_action(function () {
+            console.info(u.format('Role: %s running action: %s', name, mod_title));
+
             var deferred = Q.defer();
 
             p2.pushSteps(); // save steps state

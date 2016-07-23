@@ -23,7 +23,7 @@ Currently supporting:
 
 ### Prerequisites
 * Node.js v4 or above - see https://nodejs.org/en/download/
-* ArangoDB (master only) - see https://www.arangodb.com/download/. For an up to date Gentoo ebuild use overlay https://github.com/gbevan/portage-arangodb-overlay
+* ArangoDB (master only) - see https://www.arangodb.com/download/. For an up to date Gentoo ebuild use overlay https://github.com/gbevan/portage-arangodb-overlay - the current version being used in development is now version 3.0.*
 
 Agent Platforms
 ---------------

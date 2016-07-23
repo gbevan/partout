@@ -21,6 +21,8 @@ var Cfg = function () {
     self.database_name = 'partout';
   }
 
+  self.database_url = 'http://root:Part2fly%25@127.0.0.1:8529';
+
   // Settings
   self.event_rate_divisor = 100;
   self.aggregate_collection_period_secs_max = 60 * 60;   // 1 hour
