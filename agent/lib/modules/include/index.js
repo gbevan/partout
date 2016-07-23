@@ -87,10 +87,28 @@ var Include = P2M.Module(module.filename, function () {
     //console.log('CWD:', process.cwd());
     //console.log('absfile:', absfile);
 
+    // If absfile is a directory, then load index.p2
+    var absfile_stat;
+    try {
+      absfile_stat = fs.statSync(absfile); // must be sync!
+    } catch (e) {
+      //console.log(e);
+      if (e.code !== 'ENOENT') {
+        throw(e);
+      }
+    }
+
+    //console.log('absfile_stat:', absfile_stat);
+    if (absfile_stat && absfile_stat.isDirectory()) {
+      absfile = path.join(absfile, 'index.p2');
+    }
+    //console.log('resolved absfile:', absfile);
+
     if (!absfile.match(/\.(p2|js)$/)) {
       absfile = u.format('%s.p2', absfile);
     }
 
+    console.info('Including file', absfile);
     try {
       require(absfile);
     } catch (e) {
@@ -102,6 +120,7 @@ var Include = P2M.Module(module.filename, function () {
 
   }, {immediate: true}) // action
 
+  // placeholder for stepped runAction
   .action(function (args) {
     var deferred = args.deferred;
 

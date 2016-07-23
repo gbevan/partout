@@ -160,7 +160,7 @@ var Command = P2M.Module(module.filename, function () {
 
     function _spawn(exists, inWatch, cb) {
       if (exists) {
-        console.log('Command:', title, 'skipped due to target already exists (creates):', opts.creates);
+        utils.vlog('Command:', title, 'skipped due to target already exists (creates):', opts.creates);
         if (opts.creates) {
           set_watcher(inWatch);
         }

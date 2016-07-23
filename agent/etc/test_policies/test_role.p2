@@ -33,4 +33,16 @@ p2
 
 .command('echo "********** AFTER testRoles 1&2 **********"')
 
+.role('testRoleFiles', {
+  p2: function (title, opts) {
+    console.log('module.filename:', module.filename);
+    console.log('__dirname:', __dirname);
+    console.log('__filename:', __filename);
+    console.log('this:', this);
+  }
+})
+.command('echo "after testRoleFiles defined"')
+.testRoleFiles()
+.command('echo "after testRoleFiles exec"')
+
 ;

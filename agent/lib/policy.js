@@ -31,6 +31,7 @@ var console = require('better-console'),
     path = require('path'),
     Q = require('q'),
     pfs = new (require('./pfs'))(),
+    fs = require('fs'),
     utils = new (require('./utils'))(),
     u = require('util');
 
@@ -114,10 +115,29 @@ Policy.prototype.apply = function () {
     /*
      * Load core roles
      */
-    pfs.walk('lib/roles')
+    var rolespath = path.join('lib', 'roles');
+    //pfs.walk('lib/roles')
+    pfs.pReadDir(rolespath)
     .then(function (roles_manifest) {
-      _.each(roles_manifest, function (robj, rfile) {
+      //_.each(roles_manifest, function (robj, rfile) {
+      _.each(roles_manifest, function (rfile) {
         //console.log('policy: robj:', robj);
+        rfile = path.join(rolespath, rfile);
+
+        var rfile_stat;
+        try {
+          rfile_stat = fs.statSync(rfile); // must be sync!
+        } catch (e) {
+          //console.log(e);
+          if (e.code !== 'ENOENT') {
+            throw(e);
+          }
+        }
+
+        if (rfile_stat && rfile_stat.isDirectory()) {
+          rfile = path.join(rfile, 'index.p2');
+        }
+
         var r = require(path.resolve(rfile));
         //console.log('policy: r:', u.inspect(r, {colors: true, depth: 3}));
       });
