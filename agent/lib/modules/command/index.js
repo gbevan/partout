@@ -104,7 +104,7 @@ var Command = P2M.Module(module.filename, function () {
         inWatchFlag = args.inWatchFlag,
         _impl = args._impl,
         title = args.title,
-        opts = args.opts,
+        opts = (args.opts ? args.opts : {}),
         command_complete_cb = args.cb, // cb is policy provided optional call back on completion
         errmsg = '',
         cmd = title;
@@ -129,6 +129,10 @@ var Command = P2M.Module(module.filename, function () {
       });
     }
 
+    if (!opts.env) {
+      opts.env = process.env;
+    }
+
 //    if (!opts.shell) {
 //      opts.shell = true;
 //    }
@@ -140,8 +144,8 @@ var Command = P2M.Module(module.filename, function () {
 //    sp_args.shift();
 
     function set_watcher(inWatch) {
-      utils.dlog('Command: inWatch:', inWatch, '_watch_state:', _watch_state, 'GLOBAL.p2_agent_opts.daemon:', GLOBAL.p2_agent_opts.daemon);
-      if (/*!inWatch && */_watch_state && GLOBAL.p2_agent_opts.daemon) {
+      utils.dlog('Command: inWatch:', inWatch, '_watch_state:', _watch_state, 'global.p2_agent_opts.daemon:', global.p2_agent_opts.daemon);
+      if (/*!inWatch && */_watch_state && global.p2_agent_opts.daemon) {
         console.log('>>> Command: Starting watcher on file:', opts.creates);
         _impl.P2_unwatch(opts.creates);
         _impl.P2_watch(opts.creates, function (watcher_cb) {
@@ -156,7 +160,7 @@ var Command = P2M.Module(module.filename, function () {
 
     function _spawn(exists, inWatch, cb) {
       if (exists) {
-        console.log('Command: skipped due to target already exists (creates)');
+        utils.vlog('Command:', title, 'skipped due to target already exists (creates):', opts.creates);
         if (opts.creates) {
           set_watcher(inWatch);
         }
@@ -229,10 +233,10 @@ var Command = P2M.Module(module.filename, function () {
             return;
           }
 
-          console.info(u.format('Spawning command: `%s`', cmd)/*, 'sp_args:', sp_args*/);
+          console.info(u.format('Spawning command: `%s`', title)/*, 'sp_args:', sp_args*/);
           utils.runCmd(cmd, opts)
           .fail(function (err) {
-            console.error(u.format('spawn failed for command: `%s`', cmd), 'err:', err);
+            console.error(u.format('spawn failed for command: `%s`', title), 'err:', err);
             throw err;
           })
           .done(function (res) {
@@ -242,35 +246,54 @@ var Command = P2M.Module(module.filename, function () {
 
             utils.dlog('command: rc:', rc, 'stdout:', stdout, 'stderr:', stderr);
             //console.log('command: rc:', rc, 'stdout:', stdout, 'stderr:', stderr);
-            if (stderr) {
-              console.error(stderr);
-            }
-            if (stdout) {
-              console.log(stdout);
-            }
+//            if (stderr) {
+//              console.error(stderr);
+//            }
+//            if (stdout) {
+//              console.log(stdout);
+//            }
 
             if (command_complete_cb) {
-              command_complete_cb(rc, stdout, stderr);
+              try {
+                command_complete_cb(rc, stdout, stderr);
+              } catch (err) {
+                console.error(err);
+                cb('failed');
+              }
             }
 
             var err2;
             if (opts.returns) {
               if (rc !== opts.returns) {
+                if (stderr) {
+                  console.error(stderr);
+                }
+                if (stdout) {
+                  console.log(stdout);
+                }
                 cb('failed');
 
                 // XXX: is it correct to throw an error here?
-                err2 = new Error('Return code does not match expected by returns option');
-                err2.code = rc;
-                throw err2;
+//                err2 = new Error('Return code does not match expected by returns option');
+//                err2.code = rc;
+//                throw err2;
+                return;
               }
             } else {
               if (rc !== 0) {
+                if (stderr) {
+                  console.error(stderr);
+                }
+                if (stdout) {
+                  console.log(stdout);
+                }
                 cb('failed');
 
                 // XXX: is it correct to throw an error here?
-                err2 = new Error('None zero return code returned');
-                err2.code = rc;
-                throw err2;
+//                err2 = new Error('None zero return code returned');
+//                err2.code = rc;
+//                throw err2;
+                return;
               }
             }
             if (opts.creates) {
@@ -291,7 +314,9 @@ var Command = P2M.Module(module.filename, function () {
     if (opts.creates) {
       fs.exists(opts.creates, function (exists) {
         _spawn(exists, false, function (result) {
+          //console.log('command (with exists)', title, 'result:', result);
           if (result === 'failed') {
+            console.warn('rejecting on failure');
             deferred.reject({result: result});
           } else {
             deferred.resolve({result: result});
@@ -301,7 +326,9 @@ var Command = P2M.Module(module.filename, function () {
       //delete opts.creates;
     } else {
       _spawn(false, false, function (result) {
+        //console.log('command', title, 'result:', result);
         if (result === 'failed') {
+          console.warn('rejecting on failure');
           deferred.reject({result: result});
         } else {
           deferred.resolve({result: result});

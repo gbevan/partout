@@ -235,8 +235,14 @@ Utils.prototype.pSpawn = function (cmd, args, options, resolve_to_childprocess) 
 
     //if (rc !== 0 || signal !== null || stderr) {
     if (rc !== 0 || signal !== null) {
-      console.log('stdout:', stdout);
-      console.error('stderr:', stderr);
+      //console.log('utils.runCmd:', cmd, args);
+      //console.log('RC:', rc, 'signal:', signal);
+      //console.log('stdout:', stdout);
+//      console.error('Command:', cmd, args, 'failed with none zero return code');
+//      if (stderr && stderr.trim() !== '') {
+//        console.error(stderr);
+//      }
+//      console.error('utils.runCmd:', (new Error()).stack);
     }
 
     if (stdout || stderr) {
@@ -257,7 +263,7 @@ Utils.prototype.pSpawn = function (cmd, args, options, resolve_to_childprocess) 
 
 /**
  * Run shell command (cmd or sh), uses spawn instead of exec
- * @param   {string}  pscmd                   Shell command
+ * @param   {string}  shellcmd                Shell command
  * @param   {object}  options                 Options passed to spawn
  * @param   {boolean} resolve_to_childprocess promise resolves to async ChildProcess
  * @returns {promise} promise (rc, stdout, stderr), rejects on spawn error
@@ -394,21 +400,21 @@ Utils.prototype.callbackEvent = function (next_step_callback, facts, o) {
 };
 
 Utils.prototype.isVerbose = function () {
-  return GLOBAL.partout.opts.verbose;
+  return global.partout.opts.verbose;
 };
 Utils.prototype.vlog = function () {
   var self = this;
-  if (GLOBAL.partout.opts.verbose) {
+  if (global.partout.opts.verbose) {
     console.log('INFO:', u.format.apply(u, arguments));
   }
 };
 
 Utils.prototype.isDebug = function () {
-  return GLOBAL.partout.opts.debug;
+  return global.partout.opts.debug;
 };
 Utils.prototype.dlog = function () {
   var self = this;
-  if (GLOBAL.partout.opts.debug) {
+  if (global.partout.opts.debug) {
     console.log('DEBUG:', u.format.apply(u, arguments));
   }
 };
@@ -419,7 +425,7 @@ Utils.prototype.dlog = function () {
  */
 Utils.prototype.tlogs = function (label) {
   var self = this;
-  if (GLOBAL.partout.opts.timing) {
+  if (global.partout.opts.timing) {
     console.time(label);
   }
 };
@@ -430,7 +436,7 @@ Utils.prototype.tlogs = function (label) {
  */
 Utils.prototype.tloge = function (label) {
   var self = this;
-  if (GLOBAL.partout.opts.timing) {
+  if (global.partout.opts.timing) {
     console.timeEnd(label);
   }
 };
@@ -468,6 +474,13 @@ Utils.prototype.pIsAdmin = function () {
   }
 
   return deferred.promise;
+};
+
+/**
+ * util func to split a string into an array of lines
+ */
+Utils.prototype.splitLines = function (str) {
+  return str.split(/\r?\n/g);
 };
 
 module.exports = Utils;

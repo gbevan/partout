@@ -12,7 +12,7 @@ Q.longStackSupport = true;
 var Cfg = function () {
   var self = this;
 
-  //console.log('global:', u.inspect(GLOBAL, {colors: true, depth: 1}));
+  //console.log('global:', u.inspect(global, {colors: true, depth: 1}));
 
   //self.partout_master_hostname = 'officepc.net';
   self.partout_master_hostname = '192.168.0.64';

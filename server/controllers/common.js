@@ -49,16 +49,20 @@ var Common = function (db, name) {
      * @returns {Promise}
      */
     init: function () {
+      console.log('init for collection:', name);
       var self = this,
         deferred = Q.defer();
 
       self.db.listCollections()
       .then (function (collections) {
+        console.log('collections:', collections);
+        var colExists = false;
 
-        var colExists = (collections.filter(function (d) {
-          return d.name === self.collectionName;
-        }).length > 0);
-
+        if (collections) {
+          colExists = (collections.filter(function (d) {
+            return d.name === self.collectionName;
+          }).length > 0);
+        }
 
         if (colExists) {
           deferred.resolve('exists');
@@ -70,7 +74,8 @@ var Common = function (db, name) {
             deferred.resolve('created');
           });
         }
-      });
+      })
+      .done();
       return deferred.promise;
     },
 

@@ -39,13 +39,13 @@ var Q = require('q'),
     console = require('better-console');
 
 
-GLOBAL.should = require('should');
+global.should = require('should');
 should.extend();
 
 Q.longStackSupport = true;
 
 // Simulate commandline options --verbose, --debug and --timing
-//GLOBAL.partout = {opts: {verbose: false, debug: true, timing: false}};
+//global.partout = {opts: {verbose: false, debug: true, timing: false}};
 
 var isAdmin = false;
 

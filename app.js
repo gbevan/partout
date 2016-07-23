@@ -50,7 +50,8 @@ var console = require('better-console'),
     Csr = require('./server/controllers/csr.js'),
     Agent = require('./server/controllers/agent.js'),
     utils = new (require('./agent/lib/utils'))(),
-    serverMetrics = new (require('./lib/server_metrics'))();
+    serverMetrics = new (require('./lib/server_metrics'))(),
+    _ = require('lodash');
 
 Q.longStackSupport = true;
 
@@ -74,16 +75,20 @@ var init = function () {
 
   db.connect()
   .then(function () {
+    console.log('db connected');
 
     // Init ArangoDB Collections
     var csr = new Csr(db.getDb());
     var agent = new Agent(db.getDb());
 
     csr.init()
-    .then(function () {
-      agent.init();
+    .then(function (csrres) {
+      console.log('csr init:', csrres);
+      return agent.init();
     })
-    .then(function() {
+    .then(function(agentres) {
+      console.log('agent init:', agentres);
+
       deferred.resolve();
     })
     .done();
@@ -123,7 +128,7 @@ var serve = function () {
     console.log(err.stack);
     throw (new Error(err));
   })
-  .done(function() {
+  .then(function() {
     console.info('Certificates ok, generating trusted key chain');
 
     ca.generateTrustedCertChain(function () {
@@ -149,7 +154,7 @@ var serve = function () {
 
       db.connect()
       .then(function (status) {
-        //console.log('db:', status);
+        console.log('db:', status);
 
         //db.useDatabase(cfg.database_name);
         //console.warn('db:',db);
@@ -253,7 +258,8 @@ var serve = function () {
       }).done();
     });
 
-  });
+  })
+  .done();
 };
 
 module.exports = function (opts) {
@@ -282,6 +288,8 @@ module.exports = function (opts) {
         csr.all()
         .then(function (csrList) {
           //console.log('csrList:', csrList);
+
+          csrList = _.sortBy(csrList, function (o) { return o.lastSeen; });
 
           //console.warn('CSRs:');
           for (var i in csrList) {

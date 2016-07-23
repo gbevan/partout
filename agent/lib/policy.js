@@ -23,7 +23,7 @@
 /*jslint node: true, nomen: true, regexp: true, vars: true*/
 'use strict';
 
-/*global GLOBAL, p2 */
+/*global global, p2 */
 var console = require('better-console'),
     _ = require('lodash'),
     P2M = require('./p2m'),
@@ -31,6 +31,7 @@ var console = require('better-console'),
     path = require('path'),
     Q = require('q'),
     pfs = new (require('./pfs'))(),
+    fs = require('fs'),
     utils = new (require('./utils'))(),
     u = require('util');
 
@@ -47,21 +48,21 @@ function Policy(args, opts) {
     }
   }
 
-  if (GLOBAL.p2) {
+  if (global.p2) {
     p2.P2_watchers_close();
   }
 
-  //GLOBAL.P2 = P2;
+  //global.P2 = P2;
   utils.tlogs('new p2');
   new P2()
   .then(function (p2) {
     utils.tloge('new p2');
 
     /** @global */
-    GLOBAL.p2 = p2;
+    global.p2 = p2;
 
     /** @global */
-    GLOBAL.p2_agent_opts = self.opts = opts;
+    global.p2_agent_opts = self.opts = opts;
 
     // Post facts to master
     if (self.master) {
@@ -114,10 +115,29 @@ Policy.prototype.apply = function () {
     /*
      * Load core roles
      */
-    pfs.walk('lib/roles')
-    .done(function (roles_manifest) {
-      _.each(roles_manifest, function (robj, rfile) {
+    var rolespath = path.join('lib', 'roles');
+    //pfs.walk('lib/roles')
+    pfs.pReadDir(rolespath)
+    .then(function (roles_manifest) {
+      //_.each(roles_manifest, function (robj, rfile) {
+      _.each(roles_manifest, function (rfile) {
         //console.log('policy: robj:', robj);
+        rfile = path.join(rolespath, rfile);
+
+        var rfile_stat;
+        try {
+          rfile_stat = fs.statSync(rfile); // must be sync!
+        } catch (e) {
+          //console.log(e);
+          if (e.code !== 'ENOENT') {
+            throw(e);
+          }
+        }
+
+        if (rfile_stat && rfile_stat.isDirectory()) {
+          rfile = path.join(rfile, 'index.p2');
+        }
+
         var r = require(path.resolve(rfile));
         //console.log('policy: r:', u.inspect(r, {colors: true, depth: 3}));
       });
@@ -132,6 +152,10 @@ Policy.prototype.apply = function () {
         utils.vlog('### END OF APPLY ################################');
         deferred.resolve();
       });
+    })
+    .done(null, function (err) {
+      console.error('Policy load of roles failed');
+      deferred.reject(err);
     });
   });
   return deferred.promise;

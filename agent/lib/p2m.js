@@ -182,14 +182,16 @@ P2M.prototype.action = function (fn, action_args) {
       self.provider = opts.provider;
     }
 
-    utils.dlog('p2m addStep opts: %s', u.inspect(opts, {colors: true, depth: 2}));
+    utils.dlog('p2m addStep title: %s, opts: %s', title, u.inspect(opts, {colors: true, depth: 2}));
 
     if (_impl.ifNode()) {
+      utils.dlog('p2m: passed ifNode()');
 
       if (opts.on) {
         self.on(opts.on);
       }
 
+      // Push action on to sync queue
       _impl.push_action(function (nextStepCb, inWatchFlag) {
         var outer_deferred = Q.defer(),
             deferred = Q.defer(),
@@ -207,10 +209,10 @@ P2M.prototype.action = function (fn, action_args) {
         });
 
         deferred.promise
-        .fail(function (err) {
-          console.error(u.format('error: module %s err: %s', self.name, err));
-          _impl.emitter.emit(u.format('%s:%s', ev_prefix, 'fatal'), err);
-        })
+//        .fail(function (err) {
+//          console.error(u.format('error: module %s err:', self._name), err);
+//          _impl.emitter.emit(u.format('%s:%s', ev_prefix, 'fatal'), err);
+//        })
         .then(function (o) {
           utils.dlog('p2m: addStep: fn ev_prefix:', ev_prefix, 'o:', o);
 
@@ -272,18 +274,22 @@ P2M.prototype.action = function (fn, action_args) {
             outer_deferred.reject(err);
           });
         })
-//        .done(null, function (err) {
-//          console.error(heredoc(function () {/*
-//********************************************************
-//*** P2M addStep Caught Error:
-//          */}), err);
-//
-//          console.log('Stack:', (new Error()).stack);
-//        })
+        .done(null, function (err) {
+          console.error(u.format(heredoc(function () {/*
+********************************************************
+*** %s: %s
+*** P2M addStep Caught Error:
+          */}), self._name, title), err);
+
+          //console.log('Stack:', (new Error()).stack);
+          outer_deferred.reject(err);
+        })
         ;
 
         return outer_deferred.promise;
       });
+    } else {
+      utils.dlog('SKIPPING due to ifNode() check');
     }
 
   };
@@ -337,11 +343,12 @@ P2M.prototype.on = function (evdefs) {
   var self = this;
 
   _.each(evdefs, function (h, k) {
-    console.log('Adding listener for:', k);
+    utils.dlog('Adding listener for:', k);
 
     if (typeof(h) === 'function') {
 
       p2.emitter.on(k, function () {
+        console.info(u.format('(p2m) Event Triggered: %s', k));
         p2.pushSteps();
         h.apply(this, arguments);
         p2.flattenSteps();

@@ -133,8 +133,8 @@ var Exec = P2M.Module(module.filename, function () {
     utils.vlog('Exec on node "' + os.hostname() + '", cmd:', cmd, ', opts:', JSON.stringify(opts));
 
     function set_watcher(inWatch) {
-      utils.dlog('Exec: inWatch:', inWatch, '_watch_state:', _watch_state, 'GLOBAL.p2_agent_opts.daemon:', GLOBAL.p2_agent_opts.daemon);
-      if (/*!inWatch && */_watch_state && GLOBAL.p2_agent_opts.daemon) {
+      utils.dlog('Exec: inWatch:', inWatch, '_watch_state:', _watch_state, 'global.p2_agent_opts.daemon:', global.p2_agent_opts.daemon);
+      if (/*!inWatch && */_watch_state && global.p2_agent_opts.daemon) {
         console.log('>>> Exec: Starting watcher on file:', opts.creates);
         _impl.P2_unwatch(opts.creates);
         _impl.P2_watch(opts.creates, function (watcher_cb) {

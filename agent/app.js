@@ -97,9 +97,14 @@ var apply = function (args, opts) {
       utils.dlog('policy.apply() resolved');
       deferred.resolve();
     })
-    .done();
+    .done(null, function (err) {
+      console.error('App policy apply failed err:', err);
+      deferred.reject(err);
+    });
   })
-  .done();
+  .done(null, function (err) {
+    console.error('apply outer err:', err);
+  });
   return deferred.promise;
 };
 
@@ -287,7 +292,11 @@ var serve = function (opts, master, env) {
           console.log('apply resolved');
           cb();
         })
-        .done();
+        .done(null, function (err) {
+          console.error('app _apply err:', err);
+          console.error(err.stack);
+          cb();
+        });
       }
       //cb();
     });
@@ -367,6 +376,11 @@ var serve = function (opts, master, env) {
   //.then(function () {
   app.run()
   .done(function () {
+    if (opts.once) {
+      process.exit(0);
+    }
+  }, function (err) {
+    console.error('server run err:', err);
     if (opts.once) {
       process.exit(0);
     }

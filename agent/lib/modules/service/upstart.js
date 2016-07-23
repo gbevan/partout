@@ -30,8 +30,9 @@ var P2M = require('../../p2m'),
     fs = require('fs'),
     exec = require('child_process').exec,
     Q = require('q'),
-    utils = new(require('../../utils'))(),
-    u = require('util');
+    utils = new (require('../../utils'))(),
+    u = require('util'),
+    pfs = new (require('../../pfs'))();
 
 Q.longStackSupport = true;
 Q.onerror = function (err) {
@@ -143,7 +144,14 @@ Service.getFacts = function (facts_so_far) {
  * @returns {object} Promise
  */
 Service.prototype.setEnabled = function (name) {
-  return Q.nfcall(fs.unlink, '/etc/init/' + name + '.override');
+  var override = u.format('/etc/init/%s.override', name);
+
+  return pfs.pExists(override)
+  .then(function (exists) {
+    if (exists) {
+      return Q.nfcall(fs.unlink, override);
+    }
+  });
 };
 
 /**

@@ -39,13 +39,13 @@ var Q = require('q'),
     console = require('better-console');
 
 
-GLOBAL.should = require('should');
+global.should = require('should');
 should.extend();
 
 Q.longStackSupport = true;
 
 // Simulate commandline options --verbose, --debug and --timing
-//GLOBAL.partout = {opts: {verbose: false, debug: true, timing: false}};
+//global.partout = {opts: {verbose: false, debug: true, timing: false}};
 
 var isAdmin = false;
 
@@ -75,7 +75,7 @@ utils.pIsAdmin()
       this.timeout(120000);
       //console.log('package_apt debian');
 
-      GLOBAL.partout = {opts: {verbose: false, debug: false, timing: false}};
+      global.partout = {opts: {verbose: false, debug: false, timing: false}};
 
       p2Test.runP2Str(
         'p2\n' +
@@ -98,7 +98,7 @@ utils.pIsAdmin()
           p2Test.getP2Facts()
           .then(function(facts) {
             //console.log('got facts');
-            GLOBAL.partout = {opts: {verbose: false, debug: false, timing: false}};
+            global.partout = {opts: {verbose: false, debug: false, timing: false}};
             should(facts).not.be.undefined;
             should(facts.installed_packages).not.be.undefined;
             //console.log('facts.installed_packages ' + pkg + ':', facts.installed_packages[pkg]);

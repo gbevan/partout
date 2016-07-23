@@ -216,6 +216,28 @@ Pfs.prototype.pExists = function (path) {
 };
 
 /**
+ * Promisified fs.stat()
+ * @param   {string}  path file path
+ * @returns {promise} resolves to stat or undefined if not found, errors reject.
+ */
+Pfs.prototype.pStat = function (path) {
+  var deferred = Q.defer();
+
+  fs.stat(path, function (err, stat) {
+    if (err) {
+      if (err.code === 'ENOENT') {
+        deferred.resolve();
+      } else {
+        deferred.reject(err);
+      }
+    }
+    deferred.resolve(stat);
+  });
+
+  return deferred.promise;
+};
+
+/**
  * Promisified wrapper for fs.lstat
  * Warning err may be ENOENT if file is missing, so callback method may be more appropriate in many circumstances.
  * @param   {string} file filename

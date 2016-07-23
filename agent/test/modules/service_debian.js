@@ -40,13 +40,13 @@ var Q = require('q'),
     heredoc = require('heredoc');
 
 
-GLOBAL.should = require('should');
+global.should = require('should');
 should.extend();
 
 Q.longStackSupport = true;
 
 // Simulate commandline options --verbose, --debug and --timing
-//GLOBAL.partout = {opts: {verbose: false, debug: false, timing: false}};
+//global.partout = {opts: {verbose: false, debug: false, timing: false}};
 
 // Is this debian
 if (!utils.isDebianSync()) {

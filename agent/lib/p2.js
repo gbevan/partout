@@ -24,7 +24,7 @@
 /*jslint node: true, nomen: true, vars: true, esversion: 6*/
 'use strict';
 
-/*global GLOBAL, p2 */
+/*global global, p2 */
 
 var console = require('better-console'),
     _ = require('lodash'),
@@ -166,12 +166,25 @@ var P2 = function () {
    * .on('package:rabbitmq-server:changed', function () { ... }
    * @returns {object} p2 dsl object
    */
-  self._impl.on = function () {
+  self._impl.on = function (ev, fn) {
     var self = this;
-    console.log('on() Adding listener for:', arguments[0]);
-    //self.emitter.on.apply(self, arguments);
-    self.emitter.on.apply(self.emitter, arguments);
-    console.log('on() count:', self.emitter.listenerCount(arguments[0]));
+
+    if (self.ifNode()) {
+
+      utils.dlog('on() Adding listener for:', ev);
+      //self.emitter.on.apply(self.emitter, arguments);
+      self.emitter.on.call(self.emitter, ev, function () {
+        console.info(u.format('(p2) Event Triggered: %s', ev));
+
+        p2.pushSteps(); // save steps state
+        var res = fn.apply(this, arguments);
+        p2.flattenSteps(); // pop previous steps state after new steps
+
+        return res;
+      });
+      utils.dlog('on() count:', self.emitter.listenerCount(arguments[0]));
+
+    }
     return self;
   };
 
@@ -194,15 +207,24 @@ var P2 = function () {
     var self = this;
 
     // async loop shifting tasks from the steps queue
-    var t = self.steps.shift();
-    if (!t) {
+    var tobj = self.steps.shift();
+
+    if (!tobj) {
       cb();
+
     } else {
+      var tnode = tobj.node,
+          t = tobj.fn;
+
       if (utils.isDebug()) {
         console.warn('>>> START ACTION >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
       }
 
+      utils.dlog('end(): calling action tnode:', tnode);
+      self._node_select = tnode;
+
       utils.dlog('end(): calling action t() t:', t);
+
       t(function () { // step queuecb
         utils.dlog('end(): callback from t()');
 
@@ -228,7 +250,17 @@ var P2 = function () {
   self._impl.node = function (select) {
     var self = this;
     self._node_select = select;
+    utils.dlog('node() _node_select:', self._node_select);
     return self;
+  };
+
+  /**
+   * Get the current node state
+   * @returns {any} contents of _impl._node_select.
+   */
+  self._impl.getNode = function () {
+    var self = this;
+    return self._node_select;
   };
 
   /**
@@ -241,25 +273,31 @@ var P2 = function () {
       i;
     var select = self._node_select;
 
+    utils.dlog('ifNode(): select:', select);
 
     if (select === undefined) {
+      utils.dlog('ifNode(): undefined -> pass');
       return true;
     }
     if (typeof (select) === 'boolean') {
+      utils.dlog('ifNode(): boolean ->', select);
       return select;
 
     } else if (typeof (select) === 'function') {
       //console.log('in ifNode facts:', self.facts);
       if (select(self.facts)) {
+        utils.dlog('ifNode(): function -> pass');
         //console.log('function returning true');
         return true;
       }
+      utils.dlog('ifNode(): function -> skip');
       return false;
 
     } else if (select instanceof RegExp) {
       //console.log('in RegExp:');
       if (os.hostname().match(select)) {
         //console.log('RegExp match');
+        utils.dlog('ifNode(): regex -> pass');
         return true;
       }
 
@@ -272,9 +310,10 @@ var P2 = function () {
       for (i in self.nodes) {
         if (self.nodes.hasOwnProperty(i)) {
           var node = self.nodes[i];
-          //console.log('node:', node, 'hostname:', os.hostname());
+          utils.dlog('node:', node, 'hostname:', os.hostname());
           if (os.hostname() === node) {
             //console.log('node match');
+            utils.dlog('ifNode(): string|array -> pass');
             return true;
           }
         }
@@ -285,6 +324,7 @@ var P2 = function () {
     //process.exit(0);
     //return null;
     //console.log('empty_impl:', empty_impl);
+    utils.dlog('ifNode(): fall through to -> skip');
     return false;
   };
   /**
@@ -376,12 +416,12 @@ var P2 = function () {
    * @memberof P2
    */
   self._impl.sendevent = function (o) {
-    //console.log('sendevent, p2_agent_opts:', u.inspect(GLOBAL.p2_agent_opts, {colors: true, depth: 3}));
-    if (o && GLOBAL.p2_agent_opts.app) {
-      GLOBAL.p2_agent_opts.app.sendevent(o);
+    //console.log('sendevent, p2_agent_opts:', u.inspect(global.p2_agent_opts, {colors: true, depth: 3}));
+    if (o && global.p2_agent_opts.app) {
+      global.p2_agent_opts.app.sendevent(o);
     }
     /*
-    var app = GLOBAL.p2_agent_opts.app,
+    var app = global.p2_agent_opts.app,
       post_data = querystring.stringify(o),
       options = {
         host: app.master, // TODO: param'ize
@@ -408,11 +448,11 @@ var P2 = function () {
     post_req.end();
     */
   };
-  //self._impl.sendevent = GLOBAL.p2_agent_opts.app.sendevent;
+  //self._impl.sendevent = global.p2_agent_opts.app.sendevent;
 
   self._impl.qEvent = function (o) {
-    if (GLOBAL.p2_agent_opts.app) {
-      var master =  GLOBAL.p2_agent_opts.app.master;
+    if (global.p2_agent_opts.app) {
+      var master =  global.p2_agent_opts.app.master;
       master.qEvent(self.facts, o);
     } else {
       console.info('Partout Event:', o);
@@ -473,8 +513,11 @@ var P2 = function () {
    * @memberof p2
    */
   self._impl.pushSteps = function () {
+    utils.dlog('p2 pushSteps()');
     self._impl.steps_stack.push(self._impl.steps);
     self._impl.steps = [];
+
+    return self._impl;
   };
 
   /**
@@ -483,8 +526,12 @@ var P2 = function () {
    * @memberod p2
    */
   self._impl.flattenSteps = function () {
+    utils.dlog('p2 flattenSteps()');
     var newSteps = self._impl.steps;
     self._impl.steps = newSteps.concat(self._impl.steps_stack.pop());
+    //console.warn('!!! flattenSteps: concat steps:', u.inspect(self._impl.steps, {colors: true, depth: 3}));
+
+    return self._impl;
   };
 
   /**
@@ -496,32 +543,38 @@ var P2 = function () {
   self._impl.push_action = function (action) {
     var method;
 
-    self._impl.steps.push(function (queuecb) {
-      utils.dlog('p2: push_action: step action:', action);
+    self._impl.steps.push({
+      // node state when pushed onto steps
+      node: self._impl._node_select,
+      // task function to exec sequentially
+      fn: function (queuecb) {
+        utils.dlog('p2: push_action: step action:', action);
 
-      var p = action.call(self);
+        var p = action.call(self);
 
-      if (utils.isDebug()) {
-        console.warn('p2: push_action action.call returned p:', p);
-        console.warn('p2: push_action p is promise:', Q.isPromise(p));
+        if (utils.isDebug()) {
+          console.warn('p2: push_action action.call returned p:', p);
+          console.warn('p2: push_action p is promise:', Q.isPromise(p));
+        }
+
+        if (p && Q.isPromise(p)) {
+          p
+          .done(function (o) {
+            utils.dlog('p2: push_action: step promise resolved to o:', o);
+            queuecb();
+
+          }, function (err) {
+            utils.dlog('p2: push_action: step promise rejected with err:', err);
+            console.error(err);
+            console.error(err.stack);
+            console.warn('flushing action queue of remaining steps for abort...');
+            self._impl.clear_actions();
+            queuecb();  /// XXX: ???
+          });
+        }
       }
 
-      if (p && Q.isPromise(p)) {
-        p
-        .done(function (o) {
-          utils.dlog('p2: push_action: step promise resolved to o:', o);
-          queuecb();
-
-        }, function (err) {
-          utils.dlog('p2: push_action: step promise rejected with err:', err);
-          console.error(err);
-          console.error(err.stack);
-          console.warn('flushing action queue of remaining steps for abort...');
-          self._impl.clear_actions();
-          queuecb();  /// XXX: ???
-        });
-      }
-    });
+    }); // push
   };
 
 
@@ -530,10 +583,10 @@ var P2 = function () {
   // Use globally cached facts
   utils.tlogs('require modules');
   var module_promise;
-  if (GLOBAL.p2 && GLOBAL.p2.facts) {
+  if (global.p2 && global.p2.facts) {
     utils.dlog('>>> Using cached facts');
     //console.log('>>> Using cached facts');
-    self.facts = GLOBAL.p2.facts;
+    self.facts = global.p2.facts;
     //_modules = require('./modules')();
     module_promise = require('./modules')();
 
@@ -553,8 +606,8 @@ var P2 = function () {
     //console.log('modules loaded with facts');
     //console.log('p2 facts:', self.facts);
     self._impl.facts = self.facts;
-    if (GLOBAL.p2) {
-      GLOBAL.p2.facts = self.facts;
+    if (global.p2) {
+      global.p2.facts = self.facts;
     }
     //console.log('p2.js facts.installed_packages[nginx]:', self.facts.installed_packages.nginx);
 
@@ -565,7 +618,7 @@ var P2 = function () {
      * @memberof P2
      */
     self._impl.print_facts = function () {
-      if (GLOBAL.p2_agent_opts && GLOBAL.p2_agent_opts.showfacts) {
+      if (global.p2_agent_opts && global.p2_agent_opts.showfacts) {
         console.log(u.inspect(self.facts, {colors: true, depth: 6}));
       }
     };

@@ -5,24 +5,15 @@ The goal is to develop a pure Javascript/Node.js DevOps Data and Event Driven Po
 
 "Partout" /paʀtu/ - is french for "Everywhere"
 
-\* THIS PROJECT IS UNDER INITIAL DEVELOPMENT AND IS NOT READY FOR **ANY** FORM OF PRODUCTION USE YET \*
+\* THIS PROJECT IS UNDER DEVELOPMENT AND IS NOT READY FOR **ANY** FORM OF PRODUCTION USE YET \*
 
 Licensed under the GNU General Public License Version 3 (GPLv3 - see [COPYING](./COPYING)).
-
-If you wish (and indeed you are invited) to contribute to this Open Source project, please understand that:
-
-    By contributing [patches, pull requests, documentation, etc] to this project you are clearly indicating
-    your assent for inclusion of your contributions to this project under this project's (GPLv3) license and
-    agree that your contributions do not infringe on any existing copyrighted or patented products to your
-    knowledge.
-
-ok, that's the boilerplate crud out of the way...
 
 Features
 --------
 
 * Integration with operating system provided real-time notification of file system object changes (e.g. linux inotify) to trigger re-scan against policy - real-time repair...
-* Policy files compile to native machine code at runtime (expressed as a DSL in Javascript under Node.js).
+* Policy files compile to native machine code at runtime (expressed as a DSL in Javascript under Node.js - imagine puppet/chef meets d3.js).
 
 Master Platforms
 ----------------
@@ -32,7 +23,7 @@ Currently supporting:
 
 ### Prerequisites
 * Node.js v4 or above - see https://nodejs.org/en/download/
-* ArangoDB (master only) - see https://www.arangodb.com/download/. For an up to date Gentoo ebuild use overlay https://github.com/gbevan/portage-arangodb-overlay
+* ArangoDB (master only) - see https://www.arangodb.com/download/. For an up to date Gentoo ebuild use overlay https://github.com/gbevan/portage-arangodb-overlay - the current version being used in development is now version 3.0.*
 
 Agent Platforms
 ---------------
@@ -61,12 +52,22 @@ Modules
 -------
 
 * [Command](./agent/lib/modules/command/README.md)
-* [Exec](./agent/lib/modules/exec/README.md)
+* [Exec](./agent/lib/modules/exec/README.md) (deprecated, see Command)
 * [Facts](./agent/lib/modules/facts/README.md)
 * [File](./agent/lib/modules/file/README.md)
+* [Include](./agent/lib/modules/include/README.md)
 * [Package](./agent/lib/modules/package/README.md)
 * [Powershell](./agent/lib/modules/powershell/README.md)
+* [Role](./agent/lib/modules/role/README.md)
 * [Service](./agent/lib/modules/service/README.md)
+* [User](./agent/lib/modules/user/README.md)
+
+Roles
+-----
+
+Roles are very similar is usage to modules, but are code in much simpler terms utilising the p2 DSL language.
+
+* [See Roles](./agent/lib/roles) (many more are in the pipeline...)
 
 P2 Language - Policy Files
 --------------------------
