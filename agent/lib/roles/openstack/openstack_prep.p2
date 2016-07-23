@@ -65,7 +65,7 @@ p2
     .package('uvtool-libvirt')
 
     .file('/etc/default/grub', {
-      content: {file: path.join(__dirname, '..', 'files', 'default_grub.template')}
+      content: {file: path.join(__dirname, 'files', 'default_grub.template')}
     })
 
     ;

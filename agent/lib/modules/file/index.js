@@ -160,7 +160,7 @@ var File = P2M.Module(module.filename, function () {
           })
           .done(function () {
 
-            if (!inWatchFlag && _watch_state && GLOBAL.p2_agent_opts.daemon) {
+            if (!inWatchFlag && _watch_state && global.p2_agent_opts.daemon) {
               utils.dlog('>>> Starting watcher on file:', file);
               _impl.P2_watch(file, function (next_event_cb) { // watch_action_fn from P2_watch()
                 utils.dlog('-Watcher Triggered>>>--------------------------------');

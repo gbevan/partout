@@ -37,13 +37,13 @@ var Q = require('q'),
     os = require('os'),
     p2Test = require('../../lib/p2_test');
 
-GLOBAL.should = require('should');
+global.should = require('should');
 should.extend();
 
 Q.longStackSupport = true;
 
 // Simulate commandline options --verbose, --debug and --timing
-GLOBAL.partout = {opts: {verbose: false, debug: false, timing: false}};
+global.partout = {opts: {verbose: false, debug: false, timing: false}};
 
 if (utils.isWin()) {
   describe('Module powershell', function () {

@@ -38,7 +38,7 @@ var Q = require('q'),
     p2Test = require('../../lib/p2_test'),
     heredoc = require('heredoc');
 
-GLOBAL.should = require('should');
+global.should = require('should');
 should.extend();
 
 Q.longStackSupport = true;
@@ -48,7 +48,7 @@ Q.onerror = function (err) {
 };
 
 // Simulate commandline options --verbose, --debug and --timing
-GLOBAL.partout = {opts: {verbose: false, debug: false, timing: false}};
+global.partout = {opts: {verbose: false, debug: false, timing: false}};
 
 
 describe('Module command', function () {

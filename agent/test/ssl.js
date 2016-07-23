@@ -13,7 +13,7 @@ var assert = require('assert'),
     pfs = new (require('../lib/pfs'))(),
     path = require('path');
 
-GLOBAL.should = require('should');
+global.should = require('should');
 should.extend();
 
 describe('Ssl', function () {

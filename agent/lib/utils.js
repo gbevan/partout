@@ -400,21 +400,21 @@ Utils.prototype.callbackEvent = function (next_step_callback, facts, o) {
 };
 
 Utils.prototype.isVerbose = function () {
-  return GLOBAL.partout.opts.verbose;
+  return global.partout.opts.verbose;
 };
 Utils.prototype.vlog = function () {
   var self = this;
-  if (GLOBAL.partout.opts.verbose) {
+  if (global.partout.opts.verbose) {
     console.log('INFO:', u.format.apply(u, arguments));
   }
 };
 
 Utils.prototype.isDebug = function () {
-  return GLOBAL.partout.opts.debug;
+  return global.partout.opts.debug;
 };
 Utils.prototype.dlog = function () {
   var self = this;
-  if (GLOBAL.partout.opts.debug) {
+  if (global.partout.opts.debug) {
     console.log('DEBUG:', u.format.apply(u, arguments));
   }
 };
@@ -425,7 +425,7 @@ Utils.prototype.dlog = function () {
  */
 Utils.prototype.tlogs = function (label) {
   var self = this;
-  if (GLOBAL.partout.opts.timing) {
+  if (global.partout.opts.timing) {
     console.time(label);
   }
 };
@@ -436,7 +436,7 @@ Utils.prototype.tlogs = function (label) {
  */
 Utils.prototype.tloge = function (label) {
   var self = this;
-  if (GLOBAL.partout.opts.timing) {
+  if (global.partout.opts.timing) {
     console.timeEnd(label);
   }
 };

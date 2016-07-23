@@ -416,12 +416,12 @@ var P2 = function () {
    * @memberof P2
    */
   self._impl.sendevent = function (o) {
-    //console.log('sendevent, p2_agent_opts:', u.inspect(GLOBAL.p2_agent_opts, {colors: true, depth: 3}));
+    //console.log('sendevent, p2_agent_opts:', u.inspect(global.p2_agent_opts, {colors: true, depth: 3}));
     if (o && global.p2_agent_opts.app) {
       global.p2_agent_opts.app.sendevent(o);
     }
     /*
-    var app = GLOBAL.p2_agent_opts.app,
+    var app = global.p2_agent_opts.app,
       post_data = querystring.stringify(o),
       options = {
         host: app.master, // TODO: param'ize
@@ -448,7 +448,7 @@ var P2 = function () {
     post_req.end();
     */
   };
-  //self._impl.sendevent = GLOBAL.p2_agent_opts.app.sendevent;
+  //self._impl.sendevent = global.p2_agent_opts.app.sendevent;
 
   self._impl.qEvent = function (o) {
     if (global.p2_agent_opts.app) {

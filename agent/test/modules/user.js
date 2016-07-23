@@ -43,13 +43,13 @@ if (process.platform === 'linux') {
   linuxUser = require('linux-user');
 }
 
-GLOBAL.should = require('should');
+global.should = require('should');
 should.extend();
 
 Q.longStackSupport = true;
 
 // Simulate commandline options --verbose, --debug and --timing
-GLOBAL.partout = {opts: {verbose: false, debug: false, timing: false}};
+global.partout = {opts: {verbose: false, debug: false, timing: false}};
 
 var isAdmin = false;
 utils.pIsAdmin()

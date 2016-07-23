@@ -144,8 +144,8 @@ var Command = P2M.Module(module.filename, function () {
 //    sp_args.shift();
 
     function set_watcher(inWatch) {
-      utils.dlog('Command: inWatch:', inWatch, '_watch_state:', _watch_state, 'GLOBAL.p2_agent_opts.daemon:', GLOBAL.p2_agent_opts.daemon);
-      if (/*!inWatch && */_watch_state && GLOBAL.p2_agent_opts.daemon) {
+      utils.dlog('Command: inWatch:', inWatch, '_watch_state:', _watch_state, 'global.p2_agent_opts.daemon:', global.p2_agent_opts.daemon);
+      if (/*!inWatch && */_watch_state && global.p2_agent_opts.daemon) {
         console.log('>>> Command: Starting watcher on file:', opts.creates);
         _impl.P2_unwatch(opts.creates);
         _impl.P2_watch(opts.creates, function (watcher_cb) {
