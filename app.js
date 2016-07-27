@@ -22,6 +22,7 @@
 */
 
 /*jslint node: true */
+/*jshint esversion: 6 */
 'use strict';
 
 var console = require('better-console'),
@@ -102,10 +103,11 @@ var init = function () {
  * Serve the Partout Master API and UI engine
  * @memberof App
  */
-var serve = function () {
+var serve = function (opts) {
   /**
    * Partout application server
    */
+
   console.info('Welcome to:');
   utils.print_banner();
 
@@ -198,6 +200,8 @@ var serve = function () {
             rejectUnauthorized: false
           };
 
+        appApi.opts = opts;
+
         appApi.use(compression());
         routerApi.use(logger);
         appApi.use(bodyParser.json({limit: '50mb'}));
@@ -241,6 +245,8 @@ var serve = function () {
             rejectUnauthorized: false
           };
 
+        appUi.opts = opts;
+
         appUi.use(compression());
         routerUi.use(logger);
         appUi.use(bodyParser.json());
@@ -268,7 +274,7 @@ module.exports = function (opts) {
     .done();
 
   } else if (opts.serve) {
-    serve(opts.args);
+    serve(opts);
 
   } else if (opts.csr) {
     //console.log('csr args:', opts.args);

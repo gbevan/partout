@@ -77,6 +77,7 @@ var console = require('better-console'),
 
 if (parsed.help) {
   console.log(options.getHelp());
+  console.log('\nCommands:\n\tfacts\n\tapply file.p2\n\tserver (default)');
   process.exit(0);
 }
 
@@ -87,7 +88,7 @@ if (parsed.debug) {
 //console.log('parsed:', parsed);
 
 /*
- * validate minimum versioj of node
+ * validate minimum version of node
  */
 var node_version = parseInt((process.versions.node.match(/^(\d+)/))[1]);
 if (node_version < 4) {
