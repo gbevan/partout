@@ -25,20 +25,63 @@
 /*jslint node: true */
 'use strict';
 
-//var app = require('../app');
-
 /*
  * partout [ server | csr [ list | reject k | sign k ]]
  */
 
 // TODO: add --debug and --verbose same as agent
 
-var opts = {},
-  args = process.argv.slice(2);
+var args = require('args'),
+    options = args.Options.parse([
+      {
+        name: 'help',
+        shortName: 'h',
+        type: 'bool',
+        help: 'Show this help'
+      },
+      {
+        name: 'verbose',
+        shortName: 'v',
+        type: 'bool',
+        help: 'Show verbose messages'
+      },
+      {
+        name: 'debug',
+        shortName: 'd',
+        type: 'bool',
+        help: 'Show debugging messages'
+      }
+    ]),
+    parser = args.parser(process.argv),
+    parsed = parser.parse(options, {onPositional: 'stop'}),
+    rest = parser.getRest();
 
-if (args.length > 0) {
-  opts[args.shift()] = true;
-  opts.args = args;
+if (parsed.help) {
+  console.log(options.getHelp());
+  console.log('\nCommands:\n\tinit\n\tserve (default)\n\tcsr [list|sign id]');
+  process.exit(0);
+}
+
+if (parsed.debug) {
+  parsed.verbose = true;
+}
+
+// make options like verbose global
+global.partout = {};
+global.partout.opts = parsed;
+
+var opts = parsed;
+
+//if (args.length > 0) {
+//  opts[args.shift()] = true;
+//  opts.args = args;
+//} else {
+//  opts.serve = true;
+//}
+
+if (rest.length > 0) {
+  opts[rest.shift()] = true;
+  opts.args = rest;
 } else {
   opts.serve = true;
 }
