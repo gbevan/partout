@@ -55,7 +55,7 @@ utils.pIsAdmin()
   return p2Test.getP2Facts();
 })
 .done(function(facts) {
-  //console.log('package_apt: facts:', facts);
+  utils.dlog('package_apt: facts.os_family:', facts.os_family);
 
   if (facts.os_family !== 'debian') {
     return;

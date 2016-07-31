@@ -41,15 +41,17 @@ p2
 
 ///////////////
 // All nodes
-.node(true)
+//.node(true)
+//.node(function (f) { return f.os_family === 'debian'; })
 
-.package('ntp')
-.service('ntp', {
-  enabled: true,
-  ensure: 'running'
-})
 
-.package('debconf-utils')
+//.package('ntp')
+//.service('ntp', {
+//  enabled: true,
+//  ensure: 'running'
+//})
+//
+//.package('debconf-utils')
 
 .role('openstack_prepare_virt_host', {
   p2: function (title, opts) {
@@ -82,6 +84,15 @@ p2
       utils.dlog('>>> agent_classes:', f.agent_classes);
       return f.os_dist_id === 'ubuntu' && p2.hasClass('openstack_node');
     })
+
+    .package('ntp')
+    .service('ntp', {
+      enabled: true,
+      ensure: 'running'
+    })
+
+    .package('debconf-utils')
+
     .command('prep_for_openstack', {
       cmd: heredoc.strip(function () {/*
       export DEBIAN_FRONTEND="noninteractive";

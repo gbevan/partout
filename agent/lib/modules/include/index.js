@@ -108,7 +108,10 @@ var Include = P2M.Module(module.filename, function () {
       absfile = u.format('%s.p2', absfile);
     }
 
-    console.info('Including file', absfile);
+    if (utils.isVerbose()) {
+      console.info('Including file', absfile);
+    }
+
     try {
       require(absfile);
     } catch (e) {

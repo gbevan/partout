@@ -233,7 +233,9 @@ var Command = P2M.Module(module.filename, function () {
             return;
           }
 
-          console.info(u.format('Spawning command: `%s`', title)/*, 'sp_args:', sp_args*/);
+          if (utils.isVerbose()) {
+            console.info(u.format('Spawning command: `%s`', title)/*, 'sp_args:', sp_args*/);
+          }
           utils.runCmd(cmd, opts)
           .fail(function (err) {
             console.error(u.format('spawn failed for command: `%s`', title), 'err:', err);

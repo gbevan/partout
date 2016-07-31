@@ -91,7 +91,9 @@ var Role = P2M.Module(module.filename, function () {
       return;
     }
 
-    console.info('Creating module ' + name + ' from role');
+    if (utils.isVerbose()) {
+      console.info('Creating module ' + name + ' from role');
+    }
     _impl[name] = function (mod_title, mod_opts) {
       //console.log('in module instance:', name);
 
@@ -149,7 +151,7 @@ var Role = P2M.Module(module.filename, function () {
            */
           // defer pushing on to actions so facts run first
           _impl.push_action(function () {
-            console.info(u.format('Role: %s running action: %s', name, mod_title));
+            utils.vlog(u.format('Role: %s running action: %s', name, mod_title));
 
             var deferred = Q.defer();
 
