@@ -156,7 +156,7 @@ var Exec = P2M.Module(module.filename, function () {
         cb();
 
       } else {
-        console.log('Executing command:', cmd);
+        console.log('DEPRECATED: Executing command:', cmd);
         exec(cmd, opts, function (err, stdout, stderr) {
           if (stderr) {
             console.error(stderr);

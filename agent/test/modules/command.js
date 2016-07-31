@@ -47,23 +47,23 @@ Q.onerror = function (err) {
   console.error(err.stack);
 };
 
-// Simulate commandline options --verbose, --debug and --timing
-global.partout = {opts: {verbose: false, debug: false, timing: false}};
-
-
 describe('Module command', function () {
 
   it('Policy should spawn command without filter and generate an event', function (done) {
+
+    // Simulate commandline options --verbose, --debug and --timing
+    //global.partout = {opts: {verbose: true, debug: false, timing: false}};
+
     this.timeout(240000);
 
     var testFile = utils.escapeBackSlash(tmp.tmpNameSync() + '.TEST'),
         testFileEv = utils.escapeBackSlash(tmp.tmpNameSync() + '.TEST_EV');
 
     p2Test.runP2Str(heredoc(function () {/*
+      var SAVEP2 = p2;
       p2
       .command('MYTEST', {cmd: 'echo SUCCESS > {{{ testFile }}}'})
-      .emitter.on('command:MYTEST:changed', function () {
-        //console.log('**** in EVENT');
+      .on('command:MYTEST:changed', function () {
         p2
         .file('{{{ testFileEv }}}', {ensure: 'present'})
         ;
@@ -88,7 +88,12 @@ describe('Module command', function () {
       return pfs.pExists(testFileEv);
     })
     .then(function (exists) {
+//      if (!exists) {
+//        console.error('FAILED to create file:', testFileEv);
+//        process.exit(1);
+//      }
       exists.should.be.true;
+//      process.exit(2);
       return pfs.pUnlink(testFileEv);
     })
     .then(function (err) {

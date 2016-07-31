@@ -139,12 +139,15 @@ Policy.prototype.apply = function () {
         }
 
         var r = require(path.resolve(rfile));
-        //console.log('policy: r:', u.inspect(r, {colors: true, depth: 3}));
+        //console.log('policy: rfile:', rfile, 'r:', u.inspect(r, {colors: true, depth: 3}));
       });
 
       //console.log('policy after roles p2.chocolatey:', p2.chocolatey);
+      //console.log('policy after roles p2.logmsg:', p2.logmsg);
 
       require(abs_a);
+
+      //console.log('policy after abs_a p2.logmsg:', p2.logmsg);
 
       // execute the accrued steps
       p2.end(function () {

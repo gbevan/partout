@@ -51,15 +51,24 @@ if (!utils.isWin()) {
   return;
 }
 
-var isAdmin = false;
+var isAdmin = false,
+    facts = {};
 
-utils.pIsAdmin()
-.then(function (isA) {
-  isAdmin = isA;
+before(function(done) {
+  this.timeout(60000);
+  utils.pIsAdmin()
+  .then(function (isA) {
+    isAdmin = isA;
 
-  return p2Test.getP2Facts();
-})
-.done(function(facts) {
+    p2Test.getP2Facts()
+    .then(function (p2TestFacts) {
+      facts = p2TestFacts;
+      done();
+    });
+  });
+});
+
+describe('package_winfeature', function () {
 
   it('should provide winfeature package facts', function () {
     should(facts).not.be.undefined;
@@ -164,7 +173,7 @@ utils.pIsAdmin()
       });
     });
 
-  });
+  }); // describe package winfeature
 
 });
 
