@@ -41,12 +41,12 @@ var P2Test = {
    */
   runP2Str: function(p2Str, vars) {
 
-    var deferred = Q.defer(),
-        p2 = Mustache.render(p2Str, vars, {});
+    var deferred = Q.defer();
+    p2Str = Mustache.render(p2Str, vars, {});
 
-    p2 = utils.escapeBackSlash(p2);
+    p2Str = utils.escapeBackSlash(p2Str);
 
-    //console.log('p2Test cmd:', p2);
+    //console.log('p2Test cmd:', p2Str);
 
     utils.tlogs('tmp.file');
     tmp.file({keep: false}, function (err, tpath, fd, cleanupcb) {
@@ -56,7 +56,7 @@ var P2Test = {
         throw err;
       }
 
-      fs.write(fd, p2, 0, 'utf8', function (err) {
+      fs.write(fd, p2Str, 0, 'utf8', function (err) {
 
         utils.tlogs('new Policy');
         //console.log('tpath contents:\n', fs.readFileSync(tpath).toString());

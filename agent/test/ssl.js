@@ -67,7 +67,7 @@ describe('Ssl', function () {
 
   it('should have method genCsr()', function () {
     should(ssl.genCsr).not.be.undefined;
-    should(ssl.genCsr).be.function;
+    ssl.genCsr.should.be.a.Function();
   });
 
   describe('genCsr()', function () {

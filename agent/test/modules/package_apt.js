@@ -47,14 +47,24 @@ Q.longStackSupport = true;
 // Simulate commandline options --verbose, --debug and --timing
 //global.partout = {opts: {verbose: false, debug: true, timing: false}};
 
-var isAdmin = false;
+var isAdmin = false,
+    facts = {};
 
-utils.pIsAdmin()
-.then(function (isA) {
-  isAdmin = isA;
-  return p2Test.getP2Facts();
-})
-.done(function(facts) {
+before(function(done) {
+  this.timeout(60000);
+  utils.pIsAdmin()
+  .then(function (isA) {
+    isAdmin = isA;
+
+    p2Test.getP2Facts()
+    .then(function (p2TestFacts) {
+      facts = p2TestFacts;
+      done();
+    });
+  });
+});
+
+describe('package_apt', function () {
   utils.dlog('package_apt: facts.os_family:', facts.os_family);
 
   if (facts.os_family !== 'debian') {
