@@ -1,0 +1,16 @@
+# /etc/modules: kernel modules to load at boot time.
+#
+# This file contains the names of kernel modules that should be loaded
+# at boot time, one per line. Lines beginning with "#" are ignored.
+# Parameters can be specified after the module name.
+
+lp
+rtc
+
+# Chip drivers
+it87
+
+
+# fix RuntimeError: Exit code: 255; Stdin: ; Stdout: ; Stderr: sysctl: cannot stat /proc/sys/net/bridge/bridge-nf-call-arptables: No such file or directory
+
+br_netfilter
