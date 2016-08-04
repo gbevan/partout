@@ -54,11 +54,16 @@ p2
       return f.os_dist_id === 'ubuntu' && p2.hasClass('openstack_compute');
     })
 
+    .file('/etc/modules', {
+      ensure: 'present',
+      content: {template: path.join(__dirname, 'files', 'compute', 'modules_template')},
+    })
+
     .package('nova-compute')
 
     .file('/etc/nova/nova.conf', {
       ensure: 'present',
-      content:{template: path.join(__dirname, 'files', 'compute', 'nova_template.conf')},
+      content: {template: path.join(__dirname, 'files', 'compute', 'nova_template.conf')},
       parms: {
         controller_ip: opts.controller_ip,
         nova_user_pass: opts.nova_user_pass,
@@ -80,7 +85,7 @@ p2
 
     .file('/etc/neutron/neutron.conf', {
       ensure: 'present',
-      content:{template: path.join(__dirname, 'files', 'compute', 'neutron_template.conf')},
+      content: {template: path.join(__dirname, 'files', 'compute', 'neutron_template.conf')},
       parms: {
         controller_ip: opts.controller_ip,
         //nova_user_pass: opts.nova_user_pass,

@@ -83,7 +83,7 @@ p2
           }
         });
 
-        console.log('uvt_cloud_image: facts:', facts);
+        //console.log('uvt_cloud_image: facts:', facts);
         deferred.resolve(facts);
 
       });
@@ -110,7 +110,7 @@ p2
     .command('sync_uvt_image', {
       cmd: u.format('uvt-simplestreams-libvirt sync release=%s arch=%s', opts.release, opts.arch),
       onlyif: function (f) {
-        console.log('uvt_cloud_image: in cmd onlyif:', f.uvt_cloud_image[u.format('%s:%s', opts.release, opts.arch)] === undefined);
+        //console.log('uvt_cloud_image: in cmd onlyif:', f.uvt_cloud_image[u.format('%s:%s', opts.release, opts.arch)] === undefined);
         return f.uvt_cloud_image[u.format('%s:%s', opts.release, opts.arch)] === undefined;
       }
     });

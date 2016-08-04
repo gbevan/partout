@@ -288,10 +288,10 @@ Policy_Sync.prototype.sync = function (srcfolder, destfolder) {
 
         // remove empty folders under destfolder
         tasks.push(function (done) {
-          console.log('destfolder:', destfolder);
+          //console.log('destfolder:', destfolder);
           deleteEmpty(destfolder, {force: true}, function (err, deleted) {
-            console.log('err:', err);
-            console.log('empty dirs deleted:', deleted);
+            //console.log('err:', err);
+            utils.vlog('empty dirs deleted after sync:', deleted);
             done();
           });
         });
