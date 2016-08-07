@@ -126,7 +126,16 @@ p2
  *    release: 'trusty',
  *    memory: 512,  // MBs
  *    disk: 8,      // GBs
- *    cpu: 1        // num cpus
+ *    cpu: 1,        // num cpus
+ *    bridge: 'br0',
+ *    sshpubkey_files: files_list,
+ *    password: '*****', // optional
+ *    ipaddr: '....',
+ *    netmask: '...',
+ *    gateway: '...',
+ *    dns_nameservers: [],
+ *    meta_data_template: file,
+ *    user_data_template: file
  * })
  */
 .role('uvt_kvm', {
@@ -175,6 +184,10 @@ p2
     opts.autostart = (opts.autostart !== undefined ? opts.autostart : true);
 
     if (opts.ensure === 'present') {
+      if (p2.facts.uvt_kvm_instance[title]) {
+        return;
+      }
+
       var cmd = u.format('uvt-kvm create %s release=%s', title, opts.release);
 
       if (opts.memory) {
@@ -215,7 +228,13 @@ p2
       // create user_data file from template
       .file(cloud_user_data_file, {
         ensure: 'file',
-        content: {template: path.join(__dirname, 'files', 'cloud_user_data.template.yaml')},
+        content: {
+          template: (
+            opts.user_data_template ?
+            opts.user_data_template :
+            path.join(__dirname, 'files', 'cloud_user_data.template.yaml')
+            )
+        },
         parms: {
           hostname: title,
           password: opts.password,
@@ -226,12 +245,19 @@ p2
       // create meta_data file from template
       .file(cloud_meta_data_file, {
         ensure: 'file',
-        content: {template: path.join(__dirname, 'files', 'cloud_meta_data.template.yaml')},
+        content: {
+          template: (
+            opts.meta_data_template ?
+            opts.meta_data_template :
+            path.join(__dirname, 'files', 'cloud_meta_data.template.yaml')
+          )
+        },
         parms: {
           instance_uuid: uuid.v1(),
           ipaddr: opts.ipaddr,
           netmask: opts.netmask,
-          gateway: opts.gateway
+          gateway: opts.gateway,
+          dns_nameservers: (opts.dns_nameservers ? opts.dns_nameservers.join(' ') : '')
         }
       })
 

@@ -63,7 +63,7 @@ var _sendCsr = function (master, env) {
     csr: fs.readFileSync(ssl.agentCsrFile).toString()
   })
   .then(function (resp) {
-    console.log('resp to agentcsr:', resp);
+    //console.log('resp to agentcsr:', resp);
     resp = JSON.parse(resp);
     master.sendevent({
       object: 'partout-agent',
