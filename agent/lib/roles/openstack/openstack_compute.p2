@@ -58,6 +58,11 @@ p2
       ensure: 'present',
       content: {template: path.join(__dirname, 'files', 'compute', 'modules_template')},
     })
+    .on('file:/etc/modules:changed', function () {
+      p2
+      .command('modprobe br_netfilter')
+      ;
+    })
 
     .package('nova-compute')
 

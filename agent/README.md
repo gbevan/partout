@@ -146,7 +146,7 @@ apt-get install nfs-common
 Add the following entry to /etc/fstab
 
 ```
-your-master-host:/yourpath/partout/agent  /opt/partout/agent nfs defaults,ro,nolock,intr 0 0
+your-master-host:/yourpath/partout/agent  /opt/partout/agent nfs _netdev,ro,nolock,intr,bg 0 0
 ```
 
 ```bash
