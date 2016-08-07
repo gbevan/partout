@@ -7,6 +7,8 @@ The goal is to develop a pure Javascript/Node.js DevOps Data and Event Driven Po
 
 \* THIS PROJECT IS UNDER DEVELOPMENT AND IS NOT READY FOR **ANY** FORM OF PRODUCTION USE YET \*
 
+See also [this OpenStack Proof-of-concept deployment using Partout](https://github.com/partoutx/partout).
+
 Licensed under the GNU General Public License Version 3 (GPLv3 - see [COPYING](./COPYING)).
 
 Features
