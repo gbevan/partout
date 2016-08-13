@@ -103,6 +103,8 @@ p2
 
     } else if (opts.ensure === 'absent') {
 
+      // TODO: detach and optionally delete a disk img
+
       // virsh domblklist controller1
       // Target     Source
       // ------------------------------------------------

@@ -50,14 +50,16 @@ p2
 // neutron net-create ext-net --router:external --provider:physical_network provider --provider:network_type flat --shared
 .role('neutron_net', {
   p2: function (title, opts) {
-    return utils.runCmd(u.format('neutron net-list --format json'))
+    //console.log('env:', process.env);
+    return utils.runCmd(u.format('sleep 10; neutron net-list --format json'))
     .then(function (res) {
+      //console.log('neutron_net res:', res);
       var rc = res[0],
           stdout = res[1],
           stderr = res[2];
 
       if (rc !== 0) {
-        return Q.reject(new Error('neutron net-list failed, stderr:', stderr));
+        return Q.reject(new Error('neutron net-list failed, stderr: ' + stderr));
       }
 
       var net_list = JSON.parse(stdout || '[]'),

@@ -1,0 +1,81 @@
+/*
+    Partout [Everywhere] - Policy-Based Configuration Management for the
+    Data-Driven-Infrastructure.
+
+    Copyright (C) 2016 Graham Lee Bevan <graham.bevan@ntlworld.com>
+
+    This file is part of Partout.
+
+    Partout is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*jslint node: true, nomen: true */
+'use strict';
+/*global p2*/
+
+// make parent node_modules available to sync'd manifest
+//module.paths = module.paths.concat(module.parent.paths);
+
+var utils = new (p2.require('utils'))(),
+    u = require('util'),
+    fs = require('fs'),
+    path = require('path'),
+    heredoc = require('heredoc'),
+    uuid = require('uuid');
+
+p2
+
+/**
+ * .vg('vgcinder00', {
+ *   ensure: 'present|absent',
+ *   pv: '/dev/vdc'
+ * })
+ */
+.role('vg', {
+  p2: function (title, opts) {
+    opts.ensure = (opts.ensure ? opts.ensure : 'present');
+
+    if (opts.ensure === 'present') {
+      p2
+      .command(u.format('vgdisplay %s', title), {
+        returns: 'ignore'
+      }, function (rc, stdout, stderr) {
+        if (rc === 0) { // already created?
+          return;
+        }
+
+        p2
+        .command(u.format('vgcreate %s %s', title, opts.pv))
+        ;
+      })
+      ;
+
+    } else if (opts.ensure === 'absent') {
+      p2
+      .command(u.format('vgdisplay %s', title), {
+        returns: 'ignore'
+      }, function (rc, stdout, stderr) {
+        if (rc !== 0) { // already created?
+          return;
+        }
+
+        p2
+        .command(u.format('vgremove %s', title))
+        ;
+      })
+      ;
+    }
+
+  }
+});

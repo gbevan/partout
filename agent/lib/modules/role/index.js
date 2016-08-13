@@ -168,7 +168,10 @@ var Role = P2M.Module(module.filename, function () {
               var deferred = Q.defer();
 
               utils.dlog('role: action: calling p2:', opts.p2);
-              var role_promise = opts.p2(mod_title, mod_opts); // pushes it's own actions to run next
+              var role_promise = opts.p2(
+                mod_title,
+                (mod_opts ? mod_opts : {})
+              ); // pushes it's own actions to run next
 
               if (!Q.isPromise(role_promise)) {
                 role_promise = Q();

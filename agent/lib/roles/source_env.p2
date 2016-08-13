@@ -57,11 +57,15 @@ p2
 
       var cmd = '. ' + script + '; env';
 
-      console.log('in source_env cmd:', cmd);
+      //console.log('in source_env cmd:', cmd);
+
+      p2.pushSteps();
+
       p2
       .command('Sourcing environment from ' + cmd, {
         cmd: cmd
       }, function (rc, stdout, stderr) {
+        //console.log('after source_env:', rc, stdout, stderr);
         if (rc !== 0) {
           console.error(stderr);
           throw new Error(stderr);
@@ -79,6 +83,8 @@ p2
         });
 
       });
+
+      p2.flattenSteps();
 
       deferred.resolve();
     });
