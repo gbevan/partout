@@ -116,19 +116,16 @@ Policy.prototype.apply = function () {
      * Load core roles
      */
     var rolespath = path.join('lib', 'roles');
-    //pfs.walk('lib/roles')
+
     pfs.pReadDir(rolespath)
     .then(function (roles_manifest) {
-      //_.each(roles_manifest, function (robj, rfile) {
       _.each(roles_manifest, function (rfile) {
-        //console.log('policy: robj:', robj);
         rfile = path.join(rolespath, rfile);
 
         var rfile_stat;
         try {
           rfile_stat = fs.statSync(rfile); // must be sync!
         } catch (e) {
-          //console.log(e);
           if (e.code !== 'ENOENT') {
             throw(e);
           }
@@ -139,15 +136,9 @@ Policy.prototype.apply = function () {
         }
 
         var r = require(path.resolve(rfile));
-        //console.log('policy: rfile:', rfile, 'r:', u.inspect(r, {colors: true, depth: 3}));
       });
 
-      //console.log('policy after roles p2.chocolatey:', p2.chocolatey);
-      //console.log('policy after roles p2.logmsg:', p2.logmsg);
-
       require(abs_a);
-
-      //console.log('policy after abs_a p2.logmsg:', p2.logmsg);
 
       // execute the accrued steps
       p2.end(function () {
@@ -155,6 +146,7 @@ Policy.prototype.apply = function () {
         utils.vlog('### END OF APPLY ################################');
         deferred.resolve();
       });
+
     })
     .done(null, function (err) {
       console.error('Policy load of roles failed');

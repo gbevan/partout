@@ -1,0 +1,118 @@
+/*
+    Partout [Everywhere] - Policy-Based Configuration Management for the
+    Data-Driven-Infrastructure.
+
+    Copyright (C) 2016 Graham Lee Bevan <graham.bevan@ntlworld.com>
+
+    This file is part of Partout.
+
+    Partout is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*jslint node: true, nomen: true */
+'use strict';
+/*global p2*/
+
+// make parent node_modules available to sync'd manifest
+//module.paths = module.paths.concat(module.parent.paths);
+
+var utils = new (p2.require('utils'))(),
+    u = require('util'),
+    fs = require('fs'),
+    path = require('path'),
+    heredoc = require('heredoc'),
+    uuid = require('uuid');
+
+p2
+
+/**
+ * .virsh_disk('/path/disk.img', {
+ *   ensure: 'present|absent',
+ *   sizeGbs: 1,
+ *   attachedTo: 'controller1',
+ *   target: 'vdc',
+ *   persistent: true,
+ *   format: 'raw'  // optional, guessed by qemu-img
+ * })
+ */
+.role('virsh_disk', {
+  p2: function (title, opts) {
+    opts.ensure = (opts.ensure ? opts.ensure : 'present');
+
+    if (opts.ensure === 'present') {
+
+      // qemu-img create -f raw example-vm-swap.img 1G
+      p2
+      .command(u.format(
+        'qemu-img create %s %s %dG',
+        title,
+        (opts.format ? '-f ' + opts.format : ''),
+        opts.sizeGbs
+      ), {
+        creates: title
+      });
+
+      if (opts.attachedTo) {
+        p2
+        .command(u.format('virsh domblklist %s | tail -n +3', opts.attachedTo), function (rc, stdout, stderr) {
+          if (rc !== 0) {
+            throw new Error('virsh domblklist failed with rc:' + rc);
+          }
+
+          var lines = stdout.split(/\r?\n/),
+              foundThis = false;
+          lines.forEach(function (line) {
+            if (line.trim() !== '') {
+              var flds = line.split(/\s+/),
+                  target = flds[0],
+                  path = flds[1];
+              if (path === title) {
+                foundThis = true;
+              }
+            }
+          });
+
+          if (!foundThis) {
+            // virsh attach-disk example-vm --source /var/lib/libvirt/images/example-vm-swap.img --target vdb --persistent
+            p2
+            .command(u.format(
+              'virsh attach-disk %s --source %s --target %s %s',
+              opts.attachedTo,
+              title,
+              opts.target,
+              (opts.persistent ? '--persistent' : '')
+            ))
+            ;
+          }
+
+        })
+        ;
+      }
+
+
+    } else if (opts.ensure === 'absent') {
+
+      // virsh domblklist controller1
+      // Target     Source
+      // ------------------------------------------------
+      // vda        /var/lib/uvtool/libvirt/images/controller1.qcow
+      // vdb        /var/lib/uvtool/libvirt/images/controller1-ds.qcow
+
+      // virsh detach-disk example-vm --target vdb --persistent
+
+      // rm -f /var/lib/libvirt/images/example-vm-swap.img
+    }
+  }
+})
+;
