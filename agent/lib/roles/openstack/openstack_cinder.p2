@@ -27,16 +27,50 @@
 // make parent node_modules available to sync'd manifest
 module.paths = module.paths.concat(module.parent.paths);
 
-var heredoc = require('heredoc');
+var heredoc = require('heredoc'),
+    u = require('util');
 
 p2
 
+/**
+ * .openstack_cinder('', {
+ *   lvm_filter_list: [ 'a/vdc/', etc... ]
+ * })
+ */
 .role('openstack_cinder', {
   p2: function (title, opts) {
+    opts.lvm_filter_list = (opts.lvm_filter_list || []);
+    opts.lvm_filter_list.push('r/.*/'); // reject everything else by default
+
+    var filter_parm = '',
+        first = true;
+
+    opts.lvm_filter_list.forEach(function (f) {
+      if (first) {
+        first = false;
+        filter_parm += u.format('"%s"', f);
+      } else {
+        filter_parm += u.format(', "%s"', f);
+      }
+    });
+
     p2
     .node(function (f) {
       return f.os_dist_id === 'ubuntu' && p2.hasClass('openstack_cinder');
     })
+
+    .package('qemu')
+    .package('lvm2')
+
+    .str_replace_infile('/etc/lvm/lvm.conf', {
+      regex: /^\s*filter\s*=.*$/mg,
+      with: u.format('    filter = [ %s]', filter_parm)
+    })
+
+    .package('cinder-volume')
+    .package('python-mysqldb')
+
+    //.file('/etc/cinder/cinder.conf')    // poc has cinder on the controller, same file
 
 
 

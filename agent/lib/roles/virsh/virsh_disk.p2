@@ -50,6 +50,23 @@ p2
   p2: function (title, opts) {
     opts.ensure = (opts.ensure ? opts.ensure : 'present');
 
+    function isAttached(stdout) {
+      var lines = stdout.split(/\r?\n/),
+          foundThis = false;
+      lines.forEach(function (line) {
+        if (line.trim() !== '') {
+          var flds = line.split(/\s+/),
+              target = flds[0],
+              path = flds[1];
+          if (path === title) {
+            foundThis = true;
+          }
+        }
+      });
+
+      return foundThis;
+    }
+
     if (opts.ensure === 'present') {
 
       // qemu-img create -f raw example-vm-swap.img 1G
@@ -70,20 +87,7 @@ p2
             throw new Error('virsh domblklist failed with rc:' + rc);
           }
 
-          var lines = stdout.split(/\r?\n/),
-              foundThis = false;
-          lines.forEach(function (line) {
-            if (line.trim() !== '') {
-              var flds = line.split(/\s+/),
-                  target = flds[0],
-                  path = flds[1];
-              if (path === title) {
-                foundThis = true;
-              }
-            }
-          });
-
-          if (!foundThis) {
+          if (!isAttached(stdout)) {
             // virsh attach-disk example-vm --source /var/lib/libvirt/images/example-vm-swap.img --target vdb --persistent
             p2
             .command(u.format(
@@ -103,7 +107,7 @@ p2
 
     } else if (opts.ensure === 'absent') {
 
-      // TODO: detach and optionally delete a disk img
+      // TODO: detach and delete a disk img
 
       // virsh domblklist controller1
       // Target     Source
@@ -111,9 +115,34 @@ p2
       // vda        /var/lib/uvtool/libvirt/images/controller1.qcow
       // vdb        /var/lib/uvtool/libvirt/images/controller1-ds.qcow
 
-      // virsh detach-disk example-vm --target vdb --persistent
+      if (opts.attachedTo) {
+        p2
+        .command(u.format('virsh domblklist %s | tail -n +3', opts.attachedTo), function (rc, stdout, stderr) {
+          if (rc !== 0) {
+            throw new Error('virsh domblklist failed with rc:' + rc);
+          }
+
+          if (isAttached(stdout)) {
+            // virsh detach-disk example-vm --target vdb --persistent
+            p2
+            .command(u.format(
+              'virsh detach-disk %s --target %s %s',
+              opts.attachedTo,
+              opts.target,
+              (opts.persistent ? '--persistent' : '')
+            ))
+            ;
+          }
+
+        })
+        ;
+      }
 
       // rm -f /var/lib/libvirt/images/example-vm-swap.img
+      p2
+      .file(title, {
+        ensure: 'absent'
+      });
     }
   }
 })
