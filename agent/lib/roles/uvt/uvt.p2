@@ -301,7 +301,12 @@ p2
 
     } else if (opts.ensure === 'absent') {
       p2
-      .command(u.format('uvt-kvm destroy %s', title), {
+      .command(u.format(
+        'uvt-kvm destroy %s || virsh destroy %s || virsh undefine %s',
+        title,
+        title,
+        title
+      ), {
         onlyif: function (f) {
           return f.uvt_kvm_instance[title] !== undefined;
         }

@@ -28,13 +28,20 @@
 module.paths = module.paths.concat(module.parent.paths);
 
 var heredoc = require('heredoc'),
-    u = require('util');
+    u = require('util'),
+    path = require('path');
 
 p2
 
 /**
  * .openstack_cinder('', {
- *   lvm_filter_list: [ 'a/vdc/', etc... ]
+ *   lvm_filter_list: [ 'a/vdc/', etc... ],
+ *   cinder_db_pass: '*****',
+ *   cinder_user_pass: '*****',
+ *   rabbit_host: 'controller1',
+ *   rabbit_pass: '*****',
+ *   glance_host: 'controller1',
+ *   controller_host: 'controller1'
  * })
  */
 .role('openstack_cinder', {
@@ -70,9 +77,29 @@ p2
     .package('cinder-volume')
     .package('python-mysqldb')
 
-    //.file('/etc/cinder/cinder.conf')    // poc has cinder on the controller, same file
+    .file('/etc/cinder/cinder.conf', {
+      ensure: 'present',
+      content:{template: path.join(__dirname, 'files', 'cinder', 'cinder_conf_template.conf')},
+      parms: {
+        cinder_db_pass: opts.cinder_db_pass,
+        cinder_user_pass: opts.cinder_user_pass,
+        rabbit_pass: opts.rabbit_pass,
+        rabbit_host: opts.rabbit_host,
+        glance_host: opts.glance_host,
+        controller_host: opts.controller_host
+      }
+    })
 
+    .on('file:/etc/cinder/cinder.conf:changed', function () {
+      p2
+      .service('tgt', {ensure: 'stopped'})
+      .service('tgt', {ensure: 'running'})
+      .service('cinder-volume', {ensure: 'stopped'})
+      .service('cinder-volume', {ensure: 'running'})
+      ;
+    })
 
+    .file('/var/lib/cinder/cinder.sqlite', {ensure: 'absent'})
 
     ;
   }

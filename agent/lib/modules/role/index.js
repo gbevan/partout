@@ -158,46 +158,38 @@ var Role = P2M.Module(module.filename, function () {
             utils.vlog(u.format('Role: %s running action: %s', name, mod_title));
 
 
-            //p2.pushSteps(); // save steps state
+            p2.pushSteps(); // save steps state
 
-            //push_refreshFacts();
-            //console.log('after push_refreshFacts()');
+            var deferred = Q.defer();
 
-            // push p2 onto actions list
-            //_impl.push_action(function () {
-              var deferred = Q.defer();
+            utils.dlog('role: action: calling p2:', opts.p2);
+            var role_promise = opts.p2(
+              mod_title,
+              (mod_opts ? mod_opts : {})
+            ); // pushes it's own actions to run next
 
-              utils.dlog('role: action: calling p2:', opts.p2);
-              var role_promise = opts.p2(
-                mod_title,
-                (mod_opts ? mod_opts : {})
-              ); // pushes it's own actions to run next
+            if (!Q.isPromise(role_promise)) {
+              role_promise = Q();
+            }
+            role_promise
+            .done(function (role_res) {
+              utils.dlog('role_promise resolved - role_res:', role_res);
+              //p2.pushSteps(); // save steps state
+              push_refreshFacts();
+              p2.flattenSteps(); // pop previous steps state after new steps
 
-              if (!Q.isPromise(role_promise)) {
-                role_promise = Q();
-              }
-              role_promise
-              .done(function (role_res) {
-                utils.dlog('role_promise resolved - role_res:', role_res);
-                p2.pushSteps(); // save steps state
-                push_refreshFacts();
-                p2.flattenSteps(); // pop previous steps state after new steps
+              deferred.resolve();
 
-                deferred.resolve();
+            }, function (err) {
+              console.error(heredoc(function () {/*
+********************************************************
+*** Role Module Caught Error:
+              */}), err);
+              deferred.reject(err);
+            });
 
-              }, function (err) {
-                console.error(heredoc(function () {/*
-  ********************************************************
-  *** Role Module Caught Error:
-                */}), err);
-                deferred.reject(err);
-              });
-
-              return deferred.promise;
-            //});
-
-            //p2.flattenSteps(); // pop previous steps state after new steps
-          });
+            return deferred.promise;
+        });
         }
 
       } // ifNode

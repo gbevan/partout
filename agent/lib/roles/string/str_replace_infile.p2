@@ -47,11 +47,9 @@ p2
  */
 .role('str_replace_infile', {
   p2: function (title, opts) {
-    console.log('in str_replace_infile opts:', opts);
     return pfs.pReadFile(title, 'utf8')
     .then(function (contents) {
       var newcontents = contents.replace(opts.regex, opts.with);
-      console.log('newcontents === contents', (newcontents === contents));
       if (newcontents !== contents) {
         return pfs.pWriteFile(title, newcontents);
       }

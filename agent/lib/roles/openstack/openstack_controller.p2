@@ -1068,6 +1068,15 @@ EOF
       }
     })
 
+    .on('file:/etc/cinder/cinder.conf:changed', function () {
+      p2
+      .service('cinder-scheduler', { ensure: 'stopped'})
+      .service('cinder-scheduler', { ensure: 'running'})
+      .service('cinder-api', { ensure: 'stopped'})
+      .service('cinder-api', { ensure: 'running'})
+      ;
+    })
+
     .command('populate block storage db', {
       cmd: heredoc(function () {/*
         su -s /bin/sh -c "cinder-manage db sync" cinder && \

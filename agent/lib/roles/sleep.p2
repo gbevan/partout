@@ -43,6 +43,8 @@ p2
   p2: function (title, opts) {
     var deferred = Q.defer();
 
+    opts.seconds = (opts.seconds ? opts.seconds : title);
+
     console.info(new Date(), 'Sleeping for', opts.seconds, 'seconds:', title);
     setTimeout(function () {
       console.info(new Date(), 'Continuing after sleep:', title);
