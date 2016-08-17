@@ -25,13 +25,38 @@
 /*global p2*/
 
 // make parent node_modules available to sync'd manifest
-module.paths = module.paths.concat(module.parent.paths);
+//module.paths = module.paths.concat(module.parent.paths);
 
-var path = require('path');
+var Q = require('q'),
+    u = require('util');
 
 p2
 
-.include(path.join(__dirname, 'virsh_disk'))
-.include(path.join(__dirname, 'virsh_iface'))
+/**
+ * p2
+ * .reboot('reason_doc', {
+ *   first_boot: true|false  // set cloud-init first boot runcmd to run again after reboot
+ * })
+ *
+ */
+.role('reboot', {
+  p2: function (title, opts) {
 
+    console.warn(new Date(), 'Rebooting now for', title);
+
+    p2
+    .clear_actions()
+    ;
+
+
+    if (opts.first_boot) {
+      p2
+      .file('/var/lib/cloud/instance/sem/config_scripts_user', {ensure: 'absent'})
+      ;
+    }
+    p2
+    .command('reboot')
+    ;
+  }
+})
 ;

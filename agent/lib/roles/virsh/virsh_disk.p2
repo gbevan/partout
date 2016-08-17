@@ -51,6 +51,7 @@ p2
 .role('virsh_disk', {
   p2: function (title, opts) {
     opts.ensure = (opts.ensure ? opts.ensure : 'present');
+    opts.persistent = (opts.persistent !== undefined ? opts.persistent : true);
 
     function isAttached(stdout) {
       var lines = stdout.split(/\r?\n/),
