@@ -1,0 +1,136 @@
+/*
+    Partout [Everywhere] - Policy-Based Configuration Management for the
+    Data-Driven-Infrastructure.
+
+    Copyright (C) 2016 Graham Lee Bevan <graham.bevan@ntlworld.com>
+
+    This file is part of Partout.
+
+    Partout is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*jslint node: true, nomen: true */
+'use strict';
+/*global p2*/
+
+// make parent node_modules available to sync'd manifest
+//module.paths = module.paths.concat(module.parent.paths);
+
+var utils = new (p2.require('utils'))(),
+    u = require('util'),
+    fs = require('fs'),
+    path = require('path'),
+    heredoc = require('heredoc'),
+    uuid = require('uuid'),
+    Q = require('q'),
+    pfs = new (p2.require('pfs'))();
+
+p2
+
+/**
+ * .virsh_iface('br1', {
+ *   type: 'bridge',
+ *   attachedTo: 'cinder1',
+ *   target: 'eth1',
+ *   model: 'virtio',
+ *   persistent: true
+ * })
+ */
+.role('virsh_iface', {
+  p2: function (title, opts) {
+    opts.ensure = (opts.ensure ? opts.ensure : 'present');
+    opts.type = (opts.type ? opts.type : 'bridge');
+    opts.model = (opts.model ? opts.model : 'virtio');
+    opts.persistent = (opts.persistent !== undefined ? opts.persistent : true);
+
+    if (!opts.attachedTo || opts.attachedTo === '') {
+      return Q.reject(new Error('attachedTo parameter required'));
+    }
+
+    // virsh domiflist cinder1
+    // Interface  Type       Source     Model       MAC
+    // -------------------------------------------------------
+    // vnet1      bridge     br0        virtio      52:54:00:36:f7:23
+
+    return utils.runCmd(u.format('virsh domiflist %s | tail -n +3', title))
+    .then(function (res) {
+      var rc = res[0],
+          stdout = res[1],
+          stderr = res[2];
+
+      if (rc !== 0) {
+        return Q.reject(new Error('virsh domiflist failed rc:', rc));
+      }
+
+      var lines = stdout.split(/\r?\n/),
+          isAttached = false,
+          saveMac;
+      lines.forEach(function (line) {
+        if (line.trim() !== '') {
+          var flds = line.split(/\s+/),
+              iface = flds[0],
+              type = flds[1],
+              source = flds[2],
+              model = flds[3],
+              mac = flds[4].trim();
+
+          if (source === title) {
+            isAttached = true;
+            saveMac = mac;
+          }
+        }
+      });
+
+      if (opts.ensure === 'present') {
+        if (!isAttached) {
+          // virsh attach-interface cinder1 bridge br0 --target eth1 --model virtio --persistent
+          //                        ~~~~~~~ ~~~~~~ ~~~
+          p2
+          .command(u.format(
+            'virsh attach-interface %s %s %s %s --model %s %s',
+            opts.attachedTo,
+            opts.type,
+            title,
+            (opts.target ? '--target ' + opts.target : ''),
+            opts.model,
+            (opts.persistent ? '--persistent' : '')
+          ))
+          ;
+        }
+        //return Q.resolve();
+
+      } else if (opts.ensure === 'absent') {
+        if (isAttached) {
+          // virsh detach-interface cinder1 bridge --mac 00:... --persistent
+          p2
+          .command(u.format(
+            'virsh detach-interface %s %s --mac %s %s',
+            opts.attachedTo,
+            opts.type,
+            saveMac,
+            (opts.persistent ? '--persistent' : '')
+          ))
+          ;
+
+        }
+        //return Q.resolve();
+
+      }
+
+    });
+
+  }
+})
+
+;

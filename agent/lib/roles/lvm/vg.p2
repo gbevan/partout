@@ -27,31 +27,55 @@
 // make parent node_modules available to sync'd manifest
 //module.paths = module.paths.concat(module.parent.paths);
 
-var Q = require('q'),
-    u = require('util');
+var utils = new (p2.require('utils'))(),
+    u = require('util'),
+    fs = require('fs'),
+    path = require('path'),
+    heredoc = require('heredoc'),
+    uuid = require('uuid');
 
 p2
 
 /**
- * p2
- * .sleep('title', {
- *   seconds: 60
+ * .vg('vgcinder00', {
+ *   ensure: 'present|absent',
+ *   pv: '/dev/vdc'
  * })
- *
  */
-.role('sleep', {
+.role('vg', {
   p2: function (title, opts) {
-    var deferred = Q.defer();
+    opts.ensure = (opts.ensure ? opts.ensure : 'present');
 
-    opts.seconds = (opts.seconds ? opts.seconds : title);
+    if (opts.ensure === 'present') {
+      p2
+      .command(u.format('vgdisplay %s', title), {
+        returns: 'ignore'
+      }, function (rc, stdout, stderr) {
+        if (rc === 0) { // already created?
+          return;
+        }
 
-    console.info(new Date(), 'Sleeping for', opts.seconds, 'seconds:', title);
-    setTimeout(function () {
-      console.info(new Date(), 'Continuing after sleep:', title);
-      deferred.resolve();
-    }, 1000 * opts.seconds);
+        p2
+        .command(u.format('vgcreate %s %s', title, opts.pv))
+        ;
+      })
+      ;
 
-    return deferred.promise;
+    } else if (opts.ensure === 'absent') {
+      p2
+      .command(u.format('vgdisplay %s', title), {
+        returns: 'ignore'
+      }, function (rc, stdout, stderr) {
+        if (rc !== 0) { // already created?
+          return;
+        }
+
+        p2
+        .command(u.format('vgremove %s', title))
+        ;
+      })
+      ;
+    }
+
   }
-})
-;
+});

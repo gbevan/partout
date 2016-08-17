@@ -1,7 +1,7 @@
 # Module: Command
 
      p2.node([...])
-       .command('a command', options, function (err, stdout, stderr) { ... });
+       .command('a command', options, function (rc, stdout, stderr) { ... });
 
 Options (from https://nodejs.org/api/child_process.html#child_process_child_process_spawn_command_args_options):
 

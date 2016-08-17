@@ -31,10 +31,7 @@ var path = require('path');
 
 p2
 
-.include(path.join(__dirname, 'openstack_prep'))
-.include(path.join(__dirname, 'openstack_controller'))
-.include(path.join(__dirname, 'openstack_compute'))
-.include(path.join(__dirname, 'openstack_cinder'))
-.include(path.join(__dirname, 'neutron'))
+.include(path.join(__dirname, 'pv'))
+.include(path.join(__dirname, 'vg'))
 
 ;

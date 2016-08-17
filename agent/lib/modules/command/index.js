@@ -266,21 +266,19 @@ var Command = P2M.Module(module.filename, function () {
 
             var err2;
             if (opts.returns) {
-              if (rc !== opts.returns) {
-                if (stderr) {
-                  console.error(stderr);
-                }
-                if (stdout) {
-                  console.log(stdout);
-                }
-                cb('failed');
+              if (opts.returns !== 'ignore') {
+                if (rc !== opts.returns) {
+                  if (stderr) {
+                    console.error(stderr);
+                  }
+                  if (stdout) {
+                    console.log(stdout);
+                  }
+                  cb('failed');
 
-                // XXX: is it correct to throw an error here?
-//                err2 = new Error('Return code does not match expected by returns option');
-//                err2.code = rc;
-//                throw err2;
-                return;
-              }
+                  return;
+                }
+              } // not ignore
             } else {
               if (rc !== 0) {
                 if (stderr) {

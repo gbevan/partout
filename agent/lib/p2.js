@@ -505,6 +505,7 @@ var P2 = function () {
    */
   self._impl.clear_actions = function () {
     self._impl.steps = [];
+    self._impl.steps_stack = [];
   };
 
   /**

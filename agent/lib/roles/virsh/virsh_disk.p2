@@ -1,0 +1,185 @@
+/*
+    Partout [Everywhere] - Policy-Based Configuration Management for the
+    Data-Driven-Infrastructure.
+
+    Copyright (C) 2016 Graham Lee Bevan <graham.bevan@ntlworld.com>
+
+    This file is part of Partout.
+
+    Partout is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*jslint node: true, nomen: true */
+'use strict';
+/*global p2*/
+
+// make parent node_modules available to sync'd manifest
+//module.paths = module.paths.concat(module.parent.paths);
+
+var utils = new (p2.require('utils'))(),
+    u = require('util'),
+    fs = require('fs'),
+    path = require('path'),
+    heredoc = require('heredoc'),
+    uuid = require('uuid'),
+    Q = require('q'),
+    pfs = new (p2.require('pfs'))();
+
+p2
+
+/**
+ * .virsh_disk('/path/disk.img', {
+ *   ensure: 'present|absent',
+ *   sizeGbs: 1,
+ *   attachedTo: 'controller1',
+ *   target: 'vdc',
+ *   persistent: true,
+ *   format: 'raw'  // optional, guessed by qemu-img
+ * })
+ */
+.role('virsh_disk', {
+  p2: function (title, opts) {
+    opts.ensure = (opts.ensure ? opts.ensure : 'present');
+    opts.persistent = (opts.persistent !== undefined ? opts.persistent : true);
+
+    function isAttached(stdout) {
+      var lines = stdout.split(/\r?\n/),
+          foundThis = false;
+      lines.forEach(function (line) {
+        if (line.trim() !== '') {
+          var flds = line.split(/\s+/),
+              target = flds[0],
+              path = flds[1];
+          if (path === title) {
+            foundThis = true;
+          }
+        }
+      });
+
+      return foundThis;
+    }
+
+    if (opts.ensure === 'present') {
+
+      // TODO: cant async p2 - use utils.runcmd() etc
+
+      // qemu-img create -f raw example-vm-swap.img 1G
+
+      return pfs.pExists(title)
+      .then(function (exists) {
+        if (!exists) {
+          return utils.runCmd(u.format(
+            'qemu-img create %s %s %dG',
+            title,
+            (opts.format ? '-f ' + opts.format : ''),
+            opts.sizeGbs
+          ));
+        }
+      })
+      .then(function () {
+
+        if (opts.attachedTo) {
+          return utils.runCmd(u.format('virsh domblklist %s | tail -n +3', opts.attachedTo))
+          .then(function (res) {
+            var rc = res[0],
+                stdout = res[1],
+                stderr = res[2];
+
+            if (rc !== 0) {
+              return Q.reject(new Error('virsh domblklist failed with rc:' + rc));
+            }
+
+            if (!isAttached(stdout)) {
+              // virsh attach-disk example-vm --source /var/lib/libvirt/images/example-vm-swap.img --target vdb --persistent
+              p2
+              .command(u.format(
+                'virsh attach-disk %s --source %s --target %s %s',
+                opts.attachedTo,
+                title,
+                opts.target,
+                (opts.persistent ? '--persistent' : '')
+              ))
+              ;
+            }
+
+            return Q.resolve();
+          });
+
+        } else {
+          return Q.resolve();
+        }
+      });
+
+
+    } else if (opts.ensure === 'absent') {
+      //console.log('virsh_disk absent');
+
+      // TODO: detach and delete a disk img
+
+      // virsh domblklist controller1
+      // Target     Source
+      // ------------------------------------------------
+      // vda        /var/lib/uvtool/libvirt/images/controller1.qcow
+      // vdb        /var/lib/uvtool/libvirt/images/controller1-ds.qcow
+
+      if (opts.attachedTo) {
+
+        return pfs.pExists(title)
+        .then(function (exists) {
+          if (exists) {
+            return utils.runCmd(u.format('virsh domblklist %s | tail -n +3', opts.attachedTo))
+            .then(function (res) {
+              var rc = res[0],
+                  stdout = res[1],
+                  stderr = res[2];
+
+              if (rc !== 0) {
+                return Q.reject(new Error('virsh domblklist failed with rc:' + rc));
+              }
+
+              if (isAttached(stdout)) {
+                //console.log('virsh_disk', opts.target, 'is attached, detaching');
+                // virsh detach-disk example-vm --target vdb --persistent
+                p2
+                .command(u.format(
+                  'virsh detach-disk %s --target %s %s',
+                  opts.attachedTo,
+                  opts.target,
+                  (opts.persistent ? '--persistent' : '')
+                ))
+                .file(title, {
+                  ensure: 'absent'
+                })
+                ;
+              }
+
+              return Q.resolve();
+            });
+          } // exists ?
+
+        })
+        ;
+      } else {
+        p2
+        .file(title, {
+          ensure: 'absent'
+        })
+        ;
+      }
+
+    }
+
+  }
+})
+;

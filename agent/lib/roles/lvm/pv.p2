@@ -27,31 +27,56 @@
 // make parent node_modules available to sync'd manifest
 //module.paths = module.paths.concat(module.parent.paths);
 
-var Q = require('q'),
-    u = require('util');
+var utils = new (p2.require('utils'))(),
+    u = require('util'),
+    fs = require('fs'),
+    path = require('path'),
+    heredoc = require('heredoc'),
+    uuid = require('uuid');
 
 p2
 
 /**
- * p2
- * .sleep('title', {
- *   seconds: 60
+ * .pv('/dev/vdc', {
+ *   ensure: 'present|absent'
  * })
- *
  */
-.role('sleep', {
+.role('pv', {
   p2: function (title, opts) {
-    var deferred = Q.defer();
+    opts.ensure = (opts.ensure ? opts.ensure : 'present');
 
-    opts.seconds = (opts.seconds ? opts.seconds : title);
+    if (opts.ensure === 'present') {
+      // pvcreate
+      p2
+      .command(u.format('pvdisplay %s', title), {
+        returns: 'ignore'
+      }, function (rc, stdout, stderr) {
+        if (rc === 0) { // already created?
+          return;
+        }
 
-    console.info(new Date(), 'Sleeping for', opts.seconds, 'seconds:', title);
-    setTimeout(function () {
-      console.info(new Date(), 'Continuing after sleep:', title);
-      deferred.resolve();
-    }, 1000 * opts.seconds);
+        p2
+        .command(u.format('pvcreate -y %s', title))
+        ;
+      })
+      ;
 
-    return deferred.promise;
+    } else if (opts.ensure === 'absent') {
+      // pvremove
+      p2
+      .command(u.format('pvdisplay %s', title), {
+        returns: 'ignore'
+      }, function (rc, stdout, stderr) {
+        if (rc !== 0) { // already created?
+          return;
+        }
+
+        p2
+        .command(u.format('pvremove -y %s', title))
+        ;
+      })
+      ;
+    }
+
   }
-})
-;
+});

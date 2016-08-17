@@ -25,16 +25,37 @@
 /*global p2*/
 
 // make parent node_modules available to sync'd manifest
-module.paths = module.paths.concat(module.parent.paths);
+//module.paths = module.paths.concat(module.parent.paths);
 
-var path = require('path');
+var utils = new (p2.require('utils'))(),
+    u = require('util'),
+    fs = require('fs'),
+    path = require('path'),
+    heredoc = require('heredoc'),
+    uuid = require('uuid'),
+    pfs = new (p2.require('pfs'))(),
+    Q = require('q');
 
 p2
 
-.include(path.join(__dirname, 'openstack_prep'))
-.include(path.join(__dirname, 'openstack_controller'))
-.include(path.join(__dirname, 'openstack_compute'))
-.include(path.join(__dirname, 'openstack_cinder'))
-.include(path.join(__dirname, 'neutron'))
-
+/**
+ * .str_replace_infile('/path/to/file', {
+ *   regex: /^ content to match/,
+ *   with: 'string to replace with',  // or
+ *   TODO: template: 'moustach templated string to replace with'
+ * })
+ */
+.role('str_replace_infile', {
+  p2: function (title, opts) {
+    return pfs.pReadFile(title, 'utf8')
+    .then(function (contents) {
+      var newcontents = contents.replace(opts.regex, opts.with);
+      if (newcontents !== contents) {
+        return pfs.pWriteFile(title, newcontents);
+      }
+      return Q.resolve();
+    })
+    ;
+  }
+})
 ;

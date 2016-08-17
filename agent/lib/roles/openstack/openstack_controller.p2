@@ -59,7 +59,9 @@ p2
  *   nova_db_pass: 'password',
  *   nova_user_pass: 'password',
  *   neutron_db_pass: 'password',
- *   neutron_user_pass: 'password'
+ *   neutron_user_pass: 'password',
+ *   cinder_db_pass: 'password',
+ *   cinder_user_pass: 'password'
  * })
  */
 .role('openstack_controller', {
@@ -673,6 +675,16 @@ EOF
       public: true
     })
 
+    .openstack_image('ubuntu trusty', {
+      url: 'https://cloud-images.ubuntu.com/trusty/current/trusty-server-cloudimg-amd64-disk1.img',
+      public: true
+    })
+
+    .openstack_image('ubuntu xenial', {
+      url: 'https://cloud-images.ubuntu.com/xenial/current/xenial-server-cloudimg-amd64-disk1.img',
+      public: true
+    })
+
 
     ///////////////////////////////////////
     // COMPUTE
@@ -958,6 +970,140 @@ EOF
     .on('file:/etc/openstack-dashboard/local_settings.py:changed', function () {
       p2
       .command('service apache2 reload')
+      ;
+    })
+
+
+    ///////////////////////////////////////
+    // CINDER
+
+    .mysql_database('cinder', {
+      ensure: 'present',
+    })
+
+    .mysql_grant('cinder localhost', {
+      ensure: 'present',
+      privileges: 'ALL PRIVILEGES',
+      privlevel: 'cinder.*',
+      userspecs: {user: 'cinder', host: 'localhost'},
+      identifiedby: opts.cinder_db_pass
+    })
+    .mysql_grant('cinder %', {
+      ensure: 'present',
+      privileges: 'ALL PRIVILEGES',
+      privlevel: 'cinder.*',
+      userspecs: {user: 'cinder', host: '%'},
+      identifiedby: opts.cinder_db_pass
+    })
+
+    .openstack_user('cinder', {
+      password: opts.cinder_user_pass,
+      domain: 'default',
+      ensure: 'present'
+    })
+
+    .openstack_role('admin', {
+      project: 'service',
+      user: 'cinder',
+      ensure: 'present'
+    })
+
+    .openstack_service('cinder', {
+      description: 'OpenStack Block Storage',
+      type: 'volume',
+      ensure: 'present'
+    })
+
+    .openstack_service('cinderv2', {
+      description: 'OpenStack Block Storage',
+      type: 'volumev2',
+      ensure: 'present'
+    })
+
+    .openstack_endpoint('RegionOne/volume/public', {
+      region: 'RegionOne',
+      service_type: 'volume',
+      interface: 'public',
+      url: u.format('http://%s:8776/v2/%\\(tenant_id\\)s', p2.facts.os_hostname),
+      ensure: 'present'
+    })
+    .openstack_endpoint('RegionOne/volume/internal', {
+      region: 'RegionOne',
+      service_type: 'volume',
+      interface: 'internal',
+      url: u.format('http://%s:8776/v2/%\\(tenant_id\\)s', p2.facts.os_hostname),
+      ensure: 'present'
+    })
+    .openstack_endpoint('RegionOne/volume/admin', {
+      region: 'RegionOne',
+      service_type: 'volume',
+      interface: 'admin',
+      url: u.format('http://%s:8776/v2/%\\(tenant_id\\)s', p2.facts.os_hostname),
+      ensure: 'present'
+    })
+
+    .openstack_endpoint('RegionOne/volumev2/public', {
+      region: 'RegionOne',
+      service_type: 'volumev2',
+      interface: 'public',
+      url: u.format('http://%s:8776/v2/%\\(tenant_id\\)s', p2.facts.os_hostname),
+      ensure: 'present'
+    })
+    .openstack_endpoint('RegionOne/volumev2/internal', {
+      region: 'RegionOne',
+      service_type: 'volumev2',
+      interface: 'internal',
+      url: u.format('http://%s:8776/v2/%\\(tenant_id\\)s', p2.facts.os_hostname),
+      ensure: 'present'
+    })
+    .openstack_endpoint('RegionOne/volumev2/admin', {
+      region: 'RegionOne',
+      service_type: 'volumev2',
+      interface: 'admin',
+      url: u.format('http://%s:8776/v2/%\\(tenant_id\\)s', p2.facts.os_hostname),
+      ensure: 'present'
+    })
+
+    .package('cinder-api')
+    .package('cinder-scheduler')
+    .package('python-cinderclient')
+
+    .file('/etc/cinder/cinder.conf', {
+      ensure: 'present',
+      content:{template: path.join(__dirname, 'files', 'controller', 'cinder_conf_template.conf')},
+      parms: {
+        cinder_db_pass: opts.cinder_db_pass,
+        cinder_user_pass: opts.cinder_user_pass,
+        rabbit_pass: opts.rabbit_pass
+      }
+    })
+
+    .on('file:/etc/cinder/cinder.conf:changed', function () {
+      p2
+      .service('cinder-scheduler', { ensure: 'stopped'})
+      .service('cinder-scheduler', { ensure: 'running'})
+      .service('cinder-api', { ensure: 'stopped'})
+      .service('cinder-api', { ensure: 'running'})
+      ;
+    })
+
+    .command('populate block storage db', {
+      cmd: heredoc(function () {/*
+        su -s /bin/sh -c "cinder-manage db sync" cinder && \
+        touch {{{ f.cfg.PARTOUT_VARDIR }}}/populated_cinder_database
+      */}),
+      creates: '{{{ f.cfg.PARTOUT_VARDIR }}}/populated_cinder_database'
+    })
+
+    .on('command:populate block storage db:changed', function () {
+      p2
+      .service('cinder-scheduler', { ensure: 'stopped'})
+      .service('cinder-scheduler', { ensure: 'running'})
+      .service('cinder-api', { ensure: 'stopped'})
+      .service('cinder-api', { ensure: 'running'})
+      .file('/var/lib/cinder/cinder.sqlite', {
+        ensure: 'absent'
+      })
       ;
     })
 

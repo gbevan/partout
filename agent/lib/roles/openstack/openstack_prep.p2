@@ -77,7 +77,7 @@ p2
 
 .role('openstack_prep_node', {
   p2: function (title, opts) {
-    console.info('Preparing node for OpenStack...');
+    //console.info('Preparing node for OpenStack...');
     p2
     .node(function (f) {
       utils.dlog('>>> f.os_dist_id:', f.os_dist_id, 'hasClass openstack_node:', p2.hasClass('openstack_node'));
@@ -92,6 +92,8 @@ p2
     })
 
     .package('debconf-utils')
+    .package('lvm2')
+    .package('sysstat')
 
     .command('prep_for_openstack', {
       cmd: heredoc.strip(function () {/*

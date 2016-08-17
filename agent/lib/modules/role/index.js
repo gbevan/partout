@@ -95,14 +95,17 @@ var Role = P2M.Module(module.filename, function () {
       console.info('Creating module ' + name + ' from role');
     }
     _impl[name] = function (mod_title, mod_opts) {
-      //console.log('in module instance:', name);
+      //console.log('in role instance:', name);
 
       /*
        * push role's facts gatherer function onto p2 steps
        */
       function push_refreshFacts () {
+        //console.log('role:', name, 'refreshFacts() from:', (new Error()).stack);
         if (opts.facts) {
+          //console.log('role:', name, 'refreshFacts() push_action');
           _impl.push_action(function () {
+            //console.log('role:', name, 'refreshFacts() in pushed action');
             var facts_deferred = Q.defer();
 
             opts.facts(facts_deferred, _impl.facts, mod_title, mod_opts);
@@ -110,7 +113,7 @@ var Role = P2M.Module(module.filename, function () {
             return facts_deferred
             .promise
             .then(function (role_facts) {
-              //console.log('role_facts:', role_facts);
+              //console.log(name, 'role_facts:', role_facts);
               _.merge(_impl.facts.p2role, role_facts.p2role);
               _.each(role_facts, function (v, k) {
                 if (!k.match(/^(p2role)$/)) {
@@ -149,18 +152,21 @@ var Role = P2M.Module(module.filename, function () {
           /*
            * add passed p2 args dsl to addSteps in the p2 _impl
            */
+          push_refreshFacts();
           // defer pushing on to actions so facts run first
           _impl.push_action(function () {
             utils.vlog(u.format('Role: %s running action: %s', name, mod_title));
 
-            var deferred = Q.defer();
 
             p2.pushSteps(); // save steps state
 
-            push_refreshFacts();
+            var deferred = Q.defer();
 
             utils.dlog('role: action: calling p2:', opts.p2);
-            var role_promise = opts.p2(mod_title, mod_opts); // pushes it's own actions to run next
+            var role_promise = opts.p2(
+              mod_title,
+              (mod_opts ? mod_opts : {})
+            ); // pushes it's own actions to run next
 
             if (!Q.isPromise(role_promise)) {
               role_promise = Q();
@@ -168,8 +174,8 @@ var Role = P2M.Module(module.filename, function () {
             role_promise
             .done(function (role_res) {
               utils.dlog('role_promise resolved - role_res:', role_res);
+              //p2.pushSteps(); // save steps state
               push_refreshFacts();
-
               p2.flattenSteps(); // pop previous steps state after new steps
 
               deferred.resolve();
@@ -183,7 +189,7 @@ var Role = P2M.Module(module.filename, function () {
             });
 
             return deferred.promise;
-          });
+        });
         }
 
       } // ifNode
