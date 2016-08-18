@@ -65,9 +65,13 @@ utils.pIsAdmin()
       before(function (done) {
         this.timeout(60000);
         p2Test.getP2Facts()
-        .done(function(newfacts) {
+        .then(function(newfacts) {
           facts = newfacts;
           done();
+        })
+        .done(null, function (err) {
+          should(err).be.undefined;
+          done(err);
         });
       });
 

@@ -51,7 +51,7 @@ Q.onerror = function (err) {
  * ==============
  *
  *     p2.node([...])
- *       .Command('a command', options, function (rc, stdout, stderr) { ... });
+ *       .command('a command', options, function (rc, stdout, stderr) { ... });
  *
  * Options (from https://nodejs.org/api/child_process.html#child_process_child_process_spawn_command_args_options):
  *

@@ -30,7 +30,8 @@ var _ = require('lodash'),
     Q = require('q'),
     nimble = require('nimble'),
     utils = new (require('../utils.js'))(),
-    u = require('util');
+    u = require('util'),
+    console = require('better-console');
 
 Q.longStackSupport = true;
 Q.onerror = function (err) {
@@ -110,7 +111,10 @@ module.exports = function (facts) {
           }
           done();
         })
-        .done();
+        .done(null, function (err) {
+          console.error('modules index err:', err);
+          done(new Error(err));
+        });
       });
     }
     //console.log('exporting module:', m);
@@ -128,7 +132,12 @@ module.exports = function (facts) {
     deferred.resolve(_exports);
     done(); // nimble cb
   });
-  nimble.series(facts_funcs);
+  nimble.series(facts_funcs, function (err) {
+    if (err) {
+      console.error('nimble callback err:', err);
+      deferred.reject(err);
+    }
+  });
 
   return deferred.promise;
 };

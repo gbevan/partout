@@ -101,7 +101,8 @@ describe('Module command', function () {
       done();
     })
     .done(null, function (err) {
-      done(err);
+      should(err).be.undefined;
+      done(new Error(err));
     });
 
   });

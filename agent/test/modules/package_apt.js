@@ -60,6 +60,11 @@ before(function(done) {
     .then(function (p2TestFacts) {
       facts = p2TestFacts;
       done();
+    })
+    .done(null, function (err) {
+      console.error('package_apt err:', err);
+      should(err).be.undefined;
+      done();
     });
   });
 });
