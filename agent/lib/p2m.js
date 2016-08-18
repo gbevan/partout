@@ -317,7 +317,7 @@ P2M.prototype.facts = function (fn) {
     fn.call(self, fn_deferred, facts_so_far);
 
     fn_deferred.promise
-    .done(function (index_facts) {
+    .then(function (index_facts) {
       _.merge(facts, index_facts);
       utils.dlog('P2M: facts()  moduleFileName:', self.moduleFileName);
       //utils.dlog('P2M: facts() facts:', facts);
@@ -327,6 +327,10 @@ P2M.prototype.facts = function (fn) {
         _.merge(facts, prov_facts);
         getF_deferred.resolve(facts);
       });
+    })
+    .done(null, function (err) {
+      console.error('Facts failed err:', err);
+      getF_deferred.reject(err);
     });
 
     return getF_deferred.promise;

@@ -475,8 +475,8 @@ var P2 = function () {
 
   /**
    * Check if this node's facts has a class assigned (in agent_classes)
-   * @param   {[[Type]]} c [[Description]]
-   * @returns {[[Type]]} [[Description]]
+   * @param   {string}  c Class name
+   * @returns {boolean} true if class has been assigned
    */
   self._impl.hasClass = function (c) {
     return (self.facts.agent_classes[c] === true);
@@ -671,7 +671,12 @@ var P2 = function () {
 
     deferred.resolve(self._impl);
   })
-  .done();
+  .done(null, function (err) {
+    if (err) {
+      console.error('p2 modules load err:', err);
+      deferred.reject(new Error(err));
+    }
+  });
 
   return deferred.promise;
 };

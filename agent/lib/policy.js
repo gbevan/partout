@@ -80,7 +80,10 @@ function Policy(args, opts) {
 
     deferred.resolve(self); // resolve passing back this new instance of Policy
   })
-  .done();
+  .done(null, function (err) {
+    console.error('policy caught err:', err);
+    deferred.reject(new Error(err));
+  });
 
   return deferred.promise;
 }

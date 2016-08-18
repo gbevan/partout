@@ -28,7 +28,8 @@ var Q = require('q'),
     fs = require('fs'),
     Policy = require('./policy'),
     utils = new (require('./utils'))(),
-    Mustache = require('mustache');
+    Mustache = require('mustache'),
+    console = require('better-console');
 
 Q.longStackSupport = true;
 
@@ -61,17 +62,22 @@ var P2Test = {
         utils.tlogs('new Policy');
         //console.log('tpath contents:\n', fs.readFileSync(tpath).toString());
         new Policy([tpath], {apply: true})
-        .done(function (policy) {
+        .then(function (policy) {
           utils.tloge('new Policy');
 
 
           utils.tlogs('policy apply');
           policy.apply()
-          .done(function () {
+          .then(function () {
             utils.tloge('policy apply');
 
             deferred.resolve();
+          }, function (err) {
+            deferred.reject(new Error(err));
           });
+        })
+        .done(null, function (err) {
+          deferred.reject(new Error(err));
         });
       });
     });
@@ -94,6 +100,9 @@ var P2Test = {
       //console.log('facts:', global.p2.facts);
       //console.log('p2_test.js global.p2.facts.installed_packages[nginx]:', global.p2.facts.installed_packages.nginx);
       deferred.resolve(global.p2.facts);
+    }, function (err) {
+      console.error('p2_test err:', err);
+      deferred.reject(new Error(err));
     });
 
     return deferred.promise;

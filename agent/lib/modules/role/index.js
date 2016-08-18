@@ -42,6 +42,31 @@ Q.onerror = function (err) {
   console.error(err.stack);
 };
 
+/**
+ * @module Role
+ *
+ * @description
+ * Role module
+ * ===========
+ *
+ *     p2
+ *     .role('new_role_name', {
+ *
+ *       facts: function (deferred, facts_so_far, title, opts) {
+ *         ...
+ *         deferred.resolve();
+ *       },
+ *
+ *       p2: function (title, opts) {
+ *         ...
+ *         return value | deferred.promise
+ *       }
+ *
+ *     });
+ *
+ * Defines a Role (custom module), that can be used later as a p2 DSL command.
+ *
+ */
 var Role = P2M.Module(module.filename, function () {
   var self = this;
 
