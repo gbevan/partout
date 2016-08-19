@@ -37,10 +37,17 @@ var utils = new (p2.require('utils'))(),
 p2
 
 /**
+ * @module vg
+ *
+ * @description
+ * Role: vg
+ * ================
+ * ```javascript
  * .vg('vgcinder00', {
  *   ensure: 'present|absent',
  *   pv: '/dev/vdc'
  * })
+ * ```
  */
 .role('vg', {
   p2: function (title, opts) {

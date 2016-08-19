@@ -33,11 +33,17 @@ var Q = require('q'),
 p2
 
 /**
+ * @module sleep
+ *
+ * @description
+ * Role: sleep
+ * ================
+ * ```javascript
  * p2
  * .sleep('title', {
  *   seconds: 60
  * })
- *
+ * ```
  */
 .role('sleep', {
   p2: function (title, opts) {

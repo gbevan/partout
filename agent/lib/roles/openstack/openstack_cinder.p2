@@ -34,6 +34,12 @@ var heredoc = require('heredoc'),
 p2
 
 /**
+ * @module openstack_cinder
+ *
+ * @description
+ * Role: openstack_cinder
+ * ================
+ * ```javascript
  * .openstack_cinder('', {
  *   lvm_filter_list: [ 'a/vdc/', etc... ],
  *   cinder_db_pass: '*****',
@@ -43,6 +49,7 @@ p2
  *   glance_host: 'controller1',
  *   controller_host: 'controller1'
  * })
+ * ```
  */
 .role('openstack_cinder', {
   p2: function (title, opts) {

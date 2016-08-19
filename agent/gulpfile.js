@@ -164,6 +164,9 @@ gulp.task('docs', function (cb) {
   gulp.src(['./app.js', 'lib/**/*.*', 'etc/**/*.p2', './README.md'])
     .pipe(jsdoc(
     {
+      source: {
+        includePattern: ".+\\.(js|p2)(doc)?$"
+      },
       opts: {
         destination: './jsdocs'
       },

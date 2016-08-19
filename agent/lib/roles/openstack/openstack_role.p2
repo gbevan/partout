@@ -38,12 +38,19 @@ var utils = new (p2.require('utils'))(),
 
 p2
 
-/*
+/**
+ * @module openstack_role
+ *
+ * @description
+ * Role: openstack_role
+ * ================
+ * ```javascript
  * .openstack_role('admin', {
  *   project: 'admin',
  *   user: 'admin',
  *   ensure: 'present|absent'
  * })
+ * ```
  */
 .role('openstack_role', {
   facts: function (deferred, facts_so_far, title, opts) {

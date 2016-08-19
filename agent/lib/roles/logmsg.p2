@@ -34,10 +34,18 @@ var Q = require('q'),
 p2
 
 /**
+ * @module logmsg
+ *
+ * @description
+ * Role: logmsg
+ * ==============
+ * ```javascript
  * p2
- * .debug('message supporting Mustache templates {{ opts.anything_to_pass }}', {
+ * .logmsg('message supporting Mustache templates {{ opts.anything_to_pass }}', {
  *   anything_to_pass: data
  * })
+ *
+ * ```
  *
  */
 .role('logmsg', {

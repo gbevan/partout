@@ -37,9 +37,16 @@ var utils = new (p2.require('utils'))(),
 p2
 
 /**
+ * @module pv
+ *
+ * @description
+ * Role: pv
+ * ================
+ * ```javascript
  * .pv('/dev/vdc', {
  *   ensure: 'present|absent'
  * })
+ * ```
  */
 .role('pv', {
   p2: function (title, opts) {

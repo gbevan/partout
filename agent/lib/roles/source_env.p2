@@ -36,8 +36,15 @@ var console = require('better-console'),
 p2
 
 /**
+ * @module source_env
+ *
+ * @description
+ * Role: source_env
+ * ================
+ * ```javascript
  * p2
  * .source_env('/root/admin-openrc')
+ * ```
  * Executes rc script, then imports any created
  * evironment variables into current partout process environment.
  */

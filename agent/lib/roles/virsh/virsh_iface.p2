@@ -39,6 +39,12 @@ var utils = new (p2.require('utils'))(),
 p2
 
 /**
+ * @module virsh_iface
+ *
+ * @description
+ * Role: virsh_iface
+ * ================
+ * ```javascript
  * .virsh_iface('br1', {
  *   type: 'bridge',
  *   attachedTo: 'cinder1',
@@ -46,6 +52,7 @@ p2
  *   model: 'virtio',
  *   persistent: true
  * })
+ * ```
  */
 .role('virsh_iface', {
   p2: function (title, opts) {

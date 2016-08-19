@@ -44,10 +44,10 @@ Q.onerror = function (err) {
 };
 
 /**
- * @module Command
+ * @module command
  *
  * @description
- * Command module
+ * command module
  * ==============
  *
  *     p2.node([...])

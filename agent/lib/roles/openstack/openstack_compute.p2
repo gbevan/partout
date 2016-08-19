@@ -36,8 +36,13 @@ var console = require('better-console'),
 
 p2
 
-
 /**
+ * @module openstack_compute
+ *
+ * @description
+ * Role: openstack_compute
+ * ================
+ * ```javascript
  * p2
  * .openstack_compute('compute', {
  *   ip: 'compute_ip_address',
@@ -46,6 +51,7 @@ p2
  *   nova_user_pass: 'nova user password',
  *   neutron_user_pass: 'neutron user password'
  * })
+ * ```
  */
 .role('openstack_compute', {
   p2: function (title, opts) {

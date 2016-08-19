@@ -46,6 +46,12 @@ p2
 .include(path.join(__dirname, 'openstack_image'))
 
 /**
+ * @module openstack_controller
+ *
+ * @description
+ * Role: openstack_controller
+ * ================
+ * ```javascript
  * p2
  * .openstack_controller('controller', {
  *   ip: 'contoller_ip_address',
@@ -63,6 +69,7 @@ p2
  *   cinder_db_pass: 'password',
  *   cinder_user_pass: 'password'
  * })
+ * ```
  */
 .role('openstack_controller', {
   p2: function (title, opts) {

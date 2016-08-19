@@ -39,6 +39,12 @@ var utils = new (p2.require('utils'))(),
 p2
 
 /**
+ * @module virsh_disk
+ *
+ * @description
+ * Role: virsh_disk
+ * ================
+ * ```javascript
  * .virsh_disk('/path/disk.img', {
  *   ensure: 'present|absent',
  *   sizeGbs: 1,
@@ -47,6 +53,7 @@ p2
  *   persistent: true,
  *   format: 'raw'  // optional, guessed by qemu-img
  * })
+ * ```
  */
 .role('virsh_disk', {
   p2: function (title, opts) {

@@ -7,9 +7,16 @@ var utils = new (require('../utils'))();
 p2
 
 /**
- * chocolatey role
- * Options:
- *    ensure: 'present'
+ * @module chocolatey
+ *
+ * @description
+ * Role: chocolatey
+ * ================
+ * ```javascript
+ * p2
+ * .chocolatey()
+ * ```
+ * Ensures chocolatey is installed.
  */
 .role('chocolatey', {
 

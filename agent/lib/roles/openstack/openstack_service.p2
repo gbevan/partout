@@ -37,12 +37,19 @@ var utils = new (p2.require('utils'))(),
 
 p2
 
-/*
+/**
+ * @module openstack_service
+ *
+ * @description
+ * Role: openstack_service
+ * ================
+ * ```javascript
  * .openstack_service('keystone', {
  *   description: 'OpenStack Indentity',
  *   type: 'identity',
  *   ensure: 'present|absent'
  * })
+ * ```
  */
 .role('openstack_service', {
   facts: function (deferred, facts_so_far, title, opts) {
