@@ -40,7 +40,13 @@ var utils = new (p2.require('utils'))(),
 
 p2
 
-/*
+/**
+ * @module openstack_image
+ *
+ * @description
+ * Role: openstack_image
+ * ================
+ * ```javascript
  * .openstack_image('cirros', {
  *   ensure: 'present|absent',
  *   file: '/root/cirros.img', or
@@ -49,6 +55,7 @@ p2
  *   container_format: 'bare',
  *   public: true
  * })
+ * ```
  */
 .role('openstack_image', {
   facts: function (deferred, facts_so_far, title, opts) {

@@ -36,8 +36,15 @@ var utils = new (p2.require('utils'))(),
 
 p2
 
-/*
+/**
+ * @module uvt_cloud_image
+ *
+ * @description
+ * Role: uvt_cloud_image
+ * ================
+ * ```javascript
  * .uvt_image('release', {arch:'amd64', ensure: 'present|absent'})
+ * ```
  */
 .role('uvt_cloud_image', {
   facts: function (deferred, facts_so_far, title, opts) {
@@ -118,7 +125,13 @@ p2
   }
 })
 
-/*
+/**
+ * @module uvt_kvm
+ *
+ * @description
+ * Role: uvt_kvm
+ * ================
+ * ```javascript
  * .uvt_kvm('instance_name', {
  *    ensure: 'present|absent',
  *    autostart: true|false,
@@ -137,6 +150,7 @@ p2
  *    meta_data_template: file,
  *    user_data_template: file
  * })
+ * ```
  */
 .role('uvt_kvm', {
   facts: function (deferred, facts_so_far, title, opts) {

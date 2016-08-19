@@ -39,11 +39,18 @@ var utils = new (p2.require('utils'))(),
 p2
 
 /**
+ * @module str_replace_infile
+ *
+ * @description
+ * Role: str_replace_infile
+ * ================
+ * ```javascript
  * .str_replace_infile('/path/to/file', {
  *   regex: /^ content to match/,
  *   with: 'string to replace with',  // or
  *   TODO: template: 'moustach templated string to replace with'
  * })
+ * ```
  */
 .role('str_replace_infile', {
   p2: function (title, opts) {

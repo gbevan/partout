@@ -38,7 +38,13 @@ var utils = new (p2.require('utils'))(),
 
 p2
 
-/*
+/**
+ * @module openstack_endpoint
+ *
+ * @description
+ * Role: openstack_endpoint
+ * ================
+ * ```javascript
  * .openstack_endpoint('RegionOne/identity/public', {
  *   region: 'RegionOne',
  *   service_type: 'identity',
@@ -46,6 +52,7 @@ p2
  *   url: 'http://controller1:5000/v3'
  *   ensure: 'present|absent'
  * })
+ * ```
  */
 .role('openstack_endpoint', {
   facts: function (deferred, facts_so_far, title, opts) {

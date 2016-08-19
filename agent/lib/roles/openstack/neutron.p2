@@ -39,6 +39,12 @@ var console = require('better-console'),
 p2
 
 /**
+ * @module neutron_net
+ *
+ * @description
+ * Role: neutron_net
+ * ================
+ * ```javascript
  * .neutron_net('demo-net', {
  *   router_external: true,
  *   provider_physical_network: 'provider',
@@ -46,6 +52,7 @@ p2
  *   shared: true,
  *   ensure: 'present|absent'
  * })
+ * ```
  */
 // neutron net-create ext-net --router:external --provider:physical_network provider --provider:network_type flat --shared
 .role('neutron_net', {
@@ -104,6 +111,12 @@ p2
 })
 
 /**
+ * @module neutron_subnet
+ *
+ * @description
+ * Role: neutron_subnet
+ * ================
+ * ```javascript
  * .neutron_subnet('ext-subnet', {
  *   network: 'ext-net',
  *   allocation_pool: 'start=192.168.0.200,end=192.168.0.254',
@@ -112,6 +125,7 @@ p2
  *   cidr: '192.168.0.0/24',
  *   ensure: 'present|absent'
  * })
+ * ```
  */
 // neutron subnet-create ext-net --name ext-subnet --allocation-pool start=192.168.0.200,end=192.168.0.254 --disable-dhcp --gateway 192.168.0.1 192.168.0.0/24
 .role('neutron_subnet', {
@@ -178,9 +192,16 @@ p2
 })
 
 /**
+ * @module neutron_router
+ *
+ * @description
+ * Role: neutron_router
+ * ================
+ * ```javascript
  * .neutron_router('ext-router', {
  *   ensure: 'present|absent'
  * })
+ * ```
  */
 // neutron router-create ext-router
 .role('neutron_router', {
@@ -233,10 +254,17 @@ p2
 })
 
 /**
+ * @module neutron_router_gateway
+ *
+ * @description
+ * Role: neutron_router_gateway
+ * ================
+ * ```javascript
  * .neutron_router_gateway('ext-router', {
  *   external_network: 'ext-net',
  *   ensure: 'present|absent'
  * })
+ * ```
  */
 // neutron router-gateway-set ext-router ext-net
 // neutron router-gateway-clear ext-router
@@ -320,10 +348,17 @@ p2
 })
 
 /**
+ * @module neutron_router_interface
+ *
+ * @description
+ * Role: neutron_router_interface
+ * ================
+ * ```javascript
  * .neutron_router_interface('ext-router', {
  *   internal_subnet: 'demo-subnet',
  *   ensure: 'present|absent'
  * })
+ * ```
  */
 // neutron router-port-list ext-router --format json # fixed_ips.subnet_id
 // neutron subnet-show demo-subnet # -> id

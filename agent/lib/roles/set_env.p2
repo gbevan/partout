@@ -36,6 +36,12 @@ var Mustache = require('mustache'),
 p2
 
 /**
+ * @module set_env
+ *
+ * @description
+ * Role: set_env
+ * ================
+ * ```javascript
  * p2
  * .set_env('env_var_name', {
  *   ensure: 'present|absent',
@@ -43,7 +49,7 @@ p2
  *   value: value,    // or
  *   url: url,  // TODO, or
  * })
- *
+ * ```
  */
 .role('set_env', {
   p2: function (title, opts) {

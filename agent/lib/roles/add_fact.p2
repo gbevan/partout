@@ -37,6 +37,12 @@ var Mustache = require('mustache'),
 p2
 
 /**
+ * @module add_fact
+ *
+ * @description
+ * Role: add_fact
+ * ==============
+ * ```javascript
  * p2
  * .add_fact('fact_name', {
  *   hidden: true|false, // hide value from log output
@@ -44,6 +50,7 @@ p2
  *   value: value,    // or
  *   url: url,  // TODO, or
  * })
+ * ```
  *
  */
 .role('add_fact', {

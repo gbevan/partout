@@ -4,6 +4,18 @@
 
 p2
 
+/**
+ * @module classify
+ *
+ * @description
+ * Role: classify
+ * ==============
+ * ```javascript
+ * p2
+ * .classify('classification')
+ * ```
+ * Classify this node.
+ */
 .role('classify', {
   facts: function (deferred, facts_so_far, title, opts) {
     var facts = {

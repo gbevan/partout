@@ -35,6 +35,12 @@ var heredoc = require('heredoc'),
 p2
 
 /**
+ * @module mysql_connect
+ *
+ * @description
+ * Role: mysql_connect
+ * ==============
+ * ```javascript
  * p2
  * .mysql_connect(p2.facts.os_hostname, {
  *   host: hostname,
@@ -43,6 +49,7 @@ p2
  *   database: mydb,
  *   ... any mysql connection parameter
  * })
+ * ```
  *
  * saves connection in p2._mysql_connections[title].
  * Use hostname (e.g. p2.facts.os_hostname) for title and you
@@ -65,11 +72,18 @@ p2
 })
 
 /**
+ * @module mysql_database
+ *
+ * @description
+ * Role: mysql_database
+ * ==============
+ * ```javascript
  * p2
  * .mysql_database('keystone', {
  *   ensure: 'present',
  *   connection: 'name' (defaults to current hostname)
  * })
+ * ```
  */
 .role('mysql_database', {
   p2: function (title, opts) {
@@ -115,6 +129,12 @@ p2
 })
 
 /**
+ * @module mysql_grant
+ *
+ * @description
+ * Role: mysql_grant
+ * ==============
+ * ```javascript
  * p2
  * mysql_grant('whatever_title', {
  *   ensure: 'present|absent',
@@ -127,6 +147,7 @@ p2
  *   // IDENTIFIED BY
  *   identifiedby: '*****'
  * })
+ * ```
  */
 .role('mysql_grant', {
   p2: function (title, opts) {

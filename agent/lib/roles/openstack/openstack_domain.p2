@@ -38,11 +38,18 @@ var utils = new (p2.require('utils'))(),
 
 p2
 
-/*
+/**
+ * @module openstack_domain
+ *
+ * @description
+ * Role: openstack_domain
+ * ================
+ * ```javascript
  * .openstack_domain('default', {
  *   description: 'Default Domain',
  *   ensure: 'present|absent'
  * })
+ * ```
  */
 .role('openstack_domain', {
   facts: function (deferred, facts_so_far, title, opts) {

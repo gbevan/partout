@@ -53,6 +53,16 @@ p2
 //
 //.package('debconf-utils')
 
+/**
+ * @module openstack_prepare_virt_host
+ *
+ * @description
+ * Role: openstack_prepare_virt_host
+ * ================
+ * ```javascript
+ * .openstack_prepare_virt_host()
+ * ```
+ */
 .role('openstack_prepare_virt_host', {
   p2: function (title, opts) {
     p2
@@ -75,6 +85,16 @@ p2
   }
 })
 
+/**
+ * @module openstack_prep_node
+ *
+ * @description
+ * Role: openstack_prep_node
+ * ================
+ * ```javascript
+ * .openstack_prep_node()
+ * ```
+ */
 .role('openstack_prep_node', {
   p2: function (title, opts) {
     //console.info('Preparing node for OpenStack...');
