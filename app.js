@@ -283,7 +283,8 @@ module.exports = function (opts) {
     .then(function (status) {
       //console.log('csr db:', status);
       var csr = new Csr(db.getDb()),
-        key;
+          //agent = new Agent(db.getDb()),
+          key;
 
       if (opts.args.length === 0) {
         opts.args[0] = 'list';

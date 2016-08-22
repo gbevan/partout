@@ -37,7 +37,7 @@ var assert = require('assert'),
   fs = require('fs');
   //utils = new (require('../agent/lib/utils'))();
 
-GLOBAL.should = require('should');
+global.should = require('should');
 should.extend();
 
 Q.longStackSupport = true;
@@ -87,18 +87,19 @@ describe('api/routes', function () {
 
     describe('get() manifest', function () {
       it('should respond with JSON', function (done) {
-        var re = new RegExp('etc/manifest/site\.p2', 'gm');
+        var re = new RegExp('etc/manifest/default/site_example\.p2', 'gm');
         request(appApi)
-        .get('/manifest')
+        .get('/manifest?environment=default')
         .set('Accept', 'application/json')
         .expect(200)
         .expect('Content-Type', /json/)
         .expect(re)
         .end(function (err, res) {
           should(err).be.null;
-          should(res).not.be.undefined;
+          should(res).not.be.undefined();
           var m = res.body;
-          should(m['etc/manifest/site.p2']).not.be.undefined;
+          //console.log('m:', m);
+          should(m['etc/manifest/default/site_example.p2']).not.be.undefined();
           done();
         });
       });
@@ -108,7 +109,7 @@ describe('api/routes', function () {
       it('should respond with data file content', function (done) {
         var re = new RegExp('p2', 'm');
         request(appApi)
-        .get('/file?file=etc/manifest/site.p2')
+        .get('/file?file=etc/manifest/default/site_example.p2')
         .set('Accept', 'application/octet-stream')
         .expect(200)
         .expect('Content-Type', /application\/octet-stream/)

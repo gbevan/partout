@@ -25,7 +25,8 @@
 'use strict';
 
 var Q = require('q'),
-  Common = require('./common');
+    Common = require('./common'),
+    u = require('util');
 
 /**
  * Controller for the agents collection.
@@ -37,9 +38,18 @@ var Q = require('q'),
 var Agent = function (db) {
   var self = this;
 
-  //self.__proto__ = Common(db, 'agents');
-  Object.setPrototypeOf(self, Common(db, 'agents'));
+  /*
+   * _id and _key are implied
+   */
+  self.schema = {
+    env: 'string',
+    facts: 'object',
+    ip: 'string'
+  };
+
+  return Agent.super_.call(self, db, 'agents');
 
 };
+u.inherits(Agent, Common);
 
 module.exports = Agent;

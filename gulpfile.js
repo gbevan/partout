@@ -29,6 +29,7 @@ gulp.task('default', function () {
 });
 
 gulp.task('mocha', function () {
+  global.INMOCHA = true;
   return gulp.src(['test/**/*.js'], { read: false })
   .pipe(mocha({
     reporter: 'spec',
@@ -45,6 +46,7 @@ gulp.task('watch-mocha', function () {
     'lib/**',
     'etc/*.js',
     'agent/lib/*.js',
+    'server/**/*.js',
     'test/**'
   ], {
     ignoreInitial: false,
