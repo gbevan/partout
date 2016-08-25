@@ -38,7 +38,7 @@ var Common = function (db, name) {
 
   self.db = db;
   self.collectionName = name;
-  //self.collection = db.collection(name);
+  self.collection = db.collection(name);
 
   //console.log('Common constructor db:', self.db);
 
@@ -166,7 +166,7 @@ Common.prototype.queryOne = function (example) {
 Common.prototype.all = function () {
   var self = this,
     deferred = Q.defer();
-  //console.log('in csr.all() collection:', self.collection);
+  console.log('in csr.all() collection:', self.collection);
   self.collection.all('key')
   .then(function (cursor) {
     //console.log('cursor:', cursor);
@@ -220,11 +220,9 @@ Common.prototype.upsert = function (doc) {
     if (existing_doc) {
       // Update
       doc._id = existing_doc._id;
-      //console.warn('updating doc:', doc);
       return self.update(doc);
     } else {
       // create
-      //console.warn('creating doc:', doc);
       return self.save(doc);
     }
   });

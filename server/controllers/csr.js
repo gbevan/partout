@@ -39,9 +39,11 @@ var Q = require('q'),
 var Csr = function (db) {
   var self = this;
 
+  // TODO: self.schema = {}
+
   return Csr.super_.call(self, db, 'csrs');
 };
-
+u.inherits(Csr, Common);
 
 Csr.prototype.register = function (agent_uuid, ip, csr, env) {
   var self = this,
@@ -105,7 +107,5 @@ Csr.prototype.register = function (agent_uuid, ip, csr, env) {
   .done();
   return deferred.promise;
 };
-
-u.inherits(Csr, Common);
 
 module.exports = Csr;

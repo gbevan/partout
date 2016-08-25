@@ -97,4 +97,20 @@ describe('Agent Controller', function () {
     });
   });
 
+  it('should reject an update to an agent document that tries to change the agent\'s environment', function (done) {
+    agent.upsert({
+      _key: 'test1',
+      ip: '127.0.0.1',
+      env: 'different'
+    })
+    .then(function () {
+      should.fail('Reached', 'Not To Reach', 'agent update was allowed with a different environment', 'upsert');
+      done();
+    })
+    .done(null, function (err) {
+      should(err).not.be.undefined();
+      done();
+    });
+  });
+
 });
