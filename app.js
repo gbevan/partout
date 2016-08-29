@@ -405,6 +405,29 @@ module.exports = function (opts) {
 
     })
     .done();
+
+  } else if (opts.setenv) { // set agent environment
+    // partout setenv uuid new-environment
+    var uuid = opts.args[0],
+        newenv = opts.args[1];
+
+    db.connect()
+    .then(function (status) {
+      //console.log('csr db:', status);
+      var agent = new Agent(db.getDb());
+
+      agent.queryOne({_key: uuid})
+      .then(function (doc) {
+        if (doc.environmeent !== newenv) {
+          doc.env = newenv;
+          return agent.update(doc);
+        }
+      })
+      .done();
+    })
+    .done();
+
+
   } else {
     console.error('Error: Unrecognised command');
     process.exit(1);
