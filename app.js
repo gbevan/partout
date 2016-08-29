@@ -52,7 +52,9 @@ var console = require('better-console'),
     Agent = require('./server/controllers/agent.js'),
     utils = new (require('./agent/lib/utils'))(),
     serverMetrics = new (require('./lib/server_metrics'))(),
-    _ = require('lodash');
+    _ = require('lodash'),
+    passport = require('passport'),
+    ClientCertStrategy = require('passport-client-cert').Strategy;
 
 Q.longStackSupport = true;
 
@@ -172,6 +174,12 @@ var serve = function (opts) {
          * Start Master API Server
          */
 
+//        passport.use(new ClientCertStrategy(function(clientCert, done) {
+//          console.log('client cert:', clientCert);
+//
+//          done(null, {something: true});
+//        }));
+
         /**
          * Express app for the Master API
          * @class appApi
@@ -201,6 +209,9 @@ var serve = function (opts) {
           };
 
         appApi.opts = opts;
+
+//        appApi.use(passport.initialize());
+//        appApi.use(passport.authenticate('client-cert', {session: false}));
 
         appApi.use(compression());
         routerApi.use(logger);
@@ -338,12 +349,13 @@ module.exports = function (opts) {
             cursor.next()
             .then(function (csrDoc) {
               console.info('Signing CSR:\n', csrDoc.csr);
-              ca.signCsrWithAgentSigner(csrDoc.csr)
-              .then(function (certPem) {
-                console.log('Signed cert from csr:\n' + certPem);
+              ca.signCsrWithAgentSigner(csrDoc.csr, key)  // sign adding key/uuid as given name
+              .then(function (signed) {
+                console.log('Signed cert from csr:\n' + signed.certPem);
 
                 // return to agent via the csr document in db
-                csrDoc.cert = certPem;
+                csrDoc.cert = signed.cert;
+                csrDoc.certPem = signed.certPem;
                 csrDoc.status = 'signed';
                 return csr.update(csrDoc);
               }).done();

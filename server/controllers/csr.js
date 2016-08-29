@@ -40,6 +40,15 @@ var Csr = function (db) {
   var self = this;
 
   // TODO: self.schema = {}
+  self.schema = {
+    ip: 'string',
+    env: 'string',
+    csr: 'string',
+    lastSeen: 'date',
+    status: 'string',
+    cert: 'object',
+    certPem: 'string'
+  };
 
   return Csr.super_.call(self, db, 'csrs');
 };
@@ -72,13 +81,13 @@ Csr.prototype.register = function (agent_uuid, ip, csr, env) {
         status: 'unsigned',
         lastSeen: now
       };
-      console.log('newDoc:', newDoc);
+      //console.log('newDoc:', newDoc);
       self.save(newDoc)
       .then(function (doch) {
-        console.log('doch:', doch);
+        //console.log('doch:', doch);
         self.collection.document(doch)
         .then(function (doc) {
-          console.log('doc:', doc);
+          //console.log('doc:', doc);
           deferred.resolve(doc);
         });
       })

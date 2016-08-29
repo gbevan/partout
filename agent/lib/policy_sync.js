@@ -212,13 +212,19 @@ Policy_Sync.prototype.sync = function (srcfolder, destfolder) {
 
     console.info('syncing from:', srcfolder, 'to:', destfolder);
     //self.get_manifest(function (manifest) {
-    self.app.master.get('/manifest?environment=' + self.app.cfg.environment)
+//    self.app.master.get('/manifest?environment=' + self.app.cfg.environment)
+    self.app.master.get('/manifest')
     .fail(function (err) {
       console.error('Sync failed, err:', err);
       outer_deferred.reject(err);
     })
     .then(function (obj) {
-      var manifest = obj.data;
+      var manifest = obj.data.manifest;
+
+//      self.app.cfg.environment = obj.data.environment;
+//      console.log('self.app.cfg.environment #1:', self.app.cfg.environment);
+      self.app.cfg.setEnvironment(obj.data.environment);
+      console.log('self.app.cfg.environment #2:', self.app.cfg.environment);
       //console.info('manifest:', manifest);
 
       // Get hashWalk of local manifest
@@ -234,7 +240,7 @@ Policy_Sync.prototype.sync = function (srcfolder, destfolder) {
         _.each(files, function (srcfile) {
           tasks.push(function (done) {
             var srcrelname = manifest[srcfile].relname,
-              destfile = path.join(self.app.cfg.PARTOUT_AGENT_MANIFEST_DIR, srcrelname);
+                destfile = path.join(self.app.cfg.PARTOUT_AGENT_MANIFEST_DIR, srcrelname);
             //console.log('srcfile:', srcfile, 'relname:', srcrelname, 'hash:', manifest[srcfile]);
 
             if (!local_manifest[destfile]) {

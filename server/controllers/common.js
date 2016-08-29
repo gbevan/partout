@@ -60,10 +60,20 @@ Common.prototype._validDoc = function (doc) {
   var self = this,
       valid = true;
 
+  /*
+   * add missing / assumed fields
+   */
+  var assumed = {
+    _id: 'string',
+    _key: 'string',
+    _rev: 'string'
+  };
+  _.merge(self.schema, assumed);
+
   if (self.schema) {
     _.forIn(doc, function (v, k) {
       if (!_.hasIn(self.schema, k)) {
-        //console.warn('_validDoc encounterd:', k);
+        console.warn('_validDoc encounterd:', k);
         valid = false;
       }
     });
@@ -166,7 +176,7 @@ Common.prototype.queryOne = function (example) {
 Common.prototype.all = function () {
   var self = this,
     deferred = Q.defer();
-  console.log('in csr.all() collection:', self.collection);
+  //console.log('in csr.all() collection:', self.collection);
   self.collection.all('key')
   .then(function (cursor) {
     //console.log('cursor:', cursor);

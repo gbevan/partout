@@ -71,18 +71,31 @@ var Cfg = function () {
       env = (optenv ? optenv : 'default');
 
       if (!global.INMOCHA) {
-        try {
-          fs.writeFileSync(self.PARTOUT_AGENT_ENVIRONMENT_FILE, env);
-        } catch (e) {
-          if (e.code !== 'ENOENT') {
-            throw e;
-          }
+
+        // TODO: only write if changed
+        var oldenv;
+        if (stat) {
+          oldenv = fs.readFileSync(self.PARTOUT_AGENT_ENVIRONMENT_FILE).toString().trim();
         }
+
+        if (!stat || oldenv !== env) {
+
+          try {
+            fs.writeFileSync(self.PARTOUT_AGENT_ENVIRONMENT_FILE, env);
+          } catch (e) {
+            if (e.code !== 'ENOENT') {
+              throw e;
+            }
+          }
+
+        }
+
       }
 
     } else {
+      // XXX: This code is deprecated, optenv is always provided by manifest from master, see agent/app.js
       // read it
-      env = fs.readFileSync(self.PARTOUT_AGENT_ENVIRONMENT_FILE).toString();
+      env = fs.readFileSync(self.PARTOUT_AGENT_ENVIRONMENT_FILE).toString().trim();
     }
 
     self.environment = env;
