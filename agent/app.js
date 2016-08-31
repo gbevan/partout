@@ -145,7 +145,7 @@ var checkCert = function (master) {
             // Send csr to master
             console.warn('Sending agent certificate signing request to master');
 
-            _sendCsr(master/*, env*/)
+            _sendCsr(master)
             .then(function(resp) {
               deferred.resolve(false);
             }).done();
@@ -405,10 +405,10 @@ module.exports = function (opts) {
       // Start a keep-alive - for handling Agent CSR signing delay
       var reexec = function () {
         process.nextTick(function () {
-          checkCert(master /*, opts.env*/)
+          checkCert(master)
           .then(function (result) {
             if (result) {
-              serve(opts, master /*, opts.env*/);
+              serve(opts, master);
             } else {
               setTimeout(function () {
                 reexec();
