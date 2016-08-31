@@ -66,13 +66,17 @@ var Cfg = function () {
       }
     }
 
-    if (!stat || optenv) {
-      // create/write it
-      env = (optenv ? optenv : 'default');
+    var oldenv;
+    if (stat) {
+      oldenv = fs.readFileSync(self.PARTOUT_AGENT_ENVIRONMENT_FILE).toString().trim();
+    }
 
-      if (!global.INMOCHA) {
+    if (optenv && !global.INMOCHA) {
+
+      if (!stat || oldenv !== optenv) {
         try {
-          fs.writeFileSync(self.PARTOUT_AGENT_ENVIRONMENT_FILE, env);
+          env = optenv;
+          fs.writeFileSync(self.PARTOUT_AGENT_ENVIRONMENT_FILE, env + '\n');
         } catch (e) {
           if (e.code !== 'ENOENT') {
             throw e;
@@ -80,17 +84,23 @@ var Cfg = function () {
         }
       }
 
-    } else {
-      // read it
-      env = fs.readFileSync(self.PARTOUT_AGENT_ENVIRONMENT_FILE).toString();
     }
 
-    self.environment = env;
-    self.PARTOUT_AGENT_MANIFEST_SITE_P2 = path.join(self.PARTOUT_AGENT_MANIFEST_DIR, env, 'site.p2');
+    if (!env) {
+      env = oldenv;
+    }
+
+    if (env) {
+      self.environment = env;
+      self.PARTOUT_AGENT_MANIFEST_SITE_P2 = path.join(self.PARTOUT_AGENT_MANIFEST_DIR, env, 'site.p2');
+    } else {
+      self.environment = undefined;
+      self.PARTOUT_AGENT_MANIFEST_SITE_P2 = undefined;
+    }
 
     return env;
   };
-  self.setEnvironment();  // assumes default until the environment file is created
+  self.setEnvironment();  // read cached env
 
   /*
    * defaults for agent to master event throttling

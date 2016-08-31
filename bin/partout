@@ -26,7 +26,7 @@
 'use strict';
 
 /*
- * partout [ server | csr [ list | reject k | sign k ]]
+ * partout [ server | csr [ list | reject k | sign k ] | setenv agent-uuid new-environment | listagents ]
  */
 
 // TODO: add --debug and --verbose same as agent
@@ -58,7 +58,7 @@ var args = require('args'),
 
 if (parsed.help) {
   console.log(options.getHelp());
-  console.log('\nCommands:\n\tinit\n\tserve (default)\n\tcsr [list|sign id]');
+  console.log('\nCommands:\n\tinit\n\tserve (default)\n\tcsr [list|sign agent-uuid]\n\tsetenv agent-uuid new-environment');
   process.exit(0);
 }
 

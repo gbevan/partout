@@ -25,8 +25,9 @@
 'use strict';
 
 var Q = require('q'),
-  Common = require('./common'),
-  uuid = require('node-uuid');
+    u = require('util'),
+    Common = require('./common'),
+    uuid = require('node-uuid');
 
 /**
  * Controller for the csrs collection.
@@ -38,68 +39,82 @@ var Q = require('q'),
 var Csr = function (db) {
   var self = this;
 
-  //self.__proto__ = Common(db, 'csrs');
-  Object.setPrototypeOf(self, Common(db, 'csrs'));
+  // TODO: self.schema = {}
+  self.schema = {
+    ip: 'string',
+    //env: 'string',
+    csr: 'string',
+    lastSeen: 'date',
+    status: 'string',
+    cert: 'object',
+    certPem: 'string'
+  };
 
+  return Csr.super_.call(self, db, 'csrs');
+};
+u.inherits(Csr, Common);
 
-  self.register = function (agent_uuid, ip, csr, env) {
-    var self = this,
-      deferred = Q.defer(),
-      now = new Date();
-    console.log('agent_uuid:', agent_uuid);
+Csr.prototype.register = function (agent_uuid, ip, csr/*, env*/) {
+  var self = this,
+    deferred = Q.defer(),
+    now = new Date();
+  //console.log('agent_uuid:', agent_uuid);
 
-    // check if csr already exist for this agent's uuid (if one present)
-    var p;
-    if (agent_uuid) {
-      p = self.query({_key: agent_uuid});
-    } else {
-      p = Q.resolve({count: 0}); //fake empty query
-    }
-    console.log('p:', p);
-    p.then(function (docCursor) {
-      console.log('docCursor:', docCursor);
+  // check if csr already exist for this agent's uuid (if one present)
+  var p;
+  if (agent_uuid) {
+    p = self.query({_key: agent_uuid});
+  } else {
+    p = Q.resolve({count: 0}); //fake empty query
+  }
+  //console.log('p:', p);
+  p.then(function (docCursor) {
+    //console.log('docCursor:', docCursor);
 
-      if (docCursor.count === 0) {
-        // Create new entry in csrs collection
-        var newDoc = {
-          _key: ((agent_uuid && agent_uuid !== '') ? agent_uuid : uuid.v4()),
-          ip: ip,
-          env: env,
-          csr: csr,
-          status: 'unsigned',
-          lastSeen: now
-        };
-        console.log('newDoc:', newDoc);
-        self.save(newDoc)
-        .then(function (doch) {
-          console.log('doch:', doch);
-          self.collection.document(doch)
-          .then(function (doc) {
-            console.log('doc:', doc);
-            deferred.resolve(doc);
-          });
-        })
-        .done();
-
-      } else {
-        //console.log('csr already exists for', ip);
-        docCursor.next()
+    if (docCursor.count === 0) {
+      // Create new entry in csrs collection
+      var newDoc = {
+        _key: ((agent_uuid && agent_uuid !== '') ? agent_uuid : uuid.v4()),
+        ip: ip,
+        //env: env,
+        csr: csr,
+        status: 'unsigned',
+        lastSeen: now
+      };
+      //console.log('newDoc:', newDoc);
+      self.save(newDoc)
+      .then(function (doch) {
+        //console.log('doch:', doch);
+        self.collection.document(doch)
         .then(function (doc) {
           //console.log('doc:', doc);
-          doc.csr = csr;
-          doc.lastSeen = now;
-          doc.env = env;
-          self.collection.update(doc._id, doc)
-          .then(function () {
-            deferred.resolve(doc);
-          });
-        })
-        .done();
-      }
-    })
-    .done();
-    return deferred.promise;
-  };
+          deferred.resolve(doc);
+        });
+      })
+      .done();
+
+    } else {
+      //console.log('csr already exists for', ip);
+      docCursor.next()
+      .then(function (doc) {
+        //console.log('doc:', doc);
+        doc.csr = csr;
+        doc.lastSeen = now;
+//        if (doc.env !== env && doc.status !== 'unsigned') {
+//          deferred.reject(new Error('You can only change an agent\'s environment when status is "unsigned"'));
+//          return;
+//        }
+//        doc.env = env;
+        self.collection.update(doc._id, doc)
+        .then(function () {
+          deferred.resolve(doc);
+        });
+      })
+      .done();
+    }
+  })
+  .done();
+  return deferred.promise;
 };
 
 module.exports = Csr;

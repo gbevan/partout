@@ -153,9 +153,9 @@ Ssl.prototype.genCsr = function (cfg, cb) {
   csr.publicKey = keys.publicKey;
   csr.setSubject(cfg.subjAttrs);
 
-  if (cfg.extensions) {
-    csr.setExtensions(cfg.extensions);
-  }
+//  if (cfg.extensions) {
+//    csr.setExtensions(cfg.extensions);
+//  }
   //console.log('keys:', keys.privateKey);
 
   csr.sign(keys.privateKey, forge.md.sha256.create());

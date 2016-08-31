@@ -36,7 +36,7 @@ var assert = require('assert'),
   path = require('path'),
   os = require('os');
 
-GLOBAL.should = require('should');
+global.should = require('should');
 should.extend();
 
 Q.longStackSupport = true;
@@ -45,12 +45,12 @@ describe('Cfg', function () {
   var cfg = new (require('../etc/partout.conf.js'))();
 
   it ('should exist', function () {
-    should(cfg).exist;
+    should.exist(cfg);
   });
 
   describe('database name', function () {
     it ('should exist', function () {
-      cfg.database_name.should.exist;
+      should.exist(cfg.database_name);
     });
 
     it ('should be partout-test', function () {

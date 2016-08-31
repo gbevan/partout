@@ -36,7 +36,7 @@ var assert = require('assert'),
   path = require('path'),
   os = require('os');
 
-GLOBAL.should = require('should');
+global.should = require('should');
 should.extend();
 
 Q.longStackSupport = true;
@@ -47,11 +47,11 @@ describe('Db', function () {
       db = new Db(cfg);
 
   it ('class should exist', function () {
-    should(Db).exist;
+    should.exist(Db);
   });
 
   it ('instance should exist', function () {
-    should(db).exist;
+    should.exist(db);
   });
 
   describe('method getDbName()', function () {
@@ -59,11 +59,11 @@ describe('Db', function () {
       should(db.getDbName).not.be.undefined;
     });
     it ('should be a function', function () {
-      db.getDbName.should.be.a.function;
+      db.getDbName.should.be.a.Function;
     });
 
     it ('should return a dbname from cfg', function () {
-      db.getDbName().should.exist;
+      should.exist(db.getDbName());
       db.getDbName().should.equal(cfg.database_name);
     });
 
@@ -93,7 +93,7 @@ describe('Db', function () {
     });
 
     it ('should be a function', function () {
-      db.connect.should.be.a.function;
+      db.connect.should.be.a.Function;
     });
 
     /*
@@ -102,7 +102,7 @@ describe('Db', function () {
     var p_conn = db.connect();
     it ('should return a deferred promise', function () {
       p_conn.should.not.be.undefined;
-      p_conn.should.be.a.Promise;
+      p_conn.should.be.a.Promise();
     });
 
     describe('returned promise', function () {

@@ -25,21 +25,60 @@
 'use strict';
 
 var Q = require('q'),
-  Common = require('./common');
+    Common = require('./common'),
+    assert = require('assert'),
+    u = require('util');
 
 /**
  * Controller for the agents collection.
  * (See common.js for inherited methods.)
  *
- * _key = ip
+ * _key = agent uuid
  *
  */
 var Agent = function (db) {
   var self = this;
 
-  //self.__proto__ = Common(db, 'agents');
-  Object.setPrototypeOf(self, Common(db, 'agents'));
+  /*
+   * _id and _key are implied
+   */
+  self.schema = {
+    env: 'string',
+    facts: 'object',
+    ip: 'string',
+    certInfo: 'object',
+    lastSeen: 'date'
+  };
 
+  return Agent.super_.call(self, db, 'agents');
+
+};
+u.inherits(Agent, Common);
+
+Agent.prototype.upsert = function (doc) {
+  var self = this;
+  assert(doc !== undefined);
+  assert(doc._key !== undefined && doc._key !== '');
+
+  if (!self._validDoc(doc)) {
+    return Q.reject(new Error('Invalid document'));
+  }
+
+  return self.queryOne({_key: doc._key})
+  .then(function (existing_doc) {
+    if (existing_doc) {
+      // Update
+      if (doc.env !== existing_doc.env) {
+        return Q.reject(new Error('Cannot change agent\'s environment after it has been signed'));
+      }
+
+      doc._id = existing_doc._id;
+      return self.update(doc);
+    } else {
+      // create
+      return self.save(doc);
+    }
+  });
 };
 
 module.exports = Agent;

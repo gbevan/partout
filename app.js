@@ -38,6 +38,7 @@ var console = require('better-console'),
     logger = morgan('combined'),
     compression = require('compression'),
     fs = require('fs'),
+    u = require('util'),
     keyFile = 'etc/ssl/server.key',
     certFile = 'etc/ssl/server.crt',
     os = require('os'),
@@ -52,7 +53,10 @@ var console = require('better-console'),
     Agent = require('./server/controllers/agent.js'),
     utils = new (require('./agent/lib/utils'))(),
     serverMetrics = new (require('./lib/server_metrics'))(),
-    _ = require('lodash');
+    _ = require('lodash'),
+    passport = require('passport'),
+    ClientCertStrategy = require('passport-client-cert').Strategy,
+    printf = require('printf');
 
 Q.longStackSupport = true;
 
@@ -172,6 +176,12 @@ var serve = function (opts) {
          * Start Master API Server
          */
 
+//        passport.use(new ClientCertStrategy(function(clientCert, done) {
+//          console.log('client cert:', clientCert);
+//
+//          done(null, {something: true});
+//        }));
+
         /**
          * Express app for the Master API
          * @class appApi
@@ -201,6 +211,9 @@ var serve = function (opts) {
           };
 
         appApi.opts = opts;
+
+//        appApi.use(passport.initialize());
+//        appApi.use(passport.authenticate('client-cert', {session: false}));
 
         appApi.use(compression());
         routerApi.use(logger);
@@ -283,7 +296,8 @@ module.exports = function (opts) {
     .then(function (status) {
       //console.log('csr db:', status);
       var csr = new Csr(db.getDb()),
-        key;
+          //agent = new Agent(db.getDb()),
+          key;
 
       if (opts.args.length === 0) {
         opts.args[0] = 'list';
@@ -301,7 +315,7 @@ module.exports = function (opts) {
           for (var i in csrList) {
             var csrObj = ca.pki.certificationRequestFromPem(csrList[i].csr),
                 fingerprint = ca.pki.getPublicKeyFingerprint(csrObj.publicKey, {encoding: 'hex', delimiter: ':'}),
-                logrow = csrList[i]._key + ' : ' + csrList[i].status + ' : ' + fingerprint + ' : ' + csrList[i].lastSeen + ' : env:' + csrList[i].env;
+                logrow = csrList[i]._key + ' : ' + csrList[i].status + ' : ' + fingerprint + ' : ' + csrList[i].lastSeen;
 
             if (csrList[i].status === 'unsigned') {
               console.log(logrow);
@@ -337,12 +351,13 @@ module.exports = function (opts) {
             cursor.next()
             .then(function (csrDoc) {
               console.info('Signing CSR:\n', csrDoc.csr);
-              ca.signCsrWithAgentSigner(csrDoc.csr)
-              .then(function (certPem) {
-                console.log('Signed cert from csr:\n' + certPem);
+              ca.signCsrWithAgentSigner(csrDoc.csr, key)  // sign adding key/uuid as given name
+              .then(function (signed) {
+                console.log('Signed cert from csr:\n' + signed.certPem);
 
                 // return to agent via the csr document in db
-                csrDoc.cert = certPem;
+                csrDoc.cert = signed.cert;
+                csrDoc.certPem = signed.certPem;
                 csrDoc.status = 'signed';
                 return csr.update(csrDoc);
               }).done();
@@ -392,6 +407,77 @@ module.exports = function (opts) {
 
     })
     .done();
+
+  } else if (opts.setenv) { // set agent environment
+    // partout setenv uuid new-environment
+    var uuid = opts.args[0],
+        newenv = opts.args[1];
+
+    db.connect()
+    .then(function (status) {
+      //console.log('csr db:', status);
+      var agent = new Agent(db.getDb());
+
+      agent.queryOne({_key: uuid})
+      .then(function (doc) {
+        if (!doc) {
+          console.error('UUID', uuid, 'not found in agents collection');
+          process.exit(1);
+        }
+        if (doc.environment !== newenv) {
+          doc.env = newenv;
+          return agent.update(doc);
+        }
+      })
+      .done();
+    })
+    .done();
+
+  } else if (opts.listagents) { // list agents
+    db.connect()
+    .then(function (status) {
+      //console.log('csr db:', status);
+      var agent = new Agent(db.getDb());
+      return agent.all()
+      .then(function (agents) {
+
+        // Headers
+        console.info(printf(
+          '%-36s %-15s %s',
+          'Agent UUID',
+          'Environment',
+          'Agent Cert Info'
+        ));
+
+        console.info(printf(
+          '%36s %-15s %s',
+          '='.repeat(36),
+          '='.repeat(15),
+          '='.repeat(80-(36+15))
+        ));
+
+        agents.forEach(function (a) {
+          var c = (a.env ? console.info : console.warn);
+          c(printf(
+            '%-36s %-15s %s %s -> %s',
+            a._key,
+            a.env || 'n/a',
+            (function () {
+              var str = '';
+              for (var i=0; i<2; i++) {
+                var sattr = a.certInfo.subject.attributes[i];
+                str += sattr.value + (i===0 ? '/' : '');
+              }
+              return str;
+            })(),
+            a.certInfo.valid_from || 'n/a',
+            a.certInfo.valid_to || 'n/a'
+          ));
+        });
+      });
+    })
+    .done();
+
   } else {
     console.error('Error: Unrecognised command');
     process.exit(1);

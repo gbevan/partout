@@ -1,4 +1,4 @@
-/*jshint newcap: false*/
+/*jshint newcap: false, proto: true*/
 /*
     Partout [Everywhere] - Policy-Based Configuration Management for the
     Data-Driven-Infrastructure.
@@ -28,16 +28,18 @@
 
 /*global describe, before, it, should*/
 var assert = require('assert'),
-  expect = require('expect'),
-  request = require('supertest'),
-  express = require('express'),
-  routerApi = express.Router(),
-  bodyParser = require('body-parser'),
-  Q = require('q'),
-  fs = require('fs');
+    expect = require('expect'),
+    request = require('supertest'),
+    express = require('express'),
+    origreq = require('express').request,
+    routerApi = express.Router(),
+    bodyParser = require('body-parser'),
+    Q = require('q'),
+    fs = require('fs'),
+    u = require('util');
   //utils = new (require('../agent/lib/utils'))();
 
-GLOBAL.should = require('should');
+global.should = require('should');
 should.extend();
 
 Q.longStackSupport = true;
@@ -53,6 +55,7 @@ var controllers = {
   agent: {
     queryOne: function (doc) {
       //console.log('agent.queryOne called with:', doc);
+      doc.env = 'default';
       return Q(doc);
     },
     update: function (doc) {
@@ -62,6 +65,44 @@ var controllers = {
   }
 };
 
+/**
+ * Create new mocked Request object
+ * @param   {object} app    Express router
+ * @param   {string} method GET, POST, etc
+ * @param   {string} url    URL for api call, e.g. '/manifest'
+ *                          @param   {string} env    Environment
+ * @returns {object} req
+ */
+function newReq (app, method, url, env) {
+  return {
+    __proto__: origreq,
+    app: app,
+    url: url,
+    method: method.toUpperCase(),
+    headers: {
+      'transfer-encoding': 'chunked'
+    },
+    client: {
+      authorized: true
+    },
+    connection: {
+      getPeerCertificate: function () {
+        // TODO: Mock client cert with GN as UUID
+        return {
+          subject: {
+            GN: 'XXXX-XXXXX'
+          }
+        };
+      },
+      remoteAddress: '127.0.0.1'
+    },
+    agent: {
+      _key: 'XXXX-XXXXX',
+      env: env
+    },
+  };
+}
+
 before(function () {
   appApi = express();
   appApi.use(bodyParser.json());
@@ -69,6 +110,7 @@ before(function () {
   require('../../lib/api/routes')(routerApi, undefined, undefined, controllers);
   routerApi.mock = true;
   appApi.use('/', routerApi);
+
 });
 
 describe('appApi', function () {
@@ -87,101 +129,258 @@ describe('api/routes', function () {
 
     describe('get() manifest', function () {
       it('should respond with JSON', function (done) {
-        var re = new RegExp('etc/manifest/site\.p2', 'gm');
-        request(appApi)
-        .get('/manifest')
-        .set('Accept', 'application/json')
-        .expect(200)
-        .expect('Content-Type', /json/)
-        .expect(re)
-        .end(function (err, res) {
-          should(err).be.null;
-          should(res).not.be.undefined;
-          var m = res.body;
-          should(m['etc/manifest/site.p2']).not.be.undefined;
-          done();
-        });
+        var re = new RegExp('etc/manifest/default/site_example\.p2', 'gm');
+
+        // Mock up Request and Response objects
+        var req = newReq(appApi, 'GET', '/manifest', 'default');
+        //console.log('req', req);
+
+        var res = {
+          setHeader: function () {},
+          status: function (code) {
+            code.should.equal(200);
+            return this;
+          },
+          send: function (o) {
+            should.fail('REACHED', 'NOTREACHED', 'send method called - failed test', 'send()');
+            done();
+            return this;
+          },
+          json: function (o) {
+            var env = o.environment,
+                m = o.manifest;
+            should(env).not.be.undefined();
+            env.should.equal('default');
+
+            //console.log('res json:', m);
+            should(m['etc/manifest/default/site_example.p2']).not.be.undefined();
+            done();
+          }
+        };
+
+        appApi(req, res, function (err) {} );
+
       });
     });
 
     describe('get() file', function () {
       it('should respond with data file content', function (done) {
         var re = new RegExp('p2', 'm');
-        request(appApi)
-        .get('/file?file=etc/manifest/site.p2')
-        .set('Accept', 'application/octet-stream')
-        .expect(200)
-        .expect('Content-Type', /application\/octet-stream/)
-        .expect(re, done);
+
+        // Mock up Request and Response objects
+        var req = newReq(appApi, 'GET', '/file?file=etc/manifest/default/site_example.p2', 'default');
+
+        var status;
+
+        var res = {
+          setHeader: function () {},
+          status: function (code) {
+            code.should.equal(200);
+            status = code;
+            return this;
+          },
+          send: function (d) {
+            if (status !== 200) {
+              should.fail('REACHED', 'NOTREACHED', 'send method called - failed test', 'send()');
+            } else {
+              should(d).not.be.undefined();
+              d.should.be.a.String();
+              d.length.should.be.above(0);
+            }
+            done();
+            return this;
+          },
+        };
+
+        appApi(req, res, function (err) {} );
+
       });
 
       it('should catch attempts to use absolute paths (expect SECURITY VIOLATION msg above)', function (done) {
-        request(appApi)
-        .get('/file?file=/badstuff')
-        .expect(403, done);
+
+        // Mock up Request and Response objects
+        var req = newReq(appApi, 'GET', '/file?file=/badstuff', 'default');
+
+        var status;
+
+        var res = {
+          setHeader: function () {},
+          status: function (code) {
+            code.should.equal(403);
+            status = code;
+            return this;
+          },
+          send: function (d) {
+            if (status !== 403) {
+              should.fail('REACHED', 'NOTREACHED', 'send method called - failed test', 'send()');
+            }
+            done();
+            return this;
+          },
+        };
+
+        appApi(req, res, function (err) {} );
       });
 
       it('should catch attempts to use ../ (expect SECURITY VIOLATION msg above)', function (done) {
-        request(appApi)
-        .get('/file?file=etc/manifest/../../../../badstuff')
-        .expect(403, done);
+
+        // Mock up Request and Response objects
+        var req = newReq(appApi, 'GET', '/file?file=etc/manifest/../../../../badstuff', 'default');
+
+        var status;
+
+        var res = {
+          setHeader: function () {},
+          status: function (code) {
+            code.should.equal(403);
+            status = code;
+            return this;
+          },
+          send: function (d) {
+            if (status !== 403) {
+              should.fail('REACHED', 'NOTREACHED', 'send method called - failed test', 'send()');
+            }
+            done();
+            return this;
+          },
+        };
+
+        appApi(req, res, function (err) {} );
       });
 
       it('should be able to fetch node dist testfile', function (done) {
-        request(appApi)
-        .get('/file?file=node/testos/testarch/testfile')
-        .set('Accept', 'application/octet-stream')
-        .expect(200)
-        .expect('Content-Type', /application\/octet-stream/)
-        .expect(/This is to test the \/nodejsManifest sync api/, done);
+
+        // Mock up Request and Response objects
+        var req = newReq(appApi, 'GET', '/file?file=node/testos/testarch/testfile', 'default');
+
+        var status;
+
+        var res = {
+          setHeader: function () {},
+          status: function (code) {
+            code.should.equal(200);
+            status = code;
+            return this;
+          },
+          send: function (d) {
+            if (status !== 200) {
+              should.fail('REACHED', 'NOTREACHED', 'send method called - failed test', 'send()');
+            } else {
+              should(d).not.be.undefined();
+              d.should.be.a.String();
+              d.length.should.be.above(0);
+            }
+            done();
+            return this;
+          },
+        };
+
+        appApi(req, res, function (err) {} );
       });
 
       it('should be able to fetch agent/app.js', function (done) {
-        request(appApi)
-        .get('/file?file=agent/app.js')
-        .set('Accept', 'application/octet-stream')
-        .expect(200)
-        .expect('Content-Type', /application\/octet-stream/)
-        .expect(/use strict/, done);
+
+        // Mock up Request and Response objects
+        var req = newReq(appApi, 'GET', '/file?file=agent/app.js', 'default');
+
+        var status;
+
+        var res = {
+          setHeader: function () {},
+          status: function (code) {
+            code.should.equal(200);
+            status = code;
+            return this;
+          },
+          send: function (d) {
+            if (status !== 200) {
+              should.fail('REACHED', 'NOTREACHED', 'send method called - failed test', 'send()');
+            } else {
+              should(d).not.be.undefined();
+              d.should.be.a.String();
+              d.length.should.be.above(0);
+            }
+            done();
+            return this;
+          },
+        };
+
+        appApi(req, res, function (err) {} );
       });
     });
 
     describe('post() event', function () {
       it('should allow to post an event msg', function (done) {
-        request(appApi)
-        .post('/event')
-        .send({
+
+        // Mock up Request and Response objects
+        var req = newReq(appApi, 'POST', '/event', 'default');
+        req.body = {
           module: 'testmodule',
           msg: 'my test event message',
           object: 'myObject'
-        })
-        .expect(200)
-        .end(function (err, res) {
-          should(err).be.null;
-          should(res).not.be.undefined;
-          res.text.should.eql('received');
-          done();
-        });
+        };
+
+        var status;
+
+        var res = {
+          setHeader: function () {},
+          status: function (code) {
+            code.should.equal(200);
+            status = code;
+            return this;
+          },
+          send: function (d) {
+            if (status !== 200) {
+              should.fail('REACHED', 'NOTREACHED', 'send method called - failed test', 'send()');
+            } else {
+              should(d).not.be.undefined();
+              d.should.be.a.String();
+              d.should.equal('received');
+            }
+            done();
+            return this;
+          },
+        };
+
+        appApi(req, res, function (err) {} );
       });
     });
 
     describe('post() facts', function () {
       it('should allow to post facts to master', function (done) {
-        request(appApi)
-        .post('/facts')
-        .send({
+
+        // Mock up Request and Response objects
+        var req = newReq(appApi, 'POST', '/facts', 'default');
+        req.body = {
           partout_agent_uuid: 'a test UUID',
           fact1: 'value of fact 1',
           fact2: 'value of fact 2',
           fact3: 'value of fact 3'
-        })
-        .expect(200)
-        .end(function (err, res) {
-          should(err).be.null;
-          should(res).not.be.undefined;
-          res.text.should.eql('received');
-          done();
-        });
+        };
+
+        var status;
+
+        var res = {
+          setHeader: function () {},
+          status: function (code) {
+            code.should.equal(200);
+            status = code;
+            return this;
+          },
+          send: function (d) {
+            if (status !== 200) {
+              should.fail('REACHED', 'NOTREACHED', 'send method called - failed test', 'send()');
+            } else {
+              should(d).not.be.undefined();
+              d.should.be.a.String();
+              d.should.equal('received');
+            }
+            done();
+            return this;
+          },
+        };
+
+        appApi(req, res, function (err) {} );
       });
     });
 
@@ -248,30 +447,76 @@ describe('api/routes', function () {
 
     describe('get() fileAttrs', function () {
       it('should respond with file\'s attributes', function (done) {
-        request(appApi)
-        .get('/fileAttrs?file=node/linux/x64/bin/node')
-        .set('Accept', 'application/json')
-        .expect(200)
-        .expect('Content-Type', /application\/json/)
-        //.expect(re, done);
-        .end(function (err, res) {
-          should(err).be.null;
-          should(res).not.be.undefined;
-          var attrs = res.body;
-          should(attrs).not.be.undefined;
-          //console.log('attrs:', attrs);
-          attrs.mode.should.eql(parseInt('0100755', 8));
-          done();
-        });
+
+        // Mock up Request and Response objects
+        var req = newReq(appApi, 'GET', '/fileAttrs?file=node/linux/x64/bin/node', 'default');
+
+        var status;
+
+        var res = {
+          setHeader: function () {},
+          status: function (code) {
+            code.should.equal(200);
+            status = code;
+            return this;
+          },
+          send: function (d) {
+            should.fail('REACHED', 'NOTREACHED', 'send method called - failed test', 'send()');
+            done();
+            return this;
+          },
+          json: function (attrs) {
+            if (status !== 200) {
+              should.fail('REACHED', 'NOTREACHED', 'json method called, bad status - failed test', 'json()');
+            } else {
+              should(attrs).not.be.undefined();
+              attrs.should.be.an.Object();
+              should(attrs.mode).not.be.undefined();
+              attrs.mode.should.eql(parseInt('0100755', 8));
+            }
+            done();
+            return this;
+          }
+        };
+
+        appApi(req, res, function (err) {} );
+
       });
 
       it('should respond with just text mode for bootstrap=1', function (done) {
-        request(appApi)
-        .get('/fileAttrs?file=node/linux/x64/bin/node&bootstrap=1')
-        .set('Accept', 'application/octet-stream')
-        .expect(200)
-        .expect('Content-Type', /application\/octet-stream/)
-        .expect(/0100755/, done);
+
+//        request(appApi)
+//        .get('/fileAttrs?file=node/linux/x64/bin/node&bootstrap=1')
+//        .set('Accept', 'application/octet-stream')
+//        .expect(200)
+//        .expect('Content-Type', /application\/octet-stream/)
+//        .expect(/0100755/, done);
+
+        // Mock up Request and Response objects
+        var req = newReq(appApi, 'GET', '/fileAttrs?file=node/linux/x64/bin/node&bootstrap=1', 'default');
+
+        var status;
+
+        var res = {
+          setHeader: function () {},
+          status: function (code) {
+            code.should.equal(200);
+            status = code;
+            return this;
+          },
+          send: function (attrs) {
+            if (status !== 200) {
+              should.fail('REACHED', 'NOTREACHED', 'send method called, bad status - failed test', 'send()');
+            } else {
+              should(attrs).not.be.undefined();
+              attrs.trim().should.equal('0100755');
+            }
+            done();
+            return this;
+          }
+        };
+
+        appApi(req, res, function (err) {} );
       });
     });
 

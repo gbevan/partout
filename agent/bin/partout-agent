@@ -52,12 +52,12 @@ var console = require('better-console'),
         type: 'bool',
         help: 'Show timing log messages'
       },
-      {
-        name: 'env',
-        shortName: 'e',
-        type: 'string',
-        help: 'Specify agent\'s environment'
-      },
+//      {
+//        name: 'env',
+//        shortName: 'e',
+//        type: 'string',
+//        help: 'Specify agent\'s environment'
+//      },
       {
         name: 'once',
         shortName: '1',

@@ -112,6 +112,7 @@ describe('Module file', function () {
   describe('option content', function () {
 
     it('Policy should create file with content string', function (done) {
+     this.timeout(10000);
       var testFile = utils.escapeBackSlash(tmp.tmpNameSync() + '.TEST');
 
       p2Test.runP2Str(
