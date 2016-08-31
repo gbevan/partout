@@ -152,7 +152,9 @@ Common.prototype.queryOne = function (example) {
   .then(function (cursor) {
     //console.log('cursor:', cursor);
     if (cursor.count > 1) {
-      throw new Error('queryOne returned more than 1 result');
+      var err = new Error('queryOne returned more than 1 result');
+      console.error(err);
+      return deferred.reject(err);
     }
     if (cursor.count === 1) {
       cursor.next()

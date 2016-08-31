@@ -161,7 +161,7 @@ var checkCert = function (master/*, env*/) {
 
             _sendCsr(master/*, env*/)
             .then(function(resp) {
-              console.log('response to new csr:', resp.status);
+              //console.log('response to new csr:', resp.status);
 
               deferred.resolve(false);
             }).done();
@@ -292,6 +292,13 @@ var serve = function (opts, master/*, env*/) {
   var policy_sync = new Policy_Sync(app);
 
   app._apply = function (cb) {
+
+    if (!app.apply_site_p2) {
+      console.warn('Policy Sync has not yet resolved a site policy. Please ensure this agent has been assigned to a valid environment by the Partout Master Administrator (see `partout setenv` command).');
+      cb();
+      return;
+    }
+
     fs.exists(app.apply_site_p2, function (exists) {
       if (!exists) {
         console.error('Error: site policy file', app.apply_site_p2, 'does not yet exist');
@@ -321,7 +328,7 @@ var serve = function (opts, master/*, env*/) {
 
     var splay = (app.apply_count === 0 ? 0 : app.poll_manifest_splay_secs * 1000 * Math.random()) ;
 
-    if ((app.apply_count++ % app.poll_manifest_every) === 0) {
+    if ((app.apply_count++ % app.poll_manifest_every) === 0 || !app.apply_site_p2) {
 
       setTimeout(function () {
 
@@ -332,10 +339,10 @@ var serve = function (opts, master/*, env*/) {
         .then(function () {
           //console.log('sync done');
 
-          console.log('after policy_sync app.cfg.environment:', app.cfg.environment);
+          //console.log('after policy_sync app.cfg.environment:', app.cfg.environment);
 
           app.apply_site_p2 = cfg.PARTOUT_AGENT_MANIFEST_SITE_P2;
-          console.log('app.apply_site_p2:', app.apply_site_p2);
+          //console.log('app.apply_site_p2:', app.apply_site_p2);
 
           app._apply(function () {
             app.inRun = false;

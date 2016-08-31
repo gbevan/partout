@@ -20,6 +20,7 @@
     "node-uuid": "^1.4.7",
     "passport": "^0.3.2",
     "passport-client-cert": "^2.0.0",
+    "printf": "^0.2.3",
     "prompt": "^0.2.14",
     "q": "^1.4.1",
     "rmdir": "^1.1.0",

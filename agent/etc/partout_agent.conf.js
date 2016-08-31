@@ -66,44 +66,41 @@ var Cfg = function () {
       }
     }
 
-    if (!stat || optenv) {
-      // create/write it
-      env = (optenv ? optenv : 'default');
-
-      if (!global.INMOCHA) {
-
-        // TODO: only write if changed
-        var oldenv;
-        if (stat) {
-          oldenv = fs.readFileSync(self.PARTOUT_AGENT_ENVIRONMENT_FILE).toString().trim();
-        }
-
-        if (!stat || oldenv !== env) {
-
-          try {
-            fs.writeFileSync(self.PARTOUT_AGENT_ENVIRONMENT_FILE, env);
-          } catch (e) {
-            if (e.code !== 'ENOENT') {
-              throw e;
-            }
-          }
-
-        }
-
-      }
-
-    } else {
-      // XXX: This code is deprecated, optenv is always provided by manifest from master, see agent/app.js
-      // read it
-      env = fs.readFileSync(self.PARTOUT_AGENT_ENVIRONMENT_FILE).toString().trim();
+    var oldenv;
+    if (stat) {
+      oldenv = fs.readFileSync(self.PARTOUT_AGENT_ENVIRONMENT_FILE).toString().trim();
     }
 
-    self.environment = env;
-    self.PARTOUT_AGENT_MANIFEST_SITE_P2 = path.join(self.PARTOUT_AGENT_MANIFEST_DIR, env, 'site.p2');
+    if (optenv && !global.INMOCHA) {
+
+      if (!stat || oldenv !== optenv) {
+        try {
+          env = optenv;
+          fs.writeFileSync(self.PARTOUT_AGENT_ENVIRONMENT_FILE, env + '\n');
+        } catch (e) {
+          if (e.code !== 'ENOENT') {
+            throw e;
+          }
+        }
+      }
+
+    }
+
+    if (!env) {
+      env = oldenv;
+    }
+
+    if (env) {
+      self.environment = env;
+      self.PARTOUT_AGENT_MANIFEST_SITE_P2 = path.join(self.PARTOUT_AGENT_MANIFEST_DIR, env, 'site.p2');
+    } else {
+      self.environment = undefined;
+      self.PARTOUT_AGENT_MANIFEST_SITE_P2 = undefined;
+    }
 
     return env;
   };
-  self.setEnvironment();  // assumes default until the environment file is created
+  self.setEnvironment();  // read cached env
 
   /*
    * defaults for agent to master event throttling

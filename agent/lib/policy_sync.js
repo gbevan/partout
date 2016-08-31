@@ -219,12 +219,16 @@ Policy_Sync.prototype.sync = function (srcfolder, destfolder) {
       outer_deferred.reject(err);
     })
     .then(function (obj) {
+      if (!obj || !obj.data) {
+        return;
+      }
       var manifest = obj.data.manifest;
 
 //      self.app.cfg.environment = obj.data.environment;
-//      console.log('self.app.cfg.environment #1:', self.app.cfg.environment);
+      //console.log('self.app.cfg.environment #1:', self.app.cfg.environment);
+      //console.log('obj.data.environment:', obj.data.environment);
       self.app.cfg.setEnvironment(obj.data.environment);
-      console.log('self.app.cfg.environment #2:', self.app.cfg.environment);
+      //console.log('self.app.cfg.environment #2:', self.app.cfg.environment);
       //console.info('manifest:', manifest);
 
       // Get hashWalk of local manifest

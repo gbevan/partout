@@ -42,7 +42,7 @@ var Csr = function (db) {
   // TODO: self.schema = {}
   self.schema = {
     ip: 'string',
-    env: 'string',
+    //env: 'string',
     csr: 'string',
     lastSeen: 'date',
     status: 'string',
@@ -54,7 +54,7 @@ var Csr = function (db) {
 };
 u.inherits(Csr, Common);
 
-Csr.prototype.register = function (agent_uuid, ip, csr, env) {
+Csr.prototype.register = function (agent_uuid, ip, csr/*, env*/) {
   var self = this,
     deferred = Q.defer(),
     now = new Date();
@@ -76,7 +76,7 @@ Csr.prototype.register = function (agent_uuid, ip, csr, env) {
       var newDoc = {
         _key: ((agent_uuid && agent_uuid !== '') ? agent_uuid : uuid.v4()),
         ip: ip,
-        env: env,
+        //env: env,
         csr: csr,
         status: 'unsigned',
         lastSeen: now
@@ -100,11 +100,11 @@ Csr.prototype.register = function (agent_uuid, ip, csr, env) {
         //console.log('doc:', doc);
         doc.csr = csr;
         doc.lastSeen = now;
-        if (doc.env !== env && doc.status !== 'unsigned') {
-          deferred.reject(new Error('You can only change an agent\'s environment when status is "unsigned"'));
-          return;
-        }
-        doc.env = env;
+//        if (doc.env !== env && doc.status !== 'unsigned') {
+//          deferred.reject(new Error('You can only change an agent\'s environment when status is "unsigned"'));
+//          return;
+//        }
+//        doc.env = env;
         self.collection.update(doc._id, doc)
         .then(function () {
           deferred.resolve(doc);

@@ -38,6 +38,7 @@ var console = require('better-console'),
     logger = morgan('combined'),
     compression = require('compression'),
     fs = require('fs'),
+    u = require('util'),
     keyFile = 'etc/ssl/server.key',
     certFile = 'etc/ssl/server.crt',
     os = require('os'),
@@ -54,7 +55,8 @@ var console = require('better-console'),
     serverMetrics = new (require('./lib/server_metrics'))(),
     _ = require('lodash'),
     passport = require('passport'),
-    ClientCertStrategy = require('passport-client-cert').Strategy;
+    ClientCertStrategy = require('passport-client-cert').Strategy,
+    printf = require('printf');
 
 Q.longStackSupport = true;
 
@@ -313,7 +315,7 @@ module.exports = function (opts) {
           for (var i in csrList) {
             var csrObj = ca.pki.certificationRequestFromPem(csrList[i].csr),
                 fingerprint = ca.pki.getPublicKeyFingerprint(csrObj.publicKey, {encoding: 'hex', delimiter: ':'}),
-                logrow = csrList[i]._key + ' : ' + csrList[i].status + ' : ' + fingerprint + ' : ' + csrList[i].lastSeen + ' : env:' + csrList[i].env;
+                logrow = csrList[i]._key + ' : ' + csrList[i].status + ' : ' + fingerprint + ' : ' + csrList[i].lastSeen;
 
             if (csrList[i].status === 'unsigned') {
               console.log(logrow);
@@ -418,7 +420,11 @@ module.exports = function (opts) {
 
       agent.queryOne({_key: uuid})
       .then(function (doc) {
-        if (doc.environmeent !== newenv) {
+        if (!doc) {
+          console.error('UUID', uuid, 'not found in agents collection');
+          process.exit(1);
+        }
+        if (doc.environment !== newenv) {
           doc.env = newenv;
           return agent.update(doc);
         }
@@ -427,6 +433,50 @@ module.exports = function (opts) {
     })
     .done();
 
+  } else if (opts.listagents) { // list agents
+    db.connect()
+    .then(function (status) {
+      //console.log('csr db:', status);
+      var agent = new Agent(db.getDb());
+      return agent.all()
+      .then(function (agents) {
+
+        // Headers
+        console.info(printf(
+          '%-36s %-15s %s',
+          'Agent UUID',
+          'Environment',
+          'Agent Cert Info'
+        ));
+
+        console.info(printf(
+          '%36s %-15s %s',
+          '='.repeat(36),
+          '='.repeat(15),
+          '='.repeat(80-(36+15))
+        ));
+
+        agents.forEach(function (a) {
+          var c = (a.env ? console.info : console.warn);
+          c(printf(
+            '%-36s %-15s %s %s -> %s',
+            a._key,
+            a.env || 'n/a',
+            (function () {
+              var str = '';
+              for (var i=0; i<2; i++) {
+                var sattr = a.certInfo.subject.attributes[i];
+                str += sattr.value + (i===0 ? '/' : '');
+              }
+              return str;
+            })(),
+            a.certInfo.valid_from || 'n/a',
+            a.certInfo.valid_to || 'n/a'
+          ));
+        });
+      });
+    })
+    .done();
 
   } else {
     console.error('Error: Unrecognised command');

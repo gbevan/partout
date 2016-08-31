@@ -26,7 +26,7 @@
 'use strict';
 
 /*
- * partout [ server | csr [ list | reject k | sign k ] | setenv agent-uuid new-environment ]
+ * partout [ server | csr [ list | reject k | sign k ] | setenv agent-uuid new-environment | listagents ]
  */
 
 // TODO: add --debug and --verbose same as agent
