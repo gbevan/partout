@@ -55,15 +55,13 @@ Q.longStackSupport = true;
 var MYUUID_FILE = path.join(cfg.PARTOUT_VARDIR, 'UUID');
 var MYUUID = (fs.existsSync(MYUUID_FILE) ? fs.readFileSync(MYUUID_FILE).toString() : '');
 
-var _sendCsr = function (master/*, env*/) {
+var _sendCsr = function (master) {
   var deferred = Q.defer();
   master.post('/agentcsr', {
     uuid: MYUUID,
-    //env: env,
     csr: fs.readFileSync(ssl.agentCsrFile).toString()
   })
   .then(function (resp) {
-    //console.log('resp to agentcsr:', resp);
     if (resp === 'Unauthorized') {
       console.error('Master returned "Unauthorized"...');
       throw 'Unauthorized';
@@ -92,10 +90,8 @@ var _sendCsr = function (master/*, env*/) {
 
 var apply = function (args, opts) {
   var deferred = Q.defer();
-  //var policy = new Policy(args, opts);
   new Policy(args, opts)
   .then(function (policy) {
-    //console.log('policy:', policy);
     policy.apply()
     .then(function () {
       utils.dlog('policy.apply() resolved');
@@ -112,14 +108,12 @@ var apply = function (args, opts) {
   return deferred.promise;
 };
 
-var checkCert = function (master/*, env*/) {
+var checkCert = function (master) {
   var deferred = Q.defer();
 
   console.info('=============================');
   console.info('Checking Agent Certificate...');
   console.info('=============================');
-
-  //var master = new Master(cfg, https);
 
   pfs.pExists(certFile)
   .then(function (cert_exists) {
@@ -139,14 +133,6 @@ var checkCert = function (master/*, env*/) {
 
           ssl.genCsr({
             subjAttrs: attrs,
-//            extensions: [
-//              {
-//                name: 'subjectAltname',
-//                altnames: [{
-//                  value: 'AUUID-HERE'
-//                }]
-//              }
-//            ]
           }, function (err, csr, fingerprint) {
             if (err) {
               console.error('genCsr() failed err:', err);
@@ -161,16 +147,13 @@ var checkCert = function (master/*, env*/) {
 
             _sendCsr(master/*, env*/)
             .then(function(resp) {
-              //console.log('response to new csr:', resp.status);
-
               deferred.resolve(false);
             }).done();
 
           });
         } else {
-          _sendCsr(master/*, env*/)
+          _sendCsr(master)
           .then(function(resp) {
-            //console.log('type:', typeof(resp));
             console.warn('response to existing csr:', resp.status);
 
             if (resp.status === 'signed') {
@@ -198,7 +181,7 @@ var checkCert = function (master/*, env*/) {
   return deferred.promise;
 };
 
-var serve = function (opts, master/*, env*/) {
+var serve = function (opts, master) {
   console.info('========================');
   console.info('Starting Policy Agent...');
   console.info('========================');
@@ -207,9 +190,6 @@ var serve = function (opts, master/*, env*/) {
 
   sslKey = fs.readFileSync(privateKeyFile);
   sslCert = fs.readFileSync(certFile);
-
-  //console.log('sslKey:', sslKey.toString());
-  //console.log('sslCert:', sslCert.toString());
 
   var app = express(),
       ssl_options = {
@@ -227,11 +207,8 @@ var serve = function (opts, master/*, env*/) {
   master.set_agent_cert(sslKey, sslCert);
   master.set_app(app);
 
-  //app.environment = env;
   app.opts = opts;
-  //console.log('app.opts:', app.opts);
 
-  // TODO: parameterise from a js file
   app.master_hostname = cfg.partout_master_hostname;
   console.log('master_hostname:', app.master_hostname);
   app.master_port = cfg.partout_master_port;
@@ -242,7 +219,6 @@ var serve = function (opts, master/*, env*/) {
   app.poll_manifest_splay_secs = 30;  // TODO: make this % of apply interval
 
   app.apply_count = 0;  // count for the modulus calc of polls for manifest
-//  app.apply_site_p2 = cfg.PARTOUT_AGENT_MANIFEST_SITE_P2;
   app.https = https;
   app.PARTOUT_AGENT_SSL_PUBLIC = cfg.PARTOUT_AGENT_SSL_PUBLIC;
 
@@ -256,7 +232,6 @@ var serve = function (opts, master/*, env*/) {
   };
 
   app.uuid = MYUUID;
-  //app.master.set_uuid(app.uuid);
   console.info('Agent UUID:', MYUUID);
 
   app.inRun = false;
@@ -304,7 +279,6 @@ var serve = function (opts, master/*, env*/) {
         console.error('Error: site policy file', app.apply_site_p2, 'does not yet exist');
         cb();
       } else {
-        //console.log('applying');
         apply([app.apply_site_p2], {app: app, daemon: true})
         .then(function () {
           console.log('apply resolved');
@@ -332,17 +306,9 @@ var serve = function (opts, master/*, env*/) {
 
       setTimeout(function () {
 
-        // TODO: handle environment in sync
-        // policy_sync.sync(self.app.environment, cfg.PARTOUT_AGENT_MANIFEST_DIR)
-
         policy_sync.sync(cfg.PARTOUT_MASTER_MANIFEST_DIR, cfg.PARTOUT_AGENT_MANIFEST_DIR)
         .then(function () {
-          //console.log('sync done');
-
-          //console.log('after policy_sync app.cfg.environment:', app.cfg.environment);
-
           app.apply_site_p2 = cfg.PARTOUT_AGENT_MANIFEST_SITE_P2;
-          //console.log('app.apply_site_p2:', app.apply_site_p2);
 
           app._apply(function () {
             app.inRun = false;
@@ -385,18 +351,14 @@ var serve = function (opts, master/*, env*/) {
 
   app.use('/', router);
 
-  //console.log('before https server');
   https.createServer(ssl_options, app)
     .listen(10444);
-  //console.log('after https server');
 
-  //app.sendevent({
   master.qEvent({}, {
     module: '_app',
     object: 'partout-agent',
     msg: 'Partout-Agent has (re)started https server'
   });
-  //.then(function () {
   app.run()
   .done(function () {
     if (opts.once) {
@@ -413,9 +375,6 @@ var serve = function (opts, master/*, env*/) {
     setInterval(function () {
       if (!app.inRun) {
         app.run();
-//        .done(function () {
-//          console.log('run complete in loop');
-//        });
       } else {
         console.warn('Previous policy overran apply interval, skipping...');
       }
@@ -440,12 +399,6 @@ module.exports = function (opts) {
     utils.dlog('Ensuring path:', cfg.PARTOUT_VARDIR);
     Q.nfcall(pfs.ensurePath, cfg.PARTOUT_VARDIR)
     .then(function () {
-
-      // Save environment if specified as option (--env)
-//      var env = cfg.setEnvironment(opts.env);
-//      opts.env = env;
-//
-//      console.info('Environment:', opts.env);
 
       var master = new Master(cfg, https);
 

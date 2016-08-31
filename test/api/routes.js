@@ -55,6 +55,7 @@ var controllers = {
   agent: {
     queryOne: function (doc) {
       //console.log('agent.queryOne called with:', doc);
+      doc.env = 'default';
       return Q(doc);
     },
     update: function (doc) {
@@ -87,13 +88,18 @@ function newReq (app, method, url, env) {
     connection: {
       getPeerCertificate: function () {
         // TODO: Mock client cert with GN as UUID
+        return {
+          subject: {
+            GN: 'XXXX-XXXXX'
+          }
+        };
       },
       remoteAddress: '127.0.0.1'
     },
     agent: {
       _key: 'XXXX-XXXXX',
       env: env
-    }
+    },
   };
 }
 
@@ -127,6 +133,7 @@ describe('api/routes', function () {
 
         // Mock up Request and Response objects
         var req = newReq(appApi, 'GET', '/manifest', 'default');
+        //console.log('req', req);
 
         var res = {
           setHeader: function () {},
@@ -136,6 +143,7 @@ describe('api/routes', function () {
           },
           send: function (o) {
             should.fail('REACHED', 'NOTREACHED', 'send method called - failed test', 'send()');
+            done();
             return this;
           },
           json: function (o) {
