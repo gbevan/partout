@@ -356,7 +356,7 @@ Master.prototype.qEvent = function (facts, o) {
 };
 
 
-// TODO: ****** FINISH THIS
+// TODO: Optionally allow return of res object, so can handle chunked large downloads in streamed manner
 /**
  * get from master RESTful API
  * @function
@@ -401,7 +401,8 @@ Master.prototype.get = function (path, cb) {
     //console.log('GET server cert:', cert);
 
     res.on('data', function (d) {
-      buffer += d.toString();
+//      buffer += d.toString();
+      buffer += d;
     });
     res.on('end', function () {
       //console.log('full get for:', path, 'buffer:', buffer);
