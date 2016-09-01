@@ -113,7 +113,12 @@ p2
 
     .package('debconf-utils')
     .package('lvm2')
+
     .package('sysstat')
+    .str_replace_infile('/etc/default/sysstat', {
+      regex: /^\s*ENABLED\s*=\s*"false"\s*$/mg,
+      with: 'ENABLED="true"'
+    })
 
     .command('prep_for_openstack', {
       cmd: heredoc.strip(function () {/*

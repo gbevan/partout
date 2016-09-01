@@ -46,7 +46,7 @@ p2
  * ================
  * ```javascript
  * .str_replace_infile('/path/to/file', {
- *   regex: /^ content to match/,
+ *   regex: /^ content to match/mg,   // <- treats whole file as a single string
  *   with: 'string to replace with',  // or
  *   TODO: template: 'moustach templated string to replace with'
  * })
