@@ -179,7 +179,7 @@ describe('api/routes', function () {
             status = code;
             return this;
           },
-          send: function (d) {
+          write: function (d) {
             if (status !== 200) {
               should.fail('REACHED', 'NOTREACHED', 'send method called - failed test', 'send()');
             } else {
@@ -187,9 +187,11 @@ describe('api/routes', function () {
               d.should.be.a.String();
               d.length.should.be.above(0);
             }
-            done();
             return this;
           },
+          end: function () {
+            done();
+          }
         };
 
         appApi(req, res, function (err) {} );
@@ -210,13 +212,16 @@ describe('api/routes', function () {
             status = code;
             return this;
           },
-          send: function (d) {
+          write: function (d) {
             if (status !== 403) {
               should.fail('REACHED', 'NOTREACHED', 'send method called - failed test', 'send()');
             }
-            done();
+//            done();
             return this;
           },
+          end: function () {
+            done();
+          }
         };
 
         appApi(req, res, function (err) {} );
@@ -236,13 +241,16 @@ describe('api/routes', function () {
             status = code;
             return this;
           },
-          send: function (d) {
+          write: function (d) {
             if (status !== 403) {
               should.fail('REACHED', 'NOTREACHED', 'send method called - failed test', 'send()');
             }
-            done();
+//            done();
             return this;
           },
+          end: function () {
+            done();
+          }
         };
 
         appApi(req, res, function (err) {} );
@@ -262,7 +270,7 @@ describe('api/routes', function () {
             status = code;
             return this;
           },
-          send: function (d) {
+          write: function (d) {
             if (status !== 200) {
               should.fail('REACHED', 'NOTREACHED', 'send method called - failed test', 'send()');
             } else {
@@ -270,9 +278,12 @@ describe('api/routes', function () {
               d.should.be.a.String();
               d.length.should.be.above(0);
             }
-            done();
+//            done();
             return this;
           },
+          end: function () {
+            done();
+          }
         };
 
         appApi(req, res, function (err) {} );
@@ -292,7 +303,7 @@ describe('api/routes', function () {
             status = code;
             return this;
           },
-          send: function (d) {
+          write: function (d) {
             if (status !== 200) {
               should.fail('REACHED', 'NOTREACHED', 'send method called - failed test', 'send()');
             } else {
@@ -300,9 +311,12 @@ describe('api/routes', function () {
               d.should.be.a.String();
               d.length.should.be.above(0);
             }
-            done();
+//            done();
             return this;
           },
+          end: function () {
+            done();
+          }
         };
 
         appApi(req, res, function (err) {} );

@@ -78,6 +78,17 @@ Utils.prototype.isLinux = function () {
 };
 
 /**
+ * Test if current node version is at a minimum version
+ * @param   {number}  ver Major Node version to test as minimum
+ * @returns {boolean} true/false
+ */
+Utils.prototype.minNodeVersion = function (ver) {
+  var maj = (process.versions.node.split(/\./))[0] * 1;
+
+  return (maj >= ver);
+};
+
+/**
  * Syncronous function to read and parse /etc/os-release on linux os's
  * Used in unit-tests.
  * @returns {object} parsed contents of os-release as an object of key/value pairs

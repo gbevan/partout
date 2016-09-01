@@ -126,7 +126,13 @@ Policy_Sync.prototype.get_file = function (srcfile, tgtrelname, cb) {
 
   self.app.master.get('/file?file=' + srcfile)
   .then(function (obj) {
-    var buffer = obj.data;
+    var buffer;
+    if (utils.minNodeVersion(6)) {
+      buffer = Buffer.from(obj.data, 'base64');
+    } else {
+      buffer = new Buffer(obj.data, 'base64');
+    }
+//    console.log('buffer size:', buffer.length);
     mkdirp(dir, function (err) {
       if (err) {
         console.error(err);
