@@ -70,7 +70,8 @@ p2
     // -------------------------------------------------------
     // vnet1      bridge     br0        virtio      52:54:00:36:f7:23
 
-    return utils.runCmd(u.format('virsh domiflist %s | tail -n +3', title))
+    //return utils.runCmd(u.format('virsh domiflist %s | tail -n +3', title))
+    return utils.runCmd(u.format('virsh domiflist %s | tail -n +3', opts.attachedTo))
     .then(function (res) {
       var rc = res[0],
           stdout = res[1],
