@@ -67,7 +67,7 @@ Modules
 Roles
 -----
 
-Roles are very similar is usage to modules, but are code in much simpler terms utilising the p2 DSL language.
+Roles are very similar in usage to modules, but are coded in much simpler terms utilising the p2 DSL language.
 
 * [See Roles](./agent/lib/roles) (many more are in the pipeline...)
 
