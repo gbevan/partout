@@ -32,8 +32,9 @@ var console = require('better-console'),
     mkdirp = require('mkdirp'),
     Q = require('q'),
     _ = require('lodash'),
-    utils = new (require('./utils'))(),
+    utils = require('./utils'),
     u = require('util');
+
 
 Q.longStackSupport = true;
 

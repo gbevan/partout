@@ -29,7 +29,7 @@ var Q = require('q'),
     os = require('os'),
     path = require('path'),
     console = require('better-console'),
-    utils = new (require('./utils'))();
+    utils = require('./utils');
 
 Q.longStackSupport = true;
 Q.onerror = function (err) {

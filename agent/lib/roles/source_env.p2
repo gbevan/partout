@@ -30,7 +30,7 @@
 var console = require('better-console'),
     Q = require('q'),
     u = require('util'),
-    utils = new (p2.require('utils'))(),
+    utils = p2.require('utils'),
     pfs = new (p2.require('pfs'))();
 
 p2

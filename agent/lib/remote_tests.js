@@ -31,7 +31,7 @@ var https = require('https'),
     pfs = new (require('./pfs'))(),
     Q = require('q'),
     u = require('util'),
-    utils = new(require('./utils'))();
+    utils = require('./utils');
 
 Q.longStackSupport = true;
 

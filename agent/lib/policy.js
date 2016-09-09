@@ -32,7 +32,8 @@ var console = require('better-console'),
     Q = require('q'),
     pfs = new (require('./pfs'))(),
     fs = require('fs'),
-    utils = new (require('./utils'))(),
+    //utils = new (require('./utils'))(),
+    utils = require('./utils'),
     u = require('util');
 
 function Policy(args, opts) {

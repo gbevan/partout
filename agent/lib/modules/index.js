@@ -29,7 +29,7 @@ var _ = require('lodash'),
     mydir = path.dirname(module.filename),
     Q = require('q'),
     nimble = require('nimble'),
-    utils = new (require('../utils.js'))(),
+    utils = require('../utils'),
     u = require('util'),
     console = require('better-console');
 

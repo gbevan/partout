@@ -2,7 +2,7 @@
 'use strict';
 /*global p2*/
 
-var utils = new (require('../utils'))();
+var utils = require('../utils');
 
 p2
 

@@ -28,7 +28,7 @@
 module.paths = module.paths.concat(module.parent.paths);
 
 var console = require('better-console'),
-    utils = new (p2.require('utils'))(),
+    utils = p2.require('utils'),
     u = require('util'),
     fs = require('fs'),
     path = require('path'),

@@ -25,7 +25,7 @@
 
 var console = require('better-console'),
     _ = require('lodash'),
-    utils = new (require('./utils'))(),
+    utils = require('./utils'),
     pfs = new (require('./pfs'))(),
     path = require('path'),
     mkdirp = require('mkdirp'),

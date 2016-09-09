@@ -26,7 +26,7 @@
 var /*Provider = require('../../provider'),*/
     console = require('better-console'),
     u = require('util'),
-    utils = new (require('../../utils.js'))(),
+    utils = require('../../utils'),
     P2M = require('../../p2m'),
     npm = new (require('./npm'))(),
     pip = new (require('./pip'))(),

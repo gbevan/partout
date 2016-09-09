@@ -27,7 +27,7 @@
 // make parent node_modules available to sync'd manifest
 module.paths = module.paths.concat(module.parent.paths);
 
-var utils = new (p2.require('utils'))(),
+var utils = p2.require('utils'),
     u = require('util'),
     fs = require('fs'),
     path = require('path'),
