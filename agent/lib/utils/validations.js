@@ -2,7 +2,7 @@
     Partout [Everywhere] - Policy-Based Configuration Management for the
     Data-Driven-Infrastructure.
 
-    Copyright (C) 2016  Graham Lee Bevan <graham.bevan@ntlworld.com>
+    Copyright (C) 2016 Graham Lee Bevan <graham.bevan@ntlworld.com>
 
     This file is part of Partout.
 
@@ -20,27 +20,40 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/*jslint node: true, nomen: true */
+/*jslint node: true, nomen: true, vars: true*/
+/*jshint multistr: true*/
 'use strict';
 
 var console = require('better-console'),
     _ = require('lodash'),
-    os = require('os'),
-    fs = require('fs'),
-    exec = require('child_process').exec,
-    Q = require('q'),
-    utils = require('../../utils'),
     u = require('util');
 
-Q.longStackSupport = true;
-
-Q.onerror = function (err) {
-  console.error(err);
-  console.error(err.stack);
-};
-
-var Service = function () {
+/**
+ * Assertions utils
+ *
+ * @mixin
+ */
+var UtilsValidations = function () {
 
 };
 
-module.exports = Service;
+/**
+ * Validate options object
+ * @param   {string}  module    Module name
+ * @param   {object}  opts      Options to be validated
+ * @param   {object}  validopts Options to validate against
+ * @returns {boolean} Options passed validation true/false
+ */
+UtilsValidations.prototype.vetOps = function (module, opts, validopts) {
+  var ok = true;
+  _.forEach(opts, function (v, k) {
+    if (!validopts[k]) {
+      var err = new Error('[' + module + '] Invalid option: ' + k);
+      console.error(err);
+      ok = false;
+    }
+  });
+  return ok;
+};
+
+module.exports = UtilsValidations;

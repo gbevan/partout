@@ -33,7 +33,7 @@ var Q = require('q'),
     u = require('util'),
     pfs = new (require('../../lib/pfs'))(),
     path = require('path'),
-    utils = new (require('../../lib/utils'))(),
+    utils = require('../../lib/utils'),
     os = require('os'),
     p2Test = require('../../lib/p2_test');
 

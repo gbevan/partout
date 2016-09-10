@@ -28,7 +28,7 @@
 module.paths = module.paths.concat(module.parent.paths);
 
 var path = require('path'),
-    utils = new (p2.require('utils'))(),
+    utils = p2.require('utils'),
     pfs = new (p2.require('pfs'))(),
     fs = require('fs'),
     u = require('util'),

@@ -1,7 +1,7 @@
 # Module: User
 
     p2.node([...])
-       .user('username', options, function (err, details) { ... });
+    .user('username', options, function (err, details) { ... });
 
 Options:
 
@@ -13,8 +13,8 @@ Options:
 Platform Support (i.e. tested on):
 (incomplete module - incomplete unit tests)
 
-| Platform/OS | Support Status |
-|:------------|:--------------:|
-| Linux/all   | &#x2718; |
-| Windows/10  | &#x2718; |
-| Pi/Raspbian jessie  | &#x2718; |
+| Platform/OS | Support Status | Unit Tests |
+|:------------|:--------------:|:----------:|
+| Linux/all   | &#x2718;       | &#x2718;   |
+| Windows/10  | &#x2718;       | &#x2718;   |
+| Pi/Raspbian jessie  | &#x2718; | &#x2718; |

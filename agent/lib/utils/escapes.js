@@ -2,7 +2,7 @@
     Partout [Everywhere] - Policy-Based Configuration Management for the
     Data-Driven-Infrastructure.
 
-    Copyright (C) 2016  Graham Lee Bevan <graham.bevan@ntlworld.com>
+    Copyright (C) 2016 Graham Lee Bevan <graham.bevan@ntlworld.com>
 
     This file is part of Partout.
 
@@ -20,27 +20,28 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/*jslint node: true, nomen: true */
+/*jslint node: true, nomen: true, vars: true*/
+/*jshint multistr: true*/
 'use strict';
 
 var console = require('better-console'),
-    _ = require('lodash'),
-    os = require('os'),
-    fs = require('fs'),
-    exec = require('child_process').exec,
-    Q = require('q'),
-    utils = require('../../utils'),
     u = require('util');
 
-Q.longStackSupport = true;
-
-Q.onerror = function (err) {
-  console.error(err);
-  console.error(err.stack);
-};
-
-var Service = function () {
+/**
+ * Assertions utils
+ *
+ * @mixin
+ */
+var UtilsEscapes = function () {
 
 };
 
-module.exports = Service;
+UtilsEscapes.prototype.escapeBackSlash = function (s) {
+  return s.replace(/\\/g, '\\\\');
+};
+
+UtilsEscapes.prototype.winEscapeSpaces = function (s) {
+  return s.replace(/ /g, '^ ');
+};
+
+module.exports = UtilsEscapes;

@@ -30,7 +30,7 @@ var P2M = require('../../p2m'),
     fs = require('fs'),
     exec = require('child_process').exec,
     Q = require('q'),
-    utils = new(require('../../utils'))(),
+    utils = require('../../utils'),
     u = require('util');
 
 Q.longStackSupport = true;

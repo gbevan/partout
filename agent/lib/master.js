@@ -28,7 +28,7 @@ var path = require('path'),
     //querystring = require('querystring'),
     Q = require('q'),
     _ = require('lodash'),
-    utils = new (require('./utils'))(),
+    utils = require('./utils'),
     u = require('util');
 
 Q.longStackSupport = true;

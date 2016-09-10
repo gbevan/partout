@@ -3,4 +3,5 @@
 
 /*global p2*/
 p2
-.command('echo "Hello World!');
+.logmsg('Hello World!')
+;

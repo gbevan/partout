@@ -27,7 +27,7 @@ var Q = require('q'),
     tmp = require('tmp'),
     fs = require('fs'),
     Policy = require('./policy'),
-    utils = new (require('./utils'))(),
+    utils = require('./utils'),
     Mustache = require('mustache'),
     console = require('better-console');
 

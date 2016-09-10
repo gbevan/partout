@@ -33,7 +33,7 @@ var console = require('better-console'),
     os = require('os'),
     exec = require('child_process').exec,
     path = require('path'),
-    utils = new (require('../utils'))(),
+    utils = require('../utils'),
     pfs = new (require('../pfs'))(),
     u = require('util');
 

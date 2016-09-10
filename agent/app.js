@@ -48,7 +48,7 @@ var console = require('better-console'),
     csrFile = ssl.agentCsrFile,
     certFile = ssl.agentCertFile,
     Master = require('./lib/master'),
-    utils = new (require('./lib/utils'))();
+    utils = require('./lib/utils');
 
 Q.longStackSupport = true;
 

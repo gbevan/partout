@@ -28,7 +28,7 @@ var console = require('better-console'),
     Provider = require('./provider'),
     Q = require('q'),
     u = require('util'),
-    utils = new (require('./utils'))(),
+    utils = require('./utils'),
     _ = require('lodash'),
     heredoc = require('heredoc');
 

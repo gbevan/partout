@@ -29,7 +29,7 @@ var P2M = require('../../p2m'),
     os = require('os'),
     fs = require('fs'),
     Q = require('q'),
-    utils = new (require('../../utils'))(),
+    utils = require('../../utils'),
     assert = require('assert'),
     u = require('util');
 

@@ -33,7 +33,7 @@ var P2M = require('../../p2m'),
     cfg = new (require('../../../etc/partout_agent.conf.js'))(),
     path = require('path'),
     pickle = require('pickle'),
-    utils = new (require('../../utils'))(),
+    utils = require('../../utils'),
     pfs = new (require('../../pfs'))(),
     u = require('util');
 

@@ -2,7 +2,7 @@
     Partout [Everywhere] - Policy-Based Configuration Management for the
     Data-Driven-Infrastructure.
 
-    Copyright (C) 2016  Graham Lee Bevan <graham.bevan@ntlworld.com>
+    Copyright (C) 2016 Graham Lee Bevan <graham.bevan@ntlworld.com>
 
     This file is part of Partout.
 
@@ -20,27 +20,44 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/*jslint node: true, nomen: true */
+/*jslint node: true, nomen: true, vars: true*/
+/*jshint multistr: true*/
 'use strict';
 
 var console = require('better-console'),
-    _ = require('lodash'),
-    os = require('os'),
-    fs = require('fs'),
-    exec = require('child_process').exec,
     Q = require('q'),
-    utils = require('../../utils'),
     u = require('util');
 
-Q.longStackSupport = true;
-
-Q.onerror = function (err) {
-  console.error(err);
-  console.error(err.stack);
-};
-
-var Service = function () {
+/**
+ * Assertions utils
+ *
+ * @mixin
+ */
+var UtilsWindows = function () {
 
 };
 
-module.exports = Service;
+/**
+ * Get Powershell version
+ * @returns {object} Object returned from $PSVersionTable e.g.: {PSVersion: {Major: 5, ...}, ...}
+ */
+UtilsWindows.prototype.getPsVersion = function () {
+  var self = this,
+      deferred = Q.defer();
+
+  self.runPs('$PSVersionTable | ConvertTo-Json -compress')
+  .done(function (res) {
+    var rc = res[0],
+        stdout = res[1],
+        stderr = res[2],
+        psVersion = (stdout ? JSON.parse(stdout) : {'PSVersion' : {'Major': -1}});
+    deferred.resolve(psVersion);
+  });
+
+  return deferred.promise;
+};
+
+
+
+
+module.exports = UtilsWindows;

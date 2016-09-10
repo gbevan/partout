@@ -37,7 +37,7 @@ var console = require('better-console'),
     querystring = require('querystring'),
     Q = require('q'),
     u = require('util'),
-    utils = new (require('./utils'))(),
+    utils = require('./utils'),
     heredoc = require('heredoc');
 
 
