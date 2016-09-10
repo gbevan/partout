@@ -33,7 +33,7 @@ var P2M = require('../../p2m'),
     Q = require('q'),
     utils = require('../../utils'),
     u = require('util'),
-    pfs = new (require('../../pfs'))(),
+    pfs = require('../../pfs'),
     Mustache = require('mustache'),
     stringArgv = require('string-argv');
 

@@ -31,7 +31,7 @@ var Mustache = require('mustache'),
     console = require('better-console'),
     Q = require('q'),
     u = require('util'),
-    pfs = new (p2.require('pfs'))();
+    pfs = p2.require('pfs');
 
 p2
 

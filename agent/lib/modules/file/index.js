@@ -31,7 +31,7 @@ var console = require('better-console'),
     os = require('os'),
     fs = require('fs'),
     utils = require('../../utils'),
-    pfs = new (require('../../pfs'))(),
+    pfs = require('../../pfs'),
     Mustache = require('mustache'),
     Q = require('q');
 

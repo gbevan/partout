@@ -43,6 +43,11 @@ Q.longStackSupport = true;
  * @constructor
  */
 var Pfs = function () {
+
+  if (!(this instanceof Pfs)) {
+    return new Pfs();
+  }
+
 };
 
 /**
@@ -381,4 +386,4 @@ Pfs.prototype.resolveNodeDir = function () {
   return path.dirname(process.argv[0]);
 };
 
-module.exports = Pfs;
+module.exports = new Pfs();

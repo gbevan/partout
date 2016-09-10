@@ -32,7 +32,7 @@ var P2M = require('../../p2m'),
     spawn = require('child_process').spawn,
     Q = require('q'),
     utils = require('../../utils'),
-    pfs = new (require('../../pfs'))(),
+    pfs = require('../../pfs'),
     Mustache = require('mustache'),
     stringArgv = require('string-argv');
 

@@ -29,8 +29,7 @@ var expect = require('expect'),
     pki = forge.pki,
     fs = require('fs'),
     Q = require('q'),
-    //utils = new (require('../lib/utils'))(),
-    pfs = new (require('./pfs'))();
+    pfs = require('./pfs');
 
 /**
  * @constructor

@@ -33,7 +33,7 @@ var utils = p2.require('utils'),
     path = require('path'),
     heredoc = require('heredoc'),
     uuid = require('uuid'),
-    pfs = new (p2.require('pfs'))(),
+    pfs = p2.require('pfs'),
     Q = require('q');
 
 p2
