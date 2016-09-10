@@ -10,7 +10,7 @@ var assert = require('assert'),
     cfg = new (require('../etc/partout_agent.conf.js'))(),
     Ssl = require('../lib/ssl'),
     Q = require('q'),
-    pfs = new (require('../lib/pfs'))(),
+    pfs = require('../lib/pfs'),
     path = require('path');
 
 global.should = require('should');

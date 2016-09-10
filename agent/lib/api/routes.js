@@ -24,17 +24,12 @@
 'use strict';
 
 var console = require('better-console'),
-    //fs = require('fs'),
-    //path = require('path'),
-    //pfs = new (require('../../agent/lib/pfs'))(),
-    //Mustache = require('mustache'),
-    //Q = require('q'),
     express = require('express'),
     os = require('os'),
     exec = require('child_process').exec,
     path = require('path'),
     utils = require('../utils'),
-    pfs = new (require('../pfs'))(),
+    pfs = require('../pfs'),
     u = require('util');
 
 //Q.longStackSupport = true;

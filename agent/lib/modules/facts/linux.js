@@ -34,7 +34,7 @@ var P2M = require('../../p2m'),
     path = require('path'),
     pickle = require('pickle'),
     utils = require('../../utils'),
-    pfs = new (require('../../pfs'))(),
+    pfs = require('../../pfs'),
     u = require('util');
 
 Q.longStackSupport = true;

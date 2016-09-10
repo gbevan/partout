@@ -34,7 +34,7 @@ var P2M = require('../../p2m'),
     utils = require('../../utils'),
     u = require('util'),
     path = require('path'),
-    pfs = new (require('../../pfs'))(),
+    pfs = require('../../pfs'),
     stringArgv = require('string-argv');
 
 Q.longStackSupport = true;

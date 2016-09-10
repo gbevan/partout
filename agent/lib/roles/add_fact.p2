@@ -32,7 +32,7 @@ var Mustache = require('mustache'),
     mysql = require('mysql'),
     Q = require('q'),
     u = require('util'),
-    pfs = new (p2.require('pfs'))();
+    pfs = p2.require('pfs');
 
 p2
 

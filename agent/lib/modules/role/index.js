@@ -32,7 +32,7 @@ var P2M = require('../../p2m'),
     Q = require('q'),
     utils = require('../../utils'),
     u = require('util'),
-    pfs = new (require('../../pfs'))(),
+    pfs = require('../../pfs'),
     stringArgv = require('string-argv'),
     heredoc = require('heredoc');
 

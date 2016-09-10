@@ -32,7 +32,7 @@ var console = require('better-console'),
     path = require('path'),
     u = require('util'),
     //forge = require('node-forge'),
-    pfs = new (p2.require('pfs'))();
+    pfs = p2.require('pfs');
 
 p2
 
