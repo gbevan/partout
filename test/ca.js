@@ -32,7 +32,7 @@ var assert = require('assert'),
   rmdir = require('rmdir'),
   Q = require('q'),
   fs = require('fs'),
-  pfs = new (require('../agent/lib/pfs'))(),
+  pfs = require('../agent/lib/pfs'),
   path = require('path'),
   os = require('os');
 

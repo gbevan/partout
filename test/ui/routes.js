@@ -34,7 +34,7 @@ var assert = require('assert'),
     bodyParser = require('body-parser'),
     Q = require('q'),
     path = require('path'),
-    utils = new (require('../../agent/lib/utils'))(),
+    utils = require('../../agent/lib/utils'),
     fs = require('fs');
 
 global.should = require('should');
