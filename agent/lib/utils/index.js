@@ -38,8 +38,13 @@ var console = require('better-console'),
     os = require('os'),
     UtilsAssertions = require('./assertions'),
     UtilsBanner = require('./banner'),
+    UtilsEscapes = require('./escapes'),
+    UtilsExecute = require('./execute'),
+    UtilsLinux = require('./linux'),
     UtilsLogging = require('./logging'),
-    UtilsExecute = require('./execute');
+    UtilsString = require('./string'),
+    UtilsValidations = require('./validations'),
+    UtilsWindows = require('./windows');
 
 Q.longStackSupport = true;
 
@@ -62,109 +67,6 @@ var Utils = function () {
     return new Utils();
   }
 
-};
-
-
-/**
- * Test if current node version is at a minimum version
- * @param   {number}  ver Major Node version to test as minimum
- * @returns {boolean} true/false
- */
-Utils.prototype.minNodeVersion = function (ver) {
-  var maj = (process.versions.node.split(/\./))[0] * 1;
-
-  return (maj >= ver);
-};
-
-/**
- * Syncronous function to read and parse /etc/os-release on linux os's
- * Used in unit-tests.
- * @returns {object} parsed contents of os-release as an object of key/value pairs
- */
-Utils.prototype.get_linux_os_release_Sync = function () {
-  var self = this;
-
-  if (!self.isLinux()) {
-    return;
-  }
-
-  var os_rel;
-  try {
-    os_rel = fs.readFileSync('/etc/os-release').toString();
-  } catch (e) {
-    if (e.code === 'ENOENT') {
-      return;
-    }
-    throw e;
-  }
-
-  if (!os_rel) {
-    return;
-  }
-
-  var os_lines = os_rel.split(/\r?\n/),
-      os_obj = {};
-  os_lines.forEach(function (os_line) {
-    var m = os_line.match(/^(\w+)="*?([^"]*)"*?/);
-    if (m) {
-      os_obj[m[1]] = m[2];
-    }
-  });
-
-  return os_obj;
-};
-
-/**
- * Syncronous test for Debian OS.
- * Used in unit tests.
- * @returns {boolean} true if debian
- */
-Utils.prototype.isDebianSync = function () {
-  var self = this;
-
-  var os_obj = self.get_linux_os_release_Sync();
-
-  return os_obj && os_obj.ID_LIKE === 'debian';
-};
-
-
-/**
- * Get Powershell version
- * @returns {object} Object returned from $PSVersionTable e.g.: {PSVersion: {Major: 5, ...}, ...}
- */
-Utils.prototype.getPsVersion = function () {
-  var self = this,
-      deferred = Q.defer();
-
-  self.runPs('$PSVersionTable | ConvertTo-Json -compress')
-  .done(function (res) {
-    var rc = res[0],
-        stdout = res[1],
-        stderr = res[2],
-        psVersion = (stdout ? JSON.parse(stdout) : {'PSVersion' : {'Major': -1}});
-    deferred.resolve(psVersion);
-  });
-
-  return deferred.promise;
-};
-
-/**
- * Validate options object
- * @param   {string}  module    Module name
- * @param   {object}  opts      Options to be validated
- * @param   {object}  validopts Options to validate against
- * @returns {boolean} Options passed validation true/false
- */
-Utils.prototype.vetOps = function (module, opts, validopts) {
-  var ok = true;
-  _.forEach(opts, function (v, k) {
-    if (!validopts[k]) {
-      var err = new Error('[' + module + '] Invalid option: ' + k);
-      console.error(err);
-      ok = false;
-    }
-  });
-  return ok;
 };
 
 /**
@@ -211,53 +113,16 @@ Utils.prototype.callbackEvent = function (next_step_callback, facts, o) {
   }
 };
 
-Utils.prototype.escapeBackSlash = function (s) {
-  return s.replace(/\\/g, '\\\\');
-};
-
-Utils.prototype.winEscapeSpaces = function (s) {
-  return s.replace(/ /g, '^ ');
-};
-
-Utils.prototype.pIsAdmin = function () {
-  var self = this,
-      deferred = Q.defer();
-
-  if (os.platform() === 'win32') {
-    self.pExec('NET SESSION')
-    .fail(function (err) {
-      //console.error('pIsAdmin() NET SESSION err:', err);
-      deferred.resolve(false);
-    })
-    .done(function (res) {
-      var stdout = res[0],
-          stderr = res[1];
-
-      //console.log('pIsAdmin() NET SESSION stdout:', stdout);
-      //console.log('pIsAdmin() NET SESSION stderr:', stderr);
-
-      deferred.resolve(stderr.length === 0);
-    });
-
-  } else {
-    deferred.resolve((process.geteuid ? process.geteuid() : process.getuid()) === 0);
-  }
-
-  return deferred.promise;
-};
-
-/**
- * util func to split a string into an array of lines
- */
-Utils.prototype.splitLines = function (str) {
-  return str.split(/\r?\n/g);
-};
-
 
 // Mixin sub modules
 _.mixin(Utils.prototype, UtilsAssertions.prototype);
 _.mixin(Utils.prototype, UtilsBanner.prototype);
+_.mixin(Utils.prototype, UtilsEscapes.prototype);
 _.mixin(Utils.prototype, UtilsExecute.prototype);
+_.mixin(Utils.prototype, UtilsLinux.prototype);
 _.mixin(Utils.prototype, UtilsLogging.prototype);
+_.mixin(Utils.prototype, UtilsString.prototype);
+_.mixin(Utils.prototype, UtilsValidations.prototype);
+_.mixin(Utils.prototype, UtilsWindows.prototype);
 
 module.exports = new Utils(); // anonymous object

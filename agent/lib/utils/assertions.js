@@ -25,6 +25,8 @@
 'use strict';
 
 var console = require('better-console'),
+    os = require('os'),
+    Q = require('q'),
     u = require('util');
 
 /**
@@ -34,6 +36,17 @@ var console = require('better-console'),
  */
 var UtilsAssertions = function () {
 
+};
+
+/**
+ * Test if current node version is at a minimum version
+ * @param   {number}  ver Major Node version to test as minimum
+ * @returns {boolean} true/false
+ */
+UtilsAssertions.prototype.minNodeVersion = function (ver) {
+  var maj = (process.versions.node.split(/\./))[0] * 1;
+
+  return (maj >= ver);
 };
 
 UtilsAssertions.prototype.isWin = function () {
@@ -50,6 +63,33 @@ UtilsAssertions.prototype.isVerbose = function () {
 
 UtilsAssertions.prototype.isDebug = function () {
   return global.partout.opts.debug;
+};
+
+UtilsAssertions.prototype.pIsAdmin = function () {
+  var self = this,
+      deferred = Q.defer();
+
+  if (os.platform() === 'win32') {
+    self.pExec('NET SESSION')
+    .fail(function (err) {
+      //console.error('pIsAdmin() NET SESSION err:', err);
+      deferred.resolve(false);
+    })
+    .done(function (res) {
+      var stdout = res[0],
+          stderr = res[1];
+
+      //console.log('pIsAdmin() NET SESSION stdout:', stdout);
+      //console.log('pIsAdmin() NET SESSION stderr:', stderr);
+
+      deferred.resolve(stderr.length === 0);
+    });
+
+  } else {
+    deferred.resolve((process.geteuid ? process.geteuid() : process.getuid()) === 0);
+  }
+
+  return deferred.promise;
 };
 
 module.exports = UtilsAssertions;
