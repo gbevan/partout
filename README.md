@@ -54,7 +54,6 @@ Modules
 -------
 
 * [Command](./agent/lib/modules/command/README.md)
-* [Exec](./agent/lib/modules/exec/README.md) (deprecated, see Command)
 * [Facts](./agent/lib/modules/facts/README.md)
 * [File](./agent/lib/modules/file/README.md)
 * [Include](./agent/lib/modules/include/README.md)
