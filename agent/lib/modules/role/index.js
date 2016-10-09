@@ -82,13 +82,14 @@ var Role = P2M.Module(module.filename, function () {
   ////////////////
   // Gather facts
   .facts(function (deferred, facts_so_far) {
+    //console.log('IN ROLE FACTS p2role:', facts_so_far.p2role);
     var facts = {
       p2module: {
         Role: {
           loaded: true
         }
-      },
-      p2role: {}
+      }/*,
+      p2role: {}*/
     };
 
     deferred.resolve(facts);
@@ -111,68 +112,83 @@ var Role = P2M.Module(module.filename, function () {
 
 
     if (_impl[name]) {
-      console.error(u.format('ERROR: Cannot add new role, name "%s" already exists'), name);
-      deferred.resolv();
+      var msg = u.format('ERROR: Cannot add new role, name "%s" already exists', name),
+          err = new Error(msg);
+      console.error(msg);
+      console.warn('prev _from:', _impl[name]._from);
+      console.warn(err.stack);
+      deferred.reject(err);
       return;
     }
 
     if (utils.isVerbose()) {
       console.info('Creating module ' + name + ' from role');
     }
-    _impl[name] = function (mod_title, mod_opts) {
-      //console.log('in role instance:', name);
 
-      /*
-       * push role's facts gatherer function onto p2 steps
-       */
-      function push_refreshFacts () {
-        //console.log('role:', name, 'refreshFacts() from:', (new Error()).stack);
-        if (opts.facts) {
-          //console.log('role:', name, 'refreshFacts() push_action');
-          _impl.push_action(function () {
-            //console.log('role:', name, 'refreshFacts() in pushed action');
-            var facts_deferred = Q.defer();
 
-            opts.facts(facts_deferred, _impl.facts, mod_title, mod_opts);
+    function refreshFacts () {
+      var facts_deferred = Q.defer();
 
-            return facts_deferred
-            .promise
-            .then(function (role_facts) {
-              //console.log(name, 'role_facts:', role_facts);
-              _.merge(_impl.facts.p2role, role_facts.p2role);
-              _.each(role_facts, function (v, k) {
-                if (!k.match(/^(p2role)$/)) {
-                  _impl.facts[k] = v;
-                }
-              });
-              return 'Role: refreshFacts complete';
-            });
-          });
-        }
+      if (!opts.facts) {
+        return Q.resolve();
       }
 
+      opts.facts(facts_deferred, _impl.facts/*, mod_title, mod_opts*/);
+
+      return facts_deferred.promise
+      .then(function (role_facts) {
+        if (opts.facts) {
+          if (role_facts && role_facts.p2role) {
+            _.merge(_impl.facts.p2role, role_facts.p2role);
+          }
+
+          if (_impl.facts === undefined) {
+            console.error('_impl.facts is undefined - this implies that there was an async overrun between instantiating P2 (typically during the aggressive unit-testing), aborting P2');
+            console.warn((new Error()).stack);
+            process.exit(1);  // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+          }
+
+          _.each(role_facts, function (v, k) {
+            if (!k.match(/^(p2role)$/)) {
+              _impl.facts[k] = v;
+            }
+          });
+          return Q.resolve();
+        } else {
+          return Q.resolve();
+        }
+      });
+
+    } // refreshFacts()
+
+    /*
+     * push role's facts gatherer function onto p2 steps
+     */
+    function push_refreshFacts () {
+      _impl.push_action(function () {
+        return refreshFacts();
+      });
+    }
+
+    _impl.facts.p2role = (_impl.facts.p2role || {});
+    _impl.facts.p2role[title] = (_impl.facts.p2role[title] || {});
+    _impl.facts.p2role[title] = {loaded: true};
+
+    _impl.roles_facts_fn_list.push(function (cb) { // from nimbe.series()
+      utils.dlog('Role', name, 'refreshFacts starting');
+      refreshFacts()
+      .then(function () {
+        utils.dlog('Role', name, 'refreshFacts resolved');
+        cb();
+      }, function (err) {
+        console.error('Role refreshFacts err:', err);
+        cb(err);
+      });
+    });
+
+    // implement the node DSL
+    _impl[name] = function (mod_title, mod_opts) {
       if (_impl.ifNode()) {
-//
-//        /*
-//         * push role's facts gatherer function onto p2 steps
-//         */
-//        if (opts.facts) {
-//          _impl.push_action(function (cb) {
-//            var facts_deferred = Q.defer();
-//
-//            opts.facts(facts_deferred, _impl.facts, mod_title, mod_opts);
-//
-//            facts_deferred
-//            .promise
-//            .done(function (role_facts) {
-//              _.merge(_impl.facts, role_facts);
-//              cb();
-//            });
-//          });
-//        }
-
-        //push_refreshFacts();
-
         if (opts.p2) {
           /*
            * add passed p2 args dsl to addSteps in the p2 _impl
@@ -182,10 +198,9 @@ var Role = P2M.Module(module.filename, function () {
           _impl.push_action(function () {
             utils.vlog(u.format('Role: %s running action: %s', name, mod_title));
 
-
             p2.pushSteps(); // save steps state
 
-            var deferred = Q.defer();
+            var impl_deferred = Q.defer();
 
             utils.dlog('role: action: calling p2:', opts.p2);
             var role_promise = opts.p2(
@@ -203,18 +218,18 @@ var Role = P2M.Module(module.filename, function () {
               push_refreshFacts();
               p2.flattenSteps(); // pop previous steps state after new steps
 
-              deferred.resolve();
+              impl_deferred.resolve();
 
             }, function (err) {
               console.error(heredoc(function () {/*
 ********************************************************
 *** Role Module Caught Error:
               */}), err);
-              deferred.reject(err);
+              impl_deferred.reject(err);
             });
 
-            return deferred.promise;
-        });
+            return impl_deferred.promise;
+          });
         }
 
       } // ifNode
@@ -225,9 +240,9 @@ var Role = P2M.Module(module.filename, function () {
        */
       return _impl;
     };
+    _impl[name]._from = (new Error()).stack;
 
     deferred.resolve();
-
 
   }, {immediate: true}) // action
 

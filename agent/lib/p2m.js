@@ -75,15 +75,6 @@ P2M.prototype.getActionFn = function () {
   return self._actionFn;
 };
 
-/*
-P2M.prototype.addStep = function () {
-  var self = this;
-
-  if (self._addStep) {
-
-  }
-};
-*/
 
 /*
  * DSL Commands
@@ -149,13 +140,10 @@ P2M.prototype.action = function (fn, action_args) {
 %s
         */}), title, err, err.stack));
 
-        //console.log('Stack:', (new Error()).stack);
 
         return Q.reject('fail from p2m runAction (immediate)');
 
       });
-
-      //return _impl;
 
     };
     return self;
@@ -209,10 +197,6 @@ P2M.prototype.action = function (fn, action_args) {
         });
 
         deferred.promise
-//        .fail(function (err) {
-//          console.error(u.format('error: module %s err:', self._name), err);
-//          _impl.emitter.emit(u.format('%s:%s', ev_prefix, 'fatal'), err);
-//        })
         .then(function (o) {
           utils.dlog('p2m: addStep: fn ev_prefix:', ev_prefix, 'o:', o);
 
@@ -228,7 +212,6 @@ P2M.prototype.action = function (fn, action_args) {
                 u.inspect(o, {colors: true, depth: 2}),
                 evname
               ));
-              //console.log('STACK:\n', (new Error()).stack);
 
               var hadListeners = _impl.emitter.emit(evname, {
                 eventname: evname,
@@ -242,7 +225,6 @@ P2M.prototype.action = function (fn, action_args) {
               }
             }
             if (!dontCallCb) {
-              //nextStepCb(o);
               if (utils.isDebug()) {
                 console.warn('p2m: nextStepFn b4 resolving outer title:', title);
               }
@@ -281,7 +263,6 @@ P2M.prototype.action = function (fn, action_args) {
 *** P2M addStep Caught Error:
           */}), self._name, title), err);
 
-          //console.log('Stack:', (new Error()).stack);
           outer_deferred.reject(err);
         })
         ;
@@ -320,8 +301,6 @@ P2M.prototype.facts = function (fn) {
     .then(function (index_facts) {
       _.merge(facts, index_facts);
       utils.dlog('P2M: facts()  moduleFileName:', self.moduleFileName);
-      //utils.dlog('P2M: facts() facts:', facts);
-      //getF_deferred.resolve(self._getFacts(self.moduleFileName, facts)); // <<<<< module.filename is p2m should be module!!!
       self._getFacts(facts)
       .done(function (prov_facts) {
         _.merge(facts, prov_facts);
@@ -378,7 +357,6 @@ P2M.Module = function (moduleFileName, deffn) {
     utils.dlog('P2M.Module M.moduleFileName:', self.moduleFileName);
 
     deffn.apply(self);
-    //console.log('P2M.Module this:', u.inspect(this, {colors: true, depth:3}));
   };
 
   u.inherits(M, P2M);

@@ -95,11 +95,6 @@ var Package = P2M.Module(module.filename, function () {
               _impl.facts.installed_packages[opts.name] = {};  // next facts run will populate
             }
             if (command_complete_cb) command_complete_cb(err, stdout, stderr);
-//            utils.callbackEvent(next_step_callback, _impl.facts, {
-//              module: 'package',
-//              object: opts.name,
-//              msg: 'install ' + (err ? err : 'ok')
-//            });
             _impl.qEvent({
               module: 'package',
               object: opts.name,
@@ -123,11 +118,6 @@ var Package = P2M.Module(module.filename, function () {
                   console.error('yum update failed:', err, stderr);
                 }
                 if (command_complete_cb) command_complete_cb(err, stdout, stderr);
-//                utils.callbackEvent(next_step_callback, _impl.facts, {
-//                  module: 'package',
-//                  object: opts.name,
-//                  msg: 'upgrade ' + (err ? err : 'ok')
-//                });
                 _impl.qEvent({
                   module: 'package',
                   object: opts.name,
@@ -136,7 +126,6 @@ var Package = P2M.Module(module.filename, function () {
                 deferred.resolve({result: (err ? 'failed' : 'changed')});
               });
             } else {
-              //next_step_callback();
               deferred.resolve();
             }
           });
@@ -155,11 +144,6 @@ var Package = P2M.Module(module.filename, function () {
               delete _impl.facts.installed_packages[opts.name];
             }
             if (command_complete_cb) command_complete_cb(err, stdout, stderr);
-//            utils.callbackEvent(next_step_callback, _impl.facts, {
-//              module: 'package',
-//              object: opts.name,
-//              msg: 'uninstall ' + (err ? err : 'ok')
-//            });
             _impl.qEvent({
               module: 'package',
               object: opts.name,
@@ -169,13 +153,11 @@ var Package = P2M.Module(module.filename, function () {
           });
 
         } else {
-//          next_step_callback();
           deferred.resolve();
         }
 
       } else {
         console.error('package module does not support ensure option value of:', opts.ensure);
-//        next_step_callback();
         deferred.resolve();
       }
 

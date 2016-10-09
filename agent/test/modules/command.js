@@ -88,12 +88,7 @@ describe('Module command', function () {
       return pfs.pExists(testFileEv);
     })
     .then(function (exists) {
-//      if (!exists) {
-//        console.error('FAILED to create file:', testFileEv);
-//        process.exit(1);
-//      }
       exists.should.be.true;
-//      process.exit(2);
       return pfs.pUnlink(testFileEv);
     })
     .then(function (err) {
@@ -423,6 +418,7 @@ describe('Module command', function () {
   describe('Callback function for action complete', function () {
 
     it('Should call the supplied callback function on success', function (done) {
+      this.timeout(80000);
       var testFile = utils.escapeBackSlash(tmp.tmpNameSync() + '.TEST');
       var cmd = 'p2\n' +
         '.command(\'echo OUT_STDOUT && echo OUT_STDERR >&2\', function (rc, stdout, stderr) {\n' +

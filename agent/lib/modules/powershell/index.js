@@ -120,15 +120,7 @@ var Powershell = P2M.Module(module.filename, function () {
       f: p2.facts
     });
 
-//    if (!opts.shell) {
-//      opts.shell = true;
-//    }
-
     utils.vlog('Powershell on node "' + os.hostname() + '", cmd:', cmd, ', opts:', JSON.stringify(opts));
-
-//    var sp_args = stringArgv(cmd);
-//    cmd = sp_args[0];
-//    sp_args.shift();
 
     function set_watcher(inWatch) {
       utils.dlog('Powershell: inWatch:', inWatch, '_watch_state:', _watch_state, 'global.p2_agent_opts.daemon:', global.p2_agent_opts.daemon);
@@ -176,10 +168,8 @@ var Powershell = P2M.Module(module.filename, function () {
 
           onlyif_content_deferred.promise
           .done(function (onlyif_obj) {
-            //console.log('***** onlyif_obj:', onlyif_obj);
             var cmd = onlyif_obj.script,
                 args = onlyif_obj.args;
-            //console.log('command running onlyif cmd:', cmd, 'args:', args);
             onlyif_deferred.resolve(
               utils.runPs(
                 cmd,
@@ -198,7 +188,6 @@ var Powershell = P2M.Module(module.filename, function () {
 
         onlyif_deferred.promise
         .then(function (onlyif_res) {
-          //console.log('command: onlyif_res:', onlyif_res);
           var onlyif_rc = onlyif_res[0],
               onlyif_stdout = onlyif_res[1],
               onlyif_stderr = onlyif_res[2];
@@ -254,17 +243,6 @@ var Powershell = P2M.Module(module.filename, function () {
               command_complete_cb(rc, stdout, stderr);
             }
 
-            /*
-            if (opts.creates) {
-              cb({
-                module: 'powershell',
-                object: opts.creates,
-                msg: 'target (re)created'
-              }); // next_step_callback or watcher callback
-            } else {
-              cb(); // next_step_callback or watcher callback
-            }
-            */
             cb('changed');
           });
 
@@ -280,7 +258,6 @@ var Powershell = P2M.Module(module.filename, function () {
           deferred.resolve({result: result});
         });
       });
-      //delete opts.creates;
     } else {
       _spawn(false, false, function (result) {
         deferred.resolve({result: result});

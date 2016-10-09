@@ -19,11 +19,6 @@ p2
 .role('classify', {
   facts: function (deferred, facts_so_far, title, opts) {
     var facts = {
-      p2role: {
-        classify: {
-          loaded: true
-        }
-      },
       agent_classes: (facts_so_far.agent_classes || {})
     };
 

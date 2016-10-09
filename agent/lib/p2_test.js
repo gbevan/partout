@@ -47,8 +47,6 @@ var P2Test = {
 
     p2Str = utils.escapeBackSlash(p2Str);
 
-    //console.log('p2Test cmd:', p2Str);
-
     utils.tlogs('tmp.file');
     tmp.file({keep: false}, function (err, tpath, fd, cleanupcb) {
       utils.tloge('tmp.file');
@@ -60,7 +58,6 @@ var P2Test = {
       fs.write(fd, p2Str, 0, 'utf8', function (err) {
 
         utils.tlogs('new Policy');
-        //console.log('tpath contents:\n', fs.readFileSync(tpath).toString());
         new Policy([tpath], {apply: true})
         .then(function (policy) {
           utils.tloge('new Policy');
@@ -77,7 +74,7 @@ var P2Test = {
           });
         })
         .done(null, function (err) {
-          deferred.reject(new Error(err));
+          deferred.reject(err);
         });
       });
     });
@@ -86,26 +83,15 @@ var P2Test = {
   },
 
   getP2Facts: function () {
-//    args = (args ? args : {});
-
-    var deferred = Q.defer();
-
     if (global.p2) {
       delete global.p2.facts;
     }
-//    console.log('global debug:', global.partout.opts);
 
-    new Policy({}, {daemon: false, showfacts: false})
-    .done(function (policy) {
-      //console.log('facts:', global.p2.facts);
-      //console.log('p2_test.js global.p2.facts.installed_packages[nginx]:', global.p2.facts.installed_packages.nginx);
-      deferred.resolve(global.p2.facts);
-    }, function (err) {
-      console.error('p2_test err:', err);
-      deferred.reject(new Error(err));
+    return new Policy({}, {daemon: false, showfacts: false})
+    .then(function (policy) {
+      return global.p2.facts;
     });
 
-    return deferred.promise;
   }
 
 };

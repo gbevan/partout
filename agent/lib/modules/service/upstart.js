@@ -119,24 +119,6 @@ Service.prototype.getStatus = function (name) {
   return deferred.promise;
 };
 
-/**
- * get Facts for this module provider
- * @param {Object} facts_so_far Facts discovered up to calling this module
- * @return {Object} Promise
-Service.getFacts = function (facts_so_far) {
-  var self = this,
-      facts = {},
-      deferred = Q.defer();
-
-  self.getStatus()
-  .done(function (services) {
-    facts.services = services;
-    deferred.resolve(facts);
-  });
-
-  return deferred.promise;
-};
- */
 
 /**
  * Set upstart service to enabled

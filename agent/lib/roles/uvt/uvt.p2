@@ -24,9 +24,6 @@
 'use strict';
 /*global p2*/
 
-// make parent node_modules available to sync'd manifest
-//module.paths = module.paths.concat(module.parent.paths);
-
 var utils = p2.require('utils'),
     u = require('util'),
     fs = require('fs'),
@@ -64,11 +61,6 @@ p2
         }
 
         var facts = {
-          p2role: {
-            uvt_cloud_image: {
-              loaded: true
-            }
-          },
           uvt_cloud_image: {}
         };
 
@@ -90,11 +82,12 @@ p2
           }
         });
 
-        //console.log('uvt_cloud_image: facts:', facts);
         deferred.resolve(facts);
 
       });
 
+    } else {
+      deferred.resolve();
     }
 
   },
@@ -117,7 +110,6 @@ p2
     .command('sync_uvt_image', {
       cmd: u.format('uvt-simplestreams-libvirt sync release=%s arch=%s', opts.release, opts.arch),
       onlyif: function (f) {
-        //console.log('uvt_cloud_image: in cmd onlyif:', f.uvt_cloud_image[u.format('%s:%s', opts.release, opts.arch)] === undefined);
         return f.uvt_cloud_image[u.format('%s:%s', opts.release, opts.arch)] === undefined;
       }
     });
@@ -156,17 +148,11 @@ p2
   facts: function (deferred, facts_so_far, title, opts) {
     //console.log('uvt_kvm getting facts');
     var facts = {
-      p2role: {
-        uvt_kvm: {
-          loaded: true
-        }
-      },
       uvt_kvm_instance: {}
     };
 
     utils.runCmd('uvt-kvm list')
     .done(function (uk_a) {
-      //console.log('uk_a:', uk_a);
       var rc = uk_a[0],
           stdout = uk_a[1],
           stderr = uk_a[2];
@@ -185,7 +171,6 @@ p2
         }
       });
 
-      //console.log('uvt_kvm facts:', facts);
       deferred.resolve(facts);
     });
 
@@ -219,10 +204,6 @@ p2
       if (opts.bridge) {
         cmd += u.format(' --bridge %s', opts.bridge);
       }
-//
-//      if (opts.password) {
-//        cmd += u.format(' --password \'%s\'', opts.password);
-//      }
 
       var sshpubkeys = [];
       if (opts.sshpubkey_files) {
@@ -277,7 +258,6 @@ p2
 
       .command(cmd, {
         onlyif: function (f) {
-          //console.log('uvt-kvm onlyif:', f.uvt_kvm_instance);
           return f.uvt_kvm_instance[title] === undefined;
         }
       })

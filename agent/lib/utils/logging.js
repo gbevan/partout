@@ -41,7 +41,7 @@ var UtilsLogging = function () {
  */
 UtilsLogging.prototype.vlog = function () {
   var self = this;
-  if (global.partout.opts.verbose) {
+  if (global.partout && global.partout.opts && global.partout.opts.verbose) {
     console.log('INFO:', u.format.apply(u, arguments));
   }
 };
@@ -51,7 +51,7 @@ UtilsLogging.prototype.vlog = function () {
  */
 UtilsLogging.prototype.dlog = function () {
   var self = this;
-  if (global.partout.opts.debug) {
+  if (global.partout && global.partout.opts && global.partout.opts.debug) {
     console.log('DEBUG:', u.format.apply(u, arguments));
   }
 };
@@ -62,7 +62,7 @@ UtilsLogging.prototype.dlog = function () {
  */
 UtilsLogging.prototype.tlogs = function (label) {
   var self = this;
-  if (global.partout.opts.timing) {
+  if (global.partout && global.partout.opts && global.partout.opts.timing) {
     console.time(label);
   }
 };
@@ -73,7 +73,7 @@ UtilsLogging.prototype.tlogs = function (label) {
  */
 UtilsLogging.prototype.tloge = function (label) {
   var self = this;
-  if (global.partout.opts.timing) {
+  if (global.partout && global.partout.opts && global.partout.opts.timing) {
     console.timeEnd(label);
   }
 };

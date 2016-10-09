@@ -4,6 +4,10 @@
 
 var utils = require('../utils');
 
+if (!utils.isWin()) {
+  return;
+}
+
 p2
 
 /**
@@ -21,17 +25,12 @@ p2
 .role('chocolatey', {
 
   // Role facts gathering run in P2 actions (not as part of initial facts discovery)
-  facts: function (deferred, facts_so_far, title, opts) {
-    var facts = {
-      p2role: {
-        chocolatey: {
-          loaded: true
-        }
-      }
-    };
+  facts: function (deferred, facts_so_far/*, title, opts*/) {
+    var facts = {};
 
     if (facts_so_far.hasOwnProperty('chocolatey_installed')) {
       deferred.resolve();
+
     } else {
       utils.runPs(p2.heredoc(function () {/*
         # powershell
@@ -46,7 +45,7 @@ p2
           $TRUE
         }
       */}))
-      .done(function (res_array) {
+      .then(function (res_array) {
         var rc = res_array[0],
             stdout = res_array[1],
             stderr = res_array[2];
@@ -54,6 +53,9 @@ p2
         stdout = stdout.trim();
         facts.chocolatey_installed = (stdout === 'True');
         deferred.resolve(facts);
+      })
+      .done(null, function (err) {
+        console.error('chocolatey: err:', err);
       });
     }
 
