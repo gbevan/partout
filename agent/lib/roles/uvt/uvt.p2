@@ -64,11 +64,11 @@ p2
         }
 
         var facts = {
-          p2role: {
-            uvt_cloud_image: {
-              loaded: true
-            }
-          },
+//          p2role: {
+//            uvt_cloud_image: {
+//              loaded: true
+//            }
+//          },
           uvt_cloud_image: {}
         };
 
@@ -95,6 +95,8 @@ p2
 
       });
 
+    } else {
+      deferred.resolve();
     }
 
   },
@@ -156,11 +158,11 @@ p2
   facts: function (deferred, facts_so_far, title, opts) {
     //console.log('uvt_kvm getting facts');
     var facts = {
-      p2role: {
-        uvt_kvm: {
-          loaded: true
-        }
-      },
+//      p2role: {
+//        uvt_kvm: {
+//          loaded: true
+//        }
+//      },
       uvt_kvm_instance: {}
     };
 

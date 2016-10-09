@@ -32,15 +32,12 @@ var console = require('better-console'),
     Q = require('q'),
     pfs = require('./pfs'),
     fs = require('fs'),
-    //utils = new (require('./utils'))(),
     utils = require('./utils'),
     u = require('util');
 
 function Policy(args, opts) {
-  var self = this,
-      deferred = Q.defer();
+  var self = this;
 
-  //console.log('Policy called with args:', args, 'opts:', opts, 'STACK:', (new Error()).stack);
   self.args = args;
   if (opts.app) {
     self.app = opts.app;
@@ -53,14 +50,11 @@ function Policy(args, opts) {
     p2.P2_watchers_close();
   }
 
-  //global.P2 = P2;
   utils.tlogs('new p2');
-  new P2()
-  .then(function (p2) {
-    utils.tloge('new p2');
 
-    /** @global */
-    global.p2 = p2;
+  return new P2()
+  .then(function (p2) {
+    utils.tloge('after new p2');
 
     /** @global */
     global.p2_agent_opts = self.opts = opts;
@@ -79,14 +73,9 @@ function Policy(args, opts) {
       p2.print_facts();
     }
 
-    deferred.resolve(self); // resolve passing back this new instance of Policy
-  })
-  .done(null, function (err) {
-    console.error('policy caught err:', err);
-    deferred.reject(new Error(err));
+    return Q.resolve(self);
   });
 
-  return deferred.promise;
 }
 
 Policy.prototype.apply = function () {
@@ -100,62 +89,20 @@ Policy.prototype.apply = function () {
         abs_dir = path.dirname(abs_a),
         p2Re = new RegExp(/\.p2$/);
 
-    /*
-     * remove previously load .p2 modules and roles, for reloading
-     */
-    _.each(require.cache, function (v, k) {
-      if (k.match(p2Re)) {
-        //console.log('policy: deleting require.cache: k', k);
-        delete require.cache[k];
-      }
-    });
-
-    //delete require.cache[abs_a];
     p2.P2_watchers_close();
     p2.clear_actions();
 
     p2.__p2dirname = abs_dir;
 
-    /*
-     * Load core roles
-     */
-    var rolespath = path.join('lib', 'roles');
+    require(abs_a);
 
-    pfs.pReadDir(rolespath)
-    .then(function (roles_manifest) {
-      _.each(roles_manifest, function (rfile) {
-        rfile = path.join(rolespath, rfile);
+    // execute the accrued steps
+    p2.end(function () {
 
-        var rfile_stat;
-        try {
-          rfile_stat = fs.statSync(rfile); // must be sync!
-        } catch (e) {
-          if (e.code !== 'ENOENT') {
-            throw(e);
-          }
-        }
-
-        if (rfile_stat && rfile_stat.isDirectory()) {
-          rfile = path.join(rfile, 'index.p2');
-        }
-
-        var r = require(path.resolve(rfile));
-      });
-
-      require(abs_a);
-
-      // execute the accrued steps
-      p2.end(function () {
-
-        utils.vlog('### END OF APPLY ################################');
-        deferred.resolve();
-      });
-
-    })
-    .done(null, function (err) {
-      console.error('Policy load of roles failed');
-      deferred.reject(err);
+      utils.vlog('### END OF APPLY ################################');
+      deferred.resolve();
     });
+
   });
   return deferred.promise;
 };

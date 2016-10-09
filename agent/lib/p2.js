@@ -33,6 +33,7 @@ var console = require('better-console'),
     exec = require('child_process').exec,
     path = require('path'),
     fs = require('fs'),
+    pfs = require('./pfs'),
     EventEmitter = require('events').EventEmitter,
     querystring = require('querystring'),
     Q = require('q'),
@@ -69,6 +70,21 @@ var init_impl = function _impl() { this._id = '_impl'; },
     empty_impl = Object.create(init_impl);
 
 /**
+ * Clear require cache of *.p2 (roles etc)
+ */
+var P2_Clear_P2_Cache = function () {
+  /*
+   * remove previously loaded .p2 modules and roles, for reloading
+   */
+  var p2Re = new RegExp(/\.p2$/);
+  _.each(require.cache, function (v, k) {
+    if (k.match(p2Re)) {
+      delete require.cache[k];
+    }
+  });
+};
+
+/**
  * Set a watcher on a filesystem object
  * @function
  * @param file {String} file name / path
@@ -76,7 +92,6 @@ var init_impl = function _impl() { this._id = '_impl'; },
  * @memberof P2
  */
 var P2_watch = function (file, watch_action_fn) {
-  //console.log('P2_watch() this:', this);
   var self = this;  // is _impl
 
   utils.dlog('>>>>>>>>>>> P2_watch for file: %s', file);
@@ -85,7 +100,6 @@ var P2_watch = function (file, watch_action_fn) {
   function queue_event (event, filename) {
     utils.dlog('queue_event() event:', event, 'filename:', filename);
     var qlen = self._watch_event_cb_list.length;
-    //self._watch_event_cb_list.push(cb);
     self._watch_event_cb_list.push(function (nimblecb) {
       watch_action_fn(
         function (o) {
@@ -172,7 +186,6 @@ var P2 = function () {
     if (self.ifNode()) {
 
       utils.dlog('on() Adding listener for:', ev);
-      //self.emitter.on.apply(self.emitter, arguments);
       self.emitter.on.call(self.emitter, ev, function () {
         console.info(u.format('(p2) Event Triggered: %s', ev));
 
@@ -284,19 +297,15 @@ var P2 = function () {
       return select;
 
     } else if (typeof (select) === 'function') {
-      //console.log('in ifNode facts:', self.facts);
       if (select(self.facts)) {
         utils.dlog('ifNode(): function -> pass');
-        //console.log('function returning true');
         return true;
       }
       utils.dlog('ifNode(): function -> skip');
       return false;
 
     } else if (select instanceof RegExp) {
-      //console.log('in RegExp:');
       if (os.hostname().match(select)) {
-        //console.log('RegExp match');
         utils.dlog('ifNode(): regex -> pass');
         return true;
       }
@@ -305,25 +314,18 @@ var P2 = function () {
       if (typeof (select) === 'string') {
         select = [ select ]; // make array
       }
-      //self.nodes = self._impl.nodes = select;
       self.nodes = select;
       for (i in self.nodes) {
         if (self.nodes.hasOwnProperty(i)) {
           var node = self.nodes[i];
           utils.dlog('node:', node, 'hostname:', os.hostname());
           if (os.hostname() === node) {
-            //console.log('node match');
             utils.dlog('ifNode(): string|array -> pass');
             return true;
           }
         }
       }
     }
-    //console.log('node no match');
-    //console.log('init_impl:', init_impl);
-    //process.exit(0);
-    //return null;
-    //console.log('empty_impl:', empty_impl);
     utils.dlog('ifNode(): fall through to -> skip');
     return false;
   };
@@ -349,7 +351,6 @@ var P2 = function () {
     if (typeof(state) === 'string' && typeof(func) === 'function') {
       self.P2_watch(state, func);
     } else {
-      //console.log('>>>>>>> watch state (parse phase):', state, 'self:', self);
       self._watch_state = state;
     }
     return self;
@@ -357,6 +358,9 @@ var P2 = function () {
 
   // store __dirname for agent manifests to locate agent core modules
   self._impl.core_lib_path = __dirname;
+
+  // List of fact methods from loaded roles to be gathered from prior prior to returning facts to called
+  self._impl.roles_facts_fn_list = [];
 
   // LIFO stack for steps (to allow roles to push their nested steps to the front of the queue)
   self._impl.steps_stack = [];
@@ -416,39 +420,10 @@ var P2 = function () {
    * @memberof P2
    */
   self._impl.sendevent = function (o) {
-    //console.log('sendevent, p2_agent_opts:', u.inspect(global.p2_agent_opts, {colors: true, depth: 3}));
     if (o && global.p2_agent_opts.app) {
       global.p2_agent_opts.app.sendevent(o);
     }
-    /*
-    var app = global.p2_agent_opts.app,
-      post_data = querystring.stringify(o),
-      options = {
-        host: app.master, // TODO: param'ize
-        port: app.master_port,
-        path: '/_event',
-        method: 'POST',
-        rejectUnauthorized: false,
-        //requestCert: true,
-        agent: false,
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'Content-Length': post_data.length
-        }
-      };
-
-    var post_req = app.https.request(options, function(res) {
-      res.setEncoding('utf8');
-      res.on('data', function (chunk) {
-        console.warn('Response: ' + chunk);
-      });
-    });
-
-    post_req.write(post_data);
-    post_req.end();
-    */
   };
-  //self._impl.sendevent = global.p2_agent_opts.app.sendevent;
 
   self._impl.qEvent = function (o) {
     if (global.p2_agent_opts.app) {
@@ -530,7 +505,6 @@ var P2 = function () {
     utils.dlog('p2 flattenSteps()');
     var newSteps = self._impl.steps;
     self._impl.steps = newSteps.concat(self._impl.steps_stack.pop());
-    //console.warn('!!! flattenSteps: concat steps:', u.inspect(self._impl.steps, {colors: true, depth: 3}));
 
     return self._impl;
   };
@@ -586,32 +560,27 @@ var P2 = function () {
   var module_promise;
   if (global.p2 && global.p2.facts) {
     utils.dlog('>>> Using cached facts');
-    //console.log('>>> Using cached facts');
     self.facts = global.p2.facts;
-    //_modules = require('./modules')();
     module_promise = require('./modules')();
 
   } else {
-    //console.log('>>> Refreshing facts');
+    utils.dlog('P2 >>> Refreshing facts');
+
     self.facts = {
       p2module: {},
       agent_classes: {}
     };
-    //_modules = require('./modules')(self.facts);
     module_promise = require('./modules')(self.facts);
   }
 
   module_promise
   .then(function (_modules) {
     utils.tloge('require modules');
-    //console.log('modules loaded with facts');
-    //console.log('p2 facts:', self.facts);
+
     self._impl.facts = self.facts;
     if (global.p2) {
       global.p2.facts = self.facts;
     }
-    //console.log('p2.js facts.installed_packages[nginx]:', self.facts.installed_packages.nginx);
-
 
     /**
      * print discovered facts
@@ -626,7 +595,6 @@ var P2 = function () {
 
     // Link modules as DSL commands
     _.each(Object.keys(_modules), function (m) {
-      //console.log('p2 m:', m);
 
       /*
        * Create DSL Command of this module
@@ -639,14 +607,10 @@ var P2 = function () {
         for (var i = 0; i < arguments.length; i++) {
           args.push(arguments[i]);
         }
-        //console.log('p2 dsl args:', u.inspect(args, {colors: true, depth: 2}));
 
         var c = new _modules[m]();
-        //console.log('p2 m:', _modules[m].prototype);
-        //console.log('c:', c);
 
         if (c.runAction) {
-          //var immedArgs = [_impl, undefined, false];
           var immedArgs = [_impl, false];
           immedArgs.push.apply(immedArgs, arguments);
           c.runAction.apply(c, immedArgs);
@@ -667,14 +631,83 @@ var P2 = function () {
       empty_impl[m] = function () { return this; };
     });
 
-    //return self._impl;  // after this self will be _impl
+    global.p2 = self._impl;
 
-    deferred.resolve(self._impl);
+    /*
+     * remove previously loaded .p2 modules and roles, for reloading
+     */
+    P2_Clear_P2_Cache();
+
+    /*
+     * Load core roles
+     */
+    var rolespath = path.join('lib', 'roles');
+
+    return pfs.pReadDir(rolespath)
+    .then(function (roles_manifest) {
+      var roles_facts_deferred = Q.defer();
+
+      _.each(roles_manifest, function (role) {
+        var rfile = path.join(rolespath, role);
+
+        var rfile_stat;
+        try {
+          rfile_stat = fs.statSync(rfile); // must be sync!
+        } catch (e) {
+          if (e.code !== 'ENOENT') {
+            throw(e);
+          }
+        }
+
+        if (rfile_stat && rfile_stat.isDirectory()) {
+          rfile = path.join(rfile, 'index.p2');
+        }
+
+        var r = require(path.resolve(rfile));
+
+      });
+
+      utils.dlog('P2 starting roles_facts_fn_list');
+      nimble.series(
+        self._impl.roles_facts_fn_list,
+        function (err, cb) {
+          if (err) {
+            return roles_facts_deferred.reject(err);
+          }
+          utils.dlog('P2 resolving roles_facts_fn_list');
+          roles_facts_deferred.resolve();
+          cb();
+        }
+      );
+
+      return roles_facts_deferred.promise;
+
+    }) // pfs.pReadDir(rolespath)
+    .then(function () {
+      var end_deferred = Q.defer();
+
+      // execute the accrued steps
+      p2.end(function () {
+        utils.vlog('### END OF LOADING MODULES & CORE ROLES ######################');
+
+        end_deferred.resolve();
+      });
+
+      return end_deferred.promise;
+    })
+    //.done()
+    ;
+
   })
-  .done(null, function (err) {
+
+  .done(function () {
+    deferred.resolve(self._impl); // pass DSL fwd to Policy()
+
+  }, function (err) {
     if (err) {
       console.error('p2 modules load err:', err);
-      deferred.reject(new Error(err));
+      console.warn('stack:', err.stack);
+      deferred.reject(err);
     }
   });
 

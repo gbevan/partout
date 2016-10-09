@@ -69,11 +69,11 @@ if (utils.isWin()) {
         exists.should.be.true;
         return pfs.pUnlink(testFile);
       })
-      .then(function (err) {
-        should(err).be.undefined;
+      .then(function () {
         done();
       })
       .done(null, function (err) {
+        should(err).be.undefined;
         done(err);
       });
 
@@ -100,11 +100,11 @@ if (utils.isWin()) {
         exists.should.be.true;
         return pfs.pUnlink(testFile);
       })
-      .then(function (err) {
-        should(err).be.undefined;
+      .then(function () {
         done();
       })
       .done(null, function (err) {
+        should(err).be.undefined;
         done(err);
       });
 
@@ -135,11 +135,11 @@ if (utils.isWin()) {
           return Q();
         }
       })
-      .then(function (err) {
-        should(err).be.undefined;
+      .then(function () {
         done();
       })
       .done(null, function (err) {
+        should(err).be.undefined;
         done(err);
       });
 
@@ -166,11 +166,11 @@ if (utils.isWin()) {
         exists.should.be.true;
         return pfs.pUnlink(testFile);
       })
-      .then(function (err) {
-        should(err).be.undefined;
+      .then(function () {
         done();
       })
       .done(null, function (err) {
+        should(err).be.undefined;
         done(err);
       });
 
@@ -201,11 +201,11 @@ if (utils.isWin()) {
           return Q();
         }
       })
-      .then(function (err) {
-        should(err).be.undefined;
+      .then(function () {
         done();
       })
       .done(null, function (err) {
+        should(err).be.undefined;
         done(err);
       });
 
@@ -232,11 +232,11 @@ if (utils.isWin()) {
         exists.should.be.true;
         return pfs.pUnlink(testFile);
       })
-      .then(function (err) {
-        should(err).be.undefined;
+      .then(function () {
         done();
       })
       .done(null, function (err) {
+        should(err).be.undefined;
         done(err);
       });
 
@@ -267,11 +267,11 @@ if (utils.isWin()) {
           return Q();
         }
       })
-      .then(function (err) {
-        should(err).be.undefined;
+      .then(function () {
         done();
       })
       .done(null, function (err) {
+        should(err).be.undefined;
         done(err);
       });
 
@@ -313,11 +313,11 @@ if (utils.isWin()) {
 
           return pfs.pUnlink(testFile);
         })
-        .then(function (err) {
-          should(err).be.undefined;
+        .then(function () {
           done();
         })
         .done(null, function (err) {
+          should(err).be.undefined;
           done(err);
         });
       });
@@ -380,11 +380,11 @@ if (utils.isWin()) {
           data.should.equal('CREATED'); // contents persist from previous test
           return pfs.pUnlink(testFile);
         })
-        .then(function (err) {
-          should(err).be.undefined;
+        .then(function () {
           done();
         })
         .done(null, function (err) {
+          should(err).be.undefined;
           done(err);
         });
       });
@@ -429,11 +429,11 @@ if (utils.isWin()) {
           data.should.equal('SUCCESS');
           return pfs.pUnlink(testFile);
         })
-        .then(function (err) {
-          should(err).be.undefined;
+        .then(function () {
           done();
         })
         .done(null, function (err) {
+          should(err).be.undefined;
           done(err);
         });
 
@@ -509,11 +509,11 @@ if (utils.isWin()) {
           exists.should.be.true;
           return pfs.pUnlink(testFile);
         })
-        .then(function (err) {
-          should(err).be.undefined;
+        .then(function () {
           done();
         })
         .done(null, function (err) {
+          should(err).be.undefined;
           done(err);
         });
 
@@ -542,11 +542,11 @@ if (utils.isWin()) {
             return Q();
           }
         })
-        .then(function (err) {
-          should(err).be.undefined;
+        .then(function () {
           done();
         })
         .done(null, function (err) {
+          should(err).be.undefined;
           done(err);
         });
 
@@ -575,11 +575,11 @@ if (utils.isWin()) {
           exists.should.be.true;
           return pfs.pUnlink(testFile);
         })
-        .then(function (err) {
-          should(err).be.undefined;
+        .then(function () {
           done();
         })
         .done(null, function (err) {
+          should(err).be.undefined;
           done(err);
         });
 
@@ -608,11 +608,11 @@ if (utils.isWin()) {
             return Q();
           }
         })
-        .then(function (err) {
-          should(err).be.undefined;
+        .then(function () {
           done();
         })
         .done(null, function (err) {
+          should(err).be.undefined;
           done(err);
         });
 

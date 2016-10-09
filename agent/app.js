@@ -104,6 +104,7 @@ var apply = function (args, opts) {
   })
   .done(null, function (err) {
     console.error('apply outer err:', err);
+    console.warn(err.stack);
   });
   return deferred.promise;
 };

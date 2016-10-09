@@ -1,0 +1,118 @@
+/*
+    Partout [Everywhere] - Policy-Based Configuration Management for the
+    Data-Driven-Infrastructure.
+
+    Copyright (C) 2016 Graham Lee Bevan <graham.bevan@ntlworld.com>
+
+    This file is part of Partout.
+
+    Partout is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*jslint node: true, nomen: true */
+'use strict';
+/*global p2*/
+
+// make parent node_modules available to sync'd manifest
+module.paths = module.paths.concat(module.parent.paths);
+
+var path = require('path'),
+    passwd = require('passwd-group-obj').passwd,
+    PUser = require('passwd-group-obj').PUser,
+    utils = require('../../utils');
+
+p2
+
+.role('user', {
+
+  facts: function (deferred, facts_so_far, title, opts) {
+    var facts = {};
+
+    if (utils.isLinux()) {
+      passwd.$loadUsers()
+      .then(function () {
+        facts.users = passwd.$cleansed();
+        deferred.resolve(facts);
+      })
+      .done(null, function (err) {
+        deferred.reject(err);
+      });
+
+    } else if (utils.isWin()) {
+      utils.runPs('Get-WmiObject -Class Win32_UserAccount | ConvertTo-Json -compress')
+      .then(function (res) {
+        var rc = res[0],
+            stdout = res[1],
+            stderr = res[2],
+            res_array = JSON.parse(stdout),
+            users = {};
+
+        res_array.forEach(function (u) {
+          users[u.Name] = u;
+        });
+
+        facts.users = users;
+        deferred.resolve(facts);
+
+      })
+      .done(null, function (err) {
+        deferred.reject(err);
+      });
+
+    } else { // unsupported OS
+      deferred.resolve();
+    }
+
+  },
+
+  p2: function (title, opts) {
+    opts = (opts || {});
+
+    if (!opts.ensure) {
+      opts.ensure = 'present';
+    }
+
+    if (p2.facts.platform === 'linux') {
+
+      if (opts.ensure === 'present') {
+        p2
+        .lambda('Ensure user exists', function (f, opts) {
+
+          var puser = new PUser(opts);
+
+          puser.name = title;
+
+          if (!passwd[title]) {
+            return passwd.$addUser(puser);
+          } else {
+            opts.name = title;
+            delete opts.ensure;
+            var u_pass = new PUser(opts);
+            return passwd[title].$set(u_pass);
+          }
+        });
+
+      } else if (opts.ensure === 'absent') {
+        if (passwd[title]) {
+          return passwd[title].$delete();
+        }
+      }
+
+    } // linux
+
+  }
+
+})
+
+;

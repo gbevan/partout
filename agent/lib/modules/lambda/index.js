@@ -23,15 +23,19 @@
 /*jslint node: true, nomen: true */
 'use strict';
 
+/*global p2*/
 var P2M = require('../../p2m'),
     console = require('better-console'),
     _ = require('lodash'),
     os = require('os'),
     fs = require('fs'),
+    spawn = require('child_process').spawn,
     Q = require('q'),
     utils = require('../../utils'),
-    assert = require('assert'),
-    u = require('util');
+    u = require('util'),
+    pfs = require('../../pfs'),
+    Mustache = require('mustache'),
+    stringArgv = require('string-argv');
 
 Q.longStackSupport = true;
 Q.onerror = function (err) {
@@ -39,12 +43,22 @@ Q.onerror = function (err) {
   console.error(err.stack);
 };
 
-/*
- * Windows Provider for the User module.
+/**
+ * @module lambda
  *
+ * @description
+ * lambda module
+ * ==============
+ *
+ *     p2.node([...])
+ *       .lambda('title', options, function(facts, options) {...});
+ *
+ * options:
+ *   - anything goes, they are passed to the function.
  */
-var User = P2M.Module(module.filename, function () {
-   var self = this;
+
+var Lambda = P2M.Module(module.filename, function () {
+  var self = this;
 
   /*
    * module definition using P2M DSL
@@ -54,43 +68,50 @@ var User = P2M.Module(module.filename, function () {
 
   ////////////////////
   // Name this module
-  //.name('Facts')
+  .name('lambda')
 
   ////////////////
   // Gather facts
   .facts(function (deferred, facts_so_far) {
-    var self = this,
-        facts = {};
+    var facts = {
+      p2module: {
+        Lambda: {
+          loaded: true
+        }
+      }
+    };
 
-    if (utils.pIsAdmin()) {
-
-      utils.runPs('Get-WmiObject -Class Win32_UserAccount | ConvertTo-Json -compress')
-      .done(function (res) {
-        var rc = res[0],
-            stdout = res[1],
-            stderr = res[2],
-            res_array = JSON.parse(stdout),
-            users = {};
-
-        res_array.forEach(function (u) {
-          users[u.Name] = u;
-        });
-
-        //_.each(users, function (v, k) {
-        //  console.log('user:', k);
-        //});
-
-        facts.users = users;
-        deferred.resolve(facts);
-      });
-
-    } else {
-      deferred.resolve(facts);
-    }
+    deferred.resolve(facts);
   })
 
-  ;
+  //////////////////
+  // Action handler
+  .action(function (args) {
+
+    var deferred = args.deferred,
+        //inWatchFlag = args.inWatchFlag,
+        _impl = args._impl,
+        title = args.title,
+        opts,
+        lambda_fn,
+        errmsg = '';
+
+    if (typeof args.opts === 'function') {
+      lambda_fn = args.opts;
+      opts = {};
+    } else {
+      lambda_fn = args.cb;
+      opts = args.opts;
+    }
+
+    if (lambda_fn) {
+      deferred.resolve(
+        lambda_fn(_impl.facts, opts)
+      );
+    }
+
+  });
 
 });
 
-module.exports = User;
+module.exports = Lambda;

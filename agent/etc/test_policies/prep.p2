@@ -14,9 +14,12 @@ p2
   provider: 'npm'
 })
 
-
 .node(function (f) { return f.platform === 'linux'; })
 .package('man', {
   ensure: 'latest'
 })
+
+.node(function (f) { return f.os_family === 'debian'})
+.package('ntp', { ensure: 'latest' })
+
 ;

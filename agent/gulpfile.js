@@ -48,6 +48,32 @@ gulp.task('mocha1', function () {
   }));
 });
 
+gulp.task('package_winfeature', function () {
+  var localStatus = 'OK';
+  return gulp.src(['test/modules/package_winfeature.js'], { read: false })
+  .pipe(filter_files)
+  .pipe(mocha({
+    reporter: 'spec',
+    globals: {
+      should: require('should').noConflict()
+    }
+//    globals: ['INMOCHA']
+  }));
+});
+
+gulp.task('powershell', function () {
+  var localStatus = 'OK';
+  return gulp.src(['test/modules/powershell.js'], { read: false })
+  .pipe(filter_files)
+  .pipe(mocha({
+    reporter: 'spec',
+    globals: {
+      should: require('should').noConflict()
+    }
+//    globals: ['INMOCHA']
+  }));
+});
+
 gulp.task('mocha', function () {
   var localStatus = 'OK';
   return gulp.src(['test/**/*.js'], { read: false })

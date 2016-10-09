@@ -78,6 +78,7 @@ describe('Module file', function () {
     });
 
     it('Policy should remove file if ensure is absent and no filter', function (done) {
+      this.timeout(80000);
 
       p2Test.runP2Str(
         'p2\n' +
@@ -112,7 +113,8 @@ describe('Module file', function () {
   describe('option content', function () {
 
     it('Policy should create file with content string', function (done) {
-     this.timeout(10000);
+      this.timeout(80000);
+
       var testFile = utils.escapeBackSlash(tmp.tmpNameSync() + '.TEST');
 
       p2Test.runP2Str(
@@ -145,6 +147,8 @@ describe('Module file', function () {
     });
 
     it('Policy should create file with template string', function (done) {
+      this.timeout(80000);
+
       var testFile = utils.escapeBackSlash(tmp.tmpNameSync() + '.TEST');
 
       p2Test.runP2Str(

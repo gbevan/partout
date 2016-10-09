@@ -58,11 +58,11 @@ UtilsAssertions.prototype.isLinux = function () {
 };
 
 UtilsAssertions.prototype.isVerbose = function () {
-  return global.partout.opts.verbose;
+  return global.partout && global.partout.opts && global.partout.opts.verbose;
 };
 
 UtilsAssertions.prototype.isDebug = function () {
-  return global.partout.opts.debug;
+  return global.partout && global.partout.opts && global.partout.opts.debug;
 };
 
 UtilsAssertions.prototype.pIsAdmin = function () {

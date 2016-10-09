@@ -60,19 +60,25 @@ before(function(done) {
   .then(function (isA) {
     isAdmin = isA;
 
-    p2Test.getP2Facts()
+    return p2Test.getP2Facts()
     .then(function (p2TestFacts) {
       facts = p2TestFacts;
       done();
     });
+
+  })
+  .done(null, function (err) {
+    console.error('package_winfeature err:', err);
+    console.warn('stack:', err.stack);
+    done(err);
   });
 });
 
 describe('package_winfeature', function () {
 
   it('should provide winfeature package facts', function () {
-    should(facts).not.be.undefined;
-    should(facts.installed_winfeature_packages).not.be.undefined;
+    should(facts).not.be.undefined();
+    should(facts.installed_winfeature_packages).not.be.undefined();
   });
 
   if (!isAdmin) {

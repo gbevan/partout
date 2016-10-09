@@ -37,10 +37,12 @@ var Q = require('q'),
     os = require('os'),
     p2Test = require('../../lib/p2_test'),
     console = require('better-console'),
-    linuxUser;
+    passwd, PUser;
 
 if (process.platform === 'linux') {
-  linuxUser = require('linux-user');
+  //linuxUser = require('linux-user');
+  passwd = require('passwd-group-obj').passwd;
+  PUser = require('passwd-group-obj').PUser;
 }
 
 global.should = require('should');
@@ -64,13 +66,15 @@ utils.pIsAdmin()
 
       before(function (done) {
         this.timeout(60000);
+        //console.log('test user before getP2Facts');
         p2Test.getP2Facts()
         .then(function(newfacts) {
           facts = newfacts;
+          //console.log('getP2Facts facts.p2role:', facts.p2role);
           done();
         })
         .done(null, function (err) {
-          should(err).be.undefined;
+          //should(err).be.undefined();
           done(err);
         });
       });
@@ -78,10 +82,11 @@ utils.pIsAdmin()
       //////////
       // facts
       it('should provide facts', function () {
-        should(facts).not.be.undefined;
-        should(facts.p2module).be.defined;
-        should(facts.p2module.user).be.defined;
-        facts.p2module.user.loaded.should.be.true;
+        //console.log('facts.users:', facts.users);
+        should(facts).not.be.undefined();
+        should(facts.users).not.be.undefined();
+//        should(facts.p2module.user).not.be.undefined();
+//        facts.p2module.user.loaded.should.be.true;
       });
 
       if (os.platform() !== 'win32') {
@@ -89,6 +94,9 @@ utils.pIsAdmin()
           //console.log('facts.users', facts.users);
           should(facts.users).not.be.undefined;
           should(facts.users.root).be.defined;
+        });
+        it('should provide facts for the root user cleansed', function () {
+          facts.users.root.should.not.be.an.instanceof(PUser);
         });
       } else {
         it('should provide facts for the Administrator user', function () {
@@ -127,14 +135,11 @@ utils.pIsAdmin()
           )
           .then(function () {
             // check user created
-            linuxUser.getUserInfo(newUser, function (err, userInfo) {
-              if (err) {
-                done(err);
-                return;
-              }
-              should(userInfo).not.be.undefined;
-              userInfo.username.should.equal(newUser);
-
+            return passwd.$loadUsers()
+            .then(function () {
+              should(passwd[newUser]).not.be.undefined();
+              should(passwd[newUser].name).not.be.undefined();
+              passwd[newUser].name.should.eql(newUser);
               done();
             });
           })
@@ -154,9 +159,14 @@ utils.pIsAdmin()
           )
           .then(function () {
             // check user created
-            linuxUser.getUserInfo(newUser, function (err, userInfo) {
-              should(err).be.null;
-              should(userInfo).be.null;
+//            linuxUser.getUserInfo(newUser, function (err, userInfo) {
+//              should(err).be.null;
+//              should(userInfo).be.null;
+//              done();
+//            });
+            return passwd.$loadUsers()
+            .then(function () {
+              should(passwd[newUser]).be.undefined();
               done();
             });
           })

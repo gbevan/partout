@@ -47,11 +47,15 @@ Q.longStackSupport = true;
 // Simulate commandline options --verbose, --debug and --timing
 //global.partout = {opts: {verbose: false, debug: true, timing: false}};
 
+//if (!utils.isLinux()) {
+//  return;
+//}
+
 var isAdmin = false,
     facts = {};
 
 before(function(done) {
-  this.timeout(60000);
+  this.timeout(120000);
   utils.pIsAdmin()
   .then(function (isA) {
     isAdmin = isA;
@@ -63,7 +67,7 @@ before(function(done) {
     })
     .done(null, function (err) {
       console.error('package_apt err:', err);
-      should(err).be.undefined;
+      should(err).be.undefined();
       done();
     });
   });

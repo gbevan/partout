@@ -63,8 +63,8 @@ var Include = P2M.Module(module.filename, function () {
         Include: {
           loaded: true
         }
-      },
-      p2role: {}
+      }/*,
+      p2role: {}*/
     };
 
     deferred.resolve(facts);

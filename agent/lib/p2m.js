@@ -155,8 +155,6 @@ P2M.prototype.action = function (fn, action_args) {
 
       });
 
-      //return _impl;
-
     };
     return self;
   }
