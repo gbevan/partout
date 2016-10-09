@@ -72,15 +72,11 @@ UtilsAssertions.prototype.pIsAdmin = function () {
   if (os.platform() === 'win32') {
     self.pExec('NET SESSION')
     .fail(function (err) {
-      //console.error('pIsAdmin() NET SESSION err:', err);
       deferred.resolve(false);
     })
     .done(function (res) {
       var stdout = res[0],
           stderr = res[1];
-
-      //console.log('pIsAdmin() NET SESSION stdout:', stdout);
-      //console.log('pIsAdmin() NET SESSION stderr:', stderr);
 
       deferred.resolve(stderr.length === 0);
     });

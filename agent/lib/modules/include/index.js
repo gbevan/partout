@@ -63,8 +63,7 @@ var Include = P2M.Module(module.filename, function () {
         Include: {
           loaded: true
         }
-      }/*,
-      p2role: {}*/
+      }
     };
 
     deferred.resolve(facts);
@@ -84,25 +83,19 @@ var Include = P2M.Module(module.filename, function () {
         file = title,
         absfile = (path.isAbsolute(file) ? file : path.join(p2.__p2dirname, file));
 
-    //console.log('CWD:', process.cwd());
-    //console.log('absfile:', absfile);
-
     // If absfile is a directory, then load index.p2
     var absfile_stat;
     try {
       absfile_stat = fs.statSync(absfile); // must be sync!
     } catch (e) {
-      //console.log(e);
       if (e.code !== 'ENOENT') {
         throw(e);
       }
     }
 
-    //console.log('absfile_stat:', absfile_stat);
     if (absfile_stat && absfile_stat.isDirectory()) {
       absfile = path.join(absfile, 'index.p2');
     }
-    //console.log('resolved absfile:', absfile);
 
     if (!absfile.match(/\.(p2|js)$/)) {
       absfile = u.format('%s.p2', absfile);

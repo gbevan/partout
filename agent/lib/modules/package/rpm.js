@@ -61,7 +61,6 @@ var Package = P2M.Module(module.filename, function () {
         packages = {},
         cmd = '';
     utils.dlog('in package rpm facts()');
-    //console.log('facts_so_far:', facts_so_far);
 
     // get installed packages for this OS
 
@@ -72,7 +71,6 @@ var Package = P2M.Module(module.filename, function () {
         console.log('exec of ' + cmd + ' failed:', err, stderr);
         deferred.resolve({});
       } else {
-        //console.log('stdout:', stdout);
         var lines = stdout.split(/\r?\n/);
         _.forEach(lines, function (line) {
           line = line.trim();
@@ -81,7 +79,6 @@ var Package = P2M.Module(module.filename, function () {
           }
 
           var fields = line.split(/\s+/, 3);
-          //console.log('fields:', fields);
 
           var p_obj = {
             name: fields[0],

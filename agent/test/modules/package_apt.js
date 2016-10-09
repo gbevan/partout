@@ -99,7 +99,6 @@ describe('package_apt', function () {
         '});'
       )
       .then(function (res_absent) {
-        //console.log('made absent');
 
         p2Test.runP2Str(
           'p2\n' +
@@ -108,18 +107,13 @@ describe('package_apt', function () {
           '});'
         )
         .then(function (res_present) {
-          //console.log('made present');
 
           p2Test.getP2Facts()
           .then(function(facts) {
-            //console.log('got facts');
             global.partout = {opts: {verbose: false, debug: false, timing: false}};
             should(facts).not.be.undefined;
             should(facts.installed_packages).not.be.undefined;
-            //console.log('facts.installed_packages ' + pkg + ':', facts.installed_packages[pkg]);
             should(facts.installed_packages[pkg]).not.be.undefined;
-
-            //console.log('facts ok calling done()');
             done();
           })
           .done(null, function (err) {
@@ -134,7 +128,6 @@ describe('package_apt', function () {
 
     it('should uninstall package ' + pkg, function (done) {
       this.timeout(120000);
-      //console.log('package_apt debian');
 
       p2Test.runP2Str(
         'p2\n' +
@@ -143,7 +136,6 @@ describe('package_apt', function () {
         '});'
       )
       .then(function (res_absent) {
-        //console.log('made absend');
 
         p2Test.getP2Facts()
         .then(function(facts) {

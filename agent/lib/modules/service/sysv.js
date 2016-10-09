@@ -111,7 +111,6 @@ Service.prototype.getServiceAll = function () {
     _.forEach(sysv_lines, function (sysv_line) {
       var sysv_m1 = sysv_line.match(/^\s*\[\s*(\+|\-|\?)\s*\]\s*(.*)/),
           sysv_m2 = sysv_line.match(/^([\w\-]+).*(stopped|running).*/);
-      //console.log('service debian sysv_m:', sysv_m);
       var sysv_desired = 'unknown',
           sysv_name,
           sysv_status;
@@ -152,7 +151,6 @@ Service.prototype._getSysvEnabled = function (services) {
     // get list of file links in /etc/rc?.d/S??name for desired state
     Q.nfcall(fs.readdir, '/etc/rc' + runlevel + '.d/')
     .done(function (files) {
-      //var file_hash = {};
 
       files.forEach(function (e) {
         var me = e.match(/^S(\d{2})(.*)/);
@@ -160,7 +158,6 @@ Service.prototype._getSysvEnabled = function (services) {
           var desired_state = 'start',
               order = me[1],
               name = me[2];
-          //file_hash[me[1]] = true;
           if (services[name]) {
             services[name].desired = desired_state;
             services[name].order = order;
@@ -249,7 +246,6 @@ Service.prototype.getStatus = function (name) {
  * @returns {object} Promise
  */
 Service.prototype.setEnabled = function (name) {
-  //return utils.pExec('/usr/sbin/update-rc.d ' + name + ' enabled');
   return utils.pExec('/usr/sbin/update-rc.d ' + name + ' enable');
 };
 
@@ -259,7 +255,6 @@ Service.prototype.setEnabled = function (name) {
  * @returns {object} Promise
  */
 Service.prototype.setDisabled = function (name) {
-  //return utils.pExec('/usr/sbin/update-rc.d ' + name + ' disabled');
   return utils.pExec('/usr/sbin/update-rc.d ' + name + ' disable');
 };
 

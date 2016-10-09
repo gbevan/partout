@@ -44,9 +44,6 @@ should.extend();
 
 Q.longStackSupport = true;
 
-// Simulate commandline options --verbose, --debug and --timing
-//global.partout = {opts: {verbose: false, debug: true, timing: false}};
-
 if (!utils.isWin()) {
   return;
 }
@@ -93,7 +90,6 @@ describe('package_winfeature', function () {
 
     it('should install package feature ' + pkg, function (done) {
       this.timeout(60000);
-      //console.log('package_apt debian');
 
       p2Test.runP2Str(
         'p2\n' +
@@ -117,15 +113,12 @@ describe('package_winfeature', function () {
 
           p2Test.getP2Facts()
           .then(function(facts) {
-            //console.log('got facts');
             should(facts).not.be.undefined;
             should(facts.installed_winfeature_packages).not.be.undefined;
             console.log('facts.installed_winfeature_packages ' + pkg + ':', facts.installed_winfeature_packages[pkg]);
             should(facts.installed_winfeature_packages[pkg]).not.be.undefined;
-            //facts.installed_winfeature_packages[pkg].status.should.not.equal('Disabled');
             facts.installed_winfeature_packages[pkg].status.should.equal('Enabled');
 
-            //console.log('facts ok calling done()');
             done();
           })
           .done(null, function (err) {
@@ -143,7 +136,6 @@ describe('package_winfeature', function () {
 
     it('should uninstall package ' + pkg, function (done) {
       this.timeout(60000);
-      //console.log('package_apt debian');
 
       p2Test.runP2Str(
         'p2\n' +
@@ -153,7 +145,6 @@ describe('package_winfeature', function () {
         '});'
       )
       .then(function (res_absent) {
-        //console.log('made absent #2');
 
         p2Test.getP2Facts()
         .then(function(facts) {
@@ -162,7 +153,6 @@ describe('package_winfeature', function () {
           if (facts.installed_winfeature_packages[pkg]) {
             should(facts.installed_winfeature_packages[pkg].status).not.be.undefined;
             console.log('facts.installed_winfeature_packages ' + pkg + ':', facts.installed_winfeature_packages[pkg]);
-            //facts.installed_winfeature_packages[pkg].status.should.not.equal('Enabled');
             facts.installed_winfeature_packages[pkg].status.should.equal('Disabled');
           } else {
             should(facts.installed_winfeature_packages[pkg]).be.undefined;

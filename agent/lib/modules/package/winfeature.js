@@ -95,7 +95,6 @@ var Package = P2M.Module(module.filename, function () {
 
           utils.runPs(u.format('Enable-WindowsOptionalFeature -FeatureName "%s" -Online', opts.name))
           .done(function (res) {
-            //console.log('new service res:', res);
             var rc = res[0],
                 stdout = res[1],
                 stderr = res[2];
@@ -123,7 +122,6 @@ var Package = P2M.Module(module.filename, function () {
 
           utils.runPs(u.format('Disable-WindowsOptionalFeature -FeatureName "%s" -Online', opts.name))
           .done(function (res) {
-            //console.log('new service res:', res);
             var rc = res[0],
                 stdout = res[1],
                 stderr = res[2];
@@ -186,7 +184,6 @@ Package.prototype.getStatus = function (name) {
     });
 
     var ret = (name ? packages[name] : packages);
-    //console.log('package winfeature getStatus(' + name + ') resolves:', ret);
     deferred.resolve(ret);
 
   });

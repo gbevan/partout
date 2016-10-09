@@ -40,7 +40,6 @@ var Q = require('q'),
     passwd, PUser;
 
 if (process.platform === 'linux') {
-  //linuxUser = require('linux-user');
   passwd = require('passwd-group-obj').passwd;
   PUser = require('passwd-group-obj').PUser;
 }
@@ -66,15 +65,12 @@ utils.pIsAdmin()
 
       before(function (done) {
         this.timeout(60000);
-        //console.log('test user before getP2Facts');
         p2Test.getP2Facts()
         .then(function(newfacts) {
           facts = newfacts;
-          //console.log('getP2Facts facts.p2role:', facts.p2role);
           done();
         })
         .done(null, function (err) {
-          //should(err).be.undefined();
           done(err);
         });
       });
@@ -82,16 +78,12 @@ utils.pIsAdmin()
       //////////
       // facts
       it('should provide facts', function () {
-        //console.log('facts.users:', facts.users);
         should(facts).not.be.undefined();
         should(facts.users).not.be.undefined();
-//        should(facts.p2module.user).not.be.undefined();
-//        facts.p2module.user.loaded.should.be.true;
       });
 
       if (os.platform() !== 'win32') {
         it('should provide facts for the root user', function () {
-          //console.log('facts.users', facts.users);
           should(facts.users).not.be.undefined;
           should(facts.users.root).be.defined;
         });
@@ -100,7 +92,6 @@ utils.pIsAdmin()
         });
       } else {
         it('should provide facts for the Administrator user', function () {
-          //console.log('facts.users', facts.users);
           should(facts.users).not.be.undefined;
           should(facts.users.Administrator).be.defined;
         });
@@ -158,12 +149,6 @@ utils.pIsAdmin()
             }
           )
           .then(function () {
-            // check user created
-//            linuxUser.getUserInfo(newUser, function (err, userInfo) {
-//              should(err).be.null;
-//              should(userInfo).be.null;
-//              done();
-//            });
             return passwd.$loadUsers()
             .then(function () {
               should(passwd[newUser]).be.undefined();

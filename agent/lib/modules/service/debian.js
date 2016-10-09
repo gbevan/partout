@@ -92,7 +92,6 @@ var Service = P2M.Module(module.filename, function () {
 
     self.getStatus(opts.name)
     .done(function (status) {
-      //console.log('service status:', status, 'opts.provider:', opts.provider);
 
       if (!status) {
         console.error('No status determined for service:', opts.name);
@@ -171,7 +170,6 @@ var Service = P2M.Module(module.filename, function () {
 
             });
           } else {
-//            next_step_callback();
             deferred.resolve();
           }
 
@@ -204,13 +202,11 @@ var Service = P2M.Module(module.filename, function () {
 
             });
           } else {
-//            next_step_callback();
             deferred.resolve();
           }
 
         } else {
           console.error('ensure ' + opts.ensure + ' not supported');
-//          next_step_callback(); // when finished
           deferred.resolve();
         }
 
@@ -230,8 +226,6 @@ Service.prototype.getStatus = function (name) {
   utils.dlog('service getStatus entered');
 
   Q.all([
-    //upstart.getStatus(name),
-    //sysv.getStatus(name)
     upstart.getStatus(name),
     sysv.getStatus(name)
     //TODO: systemd.getStatus(name)
@@ -244,7 +238,6 @@ Service.prototype.getStatus = function (name) {
     services = sysv;
     _.extend(services, upstart);
 
-    //console.log('name:', name, 'status:', service);
     deferred.resolve(services);
   });
   return deferred.promise;
