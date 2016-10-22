@@ -209,7 +209,7 @@ var Role = P2M.Module(module.filename, function () {
             ); // pushes it's own actions to run next
 
             if (!Q.isPromise(role_promise)) {
-              role_promise = Q();
+              role_promise = Q(role_promise);
             }
             role_promise
             .done(function (role_res) {
@@ -218,7 +218,10 @@ var Role = P2M.Module(module.filename, function () {
               push_refreshFacts();
               p2.flattenSteps(); // pop previous steps state after new steps
 
-              impl_deferred.resolve();
+              // emit to DSL listeners
+              p2.emit(name, mod_title, mod_opts, role_res);
+
+              impl_deferred.resolve(role_res);
 
             }, function (err) {
               console.error(heredoc(function () {/*

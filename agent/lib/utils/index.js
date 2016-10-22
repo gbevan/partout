@@ -67,6 +67,8 @@ var Utils = function () {
     return new Utils();
   }
 
+  this.bannerInit();
+
 };
 
 /**

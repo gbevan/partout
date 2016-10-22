@@ -160,6 +160,91 @@ utils.pIsAdmin()
           });
         });
 
+      } else if (process.platform === 'win32') {
+
+        it('should create test user ' + newUser, function (done) {
+          this.timeout(20000);
+          p2Test.runP2Str(
+            'p2\n' +
+            '.user(\'{{{ newUser }}}\')',
+            {
+              newUser: newUser
+            }
+          )
+          .then(function () {
+            // check user created
+//            return passwd.$loadUsers()
+//            .then(function () {
+//              should(passwd[newUser]).not.be.undefined();
+//              should(passwd[newUser].name).not.be.undefined();
+//              passwd[newUser].name.should.eql(newUser);
+//              done();
+//            });
+
+            return utils.runPs('Get-WmiObject -Class Win32_UserAccount | ConvertTo-Json -compress')
+            .then(function (res) {
+              var rc = res[0],
+                  stdout = res[1],
+                  stderr = res[2],
+                  res_array = JSON.parse(stdout),
+                  users = {};
+
+              res_array.forEach(function (u) {
+                users[u.Name] = u;
+              });
+
+              //users.should.have.ownProperty(newUser);
+              should(users[newUser]).not.be.undefined();
+              console.log(newUser, ':', users[newUser]);
+
+              done();
+            });
+
+          })
+          .done(null, function (err) {
+            done(err);
+          });
+        });
+
+        it('should remove test user ' + newUser, function (done) {
+          this.timeout(20000);
+          p2Test.runP2Str(
+            'p2\n' +
+            '.user(\'{{{ newUser }}}\', {ensure: \'absent\'})',
+            {
+              newUser: newUser
+            }
+          )
+          .then(function () {
+//            return passwd.$loadUsers()
+//            .then(function () {
+//              should(passwd[newUser]).be.undefined();
+//              done();
+//            });
+
+            return utils.runPs('Get-WmiObject -Class Win32_UserAccount | ConvertTo-Json -compress')
+            .then(function (res) {
+              var rc = res[0],
+                  stdout = res[1],
+                  stderr = res[2],
+                  res_array = JSON.parse(stdout),
+                  users = {};
+
+              res_array.forEach(function (u) {
+                users[u.Name] = u;
+              });
+
+              //users.should.have.ownProperty(newUser);
+              should(users[newUser]).be.undefined();
+              done();
+            });
+
+          })
+          .done(null, function (err) {
+            done(err);
+          });
+        });
+
       }
 
     });

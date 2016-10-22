@@ -342,7 +342,7 @@ File.prototype._opt_ensure = function (file, opts, err, stats, _impl, inWatchFla
 
           utils.vlog('touching file:', file);
           pfs.pTouch(file)
-          .done(function () {
+          .then(function () {
             var record = 'Created file. ';
             utils.vlog("%s %s", record, opts.content);
             _impl.qEvent({module: 'file', object: file, msg: record});
@@ -360,6 +360,10 @@ File.prototype._opt_ensure = function (file, opts, err, stats, _impl, inWatchFla
               //ensure_deferred.resolve(record);
               ensure_deferred.resolve(true);
             }
+          })
+          .done(null, function (err) {
+            console.error(err);
+            ensure_deferred.reject(err);
           });
         } else {
           if (opts.content !== undefined) {

@@ -509,6 +509,41 @@ var P2 = function () {
     return self._impl;
   };
 
+
+  /**
+   * Emit an event to P2 DSL listeners (see p2.on(...) directive).
+   * @param {string} name  module name (e.g. self._name)
+   * @param {string} title DSL directive's title
+   * @param {object} opts  DSL directive's options
+   * @param {object} o     Module or Role returned results object
+   */
+  self._impl.emit = function(name, title, opts, o) {
+    var ev_prefix = u.format('%s:%s', name, title);
+
+    if (o && o.result) {
+      var evname = u.format('%s:%s', ev_prefix, o.result);
+
+      utils.dlog(u.format(
+        'p2: %s title: %s - _impl.emit() o: %s, emitting: %s',
+        name,
+        title,
+        u.inspect(o, {colors: true, depth: 2}),
+        evname
+      ));
+
+      var hadListeners = self._impl.emitter.emit(evname, {
+        eventname: evname,
+        module: name,
+        title: title,
+        opts: opts
+      });
+
+      if (!hadListeners && utils.isDebug()) {
+        console.warn(u.format('p2: event %s had no listeners', evname));
+      }
+    }
+  };
+
   /**
    * push action step on to the list to execute by .end()
    * @function
@@ -532,21 +567,23 @@ var P2 = function () {
           console.warn('p2: push_action p is promise:', Q.isPromise(p));
         }
 
-        if (p && Q.isPromise(p)) {
-          p
-          .done(function (o) {
-            utils.dlog('p2: push_action: step promise resolved to o:', o);
-            queuecb();
-
-          }, function (err) {
-            utils.dlog('p2: push_action: step promise rejected with err:', err);
-            console.error(err);
-            console.error(err.stack);
-            console.warn('flushing action queue of remaining steps for abort...');
-            self._impl.clear_actions();
-            queuecb();  /// XXX: ???
-          });
+        if (!Q.isPromise(p)) {
+          p = Q(p);
         }
+
+        p
+        .done(function (o) {
+          utils.dlog('p2: push_action: step promise resolved to o:', o);
+          queuecb();
+
+        }, function (err) {
+          utils.dlog('p2: push_action: step promise rejected with err:', err);
+          console.error(err);
+          console.error(err.stack);
+          console.warn('flushing action queue of remaining steps for abort...');
+          self._impl.clear_actions();
+          queuecb();  /// XXX: ???
+        });
       }
 
     }); // push

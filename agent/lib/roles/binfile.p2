@@ -1,0 +1,127 @@
+/*
+    Partout [Everywhere] - Policy-Based Configuration Management for the
+    Data-Driven-Infrastructure.
+
+    Copyright (C) 2016 Graham Lee Bevan <graham.bevan@ntlworld.com>
+
+    This file is part of Partout.
+
+    Partout is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*jslint node: true, nomen: true */
+'use strict';
+/*global p2*/
+
+// make parent node_modules available to sync'd manifest
+module.paths = module.paths.concat(module.parent.paths);
+
+var path = require('path');
+
+var console = require('better-console'),
+    utils = p2.require('utils'),
+    pfs = p2.require('pfs'),
+    u = require('util'),
+    fs = require('fs'),
+    path = require('path'),
+    heredoc = require('heredoc'),
+    Q = require('q'),
+    _ = require('lodash');
+
+p2
+
+/**
+ * @module binfile
+ *
+ * @description
+ * Role: binfile
+ * ================
+ * ```javascript
+ * .binfile('target_path', {
+ *   src: { file: 'path' },
+ *   ensure: 'present|absent'
+ * })
+ * ```
+ */
+.role('binfile', {
+  p2: function (title, opts) {
+    //var deferred = Q.defer();
+
+    opts.ensure = (opts.ensure || 'present');
+
+    return pfs.pExists(title)
+    .then(function (target_exists) {
+      if (opts.ensure === 'present') {
+        if (!opts.src) {
+          return Q.reject(new Error('src option not provided'));
+        }
+
+        if (target_exists) {
+
+          // TODO: test hashes
+          return pfs.pHashFile(title)
+          .then(function (target_hash) {
+            if (opts.src.file) {
+              return pfs.pHashFile(opts.src.file)
+              .then(function (src_hash) {
+                if (target_hash !== src_hash) {
+                  console.info(u.format('File: %s: updating file, hash: %s -> content hash: %s', opts.src.file, src_hash, target_hash));
+
+                  return pfs.pCopy(opts.src.file, title)
+                  .then(function () {
+                    return Q.resolve({result: 'changed'});
+                  });
+                } else {
+                  return Q.resolve();
+                }
+              });
+
+            } else {
+              return Q.reject(new Error('no src.??? option provided, src:' + u.inspect(opts.src, {depth: 2})));
+            }
+          });
+
+        } else {
+
+          if (opts.src.file) {
+            return pfs.pExists(opts.src.file)
+            .then(function (src_exists) {
+              return pfs.pCopy(opts.src.file, title)
+              .then(function () {
+                return Q.resolve({result: 'changed'});
+              });
+            });
+
+          } else {
+            return Q.reject(new Error('no src.??? option provided, src:' + u.inspect(opts.src, {depth: 2})));
+          }
+        }
+
+      } else if (opts.ensure === 'absent') {
+        if (target_exists) {
+          return pfs.pUnlink(title);
+        } else {
+          return Q.resolve();
+        }
+
+      } else {
+        return Q.reject(new Error('Invalid ensure value:' + opts.ensure));
+      }
+
+    });
+
+
+    //return deferred.promise;
+  }
+});

@@ -119,7 +119,7 @@ var Package = P2M.Module(module.filename, function () {
       opts.name = title;
     }
     if (!opts.ensure) {
-      opts.ensure = 'latest';
+      opts.ensure = 'present';
     }
 
     deferred.resolve();

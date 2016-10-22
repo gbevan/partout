@@ -17,18 +17,22 @@ p2
  * Classify this node.
  */
 .role('classify', {
-  facts: function (deferred, facts_so_far, title, opts) {
-    var facts = {
-      agent_classes: (facts_so_far.agent_classes || {})
-    };
-
-    facts.agent_classes[title] = true;
-
-    deferred.resolve(facts);
-  },
+//  facts: function (deferred, facts_so_far, title, opts) {
+//    var facts = {
+//      agent_classes: (facts_so_far.agent_classes || {})
+//    };
+//
+//    console.info('classified as:', title);
+//    facts.agent_classes[title] = true;
+//
+//    deferred.resolve(facts);
+//  },
 
   p2: function (title, opts) {
-    // XXX: dummy - forces fact method above
+    //p2.facts.agent_classes: (p2.facts..agent_classes || {})
+
+    console.info('classified as:', title);
+    p2.facts.agent_classes[title] = true;
   }
 
 });
