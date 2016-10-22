@@ -29,6 +29,7 @@ var console = require('better-console'),
     Q = require('q'),
     u = require('util'),
     utils = require('./utils'),
+    onlyif = require('./onlyif'),
     _ = require('lodash'),
     heredoc = require('heredoc');
 
@@ -120,14 +121,38 @@ P2M.prototype.action = function (fn, action_args) {
 
       utils.dlog('p2m runAction (immediate) calling fn (action) title: %s opts: %s', title, u.inspect(opts, {colors: true, depth: 2}));
 
-      fn.call(self, {
-        deferred: deferred,
-        inWatchFlag: inWatchFlag,
-        _impl: _impl,
-        title: title,
-        opts: opts,
-        cb: cb
-      });
+      if (self._name === 'role' || self._name === 'include') {
+
+        fn.call(self, {
+          deferred: deferred,
+          inWatchFlag: inWatchFlag,
+          _impl: _impl,
+          title: title,
+          opts: opts,
+          cb: cb
+        });
+
+      } else {
+        onlyif(opts)
+        .then(function (onlyif_rc) {
+          utils.dlog('immediate mode onlyif returned:', onlyif_rc);
+
+          if (onlyif_rc === 0) {
+
+            fn.call(self, {
+              deferred: deferred,
+              inWatchFlag: inWatchFlag,
+              _impl: _impl,
+              title: title,
+              opts: opts,
+              cb: cb
+            });
+
+          } else {
+            deferred.resolve(); // skip
+          }
+        });
+      }
 
       return deferred.promise
       .fail(function (err) {
@@ -187,13 +212,25 @@ P2M.prototype.action = function (fn, action_args) {
 
         utils.dlog('p2m addStep calling fn (action) title: %s opts: %s', title, u.inspect(opts, {colors: true, depth: 2}));
 
-        fn.call(self, {
-          deferred: deferred,
-          inWatchFlag: inWatchFlag,
-          _impl: _impl,
-          title: title,
-          opts: opts,
-          cb: cb
+        // onlyif
+        onlyif(opts)
+        .then(function (onlyif_rc) {
+          utils.dlog('addStep mode onlyif returned:', onlyif_rc);
+
+          if (onlyif_rc === 0) {
+
+            fn.call(self, {
+              deferred: deferred,
+              inWatchFlag: inWatchFlag,
+              _impl: _impl,
+              title: title,
+              opts: opts,
+              cb: cb
+            });
+
+          } else {
+            deferred.resolve();   // skip
+          }
         });
 
         deferred.promise
@@ -203,26 +240,30 @@ P2M.prototype.action = function (fn, action_args) {
           var nextStepFn = function (o, dontCallCb) {
             utils.dlog('p2m: in nextStepFn');
             if (o && o.result) {
-              var evname = u.format('%s:%s', ev_prefix, o.result);
 
-              utils.dlog(u.format(
-                'p2m: %s title: %s - nextStepFn() deferred resolved to o: %s, emitting: %s',
-                self._name,
-                title,
-                u.inspect(o, {colors: true, depth: 2}),
-                evname
-              ));
+              // Emit event to DSL listeners (see .on(...))
+              _impl.emit(self._name, title, opts, o);
 
-              var hadListeners = _impl.emitter.emit(evname, {
-                eventname: evname,
-                module: self._name,
-                title: title,
-                opts: opts
-              });
+//              var evname = u.format('%s:%s', ev_prefix, o.result);
 
-              if (!hadListeners && utils.isDebug()) {
-                console.warn(u.format('p2m: event %s had no listeners', evname));
-              }
+//              utils.dlog(u.format(
+//                'p2m: %s title: %s - nextStepFn() deferred resolved to o: %s, emitting: %s',
+//                self._name,
+//                title,
+//                u.inspect(o, {colors: true, depth: 2}),
+//                evname
+//              ));
+//
+//              var hadListeners = _impl.emitter.emit(evname, {
+//                eventname: evname,
+//                module: self._name,
+//                title: title,
+//                opts: opts
+//              });
+//
+//              if (!hadListeners && utils.isDebug()) {
+//                console.warn(u.format('p2m: event %s had no listeners', evname));
+//              }
             }
             if (!dontCallCb) {
               if (utils.isDebug()) {

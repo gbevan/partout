@@ -54,7 +54,9 @@ p2
 
     title = Mustache.render(title, {title: title, opts: opts, f: p2.facts});
 
-    console.log(title);
+    var level = (opts.level ? opts.level : 'log');
+
+    console[level](title);
 
     deferred.resolve();
 

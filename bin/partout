@@ -25,11 +25,7 @@
 /*jslint node: true */
 'use strict';
 
-/*
- * partout [ server | csr [ list | reject k | sign k ] | setenv agent-uuid new-environment | listagents ]
- */
-
-// TODO: add --debug and --verbose same as agent
+var heredoc = require('heredoc');
 
 var args = require('args'),
     options = args.Options.parse([
@@ -58,7 +54,14 @@ var args = require('args'),
 
 if (parsed.help) {
   console.log(options.getHelp());
-  console.log('\nCommands:\n\tinit\n\tserve (default)\n\tcsr [list|sign agent-uuid]\n\tsetenv agent-uuid new-environment');
+  console.log(heredoc(function () {/*
+Commands:
+  init
+  serve (default)
+  csr [list|sign agent-uuid]
+  listagents
+  setenv agent-uuid new-environment
+*/}));
   process.exit(0);
 }
 

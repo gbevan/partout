@@ -69,6 +69,8 @@ p2
     .node(function (f) {
       return f.os_dist_id === 'ubuntu' && p2.hasClass('openstack_virt_host');
     })
+    .package('aptitude')
+    .package('openssh-server')
     .package('bridge-utils')
     .package('qemu-kvm')
     .package('libvirt-bin')
@@ -92,7 +94,9 @@ p2
  * Role: openstack_prep_node
  * ================
  * ```javascript
- * .openstack_prep_node()
+ * .openstack_prep_node('prep', {
+ *   openstack_version: 'mitaka'
+ * })
  * ```
  */
 .role('openstack_prep_node', {
@@ -134,7 +138,7 @@ p2
       */}),
       creates: '/.prep_for_openstack',
       parms: {
-        openstack_version: 'mitaka'
+        openstack_version: (opts && opts.openstack_version ? opts.openstack_version : 'mitaka')
       }
       //apt-get update && apt-get -yq upgrade && \
     })

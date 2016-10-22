@@ -34,6 +34,9 @@ var console = require('better-console'),
  */
 
 var UtilsBanner = function () {
+};
+
+UtilsBanner.prototype.bannerInit = function () {
   var self = this;
 
   self.banner = "\n\
@@ -45,6 +48,8 @@ var UtilsBanner = function () {
  ##:::::::: ##.... ##: ##::. ##::::: ##:::: ##:::: ##: ##:::: ##:::: ##::::\n\
  ##:::::::: ##:::: ##: ##:::. ##:::: ##::::. #######::. #######::::: ##::::\n\
 ..:::::::::..:::::..::..:::::..:::::..::::::.......::::.......::::::..:::::\n\
+License: GPLv3\n\
+Copyright (C) 2016 Graham Lee Bevan <graham.bevan@ntlworld.com>\n\
 ";
 };
 

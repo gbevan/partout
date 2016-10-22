@@ -63,17 +63,49 @@ Pfs.prototype.hash = function (data) {
 
 /**
  * Asynchronously Generate a sha512 hash of a file's contents
- * @param {String} file   file name to hash
+ * @param {String}   file      file name to hash
+ * @param {boolean}  cbWithErr (optional) if true callback is called with (err, value), otherwise just (value) and errors are thrown
  * @param {Function} callback
  */
-Pfs.prototype.hashFile = function (f, cb) {
-  var self = this;
-  fs.readFile(f, function (err, data) {
-    if (err) {
+Pfs.prototype.hashFile = function (f, cbWithErr, cb) {
+  var self = this,
+      shasum = crypto.createHash('sha512'),
+      rs = fs.createReadStream(f);
+
+  if (typeof cbWithErr === 'function') {
+    cb = cbWithErr;
+    cbWithErr = false;
+  }
+
+  rs.on('readable', function () {
+    var data = rs.read();
+    if (data) {
+      shasum.update(data);
+    } else {
+      if (cbWithErr) {
+        cb(null, shasum.digest('hex'));
+      } else {
+        cb(shasum.digest('hex'));
+      }
+    }
+  });
+
+  rs.on('error', function (err) {
+    if (cbWithErr) {
+       cb(err);
+    } else {
       throw err;
     }
-    cb(self.hash(data));
   });
+};
+
+/**
+ * Promisified hashfile()
+ * @param   {string}  f file path
+ * @returns {promise}
+ */
+Pfs.prototype.pHashFile = function (f) {
+  return Q.nfcall(this.hashFile, f, true);
 };
 
 /**
@@ -262,18 +294,16 @@ Pfs.prototype.pClose = function (fd) {
 };
 
 Pfs.prototype.pTouch = function (file) {
-  var self = this,
-      deferred = Q.defer();
+  var self = this;
 
-  self.pOpen(file, 'w')
+  return self.pOpen(file, 'w')
   .then(function (fd) {
-    self.pClose(fd)
-    .done(function () {
-      deferred.resolve();
+    return self.pClose(fd)
+    .then(function () {
+      return Q.resolve();
     });
   });
 
-  return deferred.promise;
 };
 
 Pfs.prototype.pMkdir = function (path, mode) {
@@ -384,6 +414,31 @@ Pfs.prototype.pGetGid = function (name) {
  */
 Pfs.prototype.resolveNodeDir = function () {
   return path.dirname(process.argv[0]);
+};
+
+/**
+ * Stream copy src file to tgt, returns a promise
+ * @param   {string}   src source file path
+ * @param   {string}   tgt target file path
+ * @returns {promise}
+ */
+Pfs.prototype.pCopy = function (src, tgt) {
+  var src_deferred = Q.defer();
+
+  // Copy src to target
+  var rs = fs.createReadStream(src);
+  var ws = fs.createWriteStream(tgt);
+  rs.pipe(ws);
+
+  rs.on('end', function () {
+    src_deferred.resolve();
+  });
+
+  rs.on('error', function (err) {
+    src_deferred.reject(err);
+  });
+
+  return src_deferred.promise;
 };
 
 module.exports = new Pfs();

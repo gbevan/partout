@@ -35,6 +35,7 @@ var Q = require('q'),
     path = require('path'),
     utils = require('../../lib/utils'),
     os = require('os'),
+    heredoc = require('heredoc'),
     p2Test = require('../../lib/p2_test');
 
 global.should = require('should');
@@ -43,7 +44,7 @@ should.extend();
 Q.longStackSupport = true;
 
 // Simulate commandline options --verbose, --debug and --timing
-global.partout = {opts: {verbose: false, debug: false, timing: false}};
+global.partout = {opts: {verbose: false, debug: true, timing: false}};
 
 
 describe('Module role', function () {
@@ -53,16 +54,18 @@ describe('Module role', function () {
 
     var testFile = utils.escapeBackSlash(tmp.tmpNameSync() + '.TEST');
 
-    p2Test.runP2Str(
-      'p2\n' +
-      '.role(\'_testRole_\', {\n' +
-      '  p2: function () {\n' +
-      '    p2\n' +
-      '    .command(\'echo SUCCESS > {{{ testFile }}}\');\n' +
-      '  }\n' +
-      '})\n' +
-      '.file(\'{{{ testFile }}}\', {ensure: \'absent\'})\n' +
-      '._testRole_();',
+    p2Test.runP2Str(heredoc(function () {/*
+p2
+.role('_testRole_', {
+  p2: function () {
+    p2
+    .command('echo SUCCESS > {{{ testFile }}}');
+  }
+})
+.file('{{{ testFile }}}', {ensure: 'absent'})
+._testRole_()
+;
+      */}),
       {
         testFile: testFile
       }
@@ -89,16 +92,17 @@ describe('Module role', function () {
 
     var testFile = utils.escapeBackSlash(tmp.tmpNameSync() + '.TEST');
 
-    p2Test.runP2Str(
-      'p2\n' +
-      '.role(\'_testRole_\', {\n' +
-      '  p2: function (title, opts) {\n' +
-      '    p2\n' +
-      '    .command(\'echo \' + title + \': \' + opts.arg1 + \' > {{{ testFile }}}\');\n' +
-      '  }\n' +
-      '})\n' +
-      '.file(\'{{{ testFile }}}\', {ensure: \'absent\'})\n' +
-      '._testRole_(\'MyTitle\', {arg1: \'MyArgument1\'});',
+    p2Test.runP2Str(heredoc(function () {/*
+p2
+.role('_testRole_', {
+  p2: function (title, opts) {
+    p2
+    .command('echo ' + title + ': ' + opts.arg1 + ' > {{{ testFile }}}');
+  }
+})
+.file('{{{ testFile }}}', {ensure: 'absent'})
+._testRole_('MyTitle', {arg1: 'MyArgument1'});
+      */}),
       {
         testFile: testFile
       }

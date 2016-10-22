@@ -271,14 +271,15 @@ var serve = function (opts, master) {
 
     if (!app.apply_site_p2) {
       console.warn('Policy Sync has not yet resolved a site policy. Please ensure this agent has been assigned to a valid environment by the Partout Master Administrator (see `partout setenv` command).');
-      cb();
+      cb({retry: true});
       return;
     }
 
     fs.exists(app.apply_site_p2, function (exists) {
       if (!exists) {
         console.error('Error: site policy file', app.apply_site_p2, 'does not yet exist');
-        cb();
+        cb({retry: true});
+
       } else {
         apply([app.apply_site_p2], {app: app, daemon: true})
         .then(function () {
@@ -311,7 +312,17 @@ var serve = function (opts, master) {
         .then(function () {
           app.apply_site_p2 = cfg.PARTOUT_AGENT_MANIFEST_SITE_P2;
 
-          app._apply(function () {
+          app._apply(function (res) {
+            if (res && res.retry) {
+              var secs = 10;
+              console.warn('sleeping', secs, 'secs for retry');
+              setTimeout(function () {
+                console.warn('retrying app.run()');
+                deferred.resolve(app.run());    // RETRY
+              }, secs * 1000);
+              return;
+            }
+
             app.inRun = false;
             console.log('### FINISHED POLICY (after sync) ###########################################');
             deferred.resolve();
