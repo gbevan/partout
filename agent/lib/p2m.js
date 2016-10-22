@@ -29,6 +29,7 @@ var console = require('better-console'),
     Q = require('q'),
     u = require('util'),
     utils = require('./utils'),
+    onlyif = require('./onlyif'),
     _ = require('lodash'),
     heredoc = require('heredoc');
 
@@ -120,14 +121,38 @@ P2M.prototype.action = function (fn, action_args) {
 
       utils.dlog('p2m runAction (immediate) calling fn (action) title: %s opts: %s', title, u.inspect(opts, {colors: true, depth: 2}));
 
-      fn.call(self, {
-        deferred: deferred,
-        inWatchFlag: inWatchFlag,
-        _impl: _impl,
-        title: title,
-        opts: opts,
-        cb: cb
-      });
+      if (self._name === 'role' || self._name === 'include') {
+
+        fn.call(self, {
+          deferred: deferred,
+          inWatchFlag: inWatchFlag,
+          _impl: _impl,
+          title: title,
+          opts: opts,
+          cb: cb
+        });
+
+      } else {
+        onlyif(opts)
+        .then(function (onlyif_rc) {
+          utils.dlog('immediate mode onlyif returned:', onlyif_rc);
+
+          if (onlyif_rc === 0) {
+
+            fn.call(self, {
+              deferred: deferred,
+              inWatchFlag: inWatchFlag,
+              _impl: _impl,
+              title: title,
+              opts: opts,
+              cb: cb
+            });
+
+          } else {
+            deferred.resolve(); // skip
+          }
+        });
+      }
 
       return deferred.promise
       .fail(function (err) {
@@ -187,13 +212,25 @@ P2M.prototype.action = function (fn, action_args) {
 
         utils.dlog('p2m addStep calling fn (action) title: %s opts: %s', title, u.inspect(opts, {colors: true, depth: 2}));
 
-        fn.call(self, {
-          deferred: deferred,
-          inWatchFlag: inWatchFlag,
-          _impl: _impl,
-          title: title,
-          opts: opts,
-          cb: cb
+        // onlyif
+        onlyif(opts)
+        .then(function (onlyif_rc) {
+          utils.dlog('addStep mode onlyif returned:', onlyif_rc);
+
+          if (onlyif_rc === 0) {
+
+            fn.call(self, {
+              deferred: deferred,
+              inWatchFlag: inWatchFlag,
+              _impl: _impl,
+              title: title,
+              opts: opts,
+              cb: cb
+            });
+
+          } else {
+            deferred.resolve();   // skip
+          }
         });
 
         deferred.promise

@@ -707,13 +707,17 @@ var P2 = function () {
       utils.dlog('P2 starting roles_facts_fn_list');
       nimble.series(
         self._impl.roles_facts_fn_list,
-        function (err, cb) {
+        function (err, res, cb) {
           if (err) {
             return roles_facts_deferred.reject(err);
           }
           utils.dlog('P2 resolving roles_facts_fn_list');
           roles_facts_deferred.resolve();
-          cb();
+
+          // if fn list is [] (empty), then cb is [], not a function
+          if (typeof cb === 'function') {
+            cb();
+          }
         }
       );
 

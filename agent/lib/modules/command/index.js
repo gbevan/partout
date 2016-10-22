@@ -167,87 +167,87 @@ var Command = P2M.Module(module.filename, function () {
         cb('skipped');
 
       } else {
-        var onlyif_deferred = Q.defer();
-        if (opts.onlyif) {
-          var onlyif_content_deferred = Q.defer();
+//        var onlyif_deferred = Q.defer();
+//        if (opts.onlyif) {
+//          var onlyif_content_deferred = Q.defer();
+//
+//          if (typeof(opts.onlyif) === 'object') { // handle {file:..., args:[...])}
+//            if (opts.onlyif.file) {
+//              pfs.pReadFile(opts.onlyif.file)
+//              .done(function (onlyif_content) {
+//                onlyif_content_deferred.resolve({script: onlyif_content.toString()/*, args: opts.onlyif.args*/});
+//              });
+//
+//            } else {
+//              throw 'onlyif object option(s) not supported';
+//            }
+//
+//          } else if (typeof(opts.onlyif) === 'function') {
+//            var res = opts.onlyif(p2.facts);
+//            // expect boolean or promise on boolean
+//            if (Q.isPromise(res)) {
+//              res
+//              .done(function (rc) {
+//                onlyif_deferred.resolve([(rc ? 0 : -1), undefined, undefined]);
+//              });
+//            } else {
+//              onlyif_deferred.resolve([(res ? 0 : -1), undefined, undefined]);
+//            }
+//
+//          } else {
+//            onlyif_content_deferred.resolve({script: opts.onlyif, args: ''});  // TODO support args on string method
+//          }
+//
+//          onlyif_content_deferred.promise
+//          .done(function (onlyif_obj) {
+//            //console.log('***** onlyif_obj:', onlyif_obj);
+//            var cmd = onlyif_obj.script,
+//                args = onlyif_obj.args;
+//            utils.dlog('command running onlyif cmd:', cmd, 'args:', args);
+//            onlyif_deferred.resolve(
+//              utils.runCmd(
+//                cmd,
+//                {
+//                  env: {
+//                    ARGS: args
+//                  }
+//                }
+//              )
+//            );
+//          });
+//
+//        } else {
+//          onlyif_deferred.resolve([0, undefined, undefined]);
+//        }
+//
+//        onlyif_deferred.promise
+//        .then(function (onlyif_res) {
+//          utils.dlog('command: onlyif_res:', onlyif_res);
+//          var onlyif_rc = onlyif_res[0],
+//              onlyif_stdout = onlyif_res[1],
+//              onlyif_stderr = onlyif_res[2];
+//
+//          if (onlyif_rc !== 0) {
+//            utils.vlog('command onlyif returned rc:', onlyif_rc, 'stdout:', onlyif_stdout, 'stderr:', onlyif_stderr);
+//            cb('skipped');
+//            return;
+//          }
 
-          if (typeof(opts.onlyif) === 'object') { // handle {file:..., args:[...])}
-            if (opts.onlyif.file) {
-              pfs.pReadFile(opts.onlyif.file)
-              .done(function (onlyif_content) {
-                onlyif_content_deferred.resolve({script: onlyif_content.toString()/*, args: opts.onlyif.args*/});
-              });
-
-            } else {
-              throw 'onlyif object option(s) not supported';
-            }
-
-          } else if (typeof(opts.onlyif) === 'function') {
-            var res = opts.onlyif(p2.facts);
-            // expect boolean or promise on boolean
-            if (Q.isPromise(res)) {
-              res
-              .done(function (rc) {
-                onlyif_deferred.resolve([(rc ? 0 : -1), undefined, undefined]);
-              });
-            } else {
-              onlyif_deferred.resolve([(res ? 0 : -1), undefined, undefined]);
-            }
-
-          } else {
-            onlyif_content_deferred.resolve({script: opts.onlyif, args: ''});  // TODO support args on string method
-          }
-
-          onlyif_content_deferred.promise
-          .done(function (onlyif_obj) {
-            //console.log('***** onlyif_obj:', onlyif_obj);
-            var cmd = onlyif_obj.script,
-                args = onlyif_obj.args;
-            utils.dlog('command running onlyif cmd:', cmd, 'args:', args);
-            onlyif_deferred.resolve(
-              utils.runCmd(
-                cmd,
-                {
-                  env: {
-                    ARGS: args
-                  }
-                }
-              )
-            );
-          });
-
-        } else {
-          onlyif_deferred.resolve([0, undefined, undefined]);
+        if (utils.isVerbose()) {
+          console.info(u.format('Spawning command: `%s`', title)/*, 'sp_args:', sp_args*/);
         }
+        utils.runCmd(cmd, opts)
+        .fail(function (err) {
+          console.error(u.format('spawn failed for command: `%s`', title), 'err:', err);
+          throw err;
+        })
+        .done(function (res) {
+          var rc = res[0],
+              stdout = res[1],
+              stderr = res[2];
 
-        onlyif_deferred.promise
-        .then(function (onlyif_res) {
-          utils.dlog('command: onlyif_res:', onlyif_res);
-          var onlyif_rc = onlyif_res[0],
-              onlyif_stdout = onlyif_res[1],
-              onlyif_stderr = onlyif_res[2];
-
-          if (onlyif_rc !== 0) {
-            utils.vlog('command onlyif returned rc:', onlyif_rc, 'stdout:', onlyif_stdout, 'stderr:', onlyif_stderr);
-            cb('skipped');
-            return;
-          }
-
-          if (utils.isVerbose()) {
-            console.info(u.format('Spawning command: `%s`', title)/*, 'sp_args:', sp_args*/);
-          }
-          utils.runCmd(cmd, opts)
-          .fail(function (err) {
-            console.error(u.format('spawn failed for command: `%s`', title), 'err:', err);
-            throw err;
-          })
-          .done(function (res) {
-            var rc = res[0],
-                stdout = res[1],
-                stderr = res[2];
-
-            utils.dlog('command: rc:', rc, 'stdout:', stdout, 'stderr:', stderr);
-            //console.log('command: rc:', rc, 'stdout:', stdout, 'stderr:', stderr);
+          utils.dlog('command: rc:', rc, 'stdout:', stdout, 'stderr:', stderr);
+          //console.log('command: rc:', rc, 'stdout:', stdout, 'stderr:', stderr);
 //            if (stderr) {
 //              console.error(stderr);
 //            }
@@ -255,32 +255,19 @@ var Command = P2M.Module(module.filename, function () {
 //              console.log(stdout);
 //            }
 
-            if (command_complete_cb) {
-              try {
-                command_complete_cb(rc, stdout, stderr);
-              } catch (err) {
-                console.error(err);
-                cb('failed');
-              }
+          if (command_complete_cb) {
+            try {
+              command_complete_cb(rc, stdout, stderr);
+            } catch (err) {
+              console.error(err);
+              cb('failed');
             }
+          }
 
-            var err2;
-            if (opts.returns) {
-              if (opts.returns !== 'ignore') {
-                if (rc !== opts.returns) {
-                  if (stderr) {
-                    console.error(stderr);
-                  }
-                  if (stdout) {
-                    console.log(stdout);
-                  }
-                  cb('failed');
-
-                  return;
-                }
-              } // not ignore
-            } else {
-              if (rc !== 0) {
+          var err2;
+          if (opts.returns) {
+            if (opts.returns !== 'ignore') {
+              if (rc !== opts.returns) {
                 if (stderr) {
                   console.error(stderr);
                 }
@@ -289,23 +276,35 @@ var Command = P2M.Module(module.filename, function () {
                 }
                 cb('failed');
 
-                // XXX: is it correct to throw an error here?
+                return;
+              }
+            } // not ignore
+          } else {
+            if (rc !== 0) {
+              if (stderr) {
+                console.error(stderr);
+              }
+              if (stdout) {
+                console.log(stdout);
+              }
+              cb('failed');
+
+              // XXX: is it correct to throw an error here?
 //                err2 = new Error('None zero return code returned');
 //                err2.code = rc;
 //                throw err2;
-                return;
-              }
+              return;
             }
-            if (opts.creates) {
-              set_watcher(inWatch);
-            }
+          }
+          if (opts.creates) {
+            set_watcher(inWatch);
+          }
 //            if (command_complete_cb) {
 //              command_complete_cb(rc, stdout, stderr);
 //            }
-            cb('changed'); // next_step_callback or watcher callback
-          });
+          cb('changed'); // next_step_callback or watcher callback
+        });
 
-        }); // onlyif_res
 
       }
     }

@@ -34,7 +34,8 @@ var P2M = require('../../p2m'),
     u = require('util'),
     pfs = require('../../pfs'),
     stringArgv = require('string-argv'),
-    heredoc = require('heredoc');
+    heredoc = require('heredoc'),
+    onlyif = require('../../onlyif');
 
 Q.longStackSupport = true;
 Q.onerror = function (err) {
@@ -174,7 +175,7 @@ var Role = P2M.Module(module.filename, function () {
     _impl.facts.p2role[title] = (_impl.facts.p2role[title] || {});
     _impl.facts.p2role[title] = {loaded: true};
 
-    _impl.roles_facts_fn_list.push(function (cb) { // from nimbe.series()
+    _impl.roles_facts_fn_list.push(function (cb) { // called from nimble.series()
       utils.dlog('Role', name, 'refreshFacts starting');
       refreshFacts()
       .then(function () {
@@ -197,38 +198,48 @@ var Role = P2M.Module(module.filename, function () {
           // defer pushing on to actions so facts run first
           _impl.push_action(function () {
             utils.vlog(u.format('Role: %s running action: %s', name, mod_title));
-
-            p2.pushSteps(); // save steps state
-
             var impl_deferred = Q.defer();
 
-            utils.dlog('role: action: calling p2:', opts.p2);
-            var role_promise = opts.p2(
-              mod_title,
-              (mod_opts ? mod_opts : {})
-            ); // pushes it's own actions to run next
+            // onlyif
+            onlyif(opts)
+            .then(function (onlyif_rc) {
+              utils.dlog('role', name, 'onlyif returned:', onlyif_rc);
 
-            if (!Q.isPromise(role_promise)) {
-              role_promise = Q(role_promise);
-            }
-            role_promise
-            .done(function (role_res) {
-              utils.dlog('role_promise resolved - role_res:', role_res);
-              //p2.pushSteps(); // save steps state
-              push_refreshFacts();
-              p2.flattenSteps(); // pop previous steps state after new steps
+              if (onlyif_rc === 0) {
 
-              // emit to DSL listeners
-              p2.emit(name, mod_title, mod_opts, role_res);
+                p2.pushSteps(); // save steps state
+                utils.dlog('role: action: calling p2:', opts.p2);
+                var role_promise = opts.p2(
+                  mod_title,
+                  (mod_opts ? mod_opts : {})
+                ); // pushes it's own actions to run next
 
-              impl_deferred.resolve(role_res);
+                if (!Q.isPromise(role_promise)) {
+                  role_promise = Q(role_promise);
+                }
+                role_promise
+                .done(function (role_res) {
+                  utils.dlog('role_promise resolved - role_res:', role_res);
+                  //p2.pushSteps(); // save steps state
+                  push_refreshFacts();
+                  p2.flattenSteps(); // pop previous steps state after new steps
 
-            }, function (err) {
-              console.error(heredoc(function () {/*
+                  // emit to DSL listeners
+                  p2.emit(name, mod_title, mod_opts, role_res);
+
+                  impl_deferred.resolve(role_res);
+
+                }, function (err) {
+                  console.error(heredoc(function () {/*
 ********************************************************
 *** Role Module Caught Error:
-              */}), err);
-              impl_deferred.reject(err);
+                  */}), err);
+                  impl_deferred.reject(err);
+                });
+
+              } else {
+                impl_deferred.resolve();  // skip
+              }
             });
 
             return impl_deferred.promise;
