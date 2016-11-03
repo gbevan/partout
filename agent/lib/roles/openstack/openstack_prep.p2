@@ -71,12 +71,14 @@ p2
     })
     .package('aptitude')
     .package('openssh-server')
+    .package('ethtool')
     .package('bridge-utils')
     .package('qemu-kvm')
     .package('libvirt-bin')
     .package('virtinst')
     .package('uvtool')
     .package('uvtool-libvirt')
+    .package('traceroute')
 
     .file('/etc/default/grub', {
       content: {file: path.join(__dirname, 'files', 'default_grub.template')}
@@ -109,6 +111,7 @@ p2
       return f.os_dist_id === 'ubuntu' && p2.hasClass('openstack_node');
     })
 
+    .package('aptitude')
     .package('ntp')
     .service('ntp', {
       enabled: true,
@@ -138,9 +141,8 @@ p2
       */}),
       creates: '/.prep_for_openstack',
       parms: {
-        openstack_version: (opts && opts.openstack_version ? opts.openstack_version : 'mitaka')
+        openstack_version: (opts && opts.openstack_version ? opts.openstack_version : 'newton')
       }
-      //apt-get update && apt-get -yq upgrade && \
     })
     ;
   }

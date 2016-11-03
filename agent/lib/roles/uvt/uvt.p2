@@ -105,7 +105,7 @@ p2
 
     p2
 
-    .command('echo "***** uvt_cloud_image passed"')
+    .logmsg('***** uvt_cloud_image passed: ' + opts.release + ', ' + opts.arch)
 
     .command('sync_uvt_image', {
       cmd: u.format('uvt-simplestreams-libvirt sync release=%s arch=%s', opts.release, opts.arch),
@@ -232,8 +232,13 @@ p2
         },
         parms: {
           hostname: title,
+          ipaddr: opts.ipaddr,
+          netmask: opts.netmask,
+          gateway: opts.gateway,
+          dns_nameservers: (opts.dns_nameservers ? opts.dns_nameservers.join(' ') : ''),
           password: opts.password,
-          sshpubkeys: sshpubkeys.join(',')
+          sshpubkeys: sshpubkeys.join(','),
+          guest_nic: opts.guest_nic
         }
       })
 

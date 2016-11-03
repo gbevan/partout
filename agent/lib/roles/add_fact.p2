@@ -29,7 +29,7 @@
 
 var Mustache = require('mustache'),
     console = require('better-console'),
-    mysql = require('mysql'),
+//    mysql = require('mysql'),
     Q = require('q'),
     u = require('util'),
     pfs = p2.require('pfs');

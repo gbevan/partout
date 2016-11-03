@@ -49,7 +49,7 @@ p2
 .role('reboot', {
   p2: function (title, opts) {
 
-    console.warn(new Date(), 'Rebooting now for', title);
+    console.warn(new Date(), 'Rebooting now for ' + title);
 
     p2
     .clear_actions()

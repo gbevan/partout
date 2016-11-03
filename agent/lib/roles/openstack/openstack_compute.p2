@@ -70,6 +70,7 @@ p2
       ;
     })
 
+    .package('multipath-tools')
     .package('nova-compute')
 
     .file('/etc/nova/nova.conf', {

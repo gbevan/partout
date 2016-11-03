@@ -28,7 +28,7 @@
 //module.paths = module.paths.concat(module.parent.paths);
 
 var heredoc = require('heredoc'),
-    mysql = require('mysql'),
+    mysql = require('mysql2'),
     Q = require('q'),
     u = require('util');
 
@@ -57,17 +57,39 @@ p2
  */
 .role('mysql_connect', {
   p2: function (title, opts) {
+    var deferred = Q.defer();
 
     if (!p2._mysql_connections) {
       p2._mysql_connections = {};
     }
 
     if (!p2._mysql_connections[title]) {
+      //opts.flags = mysql.CLIENT_PLUGIN_AUTH;
+
+      /*
+       * Bug in mysql2, we need to specify an authSwitchHandler method,
+       * even though it wont get called for mysql_native_password request
+       * from the server.
+       */
+      opts.authSwitchHandler = function (data, cb) {
+        console.warn('in mysql2 authSwitchHandler() data:', data);
+//        if (data.pluginName === 'ssh-key-auth') {
+//            cb(null, 'mypass1');
+//        }
+      };
+
       var c = mysql.createConnection(opts);
-      c.connect();
+      c.connect(function (err) {
+        if (err) {
+          deferred.reject(err);
+        } else {
+          deferred.resolve();
+        }
+      });
       p2._mysql_connections[title] = c;
     }
 
+    return deferred.promise;
   }
 })
 
