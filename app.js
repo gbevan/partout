@@ -318,7 +318,7 @@ module.exports = function (opts) {
                 logrow = csrList[i]._key + ' : ' + csrList[i].status + ' : ' + fingerprint + ' : ' + csrList[i].lastSeen;
 
             if (csrList[i].status === 'unsigned') {
-              console.log(logrow);
+              console.warn(logrow);
             } else {
               console.info(logrow);
             }
