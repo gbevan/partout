@@ -1,0 +1,112 @@
+/*
+    Partout [Everywhere] - Policy-Based Configuration Management for the
+    Data-Driven-Infrastructure.
+
+    Copyright (C) 2016 Graham Lee Bevan <graham.bevan@ntlworld.com>
+
+    This file is part of Partout.
+
+    Partout is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*jslint node: true, nomen: true */
+'use strict';
+/*global p2*/
+
+// make parent node_modules available to sync'd manifest
+//module.paths = module.paths.concat(module.parent.paths);
+
+var utils = p2.require('utils'),
+    u = require('util'),
+    fs = require('fs'),
+    path = require('path'),
+    heredoc = require('heredoc'),
+    uuid = require('uuid'),
+    ini = require('ini'),
+    pfs = p2.require('pfs'),
+    Mustache = require('mustache'),
+    Q = require('q'),
+    _ = require('lodash');
+
+p2
+
+/**
+ * @module ini_file
+ *
+ * @description
+ * Role: ini_file
+ * ================
+ * ```javascript
+ * .ini_file('/path/to/file.ini', {
+ *   cfg: {
+ *     default: {
+ *       setting_1: true
+ *     },
+ *     database: {
+ *       connection_string: 'conn string, etc...'
+ *     }
+ *   }
+ * })
+ * ```
+ * Updates or creates a properties (or ini) file.  If the file exists, only the properties
+ * sepcified are changed.  A property can be deleted by setting it to : undefined.
+ */
+.role('ini_file', {
+  p2: function (title, opts) {
+    return pfs.pReadFile(title, 'utf8')
+    .then(function (content) {
+      var cfg = ini.parse(content);
+
+
+
+      // XXX: TODO: THIS !!!!!
+      function deepMustache(p, iv) {
+        _.forEach((iv ? iv : p), function(v, k) {
+          console.log('ini_file ', k, ':', v);
+
+          if (typeof v === 'string') {
+            p[k] = Mustache.render(v, {
+              title: title,
+              opts: opts,
+              f: p2.facts
+            });
+          } else if (typeof v === 'object') {
+            deepMustache(v);
+          } else {
+            p[k] = v;
+          }
+
+        });
+      }
+      deepMustache(opts.cfg);
+
+
+
+      var newcontent = ini.encode(cfg);
+
+      if (newcontent !== content) {
+        return pfs.makeOrig(title)
+        .then(function () {
+          return pfs.pWriteFile(title, ini.encode(cfg));
+        })
+        .then(function () {
+          return Q({result: 'changed'});
+        });
+      } else {
+        return Q();
+      }
+    });
+  }
+})
+;

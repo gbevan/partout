@@ -450,6 +450,10 @@ Pfs.prototype.makeOrig = function (file, keep_orig) {
   var self = this,
       orig = file + '.orig_partout';
 
+  if (keep_orig === undefined) {
+    keep_orig = true;
+  }
+
   if (!keep_orig) {
     return Q();
   }
