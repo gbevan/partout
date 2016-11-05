@@ -84,9 +84,53 @@ p2
     .package('cinder-volume')
     .package('python-mysqldb')
 
-    .file('/etc/cinder/cinder.conf', {
-      ensure: 'present',
-      content:{template: path.join(__dirname, 'files', 'cinder', 'cinder_conf_template.conf')},
+//    .file('/etc/cinder/cinder.conf', {
+//      ensure: 'present',
+//      content:{template: path.join(__dirname, 'files', 'cinder', 'cinder_conf_template.conf')},
+//      parms: {
+//        cinder_db_pass: opts.cinder_db_pass,
+//        cinder_user_pass: opts.cinder_user_pass,
+//        rabbit_pass: opts.rabbit_pass,
+//        rabbit_host: opts.rabbit_host,
+//        glance_host: opts.glance_host,
+//        controller_host: opts.controller_host
+//      }
+//    })
+
+    .ini_file('/etc/cinder/cinder.conf', {
+      cfg: {
+        DEFAULT: {
+          auth_strategy: 'keystone',
+          enabled_backends: 'lvm',
+          glance_api_servers: 'http://{{ f.os_hostname }}:9292',
+          my_ip: '{{ f.os_nics.br0.ipv4.address }}',
+          transport_url: 'rabbit://openstack:{{ opts.parms.rabbit_pass }}@controller'
+        },
+        database: {
+          connection: 'mysql://cinder:{{ opts.parms.cinder_db_pass }}@{{ f.os_hostname }}/cinder'
+        },
+        keystone_authtoken: {
+          // TODO: Point to controller host to allow cinder to separate
+          auth_uri: 'http://{{ f.os_hostname }}:5000',
+          auth_url: 'http://{{ f.os_hostname }}:35357',
+          memcached_servers: '{{ f.os_hostname }}:11211',
+          auth_type: 'password',
+          project_domain_id: 'default',
+          user_domain_id: 'default',
+          project_name: 'service',
+          username: 'cinder',
+          password: '{{ opts.parms.cinder_user_pass }}'
+        },
+        lvm: {
+          volume_driver: 'cinder.volume.drivers.lvm.LVMVolumeDriver',
+          volume_group: 'cinder-volumes',
+          iscsi_protocol: 'iscsi',
+          iscsi_helper: 'tgtadm'
+        },
+        oslo_concurrency: {
+          lock_path: '/var/lock/cinder'
+        }
+      },
       parms: {
         cinder_db_pass: opts.cinder_db_pass,
         cinder_user_pass: opts.cinder_user_pass,
@@ -97,7 +141,7 @@ p2
       }
     })
 
-    .on('file:/etc/cinder/cinder.conf:changed', function () {
+    .on('ini_file:/etc/cinder/cinder.conf:changed', function () {
       p2
       .service('tgt', {ensure: 'stopped'})
       .service('tgt', {ensure: 'running'})

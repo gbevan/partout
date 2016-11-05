@@ -27,7 +27,8 @@
 // make parent node_modules available to sync'd manifest
 //module.paths = module.paths.concat(module.parent.paths);
 
-var utils = p2.require('utils'),
+var console = require('better-console'),
+    utils = p2.require('utils'),
     u = require('util'),
     fs = require('fs'),
     path = require('path'),
@@ -55,12 +56,13 @@ p2
  *     },
  *     database: {
  *       connection_string: 'conn string, etc...'
- *     }
+ *     },
+ *     aval: function (ov, sv) { return ...; }
  *   }
  * })
  * ```
  * Updates or creates a properties (or ini) file.  If the file exists, only the properties
- * sepcified are changed.  A property can be deleted by setting it to : undefined.
+ * sepcified are changed.
  */
 .role('ini_file', {
   p2: function (title, opts) {
@@ -68,34 +70,27 @@ p2
     .then(function (content) {
       var cfg = ini.parse(content);
 
+      _.mergeWith(cfg, opts.cfg, function (ov, sv, k, o, s, stack) {
+//        console.log('merge k:', k, 'sv:', sv);
+        if (_.isString(sv)) {
+          return Mustache.render(sv, {
+            title: title,
+            opts: opts,
+            f: p2.facts
+          });
 
+        } else if (_.isFunction(sv)) {
+          return sv(ov, k);
 
-      // XXX: TODO: THIS !!!!!
-      function deepMustache(p, iv) {
-        _.forEach((iv ? iv : p), function(v, k) {
-          console.log('ini_file ', k, ':', v);
-
-          if (typeof v === 'string') {
-            p[k] = Mustache.render(v, {
-              title: title,
-              opts: opts,
-              f: p2.facts
-            });
-          } else if (typeof v === 'object') {
-            deepMustache(v);
-          } else {
-            p[k] = v;
-          }
-
-        });
-      }
-      deepMustache(opts.cfg);
-
-
+        } else {
+          return;
+        }
+      });
 
       var newcontent = ini.encode(cfg);
 
       if (newcontent !== content) {
+        console.info('ini_file updating file', title);
         return pfs.makeOrig(title)
         .then(function () {
           return pfs.pWriteFile(title, ini.encode(cfg));
