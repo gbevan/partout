@@ -58,7 +58,9 @@ p2
  *       connection_string: 'conn string, etc...'
  *     },
  *     aval: function (ov, sv) { return ...; }
- *   }
+ *   },
+ *   hash_in_value: true, _false_, // allow hashes in values instead of being comments
+ *   noesc: true, _false_ // don't escape #'s
  * })
  * ```
  * Updates or creates a properties (or ini) file.  If the file exists, only the properties
@@ -66,9 +68,15 @@ p2
  */
 .role('ini_file', {
   p2: function (title, opts) {
+//    console.warn('in ini_file for:', title);
+
+    if (opts.whitespace === undefined) {
+      opts.whitespace = true;
+    }
+
     return pfs.pReadFile(title, 'utf8')
     .then(function (content) {
-      var cfg = ini.parse(content);
+      var cfg = ini.parse(content, { hash_in_value: opts.hash_in_value });
 
       _.mergeWith(cfg, opts.cfg, function (ov, sv, k, o, s, stack) {
 //        console.log('merge k:', k, 'sv:', sv);
@@ -87,13 +95,18 @@ p2
         }
       });
 
-      var newcontent = ini.encode(cfg);
+//      console.log('cfg:', u.inspect(cfg, {colors: true, depth: 3}));
+
+      var newcontent = ini.encode(cfg, {
+        noesc: opts.noesc,
+        whitespace: opts.whitespace
+      });
 
       if (newcontent !== content) {
         console.info('ini_file updating file', title);
         return pfs.makeOrig(title)
         .then(function () {
-          return pfs.pWriteFile(title, ini.encode(cfg));
+          return pfs.pWriteFile(title, newcontent);
         })
         .then(function () {
           return Q({result: 'changed'});

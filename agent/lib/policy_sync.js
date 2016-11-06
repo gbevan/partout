@@ -253,6 +253,8 @@ Policy_Sync.prototype.sync = function (srcfolder, destfolder) {
                 destfile = path.join(self.app.cfg.PARTOUT_AGENT_MANIFEST_DIR, srcrelname);
             //console.log('srcfile:', srcfile, 'relname:', srcrelname, 'hash:', manifest[srcfile]);
 
+            // TODO: Restrict permissions on sync'd files - 600.
+
             if (!local_manifest[destfile]) {
               console.info('syncing new file:', destfile);
               // create it

@@ -282,6 +282,8 @@ var serve = function (opts) {
 };
 
 module.exports = function (opts) {
+  var uuid;
+
   if (opts.init) {
     init(opts.args)
     .done();
@@ -315,7 +317,7 @@ module.exports = function (opts) {
           for (var i in csrList) {
             var csrObj = ca.pki.certificationRequestFromPem(csrList[i].csr),
                 fingerprint = ca.pki.getPublicKeyFingerprint(csrObj.publicKey, {encoding: 'hex', delimiter: ':'}),
-                logrow = csrList[i]._key + ' : ' + csrList[i].status + ' : ' + fingerprint + ' : ' + csrList[i].lastSeen;
+                logrow = csrList[i]._key + ' : ' + csrList[i].status + ' : ' + csrList[i].ip + ' : ' + fingerprint + ' : ' + csrList[i].lastSeen;
 
             if (csrList[i].status === 'unsigned') {
               console.warn(logrow);
@@ -340,7 +342,7 @@ module.exports = function (opts) {
 
         csr.query({_key: key})
         .then(function (cursor) {
-          console.log('cursor:', cursor);
+//          console.log('cursor:', cursor);
           if (cursor.count === 0) {
             console.error('csr not found');
             process.exit(1);
@@ -350,10 +352,10 @@ module.exports = function (opts) {
           } else {
             cursor.next()
             .then(function (csrDoc) {
-              console.info('Signing CSR:\n', csrDoc.csr);
+              //console.info('Signing CSR:\n', csrDoc.csr);
               ca.signCsrWithAgentSigner(csrDoc.csr, key)  // sign adding key/uuid as given name
               .then(function (signed) {
-                console.log('Signed cert from csr:\n' + signed.certPem);
+                console.info('Signed cert from csr:\n' + signed.certPem);
 
                 // return to agent via the csr document in db
                 csrDoc.cert = signed.cert;
@@ -410,8 +412,8 @@ module.exports = function (opts) {
 
   } else if (opts.setenv) { // set agent environment
     // partout setenv uuid new-environment
-    var uuid = opts.args[0],
-        newenv = opts.args[1];
+    uuid = opts.args[0];
+    var newenv = opts.args[1];
 
     db.connect()
     .then(function (status) {
@@ -433,6 +435,27 @@ module.exports = function (opts) {
     })
     .done();
 
+  } else if (opts.delete) { // delete agent
+    // partout delete uuid
+    uuid = opts.args[0];
+
+    db.connect()
+    .then(function (status) {
+      //console.log('csr db:', status);
+      var agent = new Agent(db.getDb());
+
+      agent.delete(uuid)
+      .then(function (doc) {
+        if (!doc) {
+          console.error('UUID', uuid, 'not found in agents collection');
+          process.exit(1);
+        }
+        console.info(uuid, 'deleted');
+      })
+      .done();
+    })
+    .done();
+
   } else if (opts.listagents) { // list agents
     db.connect()
     .then(function (status) {
@@ -446,7 +469,7 @@ module.exports = function (opts) {
           '%-36s %-15s %s',
           'Agent UUID',
           'Environment',
-          'Agent Cert Info'
+          'Agent Cert Info (from->to)'
         ));
 
         console.info(printf(

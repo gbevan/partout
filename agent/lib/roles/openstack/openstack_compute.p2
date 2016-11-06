@@ -81,26 +81,13 @@ p2
       }
     })
 
-//    .file('/etc/nova/nova.conf', {
-//      ensure: 'present',
-//      content: {template: path.join(__dirname, 'files', 'compute', 'nova_template.conf')},
-//      parms: {
-//        controller_ip: opts.controller_ip,
-//        nova_user_pass: opts.nova_user_pass,
-//        neutron_user_pass: opts.neutron_user_pass,
-//        rabbit_host: opts.rabbit_host,
-//        rabbit_pass: opts.rabbit_pass,
-//        virt_type: (p2.facts.cpuinfo.hw_accel_enabled ? 'kvm' : 'qemu')
-//      }
-//    })
-
     .ini_file('/etc/nova/nova.conf', {
       cfg: {
         DEFAULT: {
           auth_strategy: 'keystone',
           firewall_driver: 'nova.virt.firewall.NoopFirewallDriver',
           my_ip: '{{ f.os_nics.br0.ipv4.address }}',
-          transport_url: 'rabbit://openstack:{{ opts.parms.rabbit_pass }}@controller',
+          transport_url: 'rabbit://openstack:{{ opts.parms.rabbit_pass }}@{{ opts.parms.controller_ip }}',
           use_neutron: 'True'
         },
         cinder: {
@@ -157,27 +144,13 @@ p2
       ;
     })
 
-
     .package('neutron-linuxbridge-agent')
-
-//    .file('/etc/neutron/neutron.conf', {
-//      ensure: 'present',
-//      content: {template: path.join(__dirname, 'files', 'compute', 'neutron_template.conf')},
-//      parms: {
-//        controller_ip: opts.controller_ip,
-//        //nova_user_pass: opts.nova_user_pass,
-//        neutron_user_pass: opts.neutron_user_pass,
-//        rabbit_host: opts.rabbit_host,
-//        rabbit_pass: opts.rabbit_pass,
-//        //virt_type: (p2.facts.cpuinfo.hw_accel_enabled ? 'kvm' : 'qemu')
-//      }
-//    })
 
     .ini_file('/etc/neutron/neutron.conf', {
       cfg: {
         DEFAULT: {
           auth_strategy: 'keystone',
-          transport_url: 'rabbit://openstack:{{ opts.parms.rabbit_pass }}@controller'
+          transport_url: 'rabbit://openstack:{{ opts.parms.rabbit_pass }}@{{ opts.parms.controller_ip }}'
         },
         keystone_authtoken: {
           auth_uri: 'http://{{ opts.parms.controller_ip }}:5000',
@@ -207,11 +180,6 @@ p2
       .service('neutron-linuxbridge-agent', { ensure: 'stopped' })
       ;
     })
-
-//    .file('/etc/neutron/plugins/ml2/linuxbridge_agent.ini', {
-//      ensure: 'present',
-//      content:{template: path.join(__dirname, 'files', 'compute', 'linuxbridge_agent_template.ini')}
-//    })
 
     .ini_file('/etc/neutron/plugins/ml2/linuxbridge_agent.ini', {
       cfg: {

@@ -14,7 +14,7 @@
     "forever": "^0.15.1",
     "gulp-filter": "^4.0.0",
     "heredoc": "^1.3.1",
-    "ini": "^1.3.4",
+    "ini": "git+https://github.com/partoutx/ini.git#D20161105_support_hashes_in_values_for_openstack_keystone",
     "lodash": "^4.6.1",
     "mkdirp": "^0.5.1",
     "morgan": "^1.6.1",

@@ -280,55 +280,9 @@ EOF
       identifiedby: opts.keystone_pass
     })
 
-// not needed in Newton
-//    .file('/etc/init/keystone.override', {
-//      ensure: 'present',
-//      content: 'manual\n'
-//    })
-
     .package('keystone')
     .package('apache2')
     .package('libapache2-mod-wsgi')
-
-
-
-    ///////////////////////////////////////////////////////////
-    // Generate random admin token, if needed (initially)
-    // TODO: use forge instead - var admin_token = forge.util.bytesToHex(forge.random.getBytesSync(10));
-//    .command('openstack_os_token', {
-//      cmd: 'openssl rand -hex 10 > {{{ f.cfg.PARTOUT_VARDIR }}}/openstack_os_token; chmod 600 {{{ f.cfg.PARTOUT_VARDIR }}}/openstack_os_token',
-//      creates: '{{{ f.cfg.PARTOUT_VARDIR }}}/openstack_os_token',
-//      onlyif: function (f) {
-//        return pfs.pExists(path.join('root', 'admin-openrc'))
-//        .then(function (exists) {
-//          return !exists;
-//        });
-//      }
-//    })
-//
-//    .add_fact('openstack_os_token', {
-//      file: '{{{ f.cfg.PARTOUT_VARDIR }}}/openstack_os_token',
-//      hidden: true
-//    })
-//
-//    .on('command:openstack_os_token:changed', function () {
-//      p2
-//      .set_env('OS_TOKEN', { value: '{{ f.openstack_os_token }}'})
-//      .set_env('OS_URL', { value: 'http://{{ f.os_hostname }}:35357/v3'})
-//      .set_env('OS_IDENTITY_API_VERSION', { value: 3})
-//      ;
-//    })
-
-
-
-//    .file('/etc/keystone/keystone.conf', {
-//      ensure: 'present',
-//      content:{template: path.join(__dirname, 'files', 'keystone.conf.newton.template')},
-//      parms: {
-//        hostname: p2.facts.os_hostname,
-//        keystone_dbpass: opts.keystone_pass
-//      }
-//    })
 
     .ini_file('/etc/keystone/keystone.conf', {
       cfg: {
@@ -362,40 +316,6 @@ EOF
       ensure: 'present',
       content: {template: path.join(__dirname, 'files', 'apache2.conf.template')}
     })
-
-//    .file('/etc/apache2/sites-available/wsgi-keystone.conf', {
-//      ensure: 'present',
-//      content: {template: path.join(__dirname, 'files', 'wsgi-keystone.conf.template')}
-//    })
-//
-//    .file('/etc/apache2/sites-enabled/wsgi-keystone.conf', {
-//      ensure: 'link',
-//      target: '/etc/apache2/sites-available/wsgi-keystone.conf'
-//    })
-//
-//
-//    .service('apache2', {
-//      ensure: 'running',
-//      enabled: true,
-//      on: {
-//        'file:/etc/apache2/sites-enabled/wsgi-keystone.conf:changed': function () {
-//          p2
-//          .service('apache2', {ensure: 'stopped'})
-//          .service('apache2', {ensure: 'running'})
-//          .command('rm -f /var/lib/keystone/keystone.db')
-//          ;
-//        }
-//      }
-//    })
-
-
-//    .file('/etc/apache2/sites-available/wsgi-keystone.conf', {
-//      ensure: 'absent',
-//    })
-//
-//    .file('/etc/apache2/sites-enabled/wsgi-keystone.conf', {
-//      ensure: 'absent',
-//    })
 
     .service('apache2', {
       ensure: 'running',
@@ -435,98 +355,6 @@ EOF
 
     .source_env(path.join('/', 'root', 'admin-openrc'))
 
-    .command('get openstack token', {
-      //cmd: 'openstack token issue -f json',
-      cmd: 'openstack token issue',
-      onlyif: function (f) {
-        return pfs.pExists(path.join('/', 'root', 'admin-openrc'))
-        .then(function (exists) {
-
-          if (!exists) {
-
-            // fall back to initial install token
-            p2
-            .pushSteps()
-            .set_env('OS_TOKEN', { value: '{{ f.openstack_os_token }}'})
-            .set_env('OS_URL', { value: 'http://{{ f.os_hostname }}:35357/v3'})
-            .set_env('OS_IDENTITY_API_VERSION', { value: 3})
-            .flattenSteps()
-            ;
-          }
-
-          return exists;
-        });
-      }
-    }, function (rc, stdout, stderr) {
-      //var tok_obj = JSON.parse(stdout);
-
-      // Use provided fernet token
-      p2
-      .pushSteps()
-      //.set_env('OS_TOKEN', { value: tok_obj.id })
-      .set_env('OS_TOKEN', { ensure: 'absent' })
-      .set_env('OS_AUTH_URL', { value: 'http://{{ f.os_hostname }}:35357/v3'})
-      //.set_env('OS_URL', { value: 'http://{{ f.os_hostname }}:35357/v3'})
-      .set_env('OS_URL', { ensure: 'absent' })
-      .set_env('OS_IDENTITY_API_VERSION', { value: 3})
-      .flattenSteps()
-      ;
-
-    })
-
-    .openstack_service('keystone', {
-      description: 'OpenStack Identity',
-      type: 'identity',
-      ensure: 'present'
-    })
-
-    .openstack_endpoint('RegionOne/identity/public', {
-      region: 'RegionOne',
-      service_type: 'identity',
-      interface: 'public',
-      url: u.format('http://%s:5000/v3', p2.facts.os_hostname),
-      ensure: 'present'
-    })
-    .openstack_endpoint('RegionOne/identity/internal', {
-      region: 'RegionOne',
-      service_type: 'identity',
-      interface: 'internal',
-      url: u.format('http://%s:5000/v3', p2.facts.os_hostname),
-      ensure: 'present'
-    })
-    .openstack_endpoint('RegionOne/identity/admin', {
-      region: 'RegionOne',
-      service_type: 'identity',
-      interface: 'admin',
-      url: u.format('http://%s:35357/v3', p2.facts.os_hostname),
-      ensure: 'present'
-    })
-
-    // No longer needed in Newton
-//    .openstack_domain('default', {
-//      description: 'Default Domain',
-//      ensure: 'present'
-//    })
-
-    // Project Admin
-    .openstack_project('admin', {
-      description: 'Admin Project',
-      domain: 'default',
-      ensure: 'present'
-    })
-
-    .openstack_user('admin', {
-      password: opts.admin_user_pass,
-      domain: 'default',
-      ensure: 'present'
-    })
-
-    .openstack_role('admin', {
-      project: 'admin',
-      user: 'admin',
-      ensure: 'present'
-    })
-
     // Project Service
     .openstack_project('service', {
       description: 'Service Project',
@@ -553,35 +381,6 @@ EOF
       ensure: 'present'
     })
 
-
-//    // Create client environment scripts
-//    .file('/root/admin-openrc', {
-//      ensure: 'present',
-//      content: {template: path.join(__dirname, 'files', 'admin-openrc.template')},
-//      mode: '0700',
-//      owner: 'root',
-//      group: 'root',
-//      parms: {
-//        admin_user_pass: opts.admin_user_pass
-//      }
-//    })
-//    .file('/root/demo-openrc', {
-//      ensure: 'present',
-//      content: {template: path.join(__dirname, 'files', 'demo-openrc.template')},
-//      mode: '0700',
-//      owner: 'root',
-//      group: 'root',
-//      parms: {
-//        demo_user_pass: opts.demo_user_pass
-//      }
-//    })
-
-    // remove admin_token_auth options for fernet tokens from now on
-//    .file('/etc/keystone/keystone-paste.ini', {
-//      ensure: 'present',
-//      content: {template: path.join(__dirname, 'files', 'keystone-paste.ini.template')}
-//    })
-
     .ini_file('/etc/keystone/keystone-paste.ini', {
       cfg: {
         'pipeline:public_api': {
@@ -599,17 +398,14 @@ EOF
             return ov.replace(/ admin_token_auth/, '');
           }
         }
-      }
+      },
+      hash_in_value: true,
+      noesc: true
     })
-
-    // Need to remove old token prio to trying token issue for fernet
-    .set_env('OS_TOKEN', { ensure: 'absent' })
-    .set_env('OS_URL', { ensure: 'absent' })
 
     .source_env('/root/admin-openrc')
 
-    // TODO: Clean this up as its a repeat of earlier
-    .command('get openstack token #2', {
+    .command('test get openstack token', {
       //cmd: 'openstack token issue -f json'
       cmd: 'openstack token issue'
     }, function (rc, stdout, stderr) {
@@ -617,22 +413,7 @@ EOF
         //console.error('openstack token #2 rc:', rc, 'stdout:', stdout, 'stderr:', stderr);
         throw new Error(stderr);
       }
-//      var tok_obj = JSON.parse(stdout);
-
-      // Use provided fernet token
-      p2
-      .pushSteps()
-      //.set_env('OS_TOKEN', { value: tok_obj.id })
-      .set_env('OS_TOKEN', { ensure: 'absent' })
-      .set_env('OS_AUTH_URL', { value: 'http://{{ f.os_hostname }}:35357/v3'})
-      //.set_env('OS_URL', { value: 'http://{{ f.os_hostname }}:35357/v3'})
-      .set_env('OS_IDENTITY_API_VERSION', { value: 3})
-      .flattenSteps()
-      ;
-
     })
-
-
 
     /////////////////////////////
     // Glance
@@ -701,16 +482,6 @@ EOF
 
     .package('glance')
 
-//    .file('/etc/glance/glance-api.conf', {
-//      ensure: 'present',
-//      content:{template: path.join(__dirname, 'files', 'glance-api.conf.template')},
-//      parms: {
-//        hostname: p2.facts.os_hostname,
-//        glance_dbpass: opts.glance_pass,
-//        glance_user_pass: opts.glance_user_pass
-//      }
-//    })
-
     .ini_file('/etc/glance/glance-api.conf', {
       cfg: {
         database: {
@@ -759,16 +530,6 @@ EOF
       }
     })
 
-//    .file('/etc/glance/glance-registry.conf', {
-//      ensure: 'present',
-//      content:{template: path.join(__dirname, 'files', 'glance-registry.conf.template')},
-//      parms: {
-//        hostname: p2.facts.os_hostname,
-//        glance_dbpass: opts.glance_pass,
-//        glance_user_pass: opts.glance_user_pass
-//      }
-//    })
-
     .ini_file('/etc/glance/glance-registry.conf', {
       cfg: {
         database: {
@@ -809,24 +570,7 @@ EOF
       }
     })
 
-    // Download and create cirros image
-//    .command('wget http://download.cirros-cloud.net/0.3.4/cirros-0.3.4-x86_64-disk.img -O /tmp/cirros.img', {
-//      creates: '/tmp/cirros.img'
-//    })
-//
-//    .openstack_image('cirros', {
-//      ensure: 'absent'
-//    })
-//
-//    .openstack_image('cirros', {
-//      file: '/tmp/cirros.img',
-//      public: true
-//    })
-//
-//    .openstack_image('cirros', {
-//      ensure: 'absent'
-//    })
-
+    // Download and create images
     .openstack_image('cirros', {
       url: 'http://download.cirros-cloud.net/0.3.4/cirros-0.3.4-x86_64-disk.img',
       public: true
@@ -931,25 +675,13 @@ EOF
     .package('nova-novncproxy')
     .package('nova-scheduler')
 
-//    .file('/etc/nova/nova.conf', {
-//      ensure: 'present',
-//      content:{template: path.join(__dirname, 'files', 'controller', 'nova_template.conf')},
-//      parms: {
-//        nova_db_pass: opts.nova_db_pass,
-//        nova_user_pass: opts.nova_user_pass,
-//        neutron_user_pass: opts.neutron_user_pass,
-//        rabbit_pass: opts.rabbit_pass,
-//        metadata_secret: opts.metadata_secret
-//      }
-//    })
-
     .ini_file('/etc/nova/nova.conf', {
       cfg: {
         DEFAULT: {
           auth_strategy: 'keystone',
           firewall_driver: 'nova.virt.firewall.NoopFirewallDriver',
           my_ip: '{{ f.os_nics.br0.ipv4.address }}',
-          transport_url: 'rabbit://openstack:{{ opts.parms.rabbit_pass }}@controller',
+          transport_url: 'rabbit://openstack:{{ opts.parms.rabbit_pass }}@{{ f.os_hostname }}',
           use_neutron: 'True'
         },
         api_database: {
@@ -1107,17 +839,6 @@ EOF
     .package('neutron-dhcp-agent')
     .package('neutron-metadata-agent')
 
-//    .file('/etc/neutron/neutron.conf', {
-//      ensure: 'present',
-//      content:{template: path.join(__dirname, 'files', 'controller', 'neutron_template.conf')},
-//      parms: {
-//        neutron_db_pass: opts.neutron_db_pass,
-//        neutron_user_pass: opts.neutron_user_pass,
-//        rabbit_pass: opts.rabbit_pass,
-//        nova_user_pass: opts.nova_user_pass
-//      }
-//    })
-
     .ini_file('/etc/neutron/neutron.conf', {
       cfg: {
         DEFAULT: {
@@ -1127,7 +848,7 @@ EOF
           notify_nova_on_port_data_changes: 'True',
           notify_nova_on_port_status_changes: 'True',
           service_plugins: 'router',
-          transport_url: 'rabbit://openstack:{{ opts.parms.rabbit_pass }}@controller'
+          transport_url: 'rabbit://openstack:{{ opts.parms.rabbit_pass }}@{{ f.os_hostname }}'
         },
         database: {
           connection: 'mysql+pymysql://neutron:{{ opts.parms.neutron_db_pass }}@{{ f.os_hostname }}/neutron'
@@ -1162,11 +883,6 @@ EOF
       }
     })
 
-//    .file('/etc/neutron/plugins/ml2/ml2_conf.ini', {
-//      ensure: 'present',
-//      content:{template: path.join(__dirname, 'files', 'controller', 'ml2_conf_template.ini')}
-//    })
-
     .ini_file('/etc/neutron/plugins/ml2/ml2_conf.ini', {
       cfg: {
         ml2: {
@@ -1187,11 +903,6 @@ EOF
       }
     })
 
-//    .file('/etc/neutron/plugins/ml2/linuxbridge_agent.ini', {
-//      ensure: 'present',
-//      content:{template: path.join(__dirname, 'files', 'controller', 'linuxbridge_agent_template.ini')}
-//    })
-
     .ini_file('/etc/neutron/plugins/ml2/linuxbridge_agent.ini', {
       cfg: {
         linux_bridge: {
@@ -1209,11 +920,6 @@ EOF
       }
     })
 
-//    .file('/etc/neutron/l3_agent.ini', {
-//      ensure: 'present',
-//      content:{template: path.join(__dirname, 'files', 'controller', 'l3_agent_template.ini')}
-//    })
-
     .ini_file('/etc/neutron/l3_agent.ini', {
       cfg: {
         DEFAULT: {
@@ -1222,11 +928,6 @@ EOF
         }
       }
     })
-
-//    .file('/etc/neutron/dhcp_agent.ini', {
-//      ensure: 'present',
-//      content:{template: path.join(__dirname, 'files', 'controller', 'dhcp_agent_template.ini')}
-//    })
 
     .ini_file('/etc/neutron/dhcp_agent.ini', {
       cfg: {
@@ -1237,14 +938,6 @@ EOF
         }
       }
     })
-
-//    .file('/etc/neutron/metadata_agent.ini', {
-//      ensure: 'present',
-//      content:{template: path.join(__dirname, 'files', 'controller', 'metadata_agent_template.ini')},
-//      parms: {
-//        metadata_secret: opts.metadata_secret
-//      }
-//    })
 
     .ini_file('/etc/neutron/metadata_agent.ini', {
       cfg: {
@@ -1395,16 +1088,6 @@ EOF
     .package('cinder-api')
     .package('cinder-scheduler')
     .package('python-cinderclient')
-
-//    .file('/etc/cinder/cinder.conf', {
-//      ensure: 'present',
-//      content:{template: path.join(__dirname, 'files', 'controller', 'cinder_conf_template.conf')},
-//      parms: {
-//        cinder_db_pass: opts.cinder_db_pass,
-//        cinder_user_pass: opts.cinder_user_pass,
-//        rabbit_pass: opts.rabbit_pass
-//      }
-//    })
 
     .ini_file('/etc/cinder/cinder.conf', {
       cfg: {
