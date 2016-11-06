@@ -35,6 +35,8 @@ var Cfg = function () {
   self.em_threshold_mod = 2000;
   self.em_threshold_uuid = 5000;
 
+  self.GITHUB_CLIENT_ID = "--insert-github-client-id-here--";
+  self.GITHUB_CLIENT_SECRET = "--insert-github-client-secret-here--";
 };
 
 module.exports = Cfg;

@@ -56,6 +56,7 @@ var console = require('better-console'),
     _ = require('lodash'),
     passport = require('passport'),
     ClientCertStrategy = require('passport-client-cert').Strategy,
+    GitHubStrategy = require('passport-github2').Strategy,
     printf = require('printf');
 
 Q.longStackSupport = true;
@@ -228,6 +229,7 @@ var serve = function (opts) {
         httpsApi.createServer(optionsApi, appApi)
         .listen(cfg.partout_api_port);
         console.info('Master API listening on port', cfg.partout_api_port);
+
 
         /****************************
          * Start Master UI Server
