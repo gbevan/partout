@@ -177,7 +177,7 @@ var serve = function (opts) {
       console.info('');
       console.info(new Array(master_fingerprint.length + 1).join('='));
       console.info('Master API SSL fingerprint (SHA256):\n' + master_fingerprint);
-      console.info(randomart(pubkey));
+      console.info('\nrandomart of master public key:\n' + randomart(pubkey));
       console.info(new Array(master_fingerprint.length + 1).join('='));
 
       db.connect()
