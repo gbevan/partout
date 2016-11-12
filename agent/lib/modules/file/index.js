@@ -33,6 +33,7 @@ var console = require('better-console'),
     utils = require('../../utils'),
     pfs = require('../../pfs'),
     Mustache = require('mustache'),
+    sprintf = require('sprintf').sprintf,
     Q = require('q');
 
 Q.longStackSupport = true;
@@ -63,6 +64,7 @@ Q.onerror = function (err) {
  *   | owner       | String  | Owner of this file object              |
  *   | group       | String  | Group owner of this file object        |
  *   | watch       | Boolean | Watch this file object for changes and reapply policy |
+ *   | keep_orig   | Boolean | keep copy of original file (default=true) called file.orig_partout |
  *
  *   Templates use the [Mustache](https://www.npmjs.com/package/mustache) templating library.
  *
@@ -119,6 +121,8 @@ var File = P2M.Module(module.filename, function () {
         file = title;
 
     opts.ensure = (opts.ensure ? opts.ensure : 'present');
+
+    opts.keep_orig = (_.isBoolean(opts.keep_orig) ? opts.keep_orig : true);
 
     if (opts.path) {
       file = opts.path;
@@ -223,7 +227,7 @@ var File = P2M.Module(module.filename, function () {
  * @param {Boolean} is_template is this a template
  * @returns {Object}  Promise - resolves to record string
  */
-File.prototype._ensure_content = function (file, data, is_template) {
+File.prototype._ensure_content = function (file, data, is_template, keep_orig) {
   var self = this,
       f_hash = pfs.hashFileSync(file),
       record = '',
@@ -233,10 +237,10 @@ File.prototype._ensure_content = function (file, data, is_template) {
 
   if (typeof(data) === 'object') {
     if (data.file) {
-      return self._ensure_file(file, data.file, is_template);
+      return self._ensure_file(file, data.file, is_template, keep_orig);
 
     } else if (data.template) {
-      return self._ensure_file(file, data.template, true);
+      return self._ensure_file(file, data.template, true, keep_orig);
     }
   }
 
@@ -248,9 +252,16 @@ File.prototype._ensure_content = function (file, data, is_template) {
   if (f_hash != d_hash) {
     console.info(u.format('File: %s: updating file, hash: %s -> content hash: %s', file, f_hash, d_hash));
     //console.warn('File: updating file content:\n' + data);
-    pfs.pWriteFile(file, data)
-    .done(function () {
+
+    pfs.makeOrig(file, keep_orig)
+    .then(function () {
+      return pfs.pWriteFile(file, data);
+    })
+    .then(function () {
       deferred.resolve('Content Replaced. ');
+    })
+    .done(null, function (err) {
+      deferred.reject(err);
     });
   } else {
     // hashes match
@@ -267,7 +278,7 @@ File.prototype._ensure_content = function (file, data, is_template) {
  * @param {Boolean} is_template is this a template
  * @returns {Object}  Promise (from _ensuere_content) resolves to record string
  */
-File.prototype._ensure_file = function (file, srcfile, is_template) {
+File.prototype._ensure_file = function (file, srcfile, is_template, keep_orig) {
   var self = this,
       deferred = Q.defer();
 
@@ -276,7 +287,7 @@ File.prototype._ensure_file = function (file, srcfile, is_template) {
   .then(function (data) {
     data = data.toString();
     utils.dlog('data:', data);
-    deferred.resolve(self._ensure_content(file, data, is_template));
+    deferred.resolve(self._ensure_content(file, data, is_template, keep_orig));
   })
   .done(null, function (err) {
     //console.warn('in file _ensure_file error handler');
@@ -348,7 +359,7 @@ File.prototype._opt_ensure = function (file, opts, err, stats, _impl, inWatchFla
             _impl.qEvent({module: 'file', object: file, msg: record});
 
             if (opts.content !== undefined) {
-              self._ensure_content(file, opts.content, opts.is_template)
+              self._ensure_content(file, opts.content, opts.is_template, opts.keep_orig)
               .done(function (r) {
                 if (r) {
                   _impl.qEvent({module: 'file', object: file, msg: r});
@@ -367,7 +378,7 @@ File.prototype._opt_ensure = function (file, opts, err, stats, _impl, inWatchFla
           });
         } else {
           if (opts.content !== undefined) {
-            self._ensure_content(file, opts.content, opts.is_template)
+            self._ensure_content(file, opts.content, opts.is_template, opts.keep_orig)
             .then(function (r) {
               if (r) {
                 _impl.qEvent({module: 'file', object: file, msg: r});
@@ -458,10 +469,11 @@ File.prototype._opt_mode = function (file, opts, stats, _impl) {
   utils.dlog('_opt_mode stats:', stats);
 
   if (stats) {
-    var mode_prefix = stats.mode.toString(8).slice(0,3);
+    var mode_prefix = sprintf('%06o', stats.mode).slice(0,3);
 
     if (opts.mode && typeof(opts.mode) === 'string') {
-      if (opts.mode.match(/^0[0-9]{3}$/)) {
+      if (opts.mode.match(/^0[0-7]{3}$/)) {
+        var nm = mode_prefix + opts.mode.slice(1);
         var m = parseInt(mode_prefix + opts.mode.slice(1), 8); // as octal
         if (m !== stats.mode) {
           console.info('File:', file, 'chmod mode', stats.mode.toString(8), '->', m.toString(8));

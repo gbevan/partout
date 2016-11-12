@@ -27,6 +27,7 @@
 
 var console = require('better-console'),
     express = require('express'),
+    flash = require('connect-flash'),
     routerApi = express.Router(),
     routerUi = express.Router(),
     httpsApi = require('https'),
@@ -56,9 +57,27 @@ var console = require('better-console'),
     _ = require('lodash'),
     passport = require('passport'),
     ClientCertStrategy = require('passport-client-cert').Strategy,
-    printf = require('printf');
+    GitHubStrategy = require('passport-github2').Strategy,
+    expressSession = require('express-session'),
+    printf = require('printf'),
+    randomart = require('randomart');
 
 Q.longStackSupport = true;
+
+// Passport session setup.
+//   To support persistent login sessions, Passport needs to be able to
+//   serialize users into and deserialize users out of the session.  Typically,
+//   this will be as simple as storing the user ID when serializing, and finding
+//   the user by ID when deserializing.  However, since this example does not
+//   have a database of user records, the complete GitHub profile is serialized
+//   and deserialized.
+passport.serializeUser(function(user, done) {
+  done(null, user);
+});
+
+passport.deserializeUser(function(obj, done) {
+  done(null, obj);
+});
 
 /**
  * Partout Master App provider
@@ -141,12 +160,14 @@ var serve = function (opts) {
 
       console.info('Starting Master API.');
 
+      var pubkey = pki.publicKeyFromPem(
+        fs.readFileSync(
+          ca.masterApiPublicKeyFile
+        )
+      );
+
       var master_fingerprint = pki.getPublicKeyFingerprint(
-        pki.publicKeyFromPem(
-          fs.readFileSync(
-            ca.masterApiPublicKeyFile
-          )
-        ),
+        pubkey,
         {
           encoding: 'hex',
           delimiter: ':',
@@ -156,6 +177,7 @@ var serve = function (opts) {
       console.info('');
       console.info(new Array(master_fingerprint.length + 1).join('='));
       console.info('Master API SSL fingerprint (SHA256):\n' + master_fingerprint);
+      console.info('\nrandomart of master public key:\n' + randomart(pubkey));
       console.info(new Array(master_fingerprint.length + 1).join('='));
 
       db.connect()
@@ -229,6 +251,7 @@ var serve = function (opts) {
         .listen(cfg.partout_api_port);
         console.info('Master API listening on port', cfg.partout_api_port);
 
+
         /****************************
          * Start Master UI Server
          */
@@ -260,15 +283,59 @@ var serve = function (opts) {
 
         appUi.opts = opts;
 
+        appUi.use(expressSession({ secret: 'SECRET'})); // TODO: move SECRET
+        appUi.use(passport.initialize());
+//        appUi.use(passport.session());
+        appUi.use(flash());
+
+        passport.use(
+          new GitHubStrategy(
+            {
+              clientID: cfg.GITHUB_CLIENT_ID,
+              clientSecret: cfg.GITHUB_CLIENT_SECRET,
+              callbackURL: 'https://192.168.0.64:11443/auth/github/callback'
+            },
+            function(accessToken, refreshToken, profile, done) {
+//              User.findOrCreate({ githubId: profile.id }, function (err, user) {
+//                return done(err, user);
+//              });
+              console.log('github profile:', profile);
+              done(null, profile);
+            }
+          )
+        );
+
+        appUi.get(
+          '/auth/github',
+          passport.authenticate('github', { scope: [ 'user:email' ] })
+        );
+
+        appUi.get(
+          '/auth/github/callback',
+          passport.authenticate('github', {
+            successRedirect: '/',
+            failureRedirect: '/login',
+            failureFlash: true
+
+//          function(req, res) {
+            // Successful authentication, redirect home.
+//            res.redirect('/');
+          })
+        );
+
         appUi.use(compression());
         routerUi.use(logger);
         appUi.use(bodyParser.json());
         appUi.use(bodyParser.urlencoded({ extended: true }));
 
-        require('./lib/ui/routes')(routerUi, cfg, db.getDb(), controllers, serverMetrics);
+        require('./lib/ui/routes')(routerUi, cfg, db.getDb(), controllers, serverMetrics, appUi);
 
         appUi.use('/', routerUi);
         appUi.use(express.static('public'));
+
+        appUi.set('views', 'public/views');
+        appUi.set('view engine', 'ejs');
+        appUi.engine('html', require('ejs').renderFile);
 
         httpsUi.createServer(optionsUi, appUi)
         .listen(cfg.partout_ui_port);
@@ -282,6 +349,8 @@ var serve = function (opts) {
 };
 
 module.exports = function (opts) {
+  var uuid;
+
   if (opts.init) {
     init(opts.args)
     .done();
@@ -315,10 +384,10 @@ module.exports = function (opts) {
           for (var i in csrList) {
             var csrObj = ca.pki.certificationRequestFromPem(csrList[i].csr),
                 fingerprint = ca.pki.getPublicKeyFingerprint(csrObj.publicKey, {encoding: 'hex', delimiter: ':'}),
-                logrow = csrList[i]._key + ' : ' + csrList[i].status + ' : ' + fingerprint + ' : ' + csrList[i].lastSeen;
+                logrow = csrList[i]._key + ' : ' + csrList[i].status + ' : ' + csrList[i].ip + ' : ' + fingerprint + ' : ' + csrList[i].lastSeen;
 
             if (csrList[i].status === 'unsigned') {
-              console.log(logrow);
+              console.warn(logrow);
             } else {
               console.info(logrow);
             }
@@ -340,7 +409,7 @@ module.exports = function (opts) {
 
         csr.query({_key: key})
         .then(function (cursor) {
-          console.log('cursor:', cursor);
+//          console.log('cursor:', cursor);
           if (cursor.count === 0) {
             console.error('csr not found');
             process.exit(1);
@@ -350,10 +419,10 @@ module.exports = function (opts) {
           } else {
             cursor.next()
             .then(function (csrDoc) {
-              console.info('Signing CSR:\n', csrDoc.csr);
+              //console.info('Signing CSR:\n', csrDoc.csr);
               ca.signCsrWithAgentSigner(csrDoc.csr, key)  // sign adding key/uuid as given name
               .then(function (signed) {
-                console.log('Signed cert from csr:\n' + signed.certPem);
+                console.info('Signed cert from csr:\n' + signed.certPem);
 
                 // return to agent via the csr document in db
                 csrDoc.cert = signed.cert;
@@ -410,8 +479,8 @@ module.exports = function (opts) {
 
   } else if (opts.setenv) { // set agent environment
     // partout setenv uuid new-environment
-    var uuid = opts.args[0],
-        newenv = opts.args[1];
+    uuid = opts.args[0];
+    var newenv = opts.args[1];
 
     db.connect()
     .then(function (status) {
@@ -433,6 +502,27 @@ module.exports = function (opts) {
     })
     .done();
 
+  } else if (opts.delete) { // delete agent
+    // partout delete uuid
+    uuid = opts.args[0];
+
+    db.connect()
+    .then(function (status) {
+      //console.log('csr db:', status);
+      var agent = new Agent(db.getDb());
+
+      agent.delete(uuid)
+      .then(function (doc) {
+        if (!doc) {
+          console.error('UUID', uuid, 'not found in agents collection');
+          process.exit(1);
+        }
+        console.info(uuid, 'deleted');
+      })
+      .done();
+    })
+    .done();
+
   } else if (opts.listagents) { // list agents
     db.connect()
     .then(function (status) {
@@ -446,7 +536,7 @@ module.exports = function (opts) {
           '%-36s %-15s %s',
           'Agent UUID',
           'Environment',
-          'Agent Cert Info'
+          'Agent Cert Info (from->to)'
         ));
 
         console.info(printf(

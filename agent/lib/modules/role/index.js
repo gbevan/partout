@@ -209,10 +209,16 @@ var Role = P2M.Module(module.filename, function () {
 
                 p2.pushSteps(); // save steps state
                 utils.dlog('role: action: calling p2:', opts.p2);
-                var role_promise = opts.p2(
-                  mod_title,
-                  (mod_opts ? mod_opts : {})
-                ); // pushes it's own actions to run next
+                var role_promise;
+                try {
+                  role_promise = opts.p2(
+                    mod_title,
+                    (mod_opts ? mod_opts : {})
+                  ); // pushes it's own actions to run next
+                } catch (err) {
+                  console.warn('Role: caught err:', err);
+                  role_promise.reject(err);
+                }
 
                 if (!Q.isPromise(role_promise)) {
                   role_promise = Q(role_promise);

@@ -49,7 +49,7 @@ UtilsBanner.prototype.bannerInit = function () {
  ##:::::::: ##:::: ##: ##:::. ##:::: ##::::. #######::. #######::::: ##::::\n\
 ..:::::::::..:::::..::..:::::..:::::..::::::.......::::.......::::::..:::::\n\
 License: GPLv3\n\
-Copyright (C) 2016 Graham Lee Bevan <graham.bevan@ntlworld.com>\n\
+Copyright (C) 2015-2016 Graham Lee Bevan <graham.bevan@ntlworld.com>\n\
 ";
 };
 

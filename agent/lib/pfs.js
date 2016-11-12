@@ -441,4 +441,48 @@ Pfs.prototype.pCopy = function (src, tgt) {
   return src_deferred.promise;
 };
 
+/**
+ * Make an original copy of a file before modifying it
+ * @param   {string}  file file to be saved for orig
+ * @returns {promise}
+ */
+Pfs.prototype.makeOrig = function (file, keep_orig) {
+  var self = this,
+      orig = file + '.orig_partout';
+
+  if (keep_orig === undefined) {
+    keep_orig = true;
+  }
+
+  if (!keep_orig) {
+    return Q();
+  }
+
+  return self.pStat(file)
+  .then(function (file_stats) {
+    if (!file_stats) {
+      return false;
+    }
+    if (file_stats.size === 0) {
+      return false;
+    }
+    return true;
+  })
+  .then(function (toCopy) {
+    if (!toCopy) {
+      return Q('skip');
+    }
+    return self.pExists(orig);
+  })
+  .then(function(exists) {
+
+    if (!exists) {  // 'skip' or false
+      return self.pCopy(file, orig);
+    } else {
+      return Q();
+    }
+
+  });
+};
+
 module.exports = new Pfs();

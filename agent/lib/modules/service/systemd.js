@@ -43,4 +43,22 @@ var Service = function () {
 
 };
 
+/**
+ * Set systemd service to enabled
+ * @param   {string} name Service name
+ * @returns {object} Promise
+ */
+Service.prototype.setEnabled = function (name) {
+  console.warn('service systemd setEnabled not yet available');
+};
+
+/**
+ * Set systemd service to disabled
+ * @param   {string} name Service name
+ * @returns {object} Promise
+ */
+Service.prototype.setDisabled = function (name) {
+  console.warn('service systemd setDisabled not yet available');
+};
+
 module.exports = Service;

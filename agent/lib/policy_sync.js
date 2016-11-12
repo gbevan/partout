@@ -35,7 +35,8 @@ var console = require('better-console'),
     pki = require('node-forge').pki,
     forge = require('node-forge'),
     readline = require('readline'),
-    deleteEmpty = require('delete-empty');
+    deleteEmpty = require('delete-empty'),
+    randomart = require('randomart');
 
 /**
  * @class
@@ -177,6 +178,7 @@ Policy_Sync.prototype.sync = function (srcfolder, destfolder) {
 
     console.warn(new Array(self.master_fingerprint.length + 1).join('='));
     console.warn('Master API SSL fingerprint (SHA256):\n' + self.master_fingerprint);
+    console.warn('\nrandomart of master public key:\n' + randomart(self.server_cert_obj.publicKey));
     console.warn(new Array(self.master_fingerprint.length + 1).join('='));
 
     if (self.app.opts.yes) {
@@ -252,6 +254,8 @@ Policy_Sync.prototype.sync = function (srcfolder, destfolder) {
             var srcrelname = manifest[srcfile].relname,
                 destfile = path.join(self.app.cfg.PARTOUT_AGENT_MANIFEST_DIR, srcrelname);
             //console.log('srcfile:', srcfile, 'relname:', srcrelname, 'hash:', manifest[srcfile]);
+
+            // TODO: Restrict permissions on sync'd files - 600.
 
             if (!local_manifest[destfile]) {
               console.info('syncing new file:', destfile);

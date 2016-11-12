@@ -1,0 +1,141 @@
+/*
+    Partout [Everywhere] - Policy-Based Configuration Management for the
+    Data-Driven-Infrastructure.
+
+    Copyright (C) 2016 Graham Lee Bevan <graham.bevan@ntlworld.com>
+
+    This file is part of Partout.
+
+    Partout is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*jslint node: true, nomen: true */
+'use strict';
+/*global p2*/
+
+// make parent node_modules available to sync'd manifest
+module.paths = module.paths.concat(module.parent.paths);
+
+var utils = p2.require('utils'),
+    u = require('util'),
+    fs = require('fs'),
+    path = require('path'),
+    heredoc = require('heredoc'),
+    uuid = require('uuid'),
+    Q = require('q'),
+    _ = require('lodash'),
+    printf = require('printf');
+
+p2
+
+/**
+ * @module openstack_flavor
+ *
+ * @description
+ * Role: openstack_flavor
+ * ================
+ * ```javascript
+ * .openstack_flavor('t1.tiny', {
+ *   ram: size_in_MBs,          // default 256MB (from openstack)
+ *   disk: size_in_GBs,         // default 0GB (from openstack)
+ *   ephemeral: size_in_GBs,   // default 0GB (from openstack)
+ *   swap: size_in_GBs,         // default 0GB (from openstack)
+ *   vcpus: num_vcpus,          // default 1 (from openstack)
+ *   rxtx: rxtx_factor,         // default 1.0 (from openstack)
+ *   private: true|false,       // default false
+ *   project: project,          // allow project to use flavor (req'd for private)
+ *   project_domain: project_domain,      // allow project to use flavor (req'd for private)
+ *   properties: [['key', 'value'], ...],   // properties to add to flavor
+ *   ensure: 'present|absent'
+ * })
+ * ```
+ */
+.role('openstack_flavor', {
+  facts: function (deferred, facts_so_far, title, opts) {
+    var facts = {};
+
+    // OS_TOKEN="2b3dd0d669e505d07af7" OS_URL="http://controller1:35357/v3" OS_IDENTITY_API_VERSION=3 openstack flavor list -f json
+
+    deferred.resolve(facts);
+  },
+
+  p2: function (title, opts) {
+
+    opts.ensure = opts.ensure ? opts.ensure : 'present';
+
+    // get status
+    return utils.runCmd(u.format('openstack flavor list -f json'))
+    .then(function (res) {
+      var rc = res[0],
+          stdout = res[1],
+          stderr = res[2];
+
+      if (rc !== 0) {
+        return Q.reject(new Error('openstack flavor list failed'));
+      }
+      stdout = stdout.trim();
+      //console.log('stdout:', stdout);
+
+      var flavors_list = JSON.parse((stdout || '[]')),
+          flavors_byName = {};
+      flavors_list.forEach(function (flavor) {
+        flavors_byName[flavor.Name] = flavor;
+      });
+
+      if (opts.ensure === 'present') {
+        if (!flavors_byName[title]) {
+          // create flavor
+          console.info('Creating openstack flavor ', title);
+          p2
+          .command(printf(
+            'openstack flavor create --ram %d --disk %d --ephemeral %d --swap %d --vcpus %d --rxtx-factor %.1f %s %s %s %s "%s"',
+            opts.ram || 256,
+            opts.disk || 0,
+            opts.ephemeral || 0,
+            opts.swap || 0,
+            opts.vcpus || 1,
+            opts.rxtx || 1.0,
+            (opts.private ? '--private' : '--public'),
+            (opts.project ? '--project' + opts.project : ''),
+            (opts.project_domain ? '--project-domain' + opts.project_domain : ''),
+            (function (properties) {
+              if (!properties) {
+                return '';
+              }
+              return _.reduce(properties, function (p) { return u.format(' --property %s=%s', p[0], p[1]); }, '');
+            })(opts.properties),
+            title
+          ));
+        }
+
+      } else if (opts.ensure === 'absent') {
+        if (flavors_byName[title]) {
+          // delete flavor
+          console.info('Deleting openstack flavor ', title);
+          p2
+          .command(u.format(
+            'openstack flavor delete "%s"',
+            title
+          ));
+        }
+
+      } else {
+        return Q.reject(new Error('Invalid ensure'));
+      }
+    });
+  }
+
+})
+
+;
