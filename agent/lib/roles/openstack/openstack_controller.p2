@@ -44,6 +44,7 @@ p2
 .include(path.join(__dirname, 'openstack_user'))
 .include(path.join(__dirname, 'openstack_role'))
 .include(path.join(__dirname, 'openstack_image'))
+.include(path.join(__dirname, 'openstack_flavor'))
 
 /**
  * @module openstack_controller
@@ -847,6 +848,7 @@ EOF
           core_plugin: 'ml2',
           notify_nova_on_port_data_changes: 'True',
           notify_nova_on_port_status_changes: 'True',
+          rpc_response_timeout: 240,
           service_plugins: 'router',
           transport_url: 'rabbit://openstack:{{ opts.parms.rabbit_pass }}@{{ f.os_hostname }}'
         },

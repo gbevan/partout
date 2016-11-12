@@ -27,6 +27,7 @@
 
 var console = require('better-console'),
     express = require('express'),
+    flash = require('connect-flash'),
     routerApi = express.Router(),
     routerUi = express.Router(),
     httpsApi = require('https'),
@@ -57,9 +58,26 @@ var console = require('better-console'),
     passport = require('passport'),
     ClientCertStrategy = require('passport-client-cert').Strategy,
     GitHubStrategy = require('passport-github2').Strategy,
-    printf = require('printf');
+    expressSession = require('express-session'),
+    printf = require('printf'),
+    randomart = require('randomart');
 
 Q.longStackSupport = true;
+
+// Passport session setup.
+//   To support persistent login sessions, Passport needs to be able to
+//   serialize users into and deserialize users out of the session.  Typically,
+//   this will be as simple as storing the user ID when serializing, and finding
+//   the user by ID when deserializing.  However, since this example does not
+//   have a database of user records, the complete GitHub profile is serialized
+//   and deserialized.
+passport.serializeUser(function(user, done) {
+  done(null, user);
+});
+
+passport.deserializeUser(function(obj, done) {
+  done(null, obj);
+});
 
 /**
  * Partout Master App provider
@@ -142,12 +160,14 @@ var serve = function (opts) {
 
       console.info('Starting Master API.');
 
+      var pubkey = pki.publicKeyFromPem(
+        fs.readFileSync(
+          ca.masterApiPublicKeyFile
+        )
+      );
+
       var master_fingerprint = pki.getPublicKeyFingerprint(
-        pki.publicKeyFromPem(
-          fs.readFileSync(
-            ca.masterApiPublicKeyFile
-          )
-        ),
+        pubkey,
         {
           encoding: 'hex',
           delimiter: ':',
@@ -157,6 +177,7 @@ var serve = function (opts) {
       console.info('');
       console.info(new Array(master_fingerprint.length + 1).join('='));
       console.info('Master API SSL fingerprint (SHA256):\n' + master_fingerprint);
+      console.info(randomart(pubkey));
       console.info(new Array(master_fingerprint.length + 1).join('='));
 
       db.connect()
@@ -262,15 +283,59 @@ var serve = function (opts) {
 
         appUi.opts = opts;
 
+        appUi.use(expressSession({ secret: 'SECRET'})); // TODO: move SECRET
+        appUi.use(passport.initialize());
+//        appUi.use(passport.session());
+        appUi.use(flash());
+
+        passport.use(
+          new GitHubStrategy(
+            {
+              clientID: cfg.GITHUB_CLIENT_ID,
+              clientSecret: cfg.GITHUB_CLIENT_SECRET,
+              callbackURL: 'https://192.168.0.64:11443/auth/github/callback'
+            },
+            function(accessToken, refreshToken, profile, done) {
+//              User.findOrCreate({ githubId: profile.id }, function (err, user) {
+//                return done(err, user);
+//              });
+              console.log('github profile:', profile);
+              done(null, profile);
+            }
+          )
+        );
+
+        appUi.get(
+          '/auth/github',
+          passport.authenticate('github', { scope: [ 'user:email' ] })
+        );
+
+        appUi.get(
+          '/auth/github/callback',
+          passport.authenticate('github', {
+            successRedirect: '/',
+            failureRedirect: '/login',
+            failureFlash: true
+
+//          function(req, res) {
+            // Successful authentication, redirect home.
+//            res.redirect('/');
+          })
+        );
+
         appUi.use(compression());
         routerUi.use(logger);
         appUi.use(bodyParser.json());
         appUi.use(bodyParser.urlencoded({ extended: true }));
 
-        require('./lib/ui/routes')(routerUi, cfg, db.getDb(), controllers, serverMetrics);
+        require('./lib/ui/routes')(routerUi, cfg, db.getDb(), controllers, serverMetrics, appUi);
 
         appUi.use('/', routerUi);
         appUi.use(express.static('public'));
+
+        appUi.set('views', 'public/views');
+        appUi.set('view engine', 'ejs');
+        appUi.engine('html', require('ejs').renderFile);
 
         httpsUi.createServer(optionsUi, appUi)
         .listen(cfg.partout_ui_port);

@@ -185,6 +185,7 @@ p2
       cfg: {
         linux_bridge: {
           //physical_interface_mappings: 'provider:veth1',
+          physical_interface_mappings: 'provider:veth1',
         },
         securitygroup: {
           enable_security_group: 'True',

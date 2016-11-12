@@ -10,18 +10,18 @@
   <div class="outerBody">
     <div class="banner">
       <pre>
-{{banner}}
+        <%= banner %>
       </pre>
     </div>
-    <h1>Partout {{role}}</h1>
+    <h1>Partout <%= role %></h1>
     <h2>Installing Agent:</h2>
     <p>on Linux / Unix (as root):</p>
     <pre>
-      bash <(curl -k -s "https://{{master_hostname}}:{{master_api_port}}/bootstrap?os=$(uname -s)")
+      bash <(curl -k -s "https://<%= master_hostname %>:<%= master_api_port %>/bootstrap?os=$(uname -s)")
     </pre>
     <p>or</p>
     <pre>
-      CWEB=wget bash <(wget --no-check-certificate -qO- "https://{{master_hostname}}:{{master_api_port}}/bootstrap?os=$(uname -s)")
+      CWEB=wget bash <(wget --no-check-certificate -qO- "https://<%= master_hostname %>:<%= master_api_port %>/bootstrap?os=$(uname -s)")
     </pre>
 
     <h2>Local Access to ArangoDB</h2>

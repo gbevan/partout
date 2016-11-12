@@ -35,7 +35,8 @@ var console = require('better-console'),
     pki = require('node-forge').pki,
     forge = require('node-forge'),
     readline = require('readline'),
-    deleteEmpty = require('delete-empty');
+    deleteEmpty = require('delete-empty'),
+    randomart = require('randomart');
 
 /**
  * @class
@@ -177,6 +178,7 @@ Policy_Sync.prototype.sync = function (srcfolder, destfolder) {
 
     console.warn(new Array(self.master_fingerprint.length + 1).join('='));
     console.warn('Master API SSL fingerprint (SHA256):\n' + self.master_fingerprint);
+    console.warn('randomart of master public key:\n' + randomart(self.server_cert_obj.publicKey));
     console.warn(new Array(self.master_fingerprint.length + 1).join('='));
 
     if (self.app.opts.yes) {
