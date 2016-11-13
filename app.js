@@ -26,12 +26,12 @@
 'use strict';
 
 var console = require('better-console'),
+    AppUi = require('./appUi.js'),
+    AppApi = require('./appApi.js'),
     express = require('express'),
     flash = require('connect-flash'),
-    routerApi = express.Router(),
-    routerUi = express.Router(),
-    httpsApi = require('https'),
-    httpsUi = require('https'),
+//    routerApi = express.Router(),
+//    httpsApi = require('https'),
     bodyParser = require('body-parser'),
     pki = require('node-forge').pki,
     forge = require('node-forge'),
@@ -47,8 +47,6 @@ var console = require('better-console'),
     ca = new (require('./lib/ca'))(),
     Q = require('q'),
     cfg = new (require('./etc/partout.conf.js'))(),
-    //arangojs = require('arangojs'),
-    //db = arangojs({promise: Q.promise}),
     db = new (require('./lib/db.js'))(cfg),
     Csr = require('./server/controllers/csr.js'),
     Agent = require('./server/controllers/agent.js'),
@@ -61,8 +59,6 @@ var console = require('better-console'),
     expressSession = require('express-session'),
     printf = require('printf'),
     randomart = require('randomart');
-
-Q.longStackSupport = true;
 
 // Passport session setup.
 //   To support persistent login sessions, Passport needs to be able to
@@ -127,6 +123,8 @@ var init = function () {
  * @memberof App
  */
 var serve = function (opts) {
+  var self = this;
+
   /**
    * Partout application server
    */
@@ -197,149 +195,13 @@ var serve = function (opts) {
         /****************************
          * Start Master API Server
          */
-
-//        passport.use(new ClientCertStrategy(function(clientCert, done) {
-//          console.log('client cert:', clientCert);
-//
-//          done(null, {something: true});
-//        }));
-
-        /**
-         * Express app for the Master API
-         * @class appApi
-         * @memberof App
-         */
-        var appApi = express(),
-          optionsApi = {
-            key: fs.readFileSync(ca.masterApiPrivateKeyFile),
-            cert: fs.readFileSync(ca.masterApiCertFile),
-            ca: [
-              fs.readFileSync(ca.agentSignerCertFile, 'utf8'),
-              fs.readFileSync(ca.intCertFile, 'utf8'),
-              fs.readFileSync(ca.rootCertFile, 'utf8')
-              // cert to verify agents
-
-              /*
-               * root cert placed in /usr/share/ca-certificates/partout and updated
-               * /etc/ca-certificates.conf to point to it.
-               * run update-ca-certificates
-               * only include intermediate ca here, and import this into
-               * browsers cert stores
-               */
-              //fs.readFileSync(ca.rootCertFile)
-            ],
-            requestCert: true,
-            rejectUnauthorized: false
-          };
-
-        appApi.opts = opts;
-
-//        appApi.use(passport.initialize());
-//        appApi.use(passport.authenticate('client-cert', {session: false}));
-
-        appApi.use(compression());
-        routerApi.use(logger);
-        appApi.use(bodyParser.json({limit: '50mb'}));
-        appApi.use(bodyParser.urlencoded({ extended: true }));
-
-        require('./lib/api/routes')(routerApi, cfg, db.getDb(), controllers, serverMetrics);
-
-        appApi.use('/', routerApi);
-        appApi.use(express.static('public'));
-
-        httpsApi.createServer(optionsApi, appApi)
-        .listen(cfg.partout_api_port);
-        console.info('Master API listening on port', cfg.partout_api_port);
-
+        var appApi = new AppApi(opts, passport, controllers);
 
         /****************************
          * Start Master UI Server
          */
+        var appUi = new AppUi(opts, passport);
 
-        /**
-         * Express app for the Master UI
-         * @class appUi
-         * @memberof App
-         */
-        var appUi = express(),
-          optionsUi = {
-            key: fs.readFileSync(ca.masterUiPrivateKeyFile),
-            cert: fs.readFileSync(ca.masterUiCertFile),
-            ca: [
-              fs.readFileSync(ca.intCertFile)
-
-              /*
-               * root cert placed in /usr/share/ca-certificates/partout and updated
-               * /etc/ca-certificates.conf to point to it.
-               * run update-ca-certificates
-               * only include intermediate ca here, and import this into
-               * browsers cert stores
-               */
-              //fs.readFileSync(ca.rootCertFile)
-            ],
-            requestCert: true,
-            rejectUnauthorized: false
-          };
-
-        appUi.opts = opts;
-
-        appUi.use(expressSession({ secret: 'SECRET'})); // TODO: move SECRET
-        appUi.use(passport.initialize());
-//        appUi.use(passport.session());
-        appUi.use(flash());
-
-        passport.use(
-          new GitHubStrategy(
-            {
-              clientID: cfg.GITHUB_CLIENT_ID,
-              clientSecret: cfg.GITHUB_CLIENT_SECRET,
-              callbackURL: 'https://192.168.0.64:11443/auth/github/callback'
-            },
-            function(accessToken, refreshToken, profile, done) {
-//              User.findOrCreate({ githubId: profile.id }, function (err, user) {
-//                return done(err, user);
-//              });
-              console.log('github profile:', profile);
-              done(null, profile);
-            }
-          )
-        );
-
-        appUi.get(
-          '/auth/github',
-          passport.authenticate('github', { scope: [ 'user:email' ] })
-        );
-
-        appUi.get(
-          '/auth/github/callback',
-          passport.authenticate('github', {
-            successRedirect: '/',
-            failureRedirect: '/login',
-            failureFlash: true
-
-//          function(req, res) {
-            // Successful authentication, redirect home.
-//            res.redirect('/');
-          })
-        );
-
-        appUi.use(compression());
-        routerUi.use(logger);
-        appUi.use(bodyParser.json());
-        appUi.use(bodyParser.urlencoded({ extended: true }));
-
-        require('./lib/ui/routes')(routerUi, cfg, db.getDb(), controllers, serverMetrics, appUi);
-
-        appUi.use('/', routerUi);
-        appUi.use(express.static('public'));
-
-        appUi.set('views', 'public/views');
-        appUi.set('view engine', 'ejs');
-        appUi.engine('html', require('ejs').renderFile);
-
-        httpsUi.createServer(optionsUi, appUi)
-        .listen(cfg.partout_ui_port);
-        console.info('Master UI listening on port', cfg.partout_ui_port);
 
       }).done();
     });
