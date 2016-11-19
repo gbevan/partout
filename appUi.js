@@ -128,7 +128,6 @@ var AppUi = function (opts, passport) {
          * only include intermediate ca here, and import this into
          * browsers cert stores
          */
-        //fs.readFileSync(ca.rootCertFile)
       ],
       requestCert: true,
       rejectUnauthorized: false
@@ -137,11 +136,19 @@ var AppUi = function (opts, passport) {
   self.app.opts = opts;
 
   self.app.configure(rest());
-  self.app.configure(socketio());
+  self.app.configure(socketio({
+    //transports: ['websocket', 'polling']
+  }));
 
   self.app.use(expressSession({ secret: 'SECRET'})); // TODO: move SECRET
+
+  self.app.use('/public', express.static('public'));
+  self.app.use('/dist', express.static('dist'));
+  self.app.use('/node_modules', express.static('node_modules'));
+  self.app.use('/systemjs.config.js', express.static('systemjs.config.js'));
+
   self.app.use(passport.initialize());
-//        self.app.use(passport.session());
+  self.app.use(passport.session());
   self.app.use(flash());
 
   passport.use(
@@ -169,8 +176,8 @@ var AppUi = function (opts, passport) {
   self.app.get(
     '/auth/github/callback',
     passport.authenticate('github', {
-      successRedirect: '/',
-      failureRedirect: '/login',
+      successRedirect: '/app',
+      failureRedirect: '/',
       failureFlash: true
 
 //          function(req, res) {
@@ -178,6 +185,14 @@ var AppUi = function (opts, passport) {
 //            res.redirect('/');
     })
   );
+
+  self.app.isAuthenticated = function (req, res, next) {
+    if (req.isAuthenticated()) {
+      return next();
+    } else {
+      res.send(401);
+    }
+  }
 
   self.app.use(compression());
   routerUi.use(logger);
@@ -205,7 +220,7 @@ var AppUi = function (opts, passport) {
     }
     //console.log('w data:', data);
 
-    self.app.use('/agents', service({
+    self.app.use('/agents', self.app.isAuthenticated, service({
       Model: data.collections.agents,
       paginate: {
         default: 2,
@@ -213,9 +228,11 @@ var AppUi = function (opts, passport) {
       }
     }));
 
-    httpsUi.createServer(optionsUi, self.app)
+    var server = httpsUi.createServer(optionsUi, self.app)
     .listen(cfg.partout_ui_port);
     console.info('Master UI listening on port', cfg.partout_ui_port);
+
+    var io = require('socket.io').listen(server);
   });
 
 };

@@ -1,5 +1,6 @@
 body {
   background-color: darkslategrey;
+  font-family: sans-serif;
 }
 
 .outerBody {
@@ -39,4 +40,14 @@ a {
 }
 a:hover {
   color: cyan;
+}
+
+.user_avatar {
+  -moz-border-radius: 5px;
+  border-radius: 5px;
+  width: 30px;
+}
+
+h1 {
+  font-variant: small-caps;
 }

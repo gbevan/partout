@@ -11,22 +11,22 @@
 
   <script src="node_modules/zone.js/dist/zone.js"></script>
   <script src="node_modules/reflect-metadata/Reflect.js"></script>
-<!--  <script src="node_modules/systemjs/dist/system.src.js"></script>-->
+
+  <script src="node_modules/systemjs/dist/system.src.js"></script>
 
   <!-- 2. Configure SystemJS -->
-<!--
   <script src="systemjs.config.js"></script>
   <script>
     System.import('dist/app').catch(function(err){ console.error(err); });
   </script>
--->
 
 </head>
 
 <body>
   <div class="outerBody">
+
     <nav role="navigation">
-      <a href="auth/github">login with github</a>
+      Welcome <%= user.displayName %>&nbsp;<img class="user_avatar" src=<%= user_avatarUrl %></img>,&nbsp;<a href="logout">logout</a>
     </nav>
 
     <div class="banner">
@@ -35,15 +35,13 @@
       </pre>
     </div>
     <h1>Partout <%= role %></h1>
-    <h2>Installing Agent:</h2>
-    <p>on Linux / Unix (as root):</p>
-    <pre>
-      bash <(curl -k -s "https://<%= master_hostname %>:<%= master_api_port %>/bootstrap?os=$(uname -s)")
-    </pre>
-    <p>or</p>
-    <pre>
-      CWEB=wget bash <(wget --no-check-certificate -qO- "https://<%= master_hostname %>:<%= master_api_port %>/bootstrap?os=$(uname -s)")
-    </pre>
+
+    <p>
+      <my-app>Loading...</my-app>
+    </p>
+
+    <h2>Local Access to ArangoDB</h2>
+    <a href="http://localhost:8529" target="_blank">Partout Database</a>
 
   <footer class="mainFooter">Copyright Graham Bevan &lt;graham.bevan@ntlworld.com&gt; - Licensed under the GNU General Public License Version 3 (GPLv3).</footer>
   </div>
