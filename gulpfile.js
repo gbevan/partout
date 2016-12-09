@@ -11,11 +11,22 @@ var gulp = require('gulp'),
     watch = require('gulp-watch'),
     batch = require('gulp-batch'),
     typescript = require('gulp-typescript'),
+    webpack = require('gulp-webpack'),
+    config = require('./webpack.config.js'),
     tsConfig = require('./tsconfig.json'),
     spawn = require('child_process').spawn,
-    sourcemaps = require('gulp-sourcemaps');
+    sourcemaps = require('gulp-sourcemaps'),
+    v8 = require('v8');
+
+//v8.setFlagsFromString('--trace_gc');
+//v8.setFlagsFromString('--max_old_space_size=2048');
+//v8.setFlagsFromString('--max_new_space_size=2048');
 
 var cp = null;
+
+//var DEBUG = 'feathers-authentication:main';
+//var DEBUG = 'sails-arangodb';
+var DEBUG = '';
 
 /*
  * Currently env does not determine the arangodb being selected here, as all
@@ -40,24 +51,44 @@ gulp.task('clean', function () {
 //  .pipe(gulp.dest('dist/lib'));
 //});
 
-gulp.task('compile', ['clean'], function () {
-  return gulp
-    .src('app/**/*.ts')
-    .pipe(sourcemaps.init())
-    .pipe(typescript(tsConfig.compilerOptions))
-    .pipe(sourcemaps.write('.'))
-    .pipe(gulp.dest('dist/app'));
+//gulp.task('compile', ['clean'], function () {
+//  return gulp
+//  .src('app/**/*.ts')
+//  .pipe(sourcemaps.init())
+//  .pipe(typescript(tsConfig.compilerOptions))
+//  .pipe(sourcemaps.write('.'))
+//  .pipe(gulp.dest('dist/app'));
+//});
+
+//gulp.task('app:css', ['compile'], function () {
+//  return gulp
+//  .src('app/**/*.css')
+//  .pipe(gulp.dest('dist/app'));
+//})
+
+gulp.task('webpack', ['clean'], function () {
+  return gulp.src('app/main.ts')
+  .pipe(webpack(config))
+  .pipe(gulp.dest('dist'))
+  ;
 });
 
-gulp.task('run', ['compile'], function (done) {
+//gulp.task('run', ['compile'], function (done) {
+gulp.task('run', ['webpack'], function (done) {
   // exec bin/partout
   console.log('starting partout');
-  cp = spawn('bin/partout', {env: {NODE_ENV: env}, stdio: 'inherit'});
+  cp = spawn('bin/partout', {
+    env: {
+      NODE_ENV: env,
+      DEBUG: DEBUG
+    }, stdio: 'inherit'
+  });
 
   done();
 });
 
-gulp.task('chain', ['clean', 'compile', 'run']);
+//gulp.task('chain', ['clean', 'compile', 'run']);
+gulp.task('chain', ['clean', 'webpack', 'run']);
 
 gulp.task('default', function () {
 //  plugins.nodemon({

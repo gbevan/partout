@@ -37,18 +37,27 @@ var console = require('better-console'),
     compression = require('compression'),
     bodyParser = require('body-parser'),
     morgan = require('morgan'),
-    logger = morgan('combined'),
+    logger = morgan('API :: :method :url :status :response-time ms - :res[content-length] bytes'),
+    passport = require('passport'),
     db = new (require('./lib/db.js'))(cfg),
     serverMetrics = new (require('./lib/server_metrics'))();
 
 Q.longStackSupport = true;
+
+passport.serializeUser(function(user, done) {
+  done(null, user);
+});
+
+passport.deserializeUser(function(obj, done) {
+  done(null, obj);
+});
 
 /**
  * Express app for the Master API
  * @class appApi
  * @memberof App
  */
-var AppApi = function (opts, passport, controllers) {
+var AppApi = function (opts, controllers) {
   var self = this;
 
   self.app = express();

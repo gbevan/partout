@@ -106,12 +106,10 @@ Common.prototype.drop = function () {
 Common.prototype.init = function () {
   var self = this;
 
-  //console.log('init for collection:', self.collectionName);
   self.collection = self.db.collection(self.collectionName);
 
   return self.db.listCollections()
   .then(function (collections) {
-    //console.log('collections:', collections);
     var colExists = false;
 
     if (collections) {
@@ -123,11 +121,8 @@ Common.prototype.init = function () {
     if (colExists) {
       return Q.resolve('exists');
     } else {
-      //console.log('calling create');
       return self.collection.create()
       .then(function () {
-        //console.log(self.collectionName, 'collection:', self.collection);
-        //console.info('Collection', self.collectionName, 'created');
         return Q.resolve('created');
       });
     }

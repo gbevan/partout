@@ -53,27 +53,11 @@ var console = require('better-console'),
     utils = require('./agent/lib/utils'),
     serverMetrics = new (require('./lib/server_metrics'))(),
     _ = require('lodash'),
-    passport = require('passport'),
     ClientCertStrategy = require('passport-client-cert').Strategy,
     GitHubStrategy = require('passport-github2').Strategy,
     expressSession = require('express-session'),
     printf = require('printf'),
     randomart = require('randomart');
-
-// Passport session setup.
-//   To support persistent login sessions, Passport needs to be able to
-//   serialize users into and deserialize users out of the session.  Typically,
-//   this will be as simple as storing the user ID when serializing, and finding
-//   the user by ID when deserializing.  However, since this example does not
-//   have a database of user records, the complete GitHub profile is serialized
-//   and deserialized.
-passport.serializeUser(function(user, done) {
-  done(null, user);
-});
-
-passport.deserializeUser(function(obj, done) {
-  done(null, obj);
-});
 
 /**
  * Partout Master App provider
@@ -195,12 +179,12 @@ var serve = function (opts) {
         /****************************
          * Start Master API Server
          */
-        var appApi = new AppApi(opts, passport, controllers);
+        var appApi = new AppApi(opts, controllers);
 
         /****************************
          * Start Master UI Server
          */
-        var appUi = new AppUi(opts, passport);
+        var appUi = new AppUi(opts, db);
 
 
       }).done();

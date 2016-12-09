@@ -12,5 +12,8 @@
   },
   "types": [
     "socket.io-client"
+  ],
+  "exclude": [
+    "node_modules"
   ]
 }

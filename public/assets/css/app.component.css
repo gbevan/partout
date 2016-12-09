@@ -1,0 +1,21 @@
+
+.app-top-toolbar {
+  -moz-border-radius: 5px;
+  border-radius: 5px;
+}
+
+.app-toolbar-filler {
+  flex: 1 1 auto;
+}
+
+.app-toolbar-sep:before {
+  content: '|';
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+.app-main-tab-group {
+  margin-top: 20px;
+}
+
+
