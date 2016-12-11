@@ -10,7 +10,7 @@
     Welcome {{ restService.getUser().name }}&nbsp;<img class="user_avatar" src="{{ restService.getUser().avatarUrl }}">
     <span class="app-toolbar-sep"></span>
     <button md-raised-button
-            color="warn"
+            color="accent"
             (click)="logout()">
       Logout
     </button>
@@ -19,37 +19,38 @@
 
 
   <md-tab-group class="app-main-tab-group">
-    <md-tab>
+    <md-tab class="p2-tab-label">
       <template md-tab-label>Dashboard</template>
-      <template md-tab-content>
         <h1>dashboard content goes here</h1>
         <p>...</p>
-      </template>
     </md-tab>
 
     <md-tab>
       <template md-tab-label>CSRs</template>
-      <template md-tab-content>
-        <h1>CSR Signing Requests:</h1>
-        <p>...</p>
-      </template>
+      <h1>New Agent CSR Signing Requests:</h1>
+      <button md-raised-button
+              color="primary"
+              (click)="refreshAgents()">Refresh</button>
+
+      <!-- Csr Table -->
+      <p2-table [config]="csrs_config"
+                [rows]="csrs">
+      </p2-table>
     </md-tab>
 
     <md-tab>
       <template md-tab-label>Agents</template>
-      <template md-tab-content>
-        <h1>Agents:</h1>
+      <h1>Agents:</h1>
+      <button md-raised-button
+              color="primary"
+              (click)="refreshAgents()">Refresh</button>
 
-        <!-- TODO: Agent Table -->
-
-  <!--
-      <p2-table [data]="data">
+      <!-- Agent Table -->
+      <p2-table [config]="agents_config"
+                [rows]="agents">
       </p2-table>
-  -->
-      </template>
-
     </md-tab>
-  </md-tab-group>
 
+  </md-tab-group>
 
 </div>

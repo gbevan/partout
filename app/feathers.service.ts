@@ -110,7 +110,7 @@ export class SocketService {
 
     console.log('SocketService socket connected socket:', this.socket);
     self._app = feathers()
-    .configure(socketio(self.socket))
+    .configure(socketio(self.socket, {timeout: 20000}))
     .configure(hooks())
     .configure(authentication({ storage: window.localStorage }));
   }

@@ -252,6 +252,7 @@ var AppUi = function (opts, db) {
     .configure(local())
     .configure(jwt())
     .use('/users', users)
+    .use('/agents', agents);
     ;
 
     self.app.service('authentication').hooks({
@@ -288,10 +289,6 @@ var AppUi = function (opts, db) {
     // Feathers services (REST + WebSockets)
 
 //    self.app.use('/agents', self.app.isAuthenticated, function (req, res, next) {
-    self.app.use('/agents', function (req, res, next) {
-//      console.log('agents req:', req);
-      next();
-    }, agents);
 
 //    self.app.use('/users', self.app.isAuthenticated, function (req, res, next) {
 
@@ -302,6 +299,14 @@ var AppUi = function (opts, db) {
         ],
         create: [
           local.hooks.hashPassword({ passwordField: 'password' })
+        ]
+      }
+    });
+
+    self.app.service('agents').hooks({
+      before: {
+        find: [
+          auth.hooks.authenticate('jwt')
         ]
       }
     });

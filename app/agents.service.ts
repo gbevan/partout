@@ -24,12 +24,12 @@ export class AgentsService {
     console.log('agents.services.ts _rest:', this._rest);
     console.log('agents.services.ts _socket:', this._socket);
 
-    this._socket.on('created', (newItem) => this.onCreated(newItem));
-    this._socket.on('updated', (updatedItem) => this.onUpdated(updatedItem));
-    this._socket.on('removed', (removedItem) => this.onRemoved(removedItem));
+//    this._socket.on('created', (newItem) => this.onCreated(newItem));
+//    this._socket.on('updated', (updatedItem) => this.onUpdated(updatedItem));
+//    this._socket.on('removed', (removedItem) => this.onRemoved(removedItem));
 
-    this.items$ = new Observable(observer => this.itemsObserver = observer)
-      .share();
+//    this.items$ = new Observable(observer => this.itemsObserver = observer)
+//      .share();
 
     this.dataStore = { items: [] };
   }
@@ -37,22 +37,16 @@ export class AgentsService {
   public find(query: any) {
     console.log('agents.service: find query:', query);
 //    return this._rest.find(query);
-    this._socket.find(query, (err, items: any[]) => {
-      console.log('!!!! find returns items:', items);
-      if (err) return console.error('agents::find:', err);
-
-      this.dataStore.items = items;
-      this.itemsObserver.next(this.dataStore.items);
-    });
+    return this._socket.find(query);
   }
 
   get(id: string, query: any) {
-    return this._rest.get(id, query);
+    return this._socket.get(id, query);
   }
 
-  create(message: any) {
-    return this._rest.create(message);
-  }
+//  create(message: any) {
+//    return this._rest.create(message);
+//  }
 
   remove(id: string, query: any) {
     return this._socket.remove(id, query);

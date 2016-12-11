@@ -25,8 +25,8 @@ var gulp = require('gulp'),
 var cp = null;
 
 //var DEBUG = 'feathers-authentication:main';
-//var DEBUG = 'sails-arangodb';
-var DEBUG = '';
+var DEBUG = 'sails-arangodb';
+//var DEBUG = '';
 
 /*
  * Currently env does not determine the arangodb being selected here, as all

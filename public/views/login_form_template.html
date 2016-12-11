@@ -1,11 +1,6 @@
 <h1>Partout</h1>
 
 <form action="action_page.php">
-<!--
-  <div class="imgcontainer">
-    <img src="img_avatar2.png" alt="Avatar" class="avatar">
-  </div>
--->
 
   <div class="container">
     <label><b>Email</b></label>
@@ -23,6 +18,7 @@
            [(ngModel)]="password" name="password">
 
     <button type="submit"
+            md-raised-button
             (click)="login()">Login</button>
 
 <!--    <input type="checkbox" checked="checked"> Remember me-->
@@ -31,14 +27,4 @@
          *ngIf="errorMsg !== ''">{{ errorMsg }}</div>
   </div>
 
-  State Rest: {{stateRest}}
-  <br>
-  State Socket: {{stateSock}}
-
-<!--
-  <div class="container" style="background-color:#f1f1f1">
-    <button type="button" class="cancelbtn">Cancel</button>
-    <span class="psw">Forgot <a href="#">password?</a></span>
-  </div>
--->
 </form>
