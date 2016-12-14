@@ -35,6 +35,16 @@ export class AppComponent {
         styles: {'font-family': 'monospace'}
       },
       {
+        field: 'platform',
+        title: 'Platform'
+//        innerHtmlFn:
+      },
+      {
+        field: 'os_family',
+        title: 'Operating System'
+//        innerHtmlFn:
+      },
+      {
         field: 'env',
         title: 'Environment'
       },
@@ -135,7 +145,7 @@ export class AppComponent {
       query: {
         // These arent yet supported by sails-arangodb, nor is pagination
         //$sort: { env: -1 },
-        $select: ['ip', 'env', 'lastSeen']  // works with gbevan/sails-arangodb
+        $select: ['ip', 'env', 'lastSeen', 'os_family', 'platform']  // works with gbevan/sails-arangodb
       }
     })
     .then(function (agents) {

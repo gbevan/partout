@@ -47,7 +47,9 @@ var Agent = function (db) {
     facts: 'object',
     ip: 'string',
     certInfo: 'object',
-    lastSeen: 'date'
+    lastSeen: 'date',
+    platform: 'string',
+    os_family: 'string'
   };
 
   return Agent.super_.call(self, db, 'agents');
