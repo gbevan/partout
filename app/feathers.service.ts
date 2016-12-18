@@ -9,6 +9,9 @@ const hooks           = require('feathers-hooks');
 const rest            = require('feathers-rest/client');
 const authentication  = require('feathers-authentication-client');
 
+const reactive        = require('feathers-reactive');
+const RxJS            = require('rxjs');
+
 ///////////////
 // REST
 import { Injectable } from '@angular/core';
@@ -111,6 +114,7 @@ export class SocketService {
     console.log('SocketService socket connected socket:', this.socket);
     self._app = feathers()
     .configure(socketio(self.socket, {timeout: 20000}))
+    .configure(reactive(RxJS, {}))
     .configure(hooks())
     .configure(authentication({ storage: window.localStorage }));
   }

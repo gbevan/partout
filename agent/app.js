@@ -166,9 +166,16 @@ var checkCert = function (master) {
                 deferred.resolve(true);
               })
               .done();
+            } else if (resp.status === 'rejected') {
+              console.error('Agent SSL CSR Rejected by Master, aborting...');
+              process.exit(1);
             } else {
-              deferred.resolve(false);
+              return deferred.resolve(false);
             }
+          })
+          .fail(function (err) {
+            console.error('Send CSR to master failed, err:', err);
+            return deferred.resolve(false);
           });
         }
       }).done();
@@ -425,7 +432,7 @@ module.exports = function (opts) {
             } else {
               setTimeout(function () {
                 reexec();
-              }, 60 * 1000); // TODO: Splay timing
+              }, 500 + (60 * 1000 * Math.random()));
             }
           })
           .done();

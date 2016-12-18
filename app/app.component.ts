@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { MdDialog, MdDialogRef, MdDialogConfig } from '@angular/material';
 import { RestService, SocketService } from './feathers.service';
 import { AgentsService } from './agents.service';
+import { CsrsService } from './csrs.service';
 import { ViewAgentComponent } from './viewAgent.component';
 
 // import { AppModule } from './app.module';
@@ -30,6 +31,10 @@ export class AppComponent {
         action: (id) => { this.viewAgent(id) }
       },
       {
+        field: 'os_hostname',
+        title: 'Hostname'
+      },
+      {
         field: 'ip',
         title: 'IP Address',
         styles: {'font-family': 'monospace'}
@@ -40,13 +45,64 @@ export class AppComponent {
 //        innerHtmlFn:
       },
       {
+        //field: 'os_family',  // TODO: no field - use whole row  for innerHtmlFn(row)
+        title: 'Operating System',
+        imgsrc: (row) => {
+//          if (value === 'debian') {
+//            return 'Debian';
+//          }
+          if (row.os_dist_name) {
+
+            if (row.os_dist_name.search(/centos/i) !== -1) {
+              return '/assets/images/logos/centos.png';
+
+            } else if (row.os_dist_name.search(/gentoo/i) !== -1) {
+              return '/assets/images/logos/gentoo.png';
+
+            } else if (row.os_dist_name.search(/oracle/i) !== -1) {
+              return '/assets/images/logos/oracle.png';
+
+            } else if (row.os_dist_name.search(/redhat/i) !== -1) {
+              return '/assets/images/logos/redhat.png';
+
+            } else if (row.os_dist_name.search(/suse/i) !== -1) {
+              return '/assets/images/logos/OpenSUSE.png';
+
+            } else if (row.os_dist_name.search(/ubuntu/i) !== -1) {
+              return '/assets/images/logos/ubuntu.png';
+            }
+          }
+
+          if (row.platform === 'linux') {
+            return '/assets/images/logos/Tux.png';
+
+          } else if (row.os_family === 'windows') {
+            return '/assets/images/logos/windows.png';
+          }
+          return '/assets/images/logos/unknown.png';
+        },
+        styles: {'height': '35px', 'text-align': 'center'}
+      },
+      {
+        field: 'os_dist_version_id',
+        title: 'OS Version'
+      },
+      {
         field: 'os_family',
-        title: 'Operating System'
-//        innerHtmlFn:
+        title: 'OS Family'
+      },
+      {
+        field: 'os_release',
+        title: 'OS Release'
+      },
+      {
+        field: 'os_arch',
+        title: 'Arch'
       },
       {
         field: 'env',
         title: 'Environment'
+//        action: (id) => { this.changeAgentEnv(id) }
       },
       {
         field: 'lastSeen',
@@ -64,18 +120,18 @@ export class AppComponent {
     columns: [
       {
         field: 'id',
-        title: 'ID',
-        action: (id) => { this.viewCsr(id) }
+        title: 'ID'
+//        action: (id) => { this.viewCsr(id) }
       },
       {
         field: 'ip',
         title: 'IP Address',
         styles: {'font-family': 'monospace'}
       },
-      {
-        field: 'csr',
-        title: 'CSR'
-      },
+//      {
+//        field: 'csr',
+//        title: 'CSR'
+//      },
       {
         field: 'lastSeen',
         title: 'Last Seen'
@@ -84,17 +140,21 @@ export class AppComponent {
         field: 'status',
         title: 'Status'
       },
+//      {
+//        field: 'cert',
+//        title: 'Cert'
+//      },
+//      {
+//        field: 'certPem',
+//        title: 'Cert Pem'
+//      },
       {
-        field: 'cert',
-        title: 'Cert'
+        action: (id) => { this.signCsr(id) },
+        value: 'Sign'
       },
       {
-        field: 'certPem',
-        title: 'Cert Pem'
-      },
-      {
-        action: (id, index) => { this.deleteAgent(id, index) },
-        value: 'Delete'
+        action: (id) => { this.rejectCsr(id) },
+        value: 'Reject'
       }
     ]
   };
@@ -124,6 +184,7 @@ export class AppComponent {
     private restService: RestService,
     private socketService: SocketService,
     private agentsService: AgentsService,
+    private csrsService: CsrsService,
     public dialog: MdDialog
   ) {
     console.log('app this:', this);
@@ -137,6 +198,11 @@ export class AppComponent {
     this.socketService.logout();
   }
 
+
+  /*****************************
+   * CSRs
+   */
+
   refreshAgents() {
     let self = this;
     console.log('app.components.ts: refreshAgents: self:', self);
@@ -145,16 +211,31 @@ export class AppComponent {
       query: {
         // These arent yet supported by sails-arangodb, nor is pagination
         //$sort: { env: -1 },
-        $select: ['ip', 'env', 'lastSeen', 'os_family', 'platform']  // works with gbevan/sails-arangodb
+        $select: [
+          'ip',
+          'env',
+          'lastSeen',
+          'os_family',
+          'os_dist_name',
+          'os_dist_version_id',
+          'os_release',
+          'os_hostname',
+          'os_arch',
+          'platform'
+        ]  // works with gbevan/sails-arangodb
       }
     })
-    .then(function (agents) {
+    .subscribe(agents => {
+      console.log('***** Agents rx subscribe:', agents);
       self.agents = agents.data;
-      console.log('self.agents:', self.agents);
-    })
-    .catch((err) => {
-      console.error('refreshAgents() err:', err);
     });
+//    .then(function (agents) {
+//      self.agents = agents.data;
+//      console.log('self.agents:', self.agents);
+//    })
+//    .catch((err) => {
+//      console.error('refreshAgents() err:', err);
+//    });
 
   }
 
@@ -178,11 +259,48 @@ export class AppComponent {
     this.agentsService.remove(id, {})
     .then((agent) => {
       console.log('deleteAgent() agent:', agent, 'index:', index);
-      this.agents.splice(index, 1);
+      //this.agents.splice(index, 1);
     })
     .catch((err) => {
       console.error('deleteAgent() err:', err);
     });
+  }
+
+
+  /*****************************
+   * CSRs
+   */
+
+  refreshCsrs() {
+    let self = this;
+    console.log('app.components.ts: refreshAgents: self:', self);
+
+    this.csrsService.find({
+      query: {
+        // These arent yet supported by sails-arangodb, nor is pagination
+        //$sort: { env: -1 },
+        $select: [
+          'ip',
+          'csr',
+          'lastSeen',
+          'status',
+          'cert',
+          'cert_pem'
+        ]  // works with gbevan/sails-arangodb
+      }
+    })
+    .subscribe(csrs => {
+      console.log('***** CSRs rx subscribe:', csrs);
+      self.csrs = csrs.data;
+    })
+//    .then(function (csrs) {
+//      self.csrs = csrs.data;
+//      console.log('self.csrs:', self.csrs);
+//    })
+//    .catch((err) => {
+//      console.error('refreshCsrs() err:', err);
+//    })
+    ;
   }
 
   viewCsr(id) {
@@ -201,5 +319,34 @@ export class AppComponent {
     });
     */
   }
+
+  signCsr(id) {
+    this.csrsService.get(id, {})
+    .then((csr) => {
+      console.log('signCsr: csr:', csr);
+      csr.status = 'signed';
+      this.csrsService.update(id, csr);
+    })
+    .catch((err) => {
+      console.error('signCsr() err:', err);
+    });
+  }
+
+  rejectCsr(id) {
+    this.csrsService.get(id, {})
+    .then((csr) => {
+      console.log('rejectCsr: csr:', csr);
+      csr.status = 'rejected';
+      this.csrsService.update(id, csr);
+    })
+    .catch((err) => {
+      console.error('rejectCsr() err:', err);
+    });
+
+  }
+
+//  changeAgentEnv(id) {
+//
+//  }
 
 }

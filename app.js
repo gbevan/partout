@@ -233,7 +233,7 @@ module.exports = function (opts) {
                 logrow = csrList[i]._key + ' : ' + csrList[i].status + ' : ' + csrList[i].ip + ' : ' + fingerprint + ' : ' + csrList[i].lastSeen;
 
             if (csrList[i].status === 'unsigned') {
-              console.warn(logrow);
+              console.log(logrow);
             } else {
               console.info(logrow);
             }
@@ -289,11 +289,11 @@ module.exports = function (opts) {
         }
         key = opts.args[1];
 
-        if (key === 'all') {
-          console.warn('rejecting all csrs...');
-          csr.deleteAll()
-          .done();
-        } else {
+//        if (key === 'all') {
+//          console.warn('rejecting all csrs...');
+//          csr.deleteAll()
+//          .done();
+//        } else {
           console.warn('rejecting csr for agent:', key);
 
           csr.query({_key: key})
@@ -307,13 +307,15 @@ module.exports = function (opts) {
             } else {
               cursor.next()
               .then(function (csrDoc) {
-                return csr.delete(csrDoc._key);
+                //return csr.delete(csrDoc._key);
+                csrDoc.status = 'rejected';
+                return csr.update(csrDoc);
               })
               .done();
             }
           })
           .done();
-        }
+//        }
 
       } else {
         console.error('Error: Unrecognised sub command');
@@ -393,7 +395,7 @@ module.exports = function (opts) {
         ));
 
         agents.forEach(function (a) {
-          var c = (a.env ? console.info : console.warn);
+          var c = (a.env ? console.info : console.log);
           c(printf(
             '%-36s %-15s %s %s -> %s',
             a._key,

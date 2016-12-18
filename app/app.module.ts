@@ -18,6 +18,7 @@ import { ViewAgentComponent }   from './viewAgent.component';
 // Feathers Services
 import { RestService, SocketService } from './feathers.service';
 import { AgentsService } from './agents.service';
+import { CsrsService } from './csrs.service';
 
 @NgModule({
   imports: [
@@ -28,9 +29,9 @@ import { AgentsService } from './agents.service';
     PaginationModule,
     PrettyJsonModule
   ],
-  declarations: [ AppComponent, P2TableComponent, LoginFormComponent, ViewAgentComponent ],
-  bootstrap:    [ AppComponent/*, P2TableComponent*/ ],
-  providers: [ SocketService, RestService, AgentsService ],
-  entryComponents: [ ViewAgentComponent ]
+  declarations:     [ AppComponent, P2TableComponent, LoginFormComponent, ViewAgentComponent ],
+  bootstrap:        [ AppComponent/*, P2TableComponent*/ ],
+  providers:        [ SocketService, RestService, AgentsService, CsrsService ],
+  entryComponents:  [ ViewAgentComponent ]
 })
 export class AppModule { }

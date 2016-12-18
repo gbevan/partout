@@ -7,12 +7,12 @@ export class AgentsService {
   private _socket;
   private _rest;
 
-  public items$: Observable<{}>;
-
-  private itemsObserver: Observer<any[]>;
-  private dataStore: {
-    items: any[]
-  };
+//  public items$: Observable<{}>;
+//
+//  private itemsObserver: Observer<any[]>;
+//  private dataStore: {
+//    items: any[]
+//  };
 
   constructor(
     private _socketService: SocketService,
@@ -21,8 +21,8 @@ export class AgentsService {
     this._rest = _restService.getService('agents');
     this._socket = _socketService.getService('agents');
 
-    console.log('agents.services.ts _rest:', this._rest);
-    console.log('agents.services.ts _socket:', this._socket);
+//    console.log('agents.services.ts _rest:', this._rest);
+//    console.log('agents.services.ts _socket:', this._socket);
 
 //    this._socket.on('created', (newItem) => this.onCreated(newItem));
 //    this._socket.on('updated', (updatedItem) => this.onUpdated(updatedItem));
@@ -31,11 +31,15 @@ export class AgentsService {
 //    this.items$ = new Observable(observer => this.itemsObserver = observer)
 //      .share();
 
-    this.dataStore = { items: [] };
+//    this.dataStore = { items: [] };
+
+    this._socket.rx({
+      listStrategy: 'smart'
+    });
   }
 
   public find(query: any) {
-    console.log('agents.service: find query:', query);
+//    console.log('agents.service: find query:', query);
 //    return this._rest.find(query);
     return this._socket.find(query);
   }
@@ -53,39 +57,39 @@ export class AgentsService {
   }
 
 
-  private getIndex(id: string): number {
-    let foundIndex = -1;
-
-    for (let i = 0; i < this.dataStore.items.length; i++) {
-      if (this.dataStore.items[i].id === id) {
-        foundIndex = i;
-      }
-    }
-
-    return foundIndex;
-  }
-
-  private onCreated(newItem: any) {
-    this.dataStore.items.push(newItem);
-
-    this.itemsObserver.next(this.dataStore.items);
-  }
-
-  private onUpdated(updatedItem: any) {
-    const index = this.getIndex(updatedItem.id);
-
-    this.dataStore.items[index] = updatedItem;
-
-    this.itemsObserver.next(this.dataStore.items);
-  }
-
-  private onRemoved(removedItem) {
-    const index = this.getIndex(removedItem.id);
-
-    this.dataStore.items.splice(index, 1);
-
-    this.itemsObserver.next(this.dataStore.items);
-  }
+//  private getIndex(id: string): number {
+//    let foundIndex = -1;
+//
+//    for (let i = 0; i < this.dataStore.items.length; i++) {
+//      if (this.dataStore.items[i].id === id) {
+//        foundIndex = i;
+//      }
+//    }
+//
+//    return foundIndex;
+//  }
+//
+//  private onCreated(newItem: any) {
+//    this.dataStore.items.push(newItem);
+//
+//    this.itemsObserver.next(this.dataStore.items);
+//  }
+//
+//  private onUpdated(updatedItem: any) {
+//    const index = this.getIndex(updatedItem.id);
+//
+//    this.dataStore.items[index] = updatedItem;
+//
+//    this.itemsObserver.next(this.dataStore.items);
+//  }
+//
+//  private onRemoved(removedItem) {
+//    const index = this.getIndex(removedItem.id);
+//
+//    this.dataStore.items.splice(index, 1);
+//
+//    this.itemsObserver.next(this.dataStore.items);
+//  }
 
 
 }

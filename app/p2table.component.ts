@@ -45,7 +45,7 @@ import { Component, Input, OnInit } from '@angular/core';
   </thead>
   <tbody>
     <tr *ngFor="let row of rows; let idx=index">
-      <td *ngFor="let column of config.columns">
+      <td *ngFor="let column of config.columns" class="p2Row">
 
         <button md-raised-button
                 class="p2TableFieldActionButton"
@@ -57,7 +57,11 @@ import { Component, Input, OnInit } from '@angular/core';
                 color="warn"
                 (click)="column.action(row.id, idx)">{{ column.value }}</button>
 
-        <span *ngIf="!column.action"
+        <img *ngIf="!column.action && column.imgsrc && column.imgsrc != ''"
+              [ngStyle]="setStyles(column)"
+              src="{{ column.imgsrc(row) }}">
+
+        <span *ngIf="!column.action && !column.imgsrc"
               [ngStyle]="setStyles(column)">{{ row[column.field] }}</span>
       </td>
     </tr>
@@ -72,6 +76,9 @@ import { Component, Input, OnInit } from '@angular/core';
 }
 .p2Heading {
   background-color: darkgray;
+}
+.p2Row {
+  vertical-align: middle;
 }
 .p2TableFieldActionButton {
   font-family: monospace;

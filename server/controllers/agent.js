@@ -36,6 +36,7 @@ var Q = require('q'),
  * _key = agent uuid
  *
  */
+// TODO: Convert to Waterline ORM
 var Agent = function (db) {
   var self = this;
 
@@ -49,7 +50,12 @@ var Agent = function (db) {
     certInfo: 'object',
     lastSeen: 'date',
     platform: 'string',
-    os_family: 'string'
+    os_family: 'string',
+    os_dist_name: 'string',
+    os_dist_version_id: 'string',
+    os_release: 'string',
+    os_hostname: 'string',
+    os_arch: 'string'
   };
 
   return Agent.super_.call(self, db, 'agents');

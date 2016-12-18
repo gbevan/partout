@@ -68,6 +68,7 @@ var Waterline = require('waterline'),
     service = require('feathers-waterline'),
     ORM = new Waterline(),
     Agents = require('./server/models/agents'),
+    Csrs = require('./server/models/csrs'),
     Profiles = require('./server/models/profiles'),
     Users = require('./server/models/users');
 
@@ -104,6 +105,7 @@ var AppUi = function (opts, db) {
   // FeathersJS
 
   ORM.loadCollection(Agents);
+  ORM.loadCollection(Csrs);
   ORM.loadCollection(Profiles);
   ORM.loadCollection(Users);
   ORM.initialize(self.waterline_config, function (err, data) {
@@ -117,8 +119,17 @@ var AppUi = function (opts, db) {
       Model: data.collections.agents,
       // pagination not yet supported by sails-arangodb
       paginate: {
-        default: 2,
-        max: 4
+        default: 10,
+        max: 10
+      }
+    });
+
+    const csrs = service({
+      Model: data.collections.csrs,
+      // pagination not yet supported by sails-arangodb
+      paginate: {
+        default: 10,
+        max: 10
       }
     });
 
@@ -126,8 +137,8 @@ var AppUi = function (opts, db) {
       Model: data.collections.users,
       // pagination not yet supported by sails-arangodb
       paginate: {
-        default: 2,
-        max: 4
+        default: 10,
+        max: 10
       }
     });
 
@@ -252,7 +263,8 @@ var AppUi = function (opts, db) {
     .configure(local())
     .configure(jwt())
     .use('/users', users)
-    .use('/agents', agents);
+    .use('/agents', agents)
+    .use('/csrs', csrs)
     ;
 
     self.app.service('authentication').hooks({
@@ -265,7 +277,7 @@ var AppUi = function (opts, db) {
 //          auth.hooks.authenticate('jwt')
 //        ]
       }
-    })
+    });
 
     self.app.use('/', routerUi);
 
@@ -281,7 +293,7 @@ var AppUi = function (opts, db) {
       master_hostname: cfg.partout_master_hostname,
       master_api_port: cfg.partout_api_port,
       role: 'master'
-    }
+    };
     self.app.engine('html', require('ejs').renderFile);
     self.app.use(errorHandler());
 
@@ -304,6 +316,14 @@ var AppUi = function (opts, db) {
     });
 
     self.app.service('agents').hooks({
+      before: {
+        find: [
+          auth.hooks.authenticate('jwt')
+        ]
+      }
+    });
+
+    self.app.service('csrs').hooks({
       before: {
         find: [
           auth.hooks.authenticate('jwt')
