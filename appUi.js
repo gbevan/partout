@@ -117,7 +117,6 @@ var AppUi = function (opts, db) {
 
     const agents = service({
       Model: data.collections.agents,
-      // pagination not yet supported by sails-arangodb
       paginate: {
         default: 10,
         max: 10
@@ -126,7 +125,6 @@ var AppUi = function (opts, db) {
 
     const csrs = service({
       Model: data.collections.csrs,
-      // pagination not yet supported by sails-arangodb
       paginate: {
         default: 10,
         max: 10
@@ -135,7 +133,6 @@ var AppUi = function (opts, db) {
 
     const users = service({
       Model: data.collections.users,
-      // pagination not yet supported by sails-arangodb
       paginate: {
         default: 10,
         max: 10
@@ -248,7 +245,6 @@ var AppUi = function (opts, db) {
     .set('query parser', 'extended')
     .use(cookieParser())
 
-
     .configure(
       auth({
         secret: cfg.token.secret,
@@ -327,6 +323,39 @@ var AppUi = function (opts, db) {
       before: {
         find: [
           auth.hooks.authenticate('jwt')
+        ],
+        update: [
+          (options) => {
+            return new Promise((resolve, reject) => {
+
+              if (options.data.status === 'signed' && !options.data.cert) {
+                console.log('signing csr');
+                ca.signCsrWithAgentSigner(options.data.csr, options.data.id)  // sign adding key/uuid as given name
+                .then(function (signed) {
+                  console.info('Signed cert from csr:\n' + signed.certPem);
+
+                  // return to agent via the csr document in db
+                  options.data.cert = signed.cert;
+                  options.data.certPem = signed.certPem;
+
+//                  console.log('csr signed, options:', options);
+                  resolve(options);
+                })
+                .fail(err => {
+                  console.error(err);
+                  reject(err);
+                });
+
+              } else if (options.data.status === 'rejected' && options.data.cert) {
+                delete options.data.cert;
+                delete options.data.certPem;
+
+                resolve(options);
+              } else {
+                resolve();
+              }
+            });
+          }
         ]
       }
     });

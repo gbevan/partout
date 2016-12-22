@@ -34,7 +34,7 @@ export class AgentsService {
 //    this.dataStore = { items: [] };
 
     this._socket.rx({
-      listStrategy: 'smart'
+      listStrategy: 'always'
     });
   }
 

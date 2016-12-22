@@ -51,10 +51,12 @@ const Csrs = Waterline.Collection.extend({
       type: 'string'
     },
     cert: {
-      type: 'object'
+      type: 'object',
+      default: null
     },
     certPem: {
-      type: 'string'
+      type: 'string',
+      default: null
     },
 
   }

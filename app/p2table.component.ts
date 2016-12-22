@@ -1,9 +1,7 @@
 // Learning from https://github.com/valor-software/ng2-table (MIT License)
 
 import { Component, Input, OnInit } from '@angular/core';
-//import { PaginationModule } from 'ng2-bootstrap/ng2-bootstrap';
-
-// import { AppModule } from './app.module';
+import { SocketService } from './feathers.service';
 
 /*
  * config = {
@@ -44,7 +42,7 @@ import { Component, Input, OnInit } from '@angular/core';
     </tr>
   </thead>
   <tbody>
-    <tr *ngFor="let row of rows; let idx=index">
+    <tr *ngFor="let row of data.data; let idx=index">
       <td *ngFor="let column of config.columns" class="p2Row">
 
         <button md-raised-button
@@ -67,6 +65,11 @@ import { Component, Input, OnInit } from '@angular/core';
     </tr>
   </tbody>
 </table>
+<div class="p2Pager">
+  <pagination [(ngModel)]="currentPage"
+              [totalItems]="data.total"
+              (pageChanged)="pageChanged($event)"></pagination>
+</div>
 
 `,
   styles: [`
@@ -83,15 +86,64 @@ import { Component, Input, OnInit } from '@angular/core';
 .p2TableFieldActionButton {
   font-family: monospace;
 }
+.p2Pager {
+  text-align: center;
+}
 `]
 })
 
 export class P2TableComponent {
 
-  @Input() config: Object;
-  @Input() rows: Array<any>;
+  @Input() config: any;
+//  @Input() rxservice: SocketService;
+  @Input() rxservice: any;  // a feathers-reactive service
+
+  private data: Object;
+  private currentPage: number;
 
   public constructor() {
+    this.data = {};
+    this.currentPage = 1;
+  }
+
+  private _select() {
+    return this.config.columns.map(col => {
+      if (!col.field) return null;
+      return col.field;
+    })
+    .filter(f => { return f !== null });
+  }
+
+  private pageChanged(event:any):void {
+    console.log('pageChanged: currentPage:', this.currentPage,
+                'event.page:', event.page,
+                'event.itemsPerPage:', event.itemsPerPage);
+
+    this.rxservice.find({
+      query: {
+        $select: this._select(),
+        $skip: (event.page - 1) * event.itemsPerPage
+      }
+    })
+    .subscribe(data => {
+      console.log('***** Rows rx subscribe:', data);
+      this.data = data;
+    });
+  }
+
+  ngOnInit() {
+    console.log('ngOnInit rxservice:', this.rxservice);
+
+    console.log('select:', this._select());
+    this.rxservice.find({
+      query: {
+        $select: this._select()
+      }
+    })
+    .subscribe(data => {
+      console.log('***** Rows rx subscribe:', data);
+      this.data = data;
+    });
   }
 
   setStyles(column) {

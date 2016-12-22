@@ -1,9 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewContainerRef } from '@angular/core';
 import { MdDialog, MdDialogRef, MdDialogConfig } from '@angular/material';
 import { RestService, SocketService } from './feathers.service';
 import { AgentsService } from './agents.service';
 import { CsrsService } from './csrs.service';
 import { ViewAgentComponent } from './viewAgent.component';
+import { ViewCsrComponent } from './viewCsr.component';
 
 // import { AppModule } from './app.module';
 
@@ -120,8 +121,8 @@ export class AppComponent {
     columns: [
       {
         field: 'id',
-        title: 'ID'
-//        action: (id) => { this.viewCsr(id) }
+        title: 'ID',
+        action: (id) => { this.viewCsr(id) }
       },
       {
         field: 'ip',
@@ -159,18 +160,9 @@ export class AppComponent {
     ]
   };
 
-  dialogRef: MdDialogRef<ViewAgentComponent>;
-  config: MdDialogConfig = {
-//    disableClose: false,
-//    width: '800px',
-//    height: '500px',
-//    position: {
-//      top: '',
-//      bottom: '',
-//      left: '',
-//      right: ''
-//    }
-  };
+  agentDialogRef: MdDialogRef<ViewAgentComponent>;
+  csrDialogRef: MdDialogRef<ViewCsrComponent>;
+  config: MdDialogConfig;
 
 //  public config: any = {
 //    className: ['table-striped', 'table-bordered'],
@@ -183,14 +175,19 @@ export class AppComponent {
   constructor(
     private restService: RestService,
     private socketService: SocketService,
-    private agentsService: AgentsService,
-    private csrsService: CsrsService,
-    public dialog: MdDialog
+    public agentsService: AgentsService,
+    public csrsService: CsrsService,
+    public dialog: MdDialog,
+    private viewContainerRef: ViewContainerRef
   ) {
     console.log('app this:', this);
-    setTimeout(function () {
-      console.log('restService user:', restService.getUser());
-    }, 2000);
+
+    this.config = new MdDialogConfig();
+    this.config.viewContainerRef = this.viewContainerRef; // for mdDialog
+
+//    setTimeout(function () {
+//      console.log('restService user:', restService.getUser());
+//    }, 2000);
   }
 
   logout() {
@@ -200,55 +197,14 @@ export class AppComponent {
 
 
   /*****************************
-   * CSRs
+   * Agents
    */
 
-  refreshAgents() {
-    let self = this;
-    console.log('app.components.ts: refreshAgents: self:', self);
-
-    this.agentsService.find({
-      query: {
-        // These arent yet supported by sails-arangodb, nor is pagination
-        //$sort: { env: -1 },
-        $select: [
-          'ip',
-          'env',
-          'lastSeen',
-          'os_family',
-          'os_dist_name',
-          'os_dist_version_id',
-          'os_release',
-          'os_hostname',
-          'os_arch',
-          'platform'
-        ]  // works with gbevan/sails-arangodb
-      }
-    })
-    .subscribe(agents => {
-      console.log('***** Agents rx subscribe:', agents);
-      self.agents = agents.data;
-    });
-//    .then(function (agents) {
-//      self.agents = agents.data;
-//      console.log('self.agents:', self.agents);
-//    })
-//    .catch((err) => {
-//      console.error('refreshAgents() err:', err);
-//    });
-
-  }
-
   viewAgent(id) {
-    console.log('viewAgent() id:', id);
-    console.log('viewAgent() this:', this);
-
     this.agentsService.get(id, {})
     .then((agent) => {
-      console.log('viewAgent() agent:', agent);
-      this.dialogRef = this.dialog.open(ViewAgentComponent, this.config)
-      this.dialogRef.componentInstance.setAgent(agent);
-      console.log('app viewAgent this.dialogRef:', this.dialogRef);
+      this.agentDialogRef = this.dialog.open(ViewAgentComponent, this.config)
+      this.agentDialogRef.componentInstance.setAgent(agent);
     })
     .catch((err) => {
       console.error('viewAgent() err:', err);
@@ -259,7 +215,6 @@ export class AppComponent {
     this.agentsService.remove(id, {})
     .then((agent) => {
       console.log('deleteAgent() agent:', agent, 'index:', index);
-      //this.agents.splice(index, 1);
     })
     .catch((err) => {
       console.error('deleteAgent() err:', err);
@@ -271,53 +226,15 @@ export class AppComponent {
    * CSRs
    */
 
-  refreshCsrs() {
-    let self = this;
-    console.log('app.components.ts: refreshAgents: self:', self);
-
-    this.csrsService.find({
-      query: {
-        // These arent yet supported by sails-arangodb, nor is pagination
-        //$sort: { env: -1 },
-        $select: [
-          'ip',
-          'csr',
-          'lastSeen',
-          'status',
-          'cert',
-          'cert_pem'
-        ]  // works with gbevan/sails-arangodb
-      }
-    })
-    .subscribe(csrs => {
-      console.log('***** CSRs rx subscribe:', csrs);
-      self.csrs = csrs.data;
-    })
-//    .then(function (csrs) {
-//      self.csrs = csrs.data;
-//      console.log('self.csrs:', self.csrs);
-//    })
-//    .catch((err) => {
-//      console.error('refreshCsrs() err:', err);
-//    })
-    ;
-  }
-
   viewCsr(id) {
-    console.log('viewCsr() id:', id);
-    console.log('viewCsr() this:', this);
-    /*
-    this.agentsService.get(id, {})
-    .then((agent) => {
-      console.log('viewCsr() agent:', agent);
-      this.dialogRef = this.dialog.open(ViewAgentComponent, this.config)
-      this.dialogRef.componentInstance.setAgent(agent);
-      console.log('app viewCsr this.dialogRef:', this.dialogRef);
+    this.csrsService.get(id, {})
+    .then((csr) => {
+      this.csrDialogRef = this.dialog.open(ViewCsrComponent, this.config)
+      this.csrDialogRef.componentInstance.setCsr(csr);
     })
     .catch((err) => {
       console.error('viewCsr() err:', err);
     });
-    */
   }
 
   signCsr(id) {

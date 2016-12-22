@@ -21,34 +21,44 @@
   <md-tab-group class="app-main-tab-group">
     <md-tab class="p2-tab-label">
       <template md-tab-label>Dashboard</template>
+      <template md-tab-content>
         <h1>dashboard content goes here</h1>
         <p>...</p>
+      </template>
     </md-tab>
 
     <md-tab>
       <template md-tab-label>CSRs</template>
-      <h1>New Agent CSR Signing Requests:</h1>
-      <button md-raised-button
-              color="primary"
-              (click)="refreshCsrs()">Refresh</button>
+      <template md-tab-content>
+        <h1>New Agent CSR Signing Requests:</h1>
+<!--
+        <button md-raised-button
+                color="primary"
+                (click)="refreshCsrs()">Refresh</button>
+-->
 
-      <!-- Csr Table -->
-      <p2-table [config]="csrs_config"
-                [rows]="csrs">
-      </p2-table>
+        <!-- Csr Table -->
+        <p2-table [config]="csrs_config"
+                  [rxservice]="csrsService">
+        </p2-table>
+      </template>
     </md-tab>
 
     <md-tab>
       <template md-tab-label>Agents</template>
-      <h1>Agents:</h1>
-      <button md-raised-button
-              color="primary"
-              (click)="refreshAgents()">Refresh</button>
+      <template md-tab-content>
+        <h1>Agents:</h1>
+<!--
+        <button md-raised-button
+                color="primary"
+                (click)="refreshAgents()">Refresh</button>
+-->
 
-      <!-- Agent Table -->
-      <p2-table [config]="agents_config"
-                [rows]="agents">
-      </p2-table>
+        <!-- Agent Table -->
+        <p2-table [config]="agents_config"
+                  [rxservice]="agentsService">
+        </p2-table>
+      </template>
     </md-tab>
 
   </md-tab-group>

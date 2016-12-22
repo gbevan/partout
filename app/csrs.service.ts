@@ -15,7 +15,7 @@ export class CsrsService {
     this._socket = _socketService.getService('csrs');
 
     this._socket.rx({
-      listStrategy: 'always'
+      listStrategy: 'smart'
     });
   }
 

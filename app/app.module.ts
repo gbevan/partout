@@ -5,15 +5,15 @@ import { BrowserModule } from '@angular/platform-browser';
 import { Ng2BootstrapModule } from 'ng2-bootstrap/ng2-bootstrap';
 //import { PaginationModule } from 'ng2-bootstrap/ng2-bootstrap';
 import { PaginationModule } from 'ng2-bootstrap/components/pagination';
-//import {Ng2PaginationModule} from 'ng2-pagination';
-//import { Ng2TableModule } from 'ng2-table/ng2-table';
-import {PrettyJsonModule} from 'angular2-prettyjson';
+//import { PaginationModule } from 'ng2-bootstrap';
+import { PrettyJsonModule } from 'angular2-prettyjson';
 
 import { AppComponent }   from './app.component';
 import { LoginFormComponent }   from './login-form.component';
 
 import { P2TableComponent }   from './p2table.component';
 import { ViewAgentComponent }   from './viewAgent.component';
+import { ViewCsrComponent }   from './viewCsr.component';
 
 // Feathers Services
 import { RestService, SocketService } from './feathers.service';
@@ -29,9 +29,9 @@ import { CsrsService } from './csrs.service';
     PaginationModule,
     PrettyJsonModule
   ],
-  declarations:     [ AppComponent, P2TableComponent, LoginFormComponent, ViewAgentComponent ],
+  declarations:     [ AppComponent, P2TableComponent, LoginFormComponent, ViewAgentComponent, ViewCsrComponent ],
   bootstrap:        [ AppComponent/*, P2TableComponent*/ ],
   providers:        [ SocketService, RestService, AgentsService, CsrsService ],
-  entryComponents:  [ ViewAgentComponent ]
+  entryComponents:  [ ViewAgentComponent, ViewCsrComponent ]
 })
 export class AppModule { }
