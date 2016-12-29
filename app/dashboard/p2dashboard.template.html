@@ -1,0 +1,31 @@
+<h2>CSRs</h2>
+
+<md-grid-list cols="3">
+  <md-grid-tile>
+    <pie-chart title="By Status"
+             [rxservice]="csrsAllService"
+             [field]="'status'"></pie-chart>
+  </md-grid-tile>
+</md-grid-list>
+
+<h2>Agents</h2>
+
+<md-grid-list cols="3">
+  <md-grid-tile>
+    <pie-chart title="By Environment"
+             [rxservice]="agentsAllService"
+             [field]="'env'"></pie-chart>
+  </md-grid-tile>
+
+  <md-grid-tile>
+    <pie-chart title="By OS Family"
+               [rxservice]="agentsAllService"
+               [field]="'os_family'"></pie-chart>
+  </md-grid-tile>
+
+  <md-grid-tile>
+    <pie-chart title="By OS Distribution"
+               [rxservice]="agentsAllService"
+               [field]="'os_dist_name'"></pie-chart>
+  </md-grid-tile>
+</md-grid-list>

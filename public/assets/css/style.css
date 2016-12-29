@@ -1,42 +1,71 @@
+@import '/node_modules/@angular/material/core/theming/prebuilt/deeppurple-amber.css';
+
 body {
-  background-color: darkslategrey;
+  background-color: #dddddd;
+/*  font-family: sans-serif;*/
 }
 
 .outerBody {
-  background-color: #383838;
+  background-color: whitesmoke;
   -moz-border-radius: 15px;
   border-radius: 15px;
-  color: azure;
+/*  color: azure;*/
   margin: 20px;
   padding: 10px;
-  width: 900px;
+/*  text-align: center;*/
+/*  width: 900px;*/
 }
 
 .banner {
-  /*border: 2px solid black;*/
-  border-bottom: 2px solid black;
-  -moz-border-radius: 10px;
-  border-radius: 10px;
-  border-top: 2px solid black;
   color: burlywood;
   text-align: center;
 }
 
 .mainFooter {
-  border-bottom: 2px solid black;
-  -moz-border-radius: 10px;
-  border-radius: 10px;
-  border-top: 2px solid black;
+  bottom: 0;
   color: #437474;
   font-size: 8pt;
-  margin-top: 20px;
   padding: 2px;
-  text-align: center;
+  position: absolute;
+  text-align: left;
 }
 
+/*
 a {
   color: #9cd1ff;
 }
 a:hover {
   color: cyan;
+}
+*/
+
+.navbar {
+
+}
+
+.navtop {
+
+}
+
+.navtop_item {
+  vertical-align: middle;
+}
+
+.navtop_right {
+  position: absolute;
+  right: 40px;
+}
+
+.user_avatar {
+  -moz-border-radius: 5px;
+  border-radius: 5px;
+  height: 30px;
+}
+
+h1 {
+  font-variant: small-caps;
+}
+
+.app-container {
+  bottom: 20px;
 }

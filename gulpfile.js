@@ -9,7 +9,26 @@ var gulp = require('gulp'),
     jsdoc = require('gulp-jsdoc3'),
     del = require('del'),
     watch = require('gulp-watch'),
-    batch = require('gulp-batch');
+    batch = require('gulp-batch'),
+    typescript = require('gulp-typescript'),
+    webpack = require('gulp-webpack'),
+    config = require('./webpack.config.js'),
+    tsConfig = require('./tsconfig.json'),
+    spawn = require('child_process').spawn,
+    sourcemaps = require('gulp-sourcemaps'),
+    v8 = require('v8');
+
+//v8.setFlagsFromString('--trace_gc');
+//v8.setFlagsFromString('--max_old_space_size=2048');
+//v8.setFlagsFromString('--max_new_space_size=2048');
+
+var cp = null;
+
+//var DEBUG = 'feathers-authentication:main';
+//var DEBUG = 'feathers-authentication:authentication:utils';
+var DEBUG = 'sails-arangodb';
+//var DEBUG = 'feathers-authentication-local:verify';
+//var DEBUG = '';
 
 /*
  * Currently env does not determine the arangodb being selected here, as all
@@ -19,13 +38,91 @@ var gulp = require('gulp'),
  */
 var env = process.env.NODE_ENV || 'development';
 
-gulp.task('default', function () {
-  plugins.nodemon({
-    script: 'bin/partout',
-    env: { 'NODE_ENV': env},
-    ignore: ['node_modules', 'agent'],
-    nodeArgs: ['--debug']
+gulp.task('clean', function () {
+  return del('dist/**/*');
+});
+
+// copy dependencies
+//gulp.task('copy:libs', ['clean'], function() {
+//  return gulp.src([
+//    'node_modules/core-js/client/shim.min.js',
+//    'node_modules/zone.js/dist/zone.js',
+//    'node_modules/reflect-metadata/Reflect.js',
+//    'node_modules/systemjs/dist/system.src.js'
+//  ])
+//  .pipe(gulp.dest('dist/lib'));
+//});
+
+//gulp.task('compile', ['clean'], function () {
+//  return gulp
+//  .src('app/**/*.ts')
+//  .pipe(sourcemaps.init())
+//  .pipe(typescript(tsConfig.compilerOptions))
+//  .pipe(sourcemaps.write('.'))
+//  .pipe(gulp.dest('dist/app'));
+//});
+
+//gulp.task('app:css', ['compile'], function () {
+//  return gulp
+//  .src('app/**/*.css')
+//  .pipe(gulp.dest('dist/app'));
+//})
+
+gulp.task('webpack', ['clean'], function () {
+  return gulp.src('app/main.ts')
+  .pipe(webpack(config))
+  .pipe(gulp.dest('dist'))
+  ;
+});
+
+//gulp.task('run', ['compile'], function (done) {
+gulp.task('run', ['webpack'], function (done) {
+  // exec bin/partout
+  console.log('starting partout');
+  cp = spawn('bin/partout', {
+    env: {
+      NODE_ENV: env,
+      DEBUG: DEBUG
+    }, stdio: 'inherit'
   });
+
+  done();
+});
+
+//gulp.task('chain', ['clean', 'compile', 'run']);
+gulp.task('chain', ['clean', 'webpack', 'run']);
+
+gulp.task('default', function () {
+//  plugins.nodemon({
+//    script: 'bollocks',
+//    ignore: ['node_modules', 'agent', 'dist'],
+//    tasks: ['clean'/*, 'copy:libs', 'compile', 'run'*/]
+//  });
+  watch([
+    'gulpfile.js',
+    'systemjs.config.js',
+    'app.js',
+    'appApi.js',
+    'appUi.js',
+    'app/**',
+    'lib/**',
+    'etc/*.js',
+    'agent/lib/*.js',
+    'server/**/*.js',
+    'public/**/*.js',
+    //'public/views/*.html',
+    'test/**'
+  ], {
+    ignoreInitial: false,
+    verbose: true,
+    readDelay: 1500 // filter duplicate changed events from Brackets
+  }, batch(function (events, done) {
+    if (cp) {
+      console.log('killing');
+      cp.kill();
+    }
+    gulp.start('chain', done);
+  }));
 });
 
 gulp.task('mocha', function () {

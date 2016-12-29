@@ -103,6 +103,12 @@ Quick Sign All Pending Agent SSL CSRs
 
     bin/partout csr | grep unsigned | awk '{print $1;}' | xargs -i@ bin/partout csr sign @; bin/partout csr
 
+Workaround for OOM in gulp
+--------------------------
+```bash
+node --max-old-space-size=2000 ./node_modules/.bin/gulp
+```
+
 ----
 
 COPYRIGHT
