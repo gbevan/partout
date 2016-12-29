@@ -56,7 +56,18 @@ const Agents = Waterline.Collection.extend({
 
     lastSeen: {
       type: 'date'
-    }
+    },
+
+    platform: {
+      type: 'string'
+    },
+
+    os_release: { type: 'string' },
+    os_arch: { type: 'string' },
+    os_family: { type: 'string' },
+    os_dist_version_id: { type: 'string' },
+    os_dist_name: { type: 'string' },
+    os_hostname: { type: 'string' }
 
   }
 });

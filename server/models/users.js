@@ -36,12 +36,18 @@ const Users = Waterline.Collection.extend({
 
   attributes: {
 
+    id: {
+      type: 'string',
+      primaryKey: true,
+      columnName: '_key'
+    },
+
     provider: { // local, github, etc
       type: 'string'
       //required: true
     },
 
-    email: {
+    username: {
       type: 'string',
       required: true
     },

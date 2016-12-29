@@ -13,8 +13,8 @@ import { Subscription } from 'rxjs';
 })
 export class LoginFormComponent implements OnInit {
   // TODO: Remove these test details
-  email = 'admin@feathersjs.com';
-  password = 'admin';
+  user = '';
+  password = '';
   stateRest = '';
   stateSock = '';
   errorMsg = '';
@@ -25,11 +25,11 @@ export class LoginFormComponent implements OnInit {
   }
 
   login() {
-    console.log('login() from login');
+    console.log('login() from login user:', this.user, 'password:', this.password);
     this.errorMsg = '';
 
     // Login Rest Service
-    this.restService.login(this.email, this.password)
+    this.restService.login(this.user, this.password)
     .then((result) => {
       this.stateRest = result;
     })
@@ -39,7 +39,7 @@ export class LoginFormComponent implements OnInit {
     });
 
     // Login Socket Service
-    this.socketService.login(this.email, this.password)
+    this.socketService.login(this.user, this.password)
     .then((result) => {
       this.stateSock = result;
     })

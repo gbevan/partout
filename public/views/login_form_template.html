@@ -3,12 +3,13 @@
 <form action="action_page.php">
 
   <div class="container">
-    <label><b>Email</b></label>
+    <label><b>User Name</b></label>
     <input type="text"
-           placeholder="Enter Email"
-           id="email"
+           placeholder="Enter User Name"
+           id="user"
            required
-           [(ngModel)]="email" name="email">
+           autofocus
+           [(ngModel)]="user" name="user">
 
     <label><b>Password</b></label>
     <input type="password"

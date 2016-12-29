@@ -34,10 +34,11 @@ export class RestService {
     self._app = feathers() // Initialize feathers
     .configure(rest(HOST).superagent(superagent)) // Fire up rest
     .configure(hooks()) // Configure feathers-hooks
-    .configure(authentication());
+//    .configure(authentication());
+    .configure(authentication({ storage: window.localStorage }));
   }
 
-  login(email, password) {
+  login(username, password) {
     var self = this;
     self.loggedIn = false;
 
@@ -45,7 +46,7 @@ export class RestService {
 
       self._app.authenticate({
         strategy: 'local',
-        email: email,
+        username: username,
         password: password
       })
       .then(response => {
@@ -53,17 +54,18 @@ export class RestService {
         return self._app.passport.verifyJWT(response.accessToken);
       })
       .then(payload => {
-        console.log('JWT Payload', payload);
+        console.log('Rest JWT Payload', payload, 'userId:', payload.userId);
         return self._app.service('users').get(payload.userId);
       })
       .then(user => {
-        self._app.set('user', user.data[0]);
-        console.log('User', self._app.get('user'));
+        console.log('Rest user api:', user);
+        self._app.set('user', user);
+        console.log('Rest User', self._app.get('user'));
         self.loggedIn = true;
         resolve('logged in');
       })
       .catch(function (err) {
-        console.error('Rest authenticate err:', err.code);
+        console.error('Rest authenticate err:', err);
         self.loggedIn = false;
         reject(err);
       });
@@ -106,6 +108,7 @@ export class SocketService {
 
   constructor() {
     let self = this;
+    self.loggedIn = false;
 
 //    super();
     console.log('SocketService constructor');
@@ -117,29 +120,44 @@ export class SocketService {
     .configure(reactive(RxJS, {}))
     .configure(hooks())
     .configure(authentication({ storage: window.localStorage }));
+
+    // If the transport changes, you have to call authenticate() again.
+//    self.socket.io.engine.on('upgrade', function(transport) {
+//      console.log('transport changed');
+//      self._app.authenticate();
+//    });
   }
 
-  login(email, password) {
+  login(username, password) {
     var self = this;
     self.loggedIn = false;
 
     return new Promise<any>((resolve, reject) => {
+      console.log('login username:', username, 'password:', password);
 
       self._app.authenticate({
         strategy: 'local',
-        email: email,
+        username: username,
         password: password
       })
-      .then(function (result) {
-        console.log('Socket authenticate result:', result);
-        if (result) {
-          self._app.user = result.data;
+      .then(response => {
+        console.log('Socket authenticate response:', response);
+        if (response) {
+          self._app.user = response.data;
         } else {
           self._app.user = null;
         }
-        console.log('user:', self._app.user);
-        console.log('user:', self._app.get('user'));
-        console.log('token:', self._app.get('token'));
+
+        return self._app.passport.verifyJWT(response.accessToken);
+      })
+      .then(payload => {
+        console.log('Socket JWT Payload', payload, 'userId:', payload.userId);
+        return self._app.service('users').get(payload.userId);
+      })
+      .then(user => {
+        console.log('Socket user api:', user);
+        self._app.set('user', user);
+        console.log('Socket User', self._app.get('user'));
         self.loggedIn = true;
         resolve('logged in');
       })

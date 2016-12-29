@@ -3,7 +3,7 @@ import { Observable, Observer } from 'rxjs';
 import { RestService, SocketService } from './feathers.service';
 
 @Injectable()
-export class AgentsService {
+export class AgentsAllService {
   private _socket;
   private _rest;
 
@@ -11,8 +11,8 @@ export class AgentsService {
     private _socketService: SocketService,
     private _restService: RestService
   ) {
-    this._rest = _restService.getService('agents');
-    this._socket = _socketService.getService('agents');
+    this._rest = _restService.getService('agents_all');
+    this._socket = _socketService.getService('agents_all');
 
     this._socket.rx({
       listStrategy: 'always'

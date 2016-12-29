@@ -161,36 +161,6 @@ var AppUi = function (opts, db) {
     self.app.opts = opts;
     console.log('db urls:', cfg.database_url);
 
-    /*
-     * check if user is authenticated
-     */
-//    self.app.isAuthenticated = function(req, res, next) {
-//      console.log('isAuthenticated: req.headers:', req.headers);
-//      console.log('isAuthenticated: req.cookies:', req.cookies);
-//      req.headers.Authorization = req.cookies['feathers-jwt'];
-//
-//      console.log('isAuthenticated: req.headers.Authorization:', req.headers.Authorization);
-//
-//      jwt.verify(
-//        req.headers.Authorization,
-//        cfg.token.secret,
-//        //{}, //options,
-//        function (error, payload) {
-//          if (error) {
-//            // Invalid or expired token.
-//            console.error('user not authenticated, error:', error);
-//            return res.redirect('/');
-//          } else {
-//            // User is logged on in the application.
-//            console.log('User is authenticated');
-//            console.log('payload:', payload);
-//            return next();
-//          }
-//        }
-//      );
-//    };
-
-
     var store = new ArangoDBStore({
       url: cfg.database_url,
       dbName: cfg.database_name
@@ -202,14 +172,22 @@ var AppUi = function (opts, db) {
       }
     });
 
+    function customizeJWTPayload() {
+      return function(hook) {
+        console.log('Customizing JWT Payload, hook.params:', hook.params);
+        hook.data.payload = {
+          // You need to make sure you have the right id.
+          // You can put whatever you want to be encoded in
+          // the JWT access token.
+          userId: hook.params.user._key
+        };
+
+        return Promise.resolve(hook);
+      };
+    }
+
     self.app
     .use(cors())
-//    .use(expressSession({
-//      secret: cfg.token.secret,
-//      store: store,
-//      resave: true,
-//      saveUninitialized: true
-//    }))
     .use(compression())
     .use(logger)
     .use('/', staticServe('public'))  // assets
@@ -250,28 +228,45 @@ var AppUi = function (opts, db) {
         secret: cfg.token.secret,
         cookie: {
           maxAge: 1000 * 60 * 60 * 25 // 1 day
-        }
+        },
+        session: false
+//        extraFields: {
+//          payload: ['id', 'user', 'name']
+//        }
 //        local: {
 //          assignProperty: 'user'
 //        }
       })
     )
-    .configure(local())
-    .configure(jwt())
+    .configure(local({
+      name: 'local',
+      usernameField: 'username'
+//      extraFields: {
+//          payload: ['id', 'user', 'name']
+//      }
+    }))
+    .configure(jwt({
+//      extraFields: {
+//          payload: ['id', 'user', 'name']
+//      }
+    }))
     .use('/users', users)
     .use('/agents', agents)
+    .use('/agents_all', agents)
     .use('/csrs', csrs)
+    .use('/csrs_all', csrs)
     ;
 
     self.app.service('authentication').hooks({
       before: {
         create: [
           // You can chain multiple strategies
-          auth.hooks.authenticate(['jwt', 'local'])
+          auth.hooks.authenticate(['jwt', 'local']),
+          customizeJWTPayload()
+        ],
+        remove: [
+          auth.hooks.authenticate('jwt')
         ]
-//        remove: [
-//          auth.hooks.authenticate('jwt')
-//        ]
       }
     });
 
@@ -279,11 +274,10 @@ var AppUi = function (opts, db) {
 
     require('./lib/ui/routes')(routerUi, cfg, db.getDb(), serverMetrics, self.app, auth.hooks);
 
-  //  self.app.use('/node_modules', express.static('node_modules'));
-
-
     self.app.set('views', 'public/views');
     self.app.set('view engine', 'ejs');
+
+    // Template variables
     self.app.locals = {
       banner: utils.getBanner(),
       master_hostname: cfg.partout_master_hostname,
@@ -295,10 +289,6 @@ var AppUi = function (opts, db) {
 
     ///////////////////////////////////////////
     // Feathers services (REST + WebSockets)
-
-//    self.app.use('/agents', self.app.isAuthenticated, function (req, res, next) {
-
-//    self.app.use('/users', self.app.isAuthenticated, function (req, res, next) {
 
     self.app.service('users').hooks({
       before: {
@@ -315,6 +305,20 @@ var AppUi = function (opts, db) {
       before: {
         find: [
           auth.hooks.authenticate('jwt')
+        ]
+      }
+    });
+
+    self.app.service('agents_all').hooks({
+      before: {
+        find: [
+          auth.hooks.authenticate('jwt'),
+          (hook) => { // allow client to disable pagination
+//            console.log('agents: hook:', hook);
+//            console.log('agents: params:', hook.params);
+            hook.service.paginate = false;
+//            delete hook.params.query.$paginate;
+          }
         ]
       }
     });
@@ -360,13 +364,21 @@ var AppUi = function (opts, db) {
       }
     });
 
-//    self.app.service('users').create({
-//      email: 'admin@feathersjs.com',
-//      password: 'admin'
-//    })
+    self.app.service('csrs_all').hooks({
+      before: {
+        find: [
+          auth.hooks.authenticate('jwt'),
+          (hook) => { // allow client to disable pagination
+//            console.log('agents: hook:', hook);
+//            console.log('agents: params:', hook.params);
+            hook.service.paginate = false;
+//            delete hook.params.query.$paginate;
+          }
+        ]
+      }
+    });
 
     ///////////////////////////////////////////
-//    self.app.use(errorHandler);
 
     self.app.on('login', function(entity, info) {
       console.log('(Rest) User logged in', entity);

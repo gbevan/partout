@@ -25,7 +25,9 @@ var gulp = require('gulp'),
 var cp = null;
 
 //var DEBUG = 'feathers-authentication:main';
+//var DEBUG = 'feathers-authentication:authentication:utils';
 var DEBUG = 'sails-arangodb';
+//var DEBUG = 'feathers-authentication-local:verify';
 //var DEBUG = '';
 
 /*

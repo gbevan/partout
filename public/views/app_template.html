@@ -21,15 +21,16 @@
   <md-tab-group class="app-main-tab-group">
     <md-tab class="p2-tab-label">
       <template md-tab-label>Dashboard</template>
-      <template md-tab-content>
-        <h1>dashboard content goes here</h1>
-        <p>...</p>
-      </template>
+<!--      <template md-tab-content>-->
+        <h1>Dashboard</h1>
+      <p2-dashboard>
+      </p2-dashboard>
+<!--      </template>-->
     </md-tab>
 
     <md-tab>
       <template md-tab-label>CSRs</template>
-      <template md-tab-content>
+<!--      <template md-tab-content>-->
         <h1>New Agent CSR Signing Requests:</h1>
 <!--
         <button md-raised-button
@@ -41,12 +42,12 @@
         <p2-table [config]="csrs_config"
                   [rxservice]="csrsService">
         </p2-table>
-      </template>
+<!--      </template>-->
     </md-tab>
 
     <md-tab>
       <template md-tab-label>Agents</template>
-      <template md-tab-content>
+<!--      <template md-tab-content>-->
         <h1>Agents:</h1>
 <!--
         <button md-raised-button
@@ -58,7 +59,7 @@
         <p2-table [config]="agents_config"
                   [rxservice]="agentsService">
         </p2-table>
-      </template>
+<!--      </template>-->
     </md-tab>
 
   </md-tab-group>

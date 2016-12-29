@@ -46,7 +46,7 @@ export class AppComponent {
 //        innerHtmlFn:
       },
       {
-        //field: 'os_family',  // TODO: no field - use whole row  for innerHtmlFn(row)
+        field: 'os_dist_name',
         title: 'Operating System',
         imgsrc: (row) => {
 //          if (value === 'debian') {
