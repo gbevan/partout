@@ -6,18 +6,10 @@ import { CsrsService } from './csrs.service';
 import { ViewAgentComponent } from './viewAgent.component';
 import { ViewCsrComponent } from './viewCsr.component';
 
-// import { AppModule } from './app.module';
-
-// import { Observable } from 'rxjs/Observable';
-//import { Subscription } from 'rxjs';
-
 @Component({
   selector: 'my-app',
-//  templateUrl: 'app_template',
   templateUrl: 'views/app_template.html',
-//  template: '<h1>Hello</h1>',
   styleUrls: ['assets/css/app.component.css']
-//  providers: [ AgentsService, SocketService, RestService ]
 })
 export class AppComponent {
 
@@ -43,15 +35,11 @@ export class AppComponent {
       {
         field: 'platform',
         title: 'Platform'
-//        innerHtmlFn:
       },
       {
         field: 'os_dist_name',
         title: 'Operating System',
         imgsrc: (row) => {
-//          if (value === 'debian') {
-//            return 'Debian';
-//          }
           if (row.os_dist_name) {
 
             if (row.os_dist_name.search(/centos/i) !== -1) {
@@ -129,10 +117,6 @@ export class AppComponent {
         title: 'IP Address',
         styles: {'font-family': 'monospace'}
       },
-//      {
-//        field: 'csr',
-//        title: 'CSR'
-//      },
       {
         field: 'lastSeen',
         title: 'Last Seen'
@@ -141,14 +125,6 @@ export class AppComponent {
         field: 'status',
         title: 'Status'
       },
-//      {
-//        field: 'cert',
-//        title: 'Cert'
-//      },
-//      {
-//        field: 'certPem',
-//        title: 'Cert Pem'
-//      },
       {
         action: (id) => { this.signCsr(id) },
         value: 'Sign'
@@ -164,14 +140,6 @@ export class AppComponent {
   csrDialogRef: MdDialogRef<ViewCsrComponent>;
   config: MdDialogConfig;
 
-//  public config: any = {
-//    className: ['table-striped', 'table-bordered'],
-//    paging: true
-//  };
-
-//  private subscription: Subscription;
-//  private items: any[] = [];
-
   constructor(
     private restService: RestService,
     private socketService: SocketService,
@@ -180,14 +148,8 @@ export class AppComponent {
     public dialog: MdDialog,
     private viewContainerRef: ViewContainerRef
   ) {
-    console.log('app this:', this);
-
     this.config = new MdDialogConfig();
     this.config.viewContainerRef = this.viewContainerRef; // for mdDialog
-
-//    setTimeout(function () {
-//      console.log('restService user:', restService.getUser());
-//    }, 2000);
   }
 
   logout() {
@@ -240,7 +202,6 @@ export class AppComponent {
   signCsr(id) {
     this.csrsService.get(id, {})
     .then((csr) => {
-      console.log('signCsr: csr:', csr);
       csr.status = 'signed';
       this.csrsService.update(id, csr);
     })
@@ -252,7 +213,6 @@ export class AppComponent {
   rejectCsr(id) {
     this.csrsService.get(id, {})
     .then((csr) => {
-      console.log('rejectCsr: csr:', csr);
       csr.status = 'rejected';
       this.csrsService.update(id, csr);
     })
@@ -261,9 +221,5 @@ export class AppComponent {
     });
 
   }
-
-//  changeAgentEnv(id) {
-//
-//  }
 
 }

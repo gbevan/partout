@@ -1,18 +1,13 @@
 import { Component, OnInit } from '@angular/core';
-
 import { RestService, SocketService } from './feathers.service';
-
-// import { Observable } from 'rxjs/Observable';
 import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'login-form',
   templateUrl: 'views/login_form_template.html',
   styleUrls: ['assets/css/login-form.component.css']
-//  providers: [ AgentsService, SocketService, RestService ]
 })
 export class LoginFormComponent implements OnInit {
-  // TODO: Remove these test details
   user = '';
   password = '';
   stateRest = '';
@@ -25,7 +20,6 @@ export class LoginFormComponent implements OnInit {
   }
 
   login() {
-    console.log('login() from login user:', this.user, 'password:', this.password);
     this.errorMsg = '';
 
     // Login Rest Service
@@ -50,8 +44,6 @@ export class LoginFormComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    let self = this;
-    console.log('login-form.components.ts: ngOnInit: self:', self);
-
+    document.getElementById('user').focus();
   }
 }

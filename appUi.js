@@ -306,6 +306,23 @@ var AppUi = function (opts, db) {
         find: [
           auth.hooks.authenticate('jwt')
         ]
+      },
+      after: {
+        create: [
+          (hook) => {
+            self.app.service('agents_all').emit('created', []); // tell agents_all
+          }
+        ],
+        remove: [
+          (hook) => {
+            self.app.service('agents_all').emit('removed', []); // tell agents_all
+          }
+        ],
+        update: [
+          (hook) => {
+            self.app.service('agents_all').emit('updated', []); // tell agents_all
+          }
+        ],
       }
     });
 
@@ -314,10 +331,41 @@ var AppUi = function (opts, db) {
         find: [
           auth.hooks.authenticate('jwt'),
           (hook) => { // allow client to disable pagination
-//            console.log('agents: hook:', hook);
-//            console.log('agents: params:', hook.params);
             hook.service.paginate = false;
-//            delete hook.params.query.$paginate;
+
+            // handle lastSeenBucket
+            hook.params.query.$select = hook.params.query.$select.map(x => { return x === 'lastSeenBucket' ? 'lastSeen' : x; });
+            //hook.params.query.$sort = hook.params.query.$sort.map(x => { return x === 'lastSeenBucket' ? 'lastSeen' : x; });
+          }
+        ]
+      },
+      after: {
+        find: [
+          (hook) => {
+            hook.result.forEach(function (r) {
+              if (r.lastSeen === undefined) {
+                return;
+              }
+              let n = Date.now(); // millisecs since 1970
+              let aday = 1000 * 60 * 60 * 24;
+              let lastSeen = Date.parse(r.lastSeen);
+
+              if (lastSeen > (n - aday) ) {
+                r.lastSeenBucket = '< 1 day';
+
+              } else if (lastSeen > (n - aday * 2)) {
+                r.lastSeenBucket = '< 2 days';
+
+              } else if (lastSeen > (n - aday * 5)) {
+                r.lastSeenBucket = '< 5 days!';
+
+              } else if (lastSeen > (n - aday * 31)) {
+                r.lastSeenBucket = '< 31 days!!';
+
+              } else {
+                r.lastSeenBucket = '> 31 days!!!';
+              }
+            });
           }
         ]
       }
@@ -361,6 +409,23 @@ var AppUi = function (opts, db) {
             });
           }
         ]
+      },
+      after: {
+        create: [
+          (hook) => {
+            self.app.service('csrs_all').emit('created', []); // tell csrs_all
+          }
+        ],
+        remove: [
+          (hook) => {
+            self.app.service('csrs_all').emit('removed', []); // tell csrs_all
+          }
+        ],
+        update: [
+          (hook) => {
+            self.app.service('csrs_all').emit('updated', []); // tell csrs_all
+          }
+        ],
       }
     });
 

@@ -38,38 +38,21 @@ const Agents = Waterline.Collection.extend({
       primaryKey: true,
       columnName: '_key'
     },
-    env: {
-      type: 'string'
-    },
-
-    facts: {
-      type: 'object'
-    },
-
-    ip: {
-      type: 'string'
-    },
-
-    certInfo: {
-      type: 'object'
-    },
-
-    lastSeen: {
-      type: 'date'
-    },
-
-    platform: {
-      type: 'string'
-    },
-
+    env: { type: 'string' },
+    facts: { type: 'object' },
+    ip: { type: 'string' },
+    certInfo: { type: 'object' },
+    lastSeen: { type: 'date' },
+    platform: { type: 'string' },
     os_release: { type: 'string' },
     os_arch: { type: 'string' },
     os_family: { type: 'string' },
     os_dist_version_id: { type: 'string' },
     os_dist_name: { type: 'string' },
-    os_hostname: { type: 'string' }
+    os_hostname: { type: 'string' },
 
   }
+
 });
 
 module.exports = Agents;

@@ -32,7 +32,6 @@ import { CsrsAllService } from './csrs_all.service';
     BrowserModule,
     MaterialModule.forRoot(),
     Ng2BootstrapModule,
-//    Ng2TableModule,
     PaginationModule,
     PrettyJsonModule,
     ChartsModule
@@ -47,7 +46,7 @@ import { CsrsAllService } from './csrs_all.service';
     PieChartComponent
   ],
   bootstrap: [
-    AppComponent/*, P2TableComponent*/
+    AppComponent
   ],
   providers: [
     SocketService,

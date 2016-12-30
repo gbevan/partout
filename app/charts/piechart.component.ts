@@ -9,7 +9,7 @@ import * as _ from 'lodash';
   template: `
 
 <div class="piecontainer">
-  <h3>{{ title }}</h3>
+  <h4>{{ title }}</h4>
 
   <div style="display: block">
     <canvas baseChart
@@ -23,7 +23,6 @@ import * as _ from 'lodash';
 `,
   styles: [`
 .piecontainer {
-  max-width: 300px;
 }
 `]
 })
@@ -43,13 +42,10 @@ export class PieChartComponent {
 
   public constructor(
   ) {
-    console.log('pie chart');
     this.data = [];
   }
 
   ngOnInit() {
-    console.log('piechart ngOnInit() field:', this.field, 'data:', this.data);
-
     let sort = {};
     sort[this.field] = 1;
 
@@ -64,8 +60,6 @@ export class PieChartComponent {
       }
     })
     .subscribe(data => {
-      console.log('piechart subscribe data:', data);
-
       let to = data
       .map(x => { return x[this.field]; })
       .reduce((acc, v) => {
@@ -79,15 +73,8 @@ export class PieChartComponent {
       this.doughnutChartLabels = [];
       this.doughnutChartData = [];
       _.map(to, (v:number, k:string) => {
-
-//        let rec:any = {};
-//        rec[this.field] = k;
-//        rec.count = v;
-
         this.doughnutChartLabels.push(k);
         this.doughnutChartData.push(v);
-
-//        return rec;
       });
 
     });

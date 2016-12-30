@@ -1,6 +1,6 @@
 <h2>CSRs</h2>
 
-<md-grid-list cols="3">
+<md-grid-list cols="4">
   <md-grid-tile>
     <pie-chart title="By Status"
              [rxservice]="csrsAllService"
@@ -10,7 +10,7 @@
 
 <h2>Agents</h2>
 
-<md-grid-list cols="3">
+<md-grid-list cols="4">
   <md-grid-tile>
     <pie-chart title="By Environment"
              [rxservice]="agentsAllService"
@@ -27,5 +27,11 @@
     <pie-chart title="By OS Distribution"
                [rxservice]="agentsAllService"
                [field]="'os_dist_name'"></pie-chart>
+  </md-grid-tile>
+
+  <md-grid-tile>
+    <pie-chart title="By Last Seen"
+               [rxservice]="agentsAllService"
+               [field]="'lastSeenBucket'"></pie-chart>
   </md-grid-tile>
 </md-grid-list>
