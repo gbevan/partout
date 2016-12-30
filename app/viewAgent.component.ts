@@ -63,22 +63,16 @@ export class ViewAgentComponent {
   agentCertKeys = [];
 
   constructor(public dialogRef: MdDialogRef<ViewAgentComponent>) {
-    console.log('viewAgent dialogRef:', dialogRef);
-    //this.agent = dialogRef.componentInstance.agent;
-
   }
 
   setAgent(agent:any) {
-    console.log('viewAgent setAgent() ');
     this.agent = agent;
     _.each(agent.facts, (v, k) => {
       this.agentFactsKeys.push(k);
     });
-    console.log('agentFactsKeys:', this.agentFactsKeys);
 
     _.each(agent.certInfo, (v, k) => {
       this.agentCertKeys.push(k);
     });
-    console.log('agentCertKeys:', this.agentCertKeys);
   }
 }

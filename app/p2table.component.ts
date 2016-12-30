@@ -95,7 +95,6 @@ import { SocketService } from './feathers.service';
 export class P2TableComponent {
 
   @Input() config: any;
-//  @Input() rxservice: SocketService;
   @Input() rxservice: any;  // a feathers-reactive service
 
   private data: Object;
@@ -115,10 +114,6 @@ export class P2TableComponent {
   }
 
   private pageChanged(event:any):void {
-    console.log('pageChanged: currentPage:', this.currentPage,
-                'event.page:', event.page,
-                'event.itemsPerPage:', event.itemsPerPage);
-
     this.rxservice.find({
       query: {
         $select: this._select(),
@@ -126,22 +121,17 @@ export class P2TableComponent {
       }
     })
     .subscribe(data => {
-      console.log('***** Rows rx subscribe:', data);
       this.data = data;
     });
   }
 
   ngOnInit() {
-    console.log('ngOnInit rxservice:', this.rxservice);
-
-    console.log('select:', this._select());
     this.rxservice.find({
       query: {
         $select: this._select()
       }
     })
     .subscribe(data => {
-      console.log('***** Rows rx subscribe:', data);
       this.data = data;
     });
   }
