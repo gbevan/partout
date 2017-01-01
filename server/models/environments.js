@@ -26,9 +26,9 @@
 
 const Waterline = require('waterline');
 
-// CSRs
-const Csrs = Waterline.Collection.extend({
-  identity: 'csrs',
+// Environments
+const Environments = Waterline.Collection.extend({
+  identity: 'environments',
   schema: true,
   connection: 'arangodb',
   attributes: {
@@ -38,28 +38,15 @@ const Csrs = Waterline.Collection.extend({
       primaryKey: true,
       columnName: '_key'
     },
-    ip: {
-      type: 'string'
-    },
-    csr: {
-      type: 'string'
-    },
-    lastSeen: {
-      type: 'date'
-    },
-    status: {
-      type: 'string'
-    },
-    cert: {
-      type: 'object',
-      default: null
-    },
-    certPem: {
+    name: {
       type: 'string',
-      default: null
+      required: true
     },
-
+    description: {
+      type: 'string'
+    }
+    // TODO: GitHub url etc for clone of site manifest project
   }
 });
 
-module.exports = Csrs;
+module.exports = Environments;

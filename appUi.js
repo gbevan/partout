@@ -69,8 +69,10 @@ var Waterline = require('waterline'),
     ORM = new Waterline(),
     Agents = require('./server/models/agents'),
     Csrs = require('./server/models/csrs'),
-    Profiles = require('./server/models/profiles'),
-    Users = require('./server/models/users');
+    Environments = require('./server/models/environments'),
+//    Profiles = require('./server/models/profiles'),
+    Users = require('./server/models/users'),
+    Roles = require('./server/models/roles');
 
 Q.longStackSupport = true;
 
@@ -106,8 +108,10 @@ var AppUi = function (opts, db) {
 
   ORM.loadCollection(Agents);
   ORM.loadCollection(Csrs);
-  ORM.loadCollection(Profiles);
+  ORM.loadCollection(Environments);
+//  ORM.loadCollection(Profiles);
   ORM.loadCollection(Users);
+  ORM.loadCollection(Roles);
   ORM.initialize(self.waterline_config, function (err, data) {
     if (err) {
       console.error(err);
@@ -131,8 +135,24 @@ var AppUi = function (opts, db) {
       }
     });
 
+    const environments = service({
+      Model: data.collections.environments,
+      paginate: {
+        default: 10,
+        max: 10
+      }
+    });
+
     const users = service({
       Model: data.collections.users,
+      paginate: {
+        default: 10,
+        max: 10
+      }
+    });
+
+    const roles = service({
+      Model: data.collections.roles,
       paginate: {
         default: 10,
         max: 10
@@ -159,7 +179,6 @@ var AppUi = function (opts, db) {
       };
 
     self.app.opts = opts;
-    console.log('db urls:', cfg.database_url);
 
     var store = new ArangoDBStore({
       url: cfg.database_url,
@@ -255,6 +274,8 @@ var AppUi = function (opts, db) {
     .use('/agents_all', agents)
     .use('/csrs', csrs)
     .use('/csrs_all', csrs)
+    .use('/environments', environments)
+    .use('/roles', roles)
     ;
 
     self.app.service('authentication').hooks({
@@ -297,6 +318,14 @@ var AppUi = function (opts, db) {
         ],
         create: [
           local.hooks.hashPassword({ passwordField: 'password' })
+        ]
+      }
+    });
+
+    self.app.service('roles').hooks({
+      before: {
+        find: [
+          auth.hooks.authenticate('jwt')
         ]
       }
     });
@@ -439,6 +468,14 @@ var AppUi = function (opts, db) {
             hook.service.paginate = false;
 //            delete hook.params.query.$paginate;
           }
+        ]
+      }
+    });
+
+    self.app.service('environments').hooks({
+      before: {
+        find: [
+          auth.hooks.authenticate('jwt')
         ]
       }
     });

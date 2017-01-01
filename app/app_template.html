@@ -17,8 +17,14 @@
     <span class="app-toolbar-sep"></span>
   </md-toolbar>
 
+  <!--
+      MAIN TABBED VIEWS
+  -->
 
   <md-tab-group class="app-main-tab-group">
+
+    <!-- Dashboard Tab -->
+
     <md-tab class="p2-tab-label">
       <template md-tab-label>Dashboard</template>
 <!--      <template md-tab-content>-->
@@ -27,6 +33,8 @@
       </p2-dashboard>
 <!--      </template>-->
     </md-tab>
+
+    <!-- CSRs Tab -->
 
     <md-tab>
       <template md-tab-label>CSRs</template>
@@ -45,6 +53,8 @@
 <!--      </template>-->
     </md-tab>
 
+    <!-- Agents Tab -->
+
     <md-tab>
       <template md-tab-label>Agents</template>
 <!--      <template md-tab-content>-->
@@ -60,6 +70,50 @@
                   [rxservice]="agentsService">
         </p2-table>
 <!--      </template>-->
+    </md-tab>
+
+    <!-- Environments Tab -->
+
+    <md-tab>
+      <template md-tab-label>Environments</template>
+      <h1>Environments:</h1>
+
+      <!-- Environments Table -->
+      <p2-table [config]="environments_config"
+                [rxservice]="environmentsService">
+      </p2-table>
+    </md-tab>
+
+    <!-- Users Tab -->
+
+    <md-tab>
+      <template md-tab-label>Users</template>
+      <h1>Users:</h1>
+
+      <button md-raised-button
+              color="primary"
+              (click)="addUser()">Add</button>
+
+      <!-- Users Table -->
+      <p2-table [config]="users_config"
+                [rxservice]="usersService">
+      </p2-table>
+    </md-tab>
+
+    <!-- Roles Tab -->
+
+    <md-tab>
+      <template md-tab-label>Roles</template>
+      <h1>Roles:</h1>
+
+      <button md-raised-button
+              color="primary"
+              (click)="addRole()">Add</button>
+
+      <!-- Users Table -->
+      <p2-table [config]="roles_config"
+                [rxservice]="rolesService">
+      </p2-table>
     </md-tab>
 
   </md-tab-group>

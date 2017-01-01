@@ -1,21 +1,41 @@
 import { Component, OnInit, ViewContainerRef } from '@angular/core';
 import { MdDialog, MdDialogRef, MdDialogConfig } from '@angular/material';
-import { RestService, SocketService } from './feathers.service';
-import { AgentsService } from './agents.service';
-import { CsrsService } from './csrs.service';
+import { RestService, SocketService } from './feathers/feathers.service';
+import { AgentsService } from './feathers/agents.service';
+import { CsrsService } from './feathers/csrs.service';
+import { EnvironmentsService } from './feathers/environments.service';
+import { UsersService } from './feathers/users.service';
+import { RolesService } from './feathers/roles.service';
 import { ViewAgentComponent } from './viewAgent.component';
 import { ViewCsrComponent } from './viewCsr.component';
 
+const html = require('./app_template.html');
+
 @Component({
   selector: 'my-app',
-  templateUrl: 'views/app_template.html',
-  styleUrls: ['assets/css/app.component.css']
+  template: html,
+  styles: [`
+.app-top-toolbar {
+  -moz-border-radius: 5px;
+  border-radius: 5px;
+}
+
+.app-toolbar-filler {
+  flex: 1 1 auto;
+}
+
+.app-toolbar-sep:before {
+  content: '|';
+  padding-left: 10px;
+  padding-right: 10px;
+}
+`]
 })
 export class AppComponent {
 
   title = 'Partout with Feathers';
 
-  agents = [];
+//  agents = [];
   agents_config = {
     columns: [
       {
@@ -104,7 +124,7 @@ export class AppComponent {
     ]
   };
 
-  csrs = [];
+//  csrs = [];
   csrs_config = {
     columns: [
       {
@@ -136,6 +156,45 @@ export class AppComponent {
     ]
   };
 
+  environments_config = {
+    columns: [
+      {
+        field: 'name',
+        title: 'Name'
+      },
+      {
+        field: 'description',
+        title: 'Description'
+      }
+    ]
+  };
+
+  users_config = {
+    columns: [
+      {
+        field: 'username',
+        title: 'User Name'
+      },
+      {
+        field: 'name',
+        title: 'Full Name'
+      }
+    ]
+  };
+
+  roles_config = {
+    columns: [
+      {
+        field: 'name',
+        title: 'Role Name'
+      },
+      {
+        field: 'description',
+        title: 'Description'
+      }
+    ]
+  };
+
   agentDialogRef: MdDialogRef<ViewAgentComponent>;
   csrDialogRef: MdDialogRef<ViewCsrComponent>;
   config: MdDialogConfig;
@@ -145,6 +204,9 @@ export class AppComponent {
     private socketService: SocketService,
     public agentsService: AgentsService,
     public csrsService: CsrsService,
+    public environmentsService: EnvironmentsService,
+    public usersService: UsersService,
+    public rolesService: RolesService,
     public dialog: MdDialog,
     private viewContainerRef: ViewContainerRef
   ) {
@@ -220,6 +282,20 @@ export class AppComponent {
       console.error('rejectCsr() err:', err);
     });
 
+  }
+
+  /*****************************
+   * Users
+   */
+  addUser() {
+    console.log('TODO: add a user');
+  }
+
+  /*****************************
+   * Roles
+   */
+  addRole() {
+    console.log('TODO: add a role');
   }
 
 }

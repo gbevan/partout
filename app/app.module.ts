@@ -10,9 +10,9 @@ import { PrettyJsonModule } from 'angular2-prettyjson';
 import { ChartsModule } from 'ng2-charts/ng2-charts';
 
 import { AppComponent }   from './app.component';
-import { LoginFormComponent }   from './login-form.component';
+import { LoginFormComponent }   from './login/login-form.component';
 
-import { P2TableComponent }   from './p2table.component';
+import { P2TableComponent }   from './tables/p2table.component';
 import { ViewAgentComponent }   from './viewAgent.component';
 import { ViewCsrComponent }   from './viewCsr.component';
 
@@ -21,11 +21,14 @@ import { P2DashboardComponent }   from './dashboard/p2dashboard.component';
 import { PieChartComponent }   from './charts/piechart.component';
 
 // Feathers Services
-import { RestService, SocketService } from './feathers.service';
-import { AgentsService } from './agents.service';
-import { AgentsAllService } from './agents_all.service';
-import { CsrsService } from './csrs.service';
-import { CsrsAllService } from './csrs_all.service';
+import { RestService, SocketService } from './feathers/feathers.service';
+import { AgentsService } from './feathers/agents.service';
+import { AgentsAllService } from './feathers/agents_all.service';
+import { CsrsService } from './feathers/csrs.service';
+import { CsrsAllService } from './feathers/csrs_all.service';
+import { EnvironmentsService } from './feathers/environments.service';
+import { UsersService } from './feathers/users.service';
+import { RolesService } from './feathers/roles.service';
 
 @NgModule({
   imports: [
@@ -54,7 +57,10 @@ import { CsrsAllService } from './csrs_all.service';
     AgentsService,
     AgentsAllService,
     CsrsService,
-    CsrsAllService
+    CsrsAllService,
+    EnvironmentsService,
+    UsersService,
+    RolesService
   ],
   entryComponents: [
     ViewAgentComponent,

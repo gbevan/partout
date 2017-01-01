@@ -1,11 +1,14 @@
 import { Component, OnInit } from '@angular/core';
-import { RestService, SocketService } from './feathers.service';
+import { RestService, SocketService } from '../feathers/feathers.service';
 import { Subscription } from 'rxjs';
+
+const html = require('./login_form_template.html');
+const css = require('./login-form.component.css');
 
 @Component({
   selector: 'login-form',
-  templateUrl: 'views/login_form_template.html',
-  styleUrls: ['assets/css/login-form.component.css']
+  template: html,
+  styles: [css]
 })
 export class LoginFormComponent implements OnInit {
   user = '';
