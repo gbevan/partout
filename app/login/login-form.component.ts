@@ -22,11 +22,11 @@ export class LoginFormComponent implements OnInit {
     this.restService = restService;
   }
 
-  login() {
+  login(form: any) {
     this.errorMsg = '';
 
     // Login Rest Service
-    this.restService.login(this.user, this.password)
+    this.restService.login(form.user, form.password)
     .then((result) => {
       this.stateRest = result;
     })
@@ -36,7 +36,7 @@ export class LoginFormComponent implements OnInit {
     });
 
     // Login Socket Service
-    this.socketService.login(this.user, this.password)
+    this.socketService.login(form.user, form.password)
     .then((result) => {
       this.stateSock = result;
     })

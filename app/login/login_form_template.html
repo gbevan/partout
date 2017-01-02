@@ -1,28 +1,26 @@
 <h1>Partout</h1>
 
-<form action="action_page.php">
+<form #f="ngForm"
+      (ngSubmit)="login(f.value)">
 
   <div class="container">
-    <label><b>User Name</b></label>
-    <input type="text"
-           placeholder="Enter User Name"
-           id="user"
-           required
-           autofocus
-           [(ngModel)]="user" name="user">
+    <md-input type="text"
+              placeholder="Enter User Name"
+              id="user"
+              required
+              autofocus
+              name="user"
+              ngModel></md-input>
 
-    <label><b>Password</b></label>
-    <input type="password"
-           placeholder="Enter Password"
-           id="password"
-           required
-           [(ngModel)]="password" name="password">
+    <md-input type="password"
+              placeholder="Enter Password"
+              id="password"
+              required
+              name="password"
+              ngModel></md-input>
 
     <button type="submit"
-            md-raised-button
-            (click)="login()">Login</button>
-
-<!--    <input type="checkbox" checked="checked"> Remember me-->
+            md-raised-button>Login</button>
 
     <div class="errormsg"
          *ngIf="errorMsg !== ''">{{ errorMsg }}</div>
