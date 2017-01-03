@@ -3,7 +3,6 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { SocketService } from '../feathers/feathers.service';
 
-//import * as d3 from 'd3';
 import * as _ from 'lodash';
 import * as Rx from 'rxjs';
 

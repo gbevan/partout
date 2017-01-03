@@ -48,10 +48,12 @@ import { SocketService } from '../feathers/feathers.service';
         <button md-raised-button
                 class="p2TableFieldActionButton"
                 *ngIf="column.action && column.field"
+                [ngStyle]="setStyles(column)"
                 (click)="column.action(row.id)">{{ row[column.field] }}</button>
 
         <button md-raised-button
                 *ngIf="column.action && column.value"
+                [ngStyle]="setStyles(column)"
                 color="warn"
                 (click)="column.action(row.id, idx)">{{ column.value }}</button>
 
@@ -117,6 +119,7 @@ export class P2TableComponent {
     this.rxservice.find({
       query: {
         $select: this._select(),
+        $sort: {os_hostname: 1},
         $skip: (event.page - 1) * event.itemsPerPage
       }
     })
@@ -126,14 +129,7 @@ export class P2TableComponent {
   }
 
   ngOnInit() {
-    this.rxservice.find({
-      query: {
-        $select: this._select()
-      }
-    })
-    .subscribe(data => {
-      this.data = data;
-    });
+    this.pageChanged({page: 1, itemsPerPage: 10});
   }
 
   setStyles(column) {

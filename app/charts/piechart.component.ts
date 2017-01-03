@@ -1,7 +1,5 @@
 
 import { Component, Input, OnInit } from '@angular/core';
-//import * as d3 from 'd3';
-//import * as Rx from 'rxjs';
 import * as _ from 'lodash';
 
 @Component({
@@ -33,12 +31,12 @@ export class PieChartComponent {
   @Input() rxservice: any;
   @Input() field: string;
 
-  private data: any;
-
   // Doughnut
-  public doughnutChartLabels:string[] = [];
-  public doughnutChartData:number[] = [];
-  public doughnutChartType:string = 'doughnut';
+  public doughnutChartLabels: string[] = [];
+  public doughnutChartData: number[] = [];
+  public doughnutChartType: string = 'doughnut';
+
+  private data: any;
 
   public constructor(
   ) {
@@ -59,9 +57,9 @@ export class PieChartComponent {
         listStrategy: 'always'
       }
     })
-    .subscribe(data => {
+    .subscribe((data) => {
       let to = data
-      .map(x => { return x[this.field]; })
+      .map((x) => { return x[this.field]; })
       .reduce((acc, v) => {
         if (!acc[v]) {
           acc[v] = 0;
@@ -72,7 +70,7 @@ export class PieChartComponent {
 
       this.doughnutChartLabels = [];
       this.doughnutChartData = [];
-      _.map(to, (v:number, k:string) => {
+      _.map(to, (v: number, k: string) => {
         this.doughnutChartLabels.push(k);
         this.doughnutChartData.push(v);
       });

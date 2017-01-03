@@ -41,16 +41,25 @@ export class AppComponent {
       {
         field: 'id',
         title: 'ID',
-        action: (id) => { this.viewAgent(id) }
+        styles: {
+          'font-size': '80%'
+        },
+        action: (id) => { this.viewAgent(id); }
       },
       {
         field: 'os_hostname',
-        title: 'Hostname'
+        title: 'Hostname',
+        styles: {
+          'white-space': 'nowrap'
+        }
       },
       {
         field: 'ip',
         title: 'IP Address',
-        styles: {'font-family': 'monospace'}
+        styles: {
+          'font-family': 'monospace',
+          'font-size': '80%'
+        }
       },
       {
         field: 'platform',
@@ -115,10 +124,14 @@ export class AppComponent {
       },
       {
         field: 'lastSeen',
-        title: 'Last Seen'
+        title: 'Last Seen',
+        styles: {
+          'font-size': '80%',
+          'white-space': 'nowrap'
+        }
       },
       {
-        action: (id, index) => { this.deleteAgent(id, index) },
+        action: (id, index) => { this.deleteAgent(id, index); },
         value: 'Delete'
       }
     ]
@@ -130,27 +143,37 @@ export class AppComponent {
       {
         field: 'id',
         title: 'ID',
-        action: (id) => { this.viewCsr(id) }
+        action: (id) => { this.viewCsr(id); },
+        styles: {
+          'font-size': '80%'
+        },
       },
       {
         field: 'ip',
         title: 'IP Address',
-        styles: {'font-family': 'monospace'}
+        styles: {
+          'font-family': 'monospace',
+          'font-size': '80%'
+        }
       },
       {
         field: 'lastSeen',
-        title: 'Last Seen'
+        title: 'Last Seen',
+        styles: {
+          'font-size': '80%',
+          'white-space': 'nowrap'
+        }
       },
       {
         field: 'status',
         title: 'Status'
       },
       {
-        action: (id) => { this.signCsr(id) },
+        action: (id) => { this.signCsr(id); },
         value: 'Sign'
       },
       {
-        action: (id) => { this.rejectCsr(id) },
+        action: (id) => { this.rejectCsr(id); },
         value: 'Reject'
       }
     ]
@@ -219,7 +242,6 @@ export class AppComponent {
     this.socketService.logout();
   }
 
-
   /*****************************
    * Agents
    */
@@ -227,7 +249,7 @@ export class AppComponent {
   viewAgent(id) {
     this.agentsService.get(id, {})
     .then((agent) => {
-      this.agentDialogRef = this.dialog.open(ViewAgentComponent, this.config)
+      this.agentDialogRef = this.dialog.open(ViewAgentComponent, this.config);
       this.agentDialogRef.componentInstance.setAgent(agent);
     })
     .catch((err) => {
@@ -245,7 +267,6 @@ export class AppComponent {
     });
   }
 
-
   /*****************************
    * CSRs
    */
@@ -253,7 +274,7 @@ export class AppComponent {
   viewCsr(id) {
     this.csrsService.get(id, {})
     .then((csr) => {
-      this.csrDialogRef = this.dialog.open(ViewCsrComponent, this.config)
+      this.csrDialogRef = this.dialog.open(ViewCsrComponent, this.config);
       this.csrDialogRef.componentInstance.setCsr(csr);
     })
     .catch((err) => {
