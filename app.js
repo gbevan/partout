@@ -56,8 +56,8 @@ var console = require('better-console'),
     ClientCertStrategy = require('passport-client-cert').Strategy,
     GitHubStrategy = require('passport-github2').Strategy,
     expressSession = require('express-session'),
-    printf = require('printf'),
-    randomart = require('randomart');
+    printf = require('printf');
+//    randomart = require('randomart');
 
 /**
  * Partout Master App provider
@@ -159,7 +159,7 @@ var serve = function (opts) {
       console.info('');
       console.info(new Array(master_fingerprint.length + 1).join('='));
       console.info('Master API SSL fingerprint (SHA256):\n' + master_fingerprint);
-      console.info('\nrandomart of master public key:\n' + randomart(pubkey));
+      console.info('\nrandomart of master public key:\n' + utils.toArt(pubkey));
       console.info(new Array(master_fingerprint.length + 1).join('='));
 
       db.connect()

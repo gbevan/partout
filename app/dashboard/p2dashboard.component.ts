@@ -21,13 +21,13 @@ const html = require('./p2dashboard.template.html');
 
 export class P2DashboardComponent {
 
-  private agents_env_counts: Rx.Observable<Array<any>>;
+//  private agents_env_counts: Rx.Observable<Array<any>>;
 
   public constructor(
     public agentsAllService: AgentsAllService,
     public csrsAllService: CsrsAllService
   ) {
-    this.agents_env_counts = new Rx.Subject();
+//    this.agents_env_counts = new Rx.Subject();
   }
 
   ngOnInit() {

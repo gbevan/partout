@@ -52,7 +52,7 @@ import { SocketService } from '../feathers/feathers.service';
                 (click)="column.action(row.id)">{{ row[column.field] }}</button>
 
         <button md-raised-button
-                *ngIf="column.action && column.value"
+                *ngIf="column.action && column.value && (!column.condFn || column.condFn(row.id))"
                 [ngStyle]="setStyles(column)"
                 color="warn"
                 (click)="column.action(row.id, idx)">{{ column.value }}</button>
@@ -61,8 +61,10 @@ import { SocketService } from '../feathers/feathers.service';
               [ngStyle]="setStyles(column)"
               src="{{ column.imgsrc(row) }}">
 
-        <span *ngIf="!column.action && !column.imgsrc"
-              [ngStyle]="setStyles(column)">{{ row[column.field] }}</span>
+        <div *ngIf="!column.action && !column.imgsrc"
+              [ngStyle]="setStyles(column, row[column.field])">
+          {{ column.valueFn ? column.valueFn(row[column.field]) : row[column.field] }}
+        </div>
       </td>
     </tr>
   </tbody>
@@ -76,11 +78,12 @@ import { SocketService } from '../feathers/feathers.service';
 `,
   styles: [`
 .p2Table {
-  margin-top: 5px;
+  margin-top: 15px;
   width: 100%;
 }
 .p2Heading {
-  background-color: darkgray;
+  background-color: #244519;
+  color: white;
 }
 .p2Row {
   vertical-align: middle;
@@ -107,15 +110,29 @@ export class P2TableComponent {
     this.currentPage = 1;
   }
 
-  private _select() {
-    return this.config.columns.map(col => {
-      if (!col.field) return null;
-      return col.field;
-    })
-    .filter(f => { return f !== null });
+  ngOnInit() {
+    this.pageChanged({page: 1, itemsPerPage: 10});
   }
 
-  private pageChanged(event:any):void {
+  setStyles(column, v) {
+    if (typeof column.styles === 'function') {
+      return column.styles(v) || {};
+    } else {
+      return column.styles || {};
+    }
+  }
+
+   private _select() {
+    return this.config.columns.map((col) => {
+      if (!col.field) {
+        return null;
+      }
+      return col.field;
+    })
+    .filter((f) => { return f !== null; });
+  }
+
+  private pageChanged(event: any): void {
     this.rxservice.find({
       query: {
         $select: this._select(),
@@ -123,17 +140,9 @@ export class P2TableComponent {
         $skip: (event.page - 1) * event.itemsPerPage
       }
     })
-    .subscribe(data => {
+    .subscribe((data) => {
       this.data = data;
     });
-  }
-
-  ngOnInit() {
-    this.pageChanged({page: 1, itemsPerPage: 10});
-  }
-
-  setStyles(column) {
-    return column.styles || {};
   }
 
 }

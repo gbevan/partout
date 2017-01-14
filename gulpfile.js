@@ -107,7 +107,7 @@ gulp.task('default', function () {
     'app/**',
     'lib/**',
     'etc/*.js',
-    'agent/lib/*.js',
+    'agent/lib/**/*.js',
     'server/**/*.js',
     'public/**/*.js',
     //'public/views/*.html',

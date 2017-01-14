@@ -1,13 +1,3 @@
-<h2>CSRs</h2>
-
-<md-grid-list cols="4">
-  <md-grid-tile>
-    <pie-chart title="By Status"
-             [rxservice]="csrsAllService"
-             [field]="'status'"></pie-chart>
-  </md-grid-tile>
-</md-grid-list>
-
 <h2>Agents</h2>
 
 <md-grid-list cols="4">
@@ -33,5 +23,15 @@
     <pie-chart title="By Last Seen"
                [rxservice]="agentsAllService"
                [field]="'lastSeenBucket'"></pie-chart>
+  </md-grid-tile>
+</md-grid-list>
+
+<h2>CSRs</h2>
+
+<md-grid-list cols="4">
+  <md-grid-tile>
+    <pie-chart title="By Status"
+             [rxservice]="csrsAllService"
+             [field]="'status'"></pie-chart>
   </md-grid-tile>
 </md-grid-list>

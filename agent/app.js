@@ -144,12 +144,18 @@ var checkCert = function (master) {
             console.warn('CSR fingerprint:', fingerprint);
             console.warn('============================================================================');
 
-            // Send csr to master
-            console.warn('Sending agent certificate signing request to master');
+            console.warn('Agent CSR randomart:');
+            pfs.pReadFile(ssl.agentCsrFile)
+            .then(function (csrData) {
+              console.warn(utils.toArt(csrData));
 
-            _sendCsr(master)
-            .then(function(resp) {
-              deferred.resolve(false);
+              // Send csr to master
+              console.warn('Sending agent certificate signing request to master');
+
+              _sendCsr(master)
+              .then(function(resp) {
+                deferred.resolve(false);
+              }).done();
             }).done();
 
           });
@@ -182,7 +188,12 @@ var checkCert = function (master) {
 
     } else { // cert exists
       console.log('agent certificate exists, continuing');
-      deferred.resolve(true);
+      console.warn('Agent certificate randomart:');
+      pfs.pReadFile(certFile)
+      .then(function (certData) {
+        console.warn(utils.toArt(certData));
+        deferred.resolve(true);
+      });
     }
   })
   .done();

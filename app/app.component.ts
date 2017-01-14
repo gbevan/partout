@@ -119,7 +119,24 @@ export class AppComponent {
       },
       {
         field: 'env',
-        title: 'Environment'
+        title: 'Environment',
+        styles: (v) => {
+          if (!v || v === '') {
+            return {
+              'background-color': 'red',
+//              'content': 'n/a',
+              'color': 'white',
+              'padding-left': '5px',
+              'width': '100%'
+            };
+          }
+        },
+        valueFn: (v) => {
+          if (!v || v === '') {
+            return 'n/a';
+          }
+          return v;
+        }
 //        action: (id) => { this.changeAgentEnv(id) }
       },
       {
@@ -201,6 +218,20 @@ export class AppComponent {
       {
         field: 'name',
         title: 'Full Name'
+      },
+      {
+        action: (id) => { this.editUser(id); },
+        value: 'Edit'
+      },
+      {
+        action: (id) => { this.deleteUser(id); },
+        value: 'Delete',
+        condFn: (id) => {
+          let u = this.restService.getUser();
+//          console.log((new Error('condFn')).stack);
+//          console.log('id:', id, 'u.id:', u.id);
+          return u.id !== id; // show if not logged in user
+        }
       }
     ]
   };
@@ -306,10 +337,26 @@ export class AppComponent {
   }
 
   /*****************************
+   * Environments
+   */
+  env_refresh() {
+    console.log('TODO: environment refresh');
+  }
+
+  /*****************************
    * Users
    */
   addUser() {
     console.log('TODO: add a user');
+  }
+
+  editUser(id) {
+    console.log('TODO: edit a user, id:', id);
+  }
+
+  deleteUser(id) {
+    console.log('TODO: delete a user, id:', id);
+
   }
 
   /*****************************
