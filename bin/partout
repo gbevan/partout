@@ -89,4 +89,5 @@ if (rest.length > 0) {
   opts.serve = true;
 }
 
-var app = require('../app')(opts);
+var app = new (require('../app'))();
+app.run(opts);

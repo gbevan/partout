@@ -2,7 +2,7 @@
     Partout [Everywhere] - Policy-Based Configuration Management for the
     Data-Driven-Infrastructure.
 
-    Copyright (C) 2015-2016  Graham Lee Bevan <graham.bevan@ntlworld.com>
+    Copyright (C) 2015-2017  Graham Lee Bevan <graham.bevan@ntlworld.com>
 
     This file is part of Partout.
 
@@ -24,7 +24,7 @@
 /*jshint esversion: 6 */
 'use strict';
 
-var console = require('better-console'),
+const console = require('better-console'),
     Q = require('q'),
     cfg = new (require('./etc/partout.conf.js'))(),
     fs = require('fs'),
@@ -60,443 +60,356 @@ var console = require('better-console'),
     jwt = require('feathers-authentication-jwt'),
     local = require('feathers-authentication-local'),
     auth = require('feathers-authentication');
-//    authHooks = require('feathers-authentication').hooks,
-//    jwt = require('jsonwebtoken')
-
-var Waterline = require('waterline'),
-    arangodbAdaptor = require('sails-arangodb'),
-    service = require('feathers-waterline'),
-    ORM = new Waterline(),
-    Agents = require('./server/models/agents'),
-    Csrs = require('./server/models/csrs'),
-    Environments = require('./server/models/environments'),
-//    Profiles = require('./server/models/profiles'),
-    Users = require('./server/models/users'),
-    Roles = require('./server/models/roles');
 
 Q.longStackSupport = true;
-
 
 /**
  * Express app for the Master UI
  * @class appUi
  * @memberof App
  */
-var AppUi = function (opts, db) {
+var AppUi = function (opts, services) {
   var self = this;
 
-  self.waterline_config = {
-    adapters: {
-      'default': arangodbAdaptor,
-      arangodb: arangodbAdaptor
-    },
-    connections: {
-      arangodb: {
-        adapter: 'arangodb',
-        host: '127.0.0.1',
-        port: 8529,
-        user: 'root',
-        password: 'Part2fly%25',
-        database: 'partout'
-      }
-    },
-    defaults: {}
-  };
+  self.services = services;
 
-  ///////////////////
-  // FeathersJS
+  self.app = feathers();
+  var optionsUi = {
+      key: fs.readFileSync(ca.masterUiPrivateKeyFile),
+      cert: fs.readFileSync(ca.masterUiCertFile),
+      ca: [
+        fs.readFileSync(ca.intCertFile)
 
-  ORM.loadCollection(Agents);
-  ORM.loadCollection(Csrs);
-  ORM.loadCollection(Environments);
-//  ORM.loadCollection(Profiles);
-  ORM.loadCollection(Users);
-  ORM.loadCollection(Roles);
-  ORM.initialize(self.waterline_config, function (err, data) {
+        /*
+         * root cert placed in /usr/share/ca-certificates/partout and updated
+         * /etc/ca-certificates.conf to point to it.
+         * run update-ca-certificates
+         * only include intermediate ca here, and import this into
+         * browsers cert stores
+         */
+      ],
+      requestCert: true,
+      rejectUnauthorized: false
+    };
+
+  self.app.opts = opts;
+
+  var store = new ArangoDBStore({
+    url: cfg.database_url,
+    dbName: cfg.database_name
+  });
+
+  store.on('error', function (err) {
     if (err) {
-      console.error(err);
       throw new Error(err);
     }
-    //console.warn('data:', data);
+  });
 
-    const agents = service({
-      Model: data.collections.agents,
-      paginate: {
-        default: 10,
-        max: 10
-      }
-    });
-
-    const csrs = service({
-      Model: data.collections.csrs,
-      paginate: {
-        default: 10,
-        max: 10
-      }
-    });
-
-    const environments = service({
-      Model: data.collections.environments,
-      paginate: {
-        default: 10,
-        max: 10
-      }
-    });
-
-    const users = service({
-      Model: data.collections.users,
-      paginate: {
-        default: 10,
-        max: 10
-      }
-    });
-
-    const roles = service({
-      Model: data.collections.roles,
-      paginate: {
-        default: 10,
-        max: 10
-      }
-    });
-
-    self.app = feathers();
-    var optionsUi = {
-        key: fs.readFileSync(ca.masterUiPrivateKeyFile),
-        cert: fs.readFileSync(ca.masterUiCertFile),
-        ca: [
-          fs.readFileSync(ca.intCertFile)
-
-          /*
-           * root cert placed in /usr/share/ca-certificates/partout and updated
-           * /etc/ca-certificates.conf to point to it.
-           * run update-ca-certificates
-           * only include intermediate ca here, and import this into
-           * browsers cert stores
-           */
-        ],
-        requestCert: true,
-        rejectUnauthorized: false
+  function customizeJWTPayload() {
+    return function(hook) {
+      console.log('Customizing JWT Payload, hook.params:', hook.params);
+      hook.data.payload = {
+        // You need to make sure you have the right id.
+        // You can put whatever you want to be encoded in
+        // the JWT access token.
+        userId: hook.params.user._key
       };
 
-    self.app.opts = opts;
+      return Promise.resolve(hook);
+    };
+  }
 
-    var store = new ArangoDBStore({
-      url: cfg.database_url,
-      dbName: cfg.database_name
-    });
+  self.app
+  .use(cors())
+  .use(compression())
+  .use(logger)
+  .use('/', staticServe('public'))  // assets
+  .use('/dist', staticServe('dist'))
+  .use('/node_modules', staticServe('node_modules'))
+  .use(flash())
+  .configure(rest())
+  .configure(socketio(function (io) {
+    console.log('socketio created **********************************************');
 
-    store.on('error', function (err) {
-      if (err) {
-        throw new Error(err);
-      }
-    });
+    io.on('connection', function (socket) {
+      console.log('socket connection recvd');
 
-    function customizeJWTPayload() {
-      return function(hook) {
-        console.log('Customizing JWT Payload, hook.params:', hook.params);
-        hook.data.payload = {
-          // You need to make sure you have the right id.
-          // You can put whatever you want to be encoded in
-          // the JWT access token.
-          userId: hook.params.user._key
-        };
-
-        return Promise.resolve(hook);
-      };
-    }
-
-    self.app
-    .use(cors())
-    .use(compression())
-    .use(logger)
-    .use('/', staticServe('public'))  // assets
-    .use('/dist', staticServe('dist'))
-    .use('/node_modules', staticServe('node_modules'))
-    .use(flash())
-    .configure(rest())
-    .configure(socketio(function (io) {
-      console.log('socketio created **********************************************');
-
-      io.on('connection', function (socket) {
-        console.log('socket connection recvd');
-
-        socket.on('login', function(entity, info) {
-          console.log('(Socket) User logged in', entity);
-          console.log('(Socket) user:', socket.user);
-        });
-
-        socket.on('logout', function(tokenPayload, info) {
-          console.log('(Socket) User logged out', tokenPayload);
-        });
+      socket.on('login', function(entity, info) {
+        console.log('(Socket) User logged in', entity);
+        console.log('(Socket) user:', socket.user);
       });
 
-      io.use(function (socket, next) {
-        //console.log('socket event:', socket);
-        next();
+      socket.on('logout', function(tokenPayload, info) {
+        console.log('(Socket) User logged out', tokenPayload);
       });
-    }))
-    .configure(hooks())
-    //.use(express.static('public')); // /assets, /css. etc
-    .use(bodyParser.json())
-    .use(bodyParser.urlencoded({ extended: true }))
-    .set('query parser', 'extended')
-    .use(cookieParser())
+    });
 
-    .configure(
-      auth({
-        secret: cfg.token.secret,
-        cookie: {
-          maxAge: 1000 * 60 * 60 * 25 // 1 day
-        },
-        session: false
+    io.use(function (socket, next) {
+      //console.log('socket event:', socket);
+      next();
+    });
+  }))
+  .configure(hooks())
+  //.use(express.static('public')); // /assets, /css. etc
+  .use(bodyParser.json())
+  .use(bodyParser.urlencoded({ extended: true }))
+  .set('query parser', 'extended')
+  .use(cookieParser())
+
+  .configure(
+    auth({
+      secret: cfg.token.secret,
+      cookie: {
+        maxAge: 1000 * 60 * 60 * 25 // 1 day
+      },
+      session: false
 //        extraFields: {
 //          payload: ['id', 'user', 'name']
 //        }
 //        local: {
 //          assignProperty: 'user'
 //        }
-      })
-    )
-    .configure(local({
-      name: 'local',
-      usernameField: 'username'
+    })
+  )
+  .configure(local({
+    name: 'local',
+    usernameField: 'username'
 //      extraFields: {
 //          payload: ['id', 'user', 'name']
 //      }
-    }))
-    .configure(jwt({
+  }))
+  .configure(jwt({
 //      extraFields: {
 //          payload: ['id', 'user', 'name']
 //      }
-    }))
-    .use('/users', users)
-    .use('/agents', agents)
-    .use('/agents_all', agents)
-    .use('/csrs', csrs)
-    .use('/csrs_all', csrs)
-    .use('/environments', environments)
-    .use('/roles', roles)
-    ;
+  }))
+  .use('/users', self.services.users)
+  .use('/agents', self.services.agents)
+  .use('/agents_all', self.services.agents)
+  .use('/csrs', self.services.csrs)
+  .use('/csrs_all', self.services.csrs)
+  .use('/environments', self.services.environments)
+  .use('/roles', self.services.roles)
+  ;
 
-    self.app.service('authentication').hooks({
-      before: {
-        create: [
-          // You can chain multiple strategies
-          auth.hooks.authenticate(['jwt', 'local']),
-          customizeJWTPayload()
-        ],
-        remove: [
-          auth.hooks.authenticate('jwt')
-        ]
-      }
-    });
+  self.app.service('authentication').hooks({
+    before: {
+      create: [
+        // You can chain multiple strategies
+        auth.hooks.authenticate(['jwt', 'local']),
+        customizeJWTPayload()
+      ],
+      remove: [
+        auth.hooks.authenticate('jwt')
+      ]
+    }
+  });
 
-    self.app.use('/', routerUi);
+  self.app.use('/', routerUi);
 
-    require('./lib/ui/routes')(routerUi, cfg, db.getDb(), serverMetrics, self.app, auth.hooks);
+  require('./lib/ui/routes')(routerUi, cfg, serverMetrics, self.app, auth.hooks);
 
-    self.app.set('views', 'public/views');
-    self.app.set('view engine', 'ejs');
+  self.app.set('views', 'public/views');
+  self.app.set('view engine', 'ejs');
 
-    // Template variables
-    self.app.locals = {
-      banner: utils.getBanner(),
-      master_hostname: cfg.partout_master_hostname,
-      master_api_port: cfg.partout_api_port,
-      role: 'master'
-    };
-    self.app.engine('html', require('ejs').renderFile);
-    self.app.use(errorHandler());
+  // Template variables
+  self.app.locals = {
+    banner: utils.getBanner(),
+    master_hostname: cfg.partout_master_hostname,
+    master_api_port: cfg.partout_api_port,
+    role: 'master'
+  };
+  self.app.engine('html', require('ejs').renderFile);
+  self.app.use(errorHandler());
 
-    ///////////////////////////////////////////
-    // Feathers services (REST + WebSockets)
+  ///////////////////////////////////////////
+  // Feathers services (REST + WebSockets)
 
-    self.app.service('users').hooks({
-      before: {
-        find: [
-          auth.hooks.authenticate('jwt')
-        ],
-        create: [
-          local.hooks.hashPassword({ passwordField: 'password' })
-        ]
-      }
-    });
+  self.app.service('users').hooks({
+    before: {
+      find: [
+        auth.hooks.authenticate('jwt')
+      ],
+      create: [
+        local.hooks.hashPassword({ passwordField: 'password' })
+      ]
+    }
+  });
 
-    self.app.service('roles').hooks({
-      before: {
-        find: [
-          auth.hooks.authenticate('jwt')
-        ]
-      }
-    });
+  self.app.service('roles').hooks({
+    before: {
+      find: [
+        auth.hooks.authenticate('jwt')
+      ]
+    }
+  });
 
-    self.app.service('agents').hooks({
-      before: {
-        find: [
-          auth.hooks.authenticate('jwt')
-        ]
-      },
-      after: {
-        create: [
-          (hook) => {
-            self.app.service('agents_all').emit('created', []); // tell agents_all
-          }
-        ],
-        remove: [
-          (hook) => {
-            self.app.service('agents_all').emit('removed', []); // tell agents_all
-          }
-        ],
-        update: [
-          (hook) => {
-            self.app.service('agents_all').emit('updated', []); // tell agents_all
-          }
-        ],
-      }
-    });
+  self.app.service('agents').hooks({
+    before: {
+      find: [
+        auth.hooks.authenticate('jwt')
+      ]
+    },
+    after: {
+      create: [
+        (hook) => {
+          self.app.service('agents_all').emit('created', []); // tell agents_all
+        }
+      ],
+      remove: [
+        (hook) => {
+          self.app.service('agents_all').emit('removed', []); // tell agents_all
+        }
+      ],
+      update: [
+        (hook) => {
+          self.app.service('agents_all').emit('updated', []); // tell agents_all
+        }
+      ],
+    }
+  });
 
-    self.app.service('agents_all').hooks({
-      before: {
-        find: [
-          auth.hooks.authenticate('jwt'),
-          (hook) => { // allow client to disable pagination
-            hook.service.paginate = false;
+  self.app.service('agents_all').hooks({
+    before: {
+      find: [
+        auth.hooks.authenticate('jwt'),
+        (hook) => { // allow client to disable pagination
+          hook.service.paginate = false;
 
-            // handle lastSeenBucket
-            hook.params.query.$select = hook.params.query.$select.map(x => { return x === 'lastSeenBucket' ? 'lastSeen' : x; });
-            //hook.params.query.$sort = hook.params.query.$sort.map(x => { return x === 'lastSeenBucket' ? 'lastSeen' : x; });
-          }
-        ]
-      },
-      after: {
-        find: [
-          (hook) => {
-            hook.result.forEach(function (r) {
-              if (r.lastSeen === undefined) {
-                return;
-              }
-              let n = Date.now(); // millisecs since 1970
-              let aday = 1000 * 60 * 60 * 24;
-              let lastSeen = Date.parse(r.lastSeen);
+          // handle lastSeenBucket
+          hook.params.query.$select = hook.params.query.$select.map(x => { return x === 'lastSeenBucket' ? 'lastSeen' : x; });
+          //hook.params.query.$sort = hook.params.query.$sort.map(x => { return x === 'lastSeenBucket' ? 'lastSeen' : x; });
+        }
+      ]
+    },
+    after: {
+      find: [
+        (hook) => {
+          hook.result.forEach(function (r) {
+            if (r.lastSeen === undefined) {
+              return;
+            }
+            let n = Date.now(); // millisecs since 1970
+            let aday = 1000 * 60 * 60 * 24;
+            let lastSeen = Date.parse(r.lastSeen);
 
-              if (lastSeen > (n - aday) ) {
-                r.lastSeenBucket = '< 1 day';
+            if (lastSeen > (n - aday) ) {
+              r.lastSeenBucket = '< 1 day';
 
-              } else if (lastSeen > (n - aday * 2)) {
-                r.lastSeenBucket = '< 2 days';
+            } else if (lastSeen > (n - aday * 2)) {
+              r.lastSeenBucket = '< 2 days';
 
-              } else if (lastSeen > (n - aday * 5)) {
-                r.lastSeenBucket = '< 5 days!';
+            } else if (lastSeen > (n - aday * 5)) {
+              r.lastSeenBucket = '< 5 days!';
 
-              } else if (lastSeen > (n - aday * 31)) {
-                r.lastSeenBucket = '< 31 days!!';
+            } else if (lastSeen > (n - aday * 31)) {
+              r.lastSeenBucket = '< 31 days!!';
 
-              } else {
-                r.lastSeenBucket = '> 31 days!!!';
-              }
-            });
-          }
-        ]
-      }
-    });
+            } else {
+              r.lastSeenBucket = '> 31 days!!!';
+            }
+          });
+        }
+      ]
+    }
+  });
 
-    self.app.service('csrs').hooks({
-      before: {
-        find: [
-          auth.hooks.authenticate('jwt')
-        ],
-        update: [
-          (options) => {
-            return new Promise((resolve, reject) => {
+  self.app.service('csrs').hooks({
+    before: {
+      find: [
+        auth.hooks.authenticate('jwt')
+      ],
+      update: [
+        (options) => {
+          return new Promise((resolve, reject) => {
 
-              if (options.data.status === 'signed' && !options.data.cert) {
-                console.log('signing csr');
-                ca.signCsrWithAgentSigner(options.data.csr, options.data.id)  // sign adding key/uuid as given name
-                .then(function (signed) {
-                  console.info('Signed cert from csr:\n' + signed.certPem);
+            if (options.data.status === 'signed' && !options.data.cert) {
+              console.log('signing csr');
+              ca.signCsrWithAgentSigner(options.data.csr, options.data.id)  // sign adding key/uuid as given name
+              .then(function (signed) {
+                console.info('Signed cert from csr:\n' + signed.certPem);
 
-                  // return to agent via the csr document in db
-                  options.data.cert = signed.cert;
-                  options.data.certPem = signed.certPem;
+                // return to agent via the csr document in db
+                options.data.cert = signed.cert;
+                options.data.certPem = signed.certPem;
 
 //                  console.log('csr signed, options:', options);
-                  resolve(options);
-                })
-                .fail(err => {
-                  console.error(err);
-                  reject(err);
-                });
-
-              } else if (options.data.status === 'rejected' && options.data.cert) {
-                delete options.data.cert;
-                delete options.data.certPem;
-
                 resolve(options);
-              } else {
-                resolve();
-              }
-            });
-          }
-        ]
-      },
-      after: {
-        create: [
-          (hook) => {
-            self.app.service('csrs_all').emit('created', []); // tell csrs_all
-          }
-        ],
-        remove: [
-          (hook) => {
-            self.app.service('csrs_all').emit('removed', []); // tell csrs_all
-          }
-        ],
-        update: [
-          (hook) => {
-            self.app.service('csrs_all').emit('updated', []); // tell csrs_all
-          }
-        ],
-      }
-    });
+              })
+              .fail(err => {
+                console.error(err);
+                reject(err);
+              });
 
-    self.app.service('csrs_all').hooks({
-      before: {
-        find: [
-          auth.hooks.authenticate('jwt'),
-          (hook) => { // allow client to disable pagination
+            } else if (options.data.status === 'rejected' && options.data.cert) {
+              delete options.data.cert;
+              delete options.data.certPem;
+
+              resolve(options);
+            } else {
+              resolve();
+            }
+          });
+        }
+      ]
+    },
+    after: {
+      create: [
+        (hook) => {
+          self.app.service('csrs_all').emit('created', []); // tell csrs_all
+        }
+      ],
+      remove: [
+        (hook) => {
+          self.app.service('csrs_all').emit('removed', []); // tell csrs_all
+        }
+      ],
+      update: [
+        (hook) => {
+          self.app.service('csrs_all').emit('updated', []); // tell csrs_all
+        }
+      ],
+    }
+  });
+
+  self.app.service('csrs_all').hooks({
+    before: {
+      find: [
+        auth.hooks.authenticate('jwt'),
+        (hook) => { // allow client to disable pagination
 //            console.log('agents: hook:', hook);
 //            console.log('agents: params:', hook.params);
-            hook.service.paginate = false;
+          hook.service.paginate = false;
 //            delete hook.params.query.$paginate;
-          }
-        ]
-      }
-    });
-
-    self.app.service('environments').hooks({
-      before: {
-        find: [
-          auth.hooks.authenticate('jwt')
-        ]
-      }
-    });
-
-    ///////////////////////////////////////////
-
-    self.app.on('login', function(entity, info) {
-      console.log('(Rest) User logged in', entity);
-    });
-    self.app.on('logout', function(tokenPayload, info) {
-      console.log('(Rest) User logged out', tokenPayload);
-    });
-
-    var server = httpsUi.createServer(optionsUi, self.app)
-    .listen(cfg.partout_ui_port);
-    console.info('Master UI listening on port', cfg.partout_ui_port);
-
-    var io = require('socket.io').listen(server);
-
-    self.app.setup(server);
+        }
+      ]
+    }
   });
+
+  self.app.service('environments').hooks({
+    before: {
+      find: [
+        auth.hooks.authenticate('jwt')
+      ]
+    }
+  });
+
+  ///////////////////////////////////////////
+
+  self.app.on('login', function(entity, info) {
+    console.log('(Rest) User logged in', entity);
+  });
+  self.app.on('logout', function(tokenPayload, info) {
+    console.log('(Rest) User logged out', tokenPayload);
+  });
+
+  var server = httpsUi.createServer(optionsUi, self.app)
+  .listen(cfg.partout_ui_port);
+  console.info('Master UI listening on port', cfg.partout_ui_port);
+
+  var io = require('socket.io').listen(server);
+
+  self.app.setup(server);
 
 };
 

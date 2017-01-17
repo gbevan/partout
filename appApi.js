@@ -32,6 +32,7 @@ var console = require('better-console'),
     ca = new (require('./lib/ca'))(),
 
     express = require('express'),
+    feathers = require('feathers'),
     routerApi = express.Router(),
     httpsApi = require('https'),
     compression = require('compression'),
@@ -57,10 +58,13 @@ passport.deserializeUser(function(obj, done) {
  * @class appApi
  * @memberof App
  */
-var AppApi = function (opts, controllers) {
+var AppApi = function (opts, appUi, controllers) { // TODO: deprecate controllers for services (feathers)
   var self = this;
 
-  self.app = express();
+//  self.services = services;
+
+//  self.app = express();
+  self.app = feathers();
   var optionsApi = {
       key: fs.readFileSync(ca.masterApiPrivateKeyFile),
       cert: fs.readFileSync(ca.masterApiCertFile),
@@ -83,25 +87,26 @@ var AppApi = function (opts, controllers) {
       rejectUnauthorized: false
     };
 
-    self.app.opts = opts;
 
-//        self.app.use(passport.initialize());
-//        self.app.use(passport.authenticate('client-cert', {session: false}));
+  self.app.opts = opts;
 
-    self.app.use(compression());
-    routerApi.use(logger);
-    self.app.use(bodyParser.json({limit: '50mb'}));
-    self.app.use(bodyParser.urlencoded({ extended: true }));
+  self.app.use(compression());
+  routerApi.use(logger);
+  self.app
+  .use(bodyParser.json({limit: '50mb'}))
+  .use(bodyParser.urlencoded({ extended: true }))
 
-    require('./lib/api/routes')(routerApi, cfg, db.getDb(), controllers, serverMetrics);
+//  .use('/agents', self.services.agents)
+//  .use('/csrs', self.services.csrs);
 
-    self.app.use('/', routerApi);
-    self.app.use(express.static('public'));
+  require('./lib/api/routes')(routerApi, cfg, self.app, appUi, controllers, serverMetrics);
 
-    httpsApi.createServer(optionsApi, self.app)
-    .listen(cfg.partout_api_port);
-    console.info('Master API listening on port', cfg.partout_api_port);
+  self.app.use('/', routerApi);
+  self.app.use(express.static('public'));
 
+  httpsApi.createServer(optionsApi, self.app)
+  .listen(cfg.partout_api_port);
+  console.info('Master API listening on port', cfg.partout_api_port);
 
 };
 
