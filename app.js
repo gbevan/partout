@@ -47,9 +47,9 @@ const console = require('better-console'),
       ca = new (require('./lib/ca'))(),
       Q = require('q'),
       cfg = new (require('./etc/partout.conf.js'))(),
-      db = new (require('./lib/db.js'))(cfg),   // TODO: deprecate to waterline
-      Csr = require('./server/controllers/csr.js'),   // TODO: deprecate to waterline
-      Agent = require('./server/controllers/agent.js'),   // TODO: deprecate to waterline
+//      db = new (require('./lib/db.js'))(cfg),   // TODO: deprecate to waterline
+//      Csr = require('./server/controllers/csr.js'),   // TODO: deprecate to waterline
+//      Agent = require('./server/controllers/agent.js'),   // TODO: deprecate to waterline
       utils = require('./agent/lib/utils'),
       serverMetrics = new (require('./lib/server_metrics'))(),
       _ = require('lodash'),
@@ -292,31 +292,32 @@ class App {
         console.info('\nrandomart of master public key:\n' + utils.toArt(pubkey));
         console.info(new Array(master_fingerprint.length + 1).join('='));
 
-        db.connect()
-        .then(function (status) {
-          console.log('db:', status);
+//        db.connect()
+//        .then(function (status) {
+//          console.log('db:', status);
+//
+//          //db.useDatabase(cfg.database_name);
+//          //console.warn('db:',db);
+//
+////          var controllers = {
+////            'csr': new Csr(db.getDb()),
+////            'agent': new Agent(db.getDb())
+////          };
+////          controllers.csr.init();  // create collections if req'd. returns a promise
+////          controllers.agent.init();  // create collections if req'd. returns a promise
+//
+//
+//        }).done();
 
-          //db.useDatabase(cfg.database_name);
-          //console.warn('db:',db);
+        /****************************
+         * Start Master UI Server
+         */
+        var appUi = new AppUi(opts, self.services);
 
-          var controllers = {
-            'csr': new Csr(db.getDb()),
-            'agent': new Agent(db.getDb())
-          };
-          controllers.csr.init();  // create collections if req'd. returns a promise
-          controllers.agent.init();  // create collections if req'd. returns a promise
-
-          /****************************
-           * Start Master UI Server
-           */
-          var appUi = new AppUi(opts, self.services);
-
-          /****************************
-           * Start Master API Server
-           */
-          var appApi = new AppApi(opts, appUi, controllers);
-
-        }).done();
+        /****************************
+         * Start Master API Server
+         */
+        var appApi = new AppApi(opts, appUi);
       });
 
     })
@@ -334,16 +335,15 @@ class App {
     this.init()
     .then(() => {
 
+      /////////////////////////////////////////////////////////////
+      // TODO: deprecate everything below this line in favor of UI
+      // Then remove old db ORM and controllers in favor of
+      // waterline ORM
 
-  //    if (opts.init) {
-  //      this.init(opts.args)
-  //      .done();
-  //
-  //    } else
       if (opts.serve) {
         this.serve(opts);
 
-      } else if (opts.csr) { // TODO: deprecate in favor of the UI
+      } else if (opts.csr) {
         //console.log('csr args:', opts.args);
 
         db.connect()

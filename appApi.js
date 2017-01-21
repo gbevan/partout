@@ -40,7 +40,6 @@ var console = require('better-console'),
     morgan = require('morgan'),
     logger = morgan('API :: :method :url :status :response-time ms - :res[content-length] bytes'),
     passport = require('passport'),
-    db = new (require('./lib/db.js'))(cfg),
     serverMetrics = new (require('./lib/server_metrics'))();
 
 Q.longStackSupport = true;
@@ -58,10 +57,8 @@ passport.deserializeUser(function(obj, done) {
  * @class appApi
  * @memberof App
  */
-var AppApi = function (opts, appUi, controllers) { // TODO: deprecate controllers for services (feathers)
+var AppApi = function (opts, appUi) { // TODO: deprecate controllers for services (feathers) in appUi
   var self = this;
-
-//  self.services = services;
 
 //  self.app = express();
   self.app = feathers();
@@ -94,12 +91,9 @@ var AppApi = function (opts, appUi, controllers) { // TODO: deprecate controller
   routerApi.use(logger);
   self.app
   .use(bodyParser.json({limit: '50mb'}))
-  .use(bodyParser.urlencoded({ extended: true }))
+  .use(bodyParser.urlencoded({ extended: true }));
 
-//  .use('/agents', self.services.agents)
-//  .use('/csrs', self.services.csrs);
-
-  require('./lib/api/routes')(routerApi, cfg, self.app, appUi, controllers, serverMetrics);
+  require('./lib/api/routes')(routerApi, cfg, self.app, appUi, serverMetrics);
 
   self.app.use('/', routerApi);
   self.app.use(express.static('public'));

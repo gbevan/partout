@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { RestService, SocketService } from '../feathers/feathers.service';
-import { Subscription } from 'rxjs';
+//import { Subscription } from 'rxjs';
 
 const html = require('./login_form_template.html');
 const css = require('./login-form.component.css');
@@ -13,10 +13,8 @@ const css = require('./login-form.component.css');
 export class LoginFormComponent implements OnInit {
   user = '';
   password = '';
-  stateRest = '';
-  stateSock = '';
   errorMsg = '';
-  loginFailedMsg = 'Login failed, check your details and try again.'
+  loginFailedMsg = 'Login failed, check your details and try again.';
 
   constructor(private restService: RestService, private socketService: SocketService) {
     this.restService = restService;
@@ -27,23 +25,29 @@ export class LoginFormComponent implements OnInit {
 
     // Login Rest Service
     this.restService.login(form.user, form.password)
-    .then((result) => {
-      this.stateRest = result;
-    })
+//    .then((result) => {
+//      this.stateRest = result;
+//    })
     .catch((err) => {
-      this.stateRest = err;
-      this.errorMsg = err.code + ' - ' + this.loginFailedMsg;
+      if (err.code) {
+        this.errorMsg = err.code + ' - ' + this.loginFailedMsg;
+      } else {
+        this.errorMsg = err;
+      }
     });
 
     // Login Socket Service
     this.socketService.login(form.user, form.password)
-    .then((result) => {
-      this.stateSock = result;
-    })
+//    .then((result) => {
+//      this.stateSock = result;
+//    })
     .catch((err) => {
-      this.stateSock = err;
-      this.errorMsg = err.code + ' - ' + this.loginFailedMsg;
-    })
+      if (err.code) {
+        this.errorMsg = err.code + ' - ' + this.loginFailedMsg;
+      } else {
+        this.errorMsg = err;
+      }
+    });
   }
 
   ngOnInit(): void {
