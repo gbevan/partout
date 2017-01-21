@@ -108,7 +108,7 @@ gulp.task('default', function () {
     'app/**',
     'lib/**',
     'etc/*.js',
-    'agent/lib/**/*.js',
+    'agent/lib/utils/**/*.js',
     'server/**/*.js',
     'public/**/*.js',
     //'public/views/*.html',
@@ -140,11 +140,17 @@ gulp.task('mocha', function () {
 gulp.task('watch-mocha', function () {
   watch([
     'gulpfile.js',
+    'systemjs.config.js',
     'app.js',
+    'appApi.js',
+    'appUi.js',
+    'app/**',
     'lib/**',
     'etc/*.js',
-    'agent/lib/*.js',
+    'agent/lib/utils/**/*.js',
     'server/**/*.js',
+    'public/**/*.js',
+    //'public/views/*.html',
     'test/**'
   ], {
     ignoreInitial: false,

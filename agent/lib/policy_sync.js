@@ -35,7 +35,8 @@ var console = require('better-console'),
     pki = require('node-forge').pki,
     forge = require('node-forge'),
     readline = require('readline'),
-    deleteEmpty = require('delete-empty');
+    deleteEmpty = require('delete-empty'),
+    debug = require('debug')('agent:policy_sync');
 //    randomart = require('randomart');
 
 /**
@@ -219,41 +220,28 @@ Policy_Sync.prototype.sync = function (srcfolder, destfolder) {
   .then(function () {
 
     console.info('syncing from:', srcfolder, 'to:', destfolder);
-    //self.get_manifest(function (manifest) {
-//    self.app.master.get('/manifest?environment=' + self.app.cfg.environment)
     self.app.master.get('/manifest')
-    .fail(function (err) {
-      console.error('Sync failed, err:', err);
-      outer_deferred.reject(err);
-    })
     .then(function (obj) {
-      if (!obj || !obj.data) {
-        return;
+      if (!obj || !obj.data || !obj.data.environment) {
+        //throw 'No environment set';
+        return outer_deferred.resolve();
       }
       var manifest = obj.data.manifest;
+      debug('manifest %O', manifest);
 
-//      self.app.cfg.environment = obj.data.environment;
-      //console.log('self.app.cfg.environment #1:', self.app.cfg.environment);
-      //console.log('obj.data.environment:', obj.data.environment);
       self.app.cfg.setEnvironment(obj.data.environment);
-      //console.log('self.app.cfg.environment #2:', self.app.cfg.environment);
-      //console.info('manifest:', manifest);
 
       // Get hashWalk of local manifest
       pfs.hashWalk(destfolder, function (local_manifest) {
-        //console.log('local_manifest:', local_manifest);
 
         var files = Object.keys(manifest),
           local_files = Object.keys(local_manifest),
           tasks = [];
 
-        //console.log('files:', files);
-
         _.each(files, function (srcfile) {
           tasks.push(function (done) {
             var srcrelname = manifest[srcfile].relname,
                 destfile = path.join(self.app.cfg.PARTOUT_AGENT_MANIFEST_DIR, srcrelname);
-            //console.log('srcfile:', srcfile, 'relname:', srcrelname, 'hash:', manifest[srcfile]);
 
             // TODO: Restrict permissions on sync'd files - 600.
 
@@ -325,7 +313,10 @@ Policy_Sync.prototype.sync = function (srcfolder, destfolder) {
       });
 
     })
-    .done();
+    .fail(function (err) {
+      console.error('Sync failed, err:', err);
+      outer_deferred.reject(err);
+    });
 
   })
 

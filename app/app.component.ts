@@ -192,6 +192,10 @@ export class AppComponent {
       {
         action: (id) => { this.rejectCsr(id); },
         value: 'Reject'
+      },
+      {
+        action: (id) => { this.deleteCsr(id); },
+        value: 'Delete'
       }
     ]
   };
@@ -333,7 +337,16 @@ export class AppComponent {
     .catch((err) => {
       console.error('rejectCsr() err:', err);
     });
+  }
 
+  deleteCsr(id) {
+    this.csrsService.remove(id, {})
+    .then((csr) => {
+      console.log('deleteCsr() csr:', csr);
+    })
+    .catch((err) => {
+      console.error('deleteCsr() err:', err);
+    });
   }
 
   /*****************************
