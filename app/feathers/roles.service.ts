@@ -15,7 +15,7 @@ export class RolesService {
     this._socket = _socketService.getService('roles');
 
     this._socket.rx({
-      listStrategy: 'smart'
+      listStrategy: 'always'
     });
   }
 

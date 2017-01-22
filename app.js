@@ -39,6 +39,7 @@ const console = require('better-console'),
       logger = morgan('combined'),
       compression = require('compression'),
       fs = require('fs'),
+      path = require('path'),
       u = require('util'),
       keyFile = 'etc/ssl/server.key',
       certFile = 'etc/ssl/server.crt',
@@ -51,6 +52,7 @@ const console = require('better-console'),
 //      Csr = require('./server/controllers/csr.js'),   // TODO: deprecate to waterline
 //      Agent = require('./server/controllers/agent.js'),   // TODO: deprecate to waterline
       utils = require('./agent/lib/utils'),
+      pfs = require('./agent/lib/pfs'),
       serverMetrics = new (require('./lib/server_metrics'))(),
       _ = require('lodash'),
       ClientCertStrategy = require('passport-client-cert').Strategy,
@@ -134,7 +136,7 @@ class CsrsService extends service.Service {
  */
 class App {
   constructor() {
-    console.warn('in App');
+    this.env_changed = false;
 
     this.waterline_config = { // TODO: move to config file
       adapters: {
@@ -232,6 +234,72 @@ class App {
     return deferred.promise;
   }
 
+  watchEnvironments() {
+    fs.watch(cfg.MANIFESTDIR, {
+      recursive: true
+    }, (eventType, filename) => {
+      console.log('Manifest watcher:', eventType, 'on file:', filename, 'env_changed:', this.env_changed);
+      if (!this.env_changed) {
+        this.env_changed = true;
+
+        ((self) => {
+          setTimeout(() => {
+            console.log('timeout self:', self);
+            self.loadEnvironments();
+          }, 2000).unref(); // delay 2 secs, then load
+        })(this);
+      }
+    });
+  }
+
+  loadEnvironments() {
+    let promises = [];
+
+    pfs.pReadDir(cfg.MANIFESTDIR)
+    .then((files) => {
+      files.forEach((file) => {
+        console.log('manifest file object:', file);
+        promises.push(
+          pfs.pStat(path.join(cfg.MANIFESTDIR, file))
+          .then((stats) => {
+            return {file, stats};
+          })
+        );
+      });
+
+      return Q.all(promises)
+      .then((files_stats) => {
+        let envs = files_stats.filter((v) => { return v.stats.isDirectory(); });
+
+        envs.forEach((file_stat) => {
+          let env = file_stat.file;
+
+          this.appUi.app.service('environments')
+          .find({query: {name: env}})
+          .then((res) => {
+            console.log('env res:', res);
+            if (res.total === 0) {
+              console.log('added env:', env);
+              this.appUi.app.service('environments')
+              .create({
+                name: env,
+                description: 'TODO: description goes here' // TODO: load from environment
+              });
+            }
+          })
+          .catch((err) => {
+            console.log('env err:', err);
+          });
+        });
+      });
+    })
+    .done(() => {
+      console.log('env_changed:', this.env_changed);
+      this.env_changed = false;
+    });
+
+  }
+
   /**
    * Serve the Partout Master API and UI engine
    * @memberof App
@@ -312,12 +380,15 @@ class App {
         /****************************
          * Start Master UI Server
          */
-        var appUi = new AppUi(opts, self.services);
+        self.appUi = new AppUi(opts, self.services);
 
         /****************************
          * Start Master API Server
          */
-        var appApi = new AppApi(opts, appUi);
+        self.appApi = new AppApi(opts, self.appUi);
+
+        self.loadEnvironments();
+        self.watchEnvironments();
       });
 
     })

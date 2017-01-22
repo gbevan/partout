@@ -146,7 +146,7 @@ Policy_Sync.prototype.get_file = function (srcfile, tgtrelname, cb) {
   .done();
 };
 
-Policy_Sync.prototype.sync = function (srcfolder, destfolder) {
+Policy_Sync.prototype.sync = function (destfolder) {
   var self = this,
       outer_deferred = Q.defer();
 
@@ -221,7 +221,7 @@ Policy_Sync.prototype.sync = function (srcfolder, destfolder) {
   })
   .then(function () {
 
-    console.info('syncing from:', srcfolder, 'to:', destfolder);
+    console.info('syncing to:', destfolder);
     self.app.master.get('/manifest')
     .then(function (obj) {
       if (!obj || !obj.data || !obj.data.environment) {

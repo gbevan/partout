@@ -151,7 +151,8 @@ export class AppComponent {
         action: (id, index) => { this.deleteAgent(id, index); },
         value: 'Delete'
       }
-    ]
+    ],
+    defaultSortBy: 'os_hostname'
   };
 
 //  csrs = [];
@@ -197,7 +198,8 @@ export class AppComponent {
         action: (id) => { this.deleteCsr(id); },
         value: 'Delete'
       }
-    ]
+    ],
+    defaultSortBy: 'ip'
   };
 
   environments_config = {
@@ -209,8 +211,13 @@ export class AppComponent {
       {
         field: 'description',
         title: 'Description'
+      },
+      {
+        action: (id) => { this.deleteEnv(id); },
+        value: 'Delete'
       }
-    ]
+    ],
+    defaultSortBy: 'name'
   };
 
   users_config = {
@@ -237,7 +244,8 @@ export class AppComponent {
           return u.id !== id; // show if not logged in user
         }
       }
-    ]
+    ],
+    defaultSortBy: 'username'
   };
 
   roles_config = {
@@ -250,7 +258,8 @@ export class AppComponent {
         field: 'description',
         title: 'Description'
       }
-    ]
+    ],
+    defaultSortBy: 'name'
   };
 
   agentDialogRef: MdDialogRef<ViewAgentComponent>;
@@ -352,8 +361,14 @@ export class AppComponent {
   /*****************************
    * Environments
    */
-  env_refresh() {
-    console.log('TODO: environment refresh');
+  deleteEnv(id) {
+    this.environmentsService.remove(id, {})
+    .then((env) => {
+      console.log('deleteEnv() env:', env);
+    })
+    .catch((err) => {
+      console.error('deleteEnv() err:', err);
+    });
   }
 
   /*****************************

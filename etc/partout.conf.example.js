@@ -37,6 +37,8 @@ var Cfg = function () {
 
   self.GITHUB_CLIENT_ID = "--insert-github-client-id-here--";
   self.GITHUB_CLIENT_SECRET = "--insert-github-client-secret-here--";
+
+  self.MANIFESTDIR = 'etc/manifest';
 };
 
 module.exports = Cfg;

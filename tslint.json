@@ -8,6 +8,7 @@
     "ordered-imports": false,
     "quotemark": [true, "single"],
     "trailing-comma": [true, "never"],
-    "variable-name": false
+    "variable-name": false,
+    "no-console": false
   }
 }

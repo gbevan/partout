@@ -104,6 +104,7 @@ export class P2TableComponent {
 
   private data: Object;
   private currentPage: number;
+  private sortBy: string;
 
   public constructor() {
     this.data = {};
@@ -111,6 +112,7 @@ export class P2TableComponent {
   }
 
   ngOnInit() {
+    this.sortBy = this.config.defaultSortBy;
     this.pageChanged({page: 1, itemsPerPage: 10});
   }
 
@@ -133,10 +135,14 @@ export class P2TableComponent {
   }
 
   private pageChanged(event: any): void {
+    let sortBy = {};
+    sortBy[this.sortBy] = 1;
+
     this.rxservice.find({
       query: {
         $select: this._select(),
-        $sort: {os_hostname: 1},
+//        $sort: {os_hostname: 1},
+        $sort: sortBy,
         $skip: (event.page - 1) * event.itemsPerPage
       }
     })

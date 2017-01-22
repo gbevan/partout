@@ -301,11 +301,10 @@ var serve = function (opts, master) {
 
       } else {
         apply([app.apply_site_p2], {app: app, daemon: true})
-        .then(function () {
+        .done(function () {
           console.log('apply resolved');
           cb();
-        })
-        .done(null, function (err) {
+        }, function (err) {
           console.error('app _apply err:', err);
           console.error(err.stack);
           cb();
@@ -327,14 +326,14 @@ var serve = function (opts, master) {
 
       setTimeout(function () {
 
-        policy_sync.sync(cfg.PARTOUT_MASTER_MANIFEST_DIR, cfg.PARTOUT_AGENT_MANIFEST_DIR)
+        policy_sync.sync(cfg.PARTOUT_AGENT_MANIFEST_DIR)
         .then(function () {
           app.apply_site_p2 = cfg.PARTOUT_AGENT_MANIFEST_SITE_P2;
 
           app._apply(function (res) {
             app.inRun = false;
             console.log('### FINISHED POLICY (after sync) ###########################################');
-            deferred.resolve(res.retry);
+            deferred.resolve(res ? res.retry : false);
           });
         })
         .done(null, function (err) {
@@ -345,7 +344,7 @@ var serve = function (opts, master) {
           app._apply(function (res) {
             app.inRun = false;
             console.log('### FINISHED POLICY (after FAILED sync) ###########################################');
-            deferred.resolve(res.retry);
+            deferred.resolve(res ? res.retry : false);
           });
         });
       }, splay).unref();  // Random Splay

@@ -15,7 +15,7 @@ export class EnvironmentsService {
     this._socket = _socketService.getService('environments');
 
     this._socket.rx({
-      listStrategy: 'smart'
+      listStrategy: 'always'  //'smart'
     });
   }
 

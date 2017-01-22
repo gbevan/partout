@@ -15,7 +15,7 @@ export class UsersService {
     this._socket = _socketService.getService('users');
 
     this._socket.rx({
-      listStrategy: 'smart'
+      listStrategy: 'always'
     });
   }
 
