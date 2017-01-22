@@ -50,6 +50,7 @@ var Policy_Sync = function (app) {
   self.app = app;
   self.https = app.https;
   self.server_cert = null;
+  self.firstTime = true;
 };
 
 /**
@@ -147,11 +148,9 @@ Policy_Sync.prototype.get_file = function (srcfile, tgtrelname, cb) {
 
 Policy_Sync.prototype.sync = function (srcfolder, destfolder) {
   var self = this,
-    outer_deferred = Q.defer();
-  //console.log('syncing srcfolder:', srcfolder, 'destfolder:', destfolder);
+      outer_deferred = Q.defer();
 
   self.accepted_master_fingerprint = '';
-  //console.log('get server cert');
 
   self.load_master_fingerprint()
   .then(function (accepted_master_fingerprint) {
@@ -177,10 +176,13 @@ Policy_Sync.prototype.sync = function (srcfolder, destfolder) {
       }
     );
 
-    console.warn(new Array(self.master_fingerprint.length + 1).join('='));
-    console.warn('Master API SSL fingerprint (SHA256):\n' + self.master_fingerprint);
-    console.warn('\nrandomart of master public key:\n' + utils.toArt(self.server_cert_obj.publicKey));
-    console.warn(new Array(self.master_fingerprint.length + 1).join('='));
+    if (self.firstTime) {
+      self.firstTime = false;
+      console.warn(new Array(self.master_fingerprint.length + 1).join('='));
+      console.warn('Master API SSL fingerprint (SHA256):\n' + self.master_fingerprint);
+      console.warn('\nrandomart of upstream master public key:\n' + utils.toArt(self.server_cert_obj.publicKey));
+      console.warn(new Array(self.master_fingerprint.length + 1).join('='));
+    }
 
     if (self.app.opts.yes) {
       console.warn('Accepting (--yes) new master SSL as trusted');
