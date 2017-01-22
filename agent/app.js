@@ -289,7 +289,7 @@ var serve = function (opts, master) {
   app._apply = function (cb) {
 
     if (!app.apply_site_p2) {
-      console.warn('Policy Sync has not yet resolved a site policy. Please ensure this agent has been assigned to a valid environment by the Partout Master Administrator (see `partout setenv` command).');
+      console.warn('Policy Sync has not yet resolved a site policy. Please ensure this agent has been assigned to a valid environment by the Partout Master Administrator.');
       cb({retry: true});
       return;
     }
@@ -332,34 +332,23 @@ var serve = function (opts, master) {
           app.apply_site_p2 = cfg.PARTOUT_AGENT_MANIFEST_SITE_P2;
 
           app._apply(function (res) {
-            if (res && res.retry) {
-              var secs = 10;
-              console.warn('sleeping', secs, 'secs for retry');
-              setTimeout(function () {
-                console.warn('retrying app.run()');
-                deferred.resolve(app.run());    // RETRY
-              }, secs * 1000);
-              return;
-            }
-
             app.inRun = false;
             console.log('### FINISHED POLICY (after sync) ###########################################');
-            deferred.resolve();
+            deferred.resolve(res.retry);
           });
         })
-        .fail(function (err) {
+        .done(null, function (err) {
           console.error(err);
           console.error(err.stack);
           console.warn('policy_sync call failed, will continue to run existing cached manifest (if available)');
 
-          app._apply(function () {
+          app._apply(function (res) {
             app.inRun = false;
             console.log('### FINISHED POLICY (after FAILED sync) ###########################################');
-            deferred.resolve();
+            deferred.resolve(res.retry);
           });
-        })
-        .done();
-      }, splay);  // Random Splay
+        });
+      }, splay).unref();  // Random Splay
 
     } else {
       app._apply(function () {
@@ -390,19 +379,18 @@ var serve = function (opts, master) {
     object: 'partout-agent',
     msg: 'Partout-Agent has (re)started https server'
   });
-  app.run()
-  .done(function () {
-    if (opts.once) {
-      process.exit(0);
-    }
-  }, function (err) {
-    console.error('server run err:', err);
-    if (opts.once) {
-      process.exit(0);
-    }
-  });
 
-  if (!app.opts.once) {
+  var retry = false;
+  utils.pWhile({
+    condition: function (retry) { return retry; },
+    action:    app.run,
+    delay:     10 * 1000
+  })
+  .then(function () {
+    if (opts.once) {
+      process.exit(0);
+    }
+
     setInterval(function () {
       if (!app.inRun) {
         app.run();
@@ -411,7 +399,12 @@ var serve = function (opts, master) {
       }
     }, (app.apply_every_mins * 60 * 1000))
     .unref();
-  }
+
+  })
+  .done(null, function (err) {
+    console.error('looper errored');
+    throw err;
+  });
 
 };
 
@@ -443,7 +436,7 @@ module.exports = function (opts) {
             } else {
               setTimeout(function () {
                 reexec();
-              }, 500 + (60 * 1000 * Math.random()));
+              }, 500 + (60 * 1000 * Math.random())).unref();
             }
           })
           .done();
