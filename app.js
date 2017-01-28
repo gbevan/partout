@@ -136,7 +136,9 @@ class CsrsService extends service.Service {
  */
 class App {
   constructor() {
-    this.env_changed = false;
+    this.envs_changed = false;
+    this.env_changed = {};
+    this.env_watchers = {};
 
     this.waterline_config = { // TODO: move to config file
       adapters: {
@@ -234,31 +236,57 @@ class App {
     return deferred.promise;
   }
 
+  watchEnvironment(env) {
+    if (!this.env_watchers[env]) {
+      fs.watch(path.join(cfg.MANIFESTDIR, env), (eventType, filename) => {
+        console.log(`watchEnvironment(${env}) Manifest watcher: ${eventType} on file: ${filename} env_changed: ${this.env_changed[env]}`);
+
+        if (!this.env_changed[env]) {
+          this.env_changed[env] = true;
+
+          ((self) => {
+            setTimeout(() => {
+              self.loadEnvironments(env);
+            }, 1000).unref(); // delay 1 sec, then load
+          })(this);
+        }
+      });
+    }
+  }
+
   watchEnvironments() {
-    fs.watch(cfg.MANIFESTDIR, {
-      recursive: true
-    }, (eventType, filename) => {
-      console.log('Manifest watcher:', eventType, 'on file:', filename, 'env_changed:', this.env_changed);
-      if (!this.env_changed) {
-        this.env_changed = true;
+    fs.watch(cfg.MANIFESTDIR, (eventType, filename) => {
+      console.log('watchEnvironments() Manifest watcher:', eventType, 'on file:', filename, 'envs_changed:', this.envs_changed);
+      if (!this.envs_changed) {
+        this.envs_changed = true;
 
         ((self) => {
           setTimeout(() => {
-            console.log('timeout self:', self);
             self.loadEnvironments();
-          }, 2000).unref(); // delay 2 secs, then load
+          }, 1000).unref(); // delay 1 secs, then load
         })(this);
       }
     });
+
+    // put watchers on each environment
+    pfs.pReadDir(cfg.MANIFESTDIR)
+    .then((files) => {
+      files.forEach((env) => {
+        console.log('watching environment:', env);
+        this.watchEnvironment(env);
+      });
+    });
   }
 
-  loadEnvironments() {
+  loadEnvironments(envChanged) {
     let promises = [];
+
+    console.log('envChanged:', envChanged);
 
     pfs.pReadDir(cfg.MANIFESTDIR)
     .then((files) => {
       files.forEach((file) => {
-        console.log('manifest file object:', file);
+//        console.log('manifest file object:', file);
         promises.push(
           pfs.pStat(path.join(cfg.MANIFESTDIR, file))
           .then((stats) => {
@@ -271,31 +299,61 @@ class App {
       .then((files_stats) => {
         let envs = files_stats.filter((v) => { return v.stats.isDirectory(); });
 
-        envs.forEach((file_stat) => {
-          let env = file_stat.file;
+        if (envChanged) {
+          envs = envs.filter((e) => { return e.file === envChanged; });
+        }
 
-          this.appUi.app.service('environments')
-          .find({query: {name: env}})
-          .then((res) => {
-            console.log('env res:', res);
-            if (res.total === 0) {
-              console.log('added env:', env);
-              this.appUi.app.service('environments')
-              .create({
-                name: env,
-                description: 'TODO: description goes here' // TODO: load from environment
-              });
+        envs.forEach((file_stat) => {
+          let env = file_stat.file,
+              envJson = path.join(cfg.MANIFESTDIR, env, 'env.json');
+
+          this.watchEnvironment(env);
+
+          // look for env.json file
+          fs.readFile(envJson, (err, envDataBuf) => {
+            let envData = {};
+            if (envDataBuf) {
+              try {
+                envData = JSON.parse(envDataBuf.toString());
+              } catch(e) {
+                console.error(`error parsing ${env} env.json:`, e);
+              }
             }
-          })
-          .catch((err) => {
-            console.log('env err:', err);
+
+            this.appUi.app.service('environments')
+            .find({query: {name: env}})
+            .then((res) => {
+              if (res.total === 0) {
+                console.log('added env:', env);
+                return this.appUi.app.service('environments')
+                .create({
+                  name: env,
+                  description: envData ? envData.description : ''
+                });
+              } else if (res.total === 1) {
+                console.log('updating env:', env, 'id:', res.data[0].id);
+                return this.appUi.app.service('environments')
+                .update(res.data[0].id, {
+                  name: env,
+                  description: envData ? envData.description : ''
+                });
+              } else {
+                throw new Error('environments query returned more than 1 entries for name:', env);
+              }
+            })
+            .catch((err) => {
+              console.log('env err:', err);
+            });
           });
         });
       });
     })
     .done(() => {
-      console.log('env_changed:', this.env_changed);
-      this.env_changed = false;
+      if (envChanged) {
+        this.env_changed[envChanged] = false;
+      } else {
+        this.envs_changed = false;
+      }
     });
 
   }
