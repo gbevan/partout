@@ -39,6 +39,9 @@ const Agents = Waterline.Collection.extend({
       columnName: '_key'
     },
     env: { type: 'string' },
+    environment: {
+      model: 'environments'
+    },
     facts: { type: 'object' },
     ip: { type: 'string' },
     certInfo: { type: 'object' },

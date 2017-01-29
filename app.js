@@ -130,6 +130,34 @@ class CsrsService extends service.Service {
   }
 }
 
+//class AgentsService extends service.Service {
+//  constructor(o) {
+//    super(o);
+//  }
+//
+////  find(params, cb) {
+////    console.log('in AgentsService find() params:', params);
+////    return super.find(params, cb)
+////    .populate('environments');
+////  }
+//
+//  // Overload _get method to populate environment
+//  _get (id) {
+//    console.log('in _get');
+//    return this.Model.findOne({ id })
+////    .populate('environment')
+//    .then((instance) => {
+//      console.log('in then instance');
+//      if (!instance) {
+//        throw new errors.NotFound(`No record found for id '${id}'`);
+//      }
+//
+//      return instance;
+//    })
+//    .catch(utils.errorHandler);
+//  }
+//}
+
 /**
  * Partout Master App provider
  * @class
@@ -167,6 +195,7 @@ class App {
 //    ORM.loadCollection(Profiles);
     ORM.loadCollection(Users);
     ORM.loadCollection(Roles);
+
   }
 
   /**
@@ -182,12 +211,20 @@ class App {
         throw new Error(err);
       }
 
+//      o.collections.agents
+//      .find({id: '4af22fcc-29b2-4aba-90e8-61b4cbe704d2'})
+//      .populate('environment')
+//      .then((res) => {
+//        console.log('res:', res[0]);
+//      });
+
       /////////////////////////////
       // Global Feathers services
 
 //      var csrsService = new CsrsService();
 
       this.services = {
+
         agents: service({
           Model: o.collections.agents,
           paginate: {

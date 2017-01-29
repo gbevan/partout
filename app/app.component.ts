@@ -6,8 +6,8 @@ import { CsrsService } from './feathers/csrs.service';
 import { EnvironmentsService } from './feathers/environments.service';
 import { UsersService } from './feathers/users.service';
 import { RolesService } from './feathers/roles.service';
-import { ViewAgentComponent } from './viewAgent.component';
-import { ViewCsrComponent } from './viewCsr.component';
+import { ViewAgentComponent } from './agents/viewAgent.component';
+import { ViewCsrComponent } from './csrs/viewCsr.component';
 
 const html = require('./app_template.html');
 
@@ -293,6 +293,7 @@ export class AppComponent {
   viewAgent(id) {
     this.agentsService.get(id, {})
     .then((agent) => {
+      console.log('agent:', agent);
       this.agentDialogRef = this.dialog.open(ViewAgentComponent, this.config);
       this.agentDialogRef.componentInstance.setAgent(agent);
     })

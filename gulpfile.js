@@ -26,9 +26,9 @@ var cp = null;
 
 //var DEBUG = 'feathers-authentication:main';
 //var DEBUG = 'feathers-authentication:authentication:utils';
-//var DEBUG = 'sails-arangodb';
+var DEBUG = 'sails-arangodb:connection, sails-arangodb:adapter';
 //var DEBUG = 'feathers-authentication-local:verify';
-var DEBUG = 'api:routes';
+//var DEBUG = 'api:routes';
 //var DEBUG = '';
 
 /*

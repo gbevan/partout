@@ -12,8 +12,8 @@ import { AppComponent }         from './app.component';
 import { LoginFormComponent }   from './login/login-form.component';
 
 import { P2TableComponent }     from './tables/p2table.component';
-import { ViewAgentComponent }   from './viewAgent.component';
-import { ViewCsrComponent }     from './viewCsr.component';
+import { ViewAgentComponent }   from './agents/viewAgent.component';
+import { ViewCsrComponent }     from './csrs/viewCsr.component';
 
 import { P2DashboardComponent } from './dashboard/p2dashboard.component';
 
