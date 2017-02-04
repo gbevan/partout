@@ -36,11 +36,8 @@ export class PieChartComponent {
   public doughnutChartData: number[] = [];
   public doughnutChartType: string = 'doughnut';
 
-  private data: any;
-
   public constructor(
   ) {
-    this.data = [];
   }
 
   ngOnInit() {

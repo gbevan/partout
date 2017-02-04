@@ -59,7 +59,7 @@ const console = require('better-console'),
       GitHubStrategy = require('passport-github2').Strategy,
       expressSession = require('express-session'),
       printf = require('printf'),
-      uuid = require('node-uuid');
+      uuid = require('uuid');
 //    randomart = require('randomart');
 
 const Waterline = require('waterline'),

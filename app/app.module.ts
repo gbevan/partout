@@ -3,9 +3,7 @@ import { MaterialModule }       from '@angular/material';
 import { BrowserModule }        from '@angular/platform-browser';
 import { FormsModule }          from '@angular/forms';
 
-import { Ng2BootstrapModule }   from 'ng2-bootstrap/ng2-bootstrap';
-import { PaginationModule }     from 'ng2-bootstrap/components/pagination';
-import { PrettyJsonModule }     from 'angular2-prettyjson';
+import { Ng2BootstrapModule, PaginationModule }   from 'ng2-bootstrap';
 import { ChartsModule }         from 'ng2-charts/ng2-charts';
 
 import { AppComponent }         from './app.component';
@@ -35,8 +33,8 @@ import { RolesService }         from './feathers/roles.service';
     BrowserModule,
     MaterialModule.forRoot(),
     Ng2BootstrapModule,
-    PaginationModule,
-    PrettyJsonModule,
+    PaginationModule.forRoot(),
+//    PrettyJsonModule,
     ChartsModule,
     FormsModule
   ],
