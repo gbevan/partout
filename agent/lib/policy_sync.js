@@ -180,7 +180,7 @@ Policy_Sync.prototype.sync = function (destfolder) {
       self.firstTime = false;
       console.warn(new Array(self.master_fingerprint.length + 1).join('='));
       console.warn('Master API SSL fingerprint (SHA256):\n' + self.master_fingerprint);
-      console.warn('\nrandomart of upstream master public key:\n' + utils.toArt(self.server_cert_obj.publicKey));
+      console.warn('\nrandomart of upstream master public key:\n' + utils.toArt(cert.raw));
       console.warn(new Array(self.master_fingerprint.length + 1).join('='));
     }
 

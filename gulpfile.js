@@ -24,12 +24,13 @@ var gulp = require('gulp'),
 
 var cp = null;
 
+var DEBUG = '';
+var DEBUG = 'partout:*';
 //var DEBUG = 'feathers-authentication:main';
 //var DEBUG = 'feathers-authentication:authentication:utils';
-var DEBUG = 'sails-arangodb:connection, sails-arangodb:adapter';
+//var DEBUG = 'sails-arangodb:connection, sails-arangodb:adapter, partout:app';
 //var DEBUG = 'feathers-authentication-local:verify';
 //var DEBUG = 'api:routes';
-//var DEBUG = '';
 
 /*
  * Currently env does not determine the arangodb being selected here, as all
@@ -71,7 +72,7 @@ gulp.task('clean', function () {
 
 gulp.task('webpack', ['clean'], function () {
   return gulp.src('app/main.ts')
-  .pipe(webpack(config))
+  .pipe(webpack(config, require('webpack')))
   .pipe(gulp.dest('dist'))
   ;
 });

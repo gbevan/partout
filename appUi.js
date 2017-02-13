@@ -265,7 +265,7 @@ var AppUi = function (opts, services) {
         (hook) => {
           self.app.service('agents_all').emit('updated', []); // tell agents_all
         }
-      ],
+      ]
     }
   });
 

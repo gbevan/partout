@@ -65,6 +65,9 @@ const console = require('better-console'),
 const Waterline = require('waterline'),
       arangodbAdaptor = require('sails-arangodb'),
       service = require('feathers-waterline'),
+      serviceUtils = require('feathers-waterline/lib/utils'),
+      errors = require('feathers-errors'),
+      filter = require('feathers-query-filters'),
       ORM = new Waterline(),
       Agents = require('./server/models/agents'),
       Csrs = require('./server/models/csrs'),
@@ -72,6 +75,8 @@ const Waterline = require('waterline'),
   //    Profiles = require('./server/models/profiles'),
       Users = require('./server/models/users'),
       Roles = require('./server/models/roles');
+
+const debug = require('debug').debug('partout:app');
 
 Q.longStackSupport = true;
 
@@ -130,33 +135,68 @@ class CsrsService extends service.Service {
   }
 }
 
-//class AgentsService extends service.Service {
-//  constructor(o) {
-//    super(o);
-//  }
-//
-////  find(params, cb) {
-////    console.log('in AgentsService find() params:', params);
-////    return super.find(params, cb)
-////    .populate('environments');
-////  }
-//
-//  // Overload _get method to populate environment
-//  _get (id) {
-//    console.log('in _get');
-//    return this.Model.findOne({ id })
-////    .populate('environment')
-//    .then((instance) => {
-//      console.log('in then instance');
-//      if (!instance) {
-//        throw new errors.NotFound(`No record found for id '${id}'`);
-//      }
-//
-//      return instance;
-//    })
-//    .catch(utils.errorHandler);
-//  }
-//}
+class AgentsService extends service.Service {
+  constructor(o) {
+    super(o);
+  }
+
+  // Overload _get method to populate environment
+  // see https://github.com/feathersjs/feathers-waterline/blob/master/src/index.js (MIT)
+  _find (params, count, getFilter = filter) {
+    let { filters, query } = getFilter(params.query || {});
+    let where = serviceUtils.getWhere(query);
+    let order = serviceUtils.getOrder(filters.$sort);
+    let options = filters.$select ? { select: Array.from(filters.$select) } : {};
+    let counter = this.Model.count().where(where);
+    let q = this.Model.find(where, options);
+
+    if (order) {
+      q.sort(order);
+    }
+
+    if (filters.$skip) {
+      q.skip(filters.$skip);
+    }
+
+    if (filters.$limit) {
+      q.limit(filters.$limit);
+    }
+
+    const performQuery = total => {
+      return q
+      .populate('environment')
+      .then(data => {
+        return {
+          total,
+          limit: filters.$limit,
+          skip: filters.$skip || 0,
+          data
+        };
+      });
+    };
+
+    if (count) {
+      return counter.then(performQuery);
+    }
+
+    return performQuery();
+  }
+
+  // Overload _get method to populate environment
+  // see https://github.com/feathersjs/feathers-waterline/blob/master/src/index.js (MIT)
+  _get (id) {
+    return this.Model.findOne({ id })
+    .populate('environment')
+    .then((instance) => {
+      if (!instance) {
+        throw new errors.NotFound(`No record found for id '${id}'`);
+      }
+
+      return instance;
+    })
+    .catch(utils.errorHandler);
+  }
+}
 
 /**
  * Partout Master App provider
@@ -215,8 +255,21 @@ class App {
 //      .find({id: '4af22fcc-29b2-4aba-90e8-61b4cbe704d2'})
 //      .populate('environment')
 //      .then((res) => {
-//        console.log('res:', res[0]);
+//        console.log('query success:', res.length);
+//        o.collections.agents
+//        .find()
+//        .populate('environment')
+//        .then((res) => {
+//          console.log('find all success:', res.length);
+//        });
 //      });
+
+      debug('csrs find');
+      o.collections.csrs
+      .find()
+      .then((res) => {
+        debug('csrs res:', res.length);
+      });
 
       /////////////////////////////
       // Global Feathers services
@@ -225,7 +278,7 @@ class App {
 
       this.services = {
 
-        agents: service({
+        agents: new AgentsService({
           Model: o.collections.agents,
           paginate: {
             default: 10,
@@ -435,11 +488,13 @@ class App {
 
         console.info('Starting Master API.');
 
-        var pubkey = pki.publicKeyFromPem(
-          fs.readFileSync(
-            ca.masterApiPublicKeyFile
-          )
+        var pubKeyPem = fs.readFileSync(
+          ca.masterApiPublicKeyFile
         );
+
+        var pubKeyBin = forge.util.decode64(pubKeyPem.toString());
+
+        var pubkey = pki.publicKeyFromPem(pubKeyPem);
 
         var master_fingerprint = pki.getPublicKeyFingerprint(
           pubkey,
@@ -452,7 +507,7 @@ class App {
         console.info('');
         console.info(new Array(master_fingerprint.length + 1).join('='));
         console.info('Master API SSL fingerprint (SHA256):\n' + master_fingerprint);
-        console.info('\nrandomart of master public key:\n' + utils.toArt(pubkey));
+        console.info('\nrandomart of master public key:\n' + utils.toArt(pubKeyBin));
         console.info(new Array(master_fingerprint.length + 1).join('='));
 
 //        db.connect()

@@ -118,7 +118,7 @@ export class AppComponent {
         title: 'Arch'
       },
       {
-        field: 'env',
+        field: 'environment',
         title: 'Environment',
         styles: (v) => {
           if (!v || v === '') {
@@ -135,7 +135,7 @@ export class AppComponent {
           if (!v || v === '') {
             return 'n/a';
           }
-          return v;
+          return v.name;
         }
 //        action: (id) => { this.changeAgentEnv(id) }
       },
@@ -153,6 +153,7 @@ export class AppComponent {
       }
     ],
     defaultSortBy: 'os_hostname'
+    // caseSensitive: true|false
   };
 
 //  csrs = [];

@@ -1,4 +1,4 @@
-/*jshint newcap: false, esnext: true*/
+/*jshint newcap: false*/
 /*
     Partout [Everywhere] - Policy-Based Configuration Management for the
     Data-Driven-Infrastructure.

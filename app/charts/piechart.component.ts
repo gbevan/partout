@@ -46,8 +46,8 @@ export class PieChartComponent {
 
     this.rxservice.find({
       query: {
-        $select: [this.field],
-        $sort: sort
+        $select: [this.field]
+        //$sort: sort
       },
       paginate: false,
       rx: {
@@ -57,6 +57,7 @@ export class PieChartComponent {
     .subscribe((data) => {
       let to = data
       .map((x) => { return x[this.field]; })
+      .sort()
       .reduce((acc, v) => {
         if (!acc[v]) {
           acc[v] = 0;

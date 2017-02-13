@@ -4,6 +4,11 @@ import { MdDialogRef } from '@angular/material';
 import * as _ from 'lodash';
 
 import { EnvironmentsService } from '../feathers/environments.service';
+import { AgentsService } from '../feathers/agents.service';
+
+// enable in browser console: localStorage.debug = 'partout:*'
+const debug = require('debug').debug('partout:viewAgent');
+
 const html = require('./viewAgent.template.html');
 
 @Component({
@@ -26,7 +31,7 @@ const html = require('./viewAgent.template.html');
 })
 
 export class ViewAgentComponent {
-  agent = {facts: {}, certInfo: {}};
+  agent = {id: null, facts: {}, certInfo: {}, env: null, environment: {}};
   envs = [];
   envsHash = {};
 
@@ -35,11 +40,13 @@ export class ViewAgentComponent {
 
   constructor(
     public dialogRef: MdDialogRef<ViewAgentComponent>,
+    public agentsService: AgentsService,
     public environmentsService: EnvironmentsService
   ) {
   }
 
   setAgent(agent: any) {
+    debug('setAgent() agent:', agent);
     this.agent = agent;
     _.each(agent.facts, (v, k) => {
       this.agentFactsKeys.push(k);
@@ -51,7 +58,7 @@ export class ViewAgentComponent {
 
     this.environmentsService.find({})
     .then((res) => {
-      console.log('viewAgent res:', res);
+      debug('setAgent() res:', res);
       this.envs = res.data;
 
       this.envs.forEach((e) => {
@@ -65,5 +72,16 @@ export class ViewAgentComponent {
       return this.envsHash[id].name;
     }
     return '';
+  }
+
+  envSelected() {
+    debug('envSelected() env:', this.agent.env, this.agent.environment);
+    this.agentsService.patch(this.agent.id, {environment: this.agent.environment})
+    .then((res) => {
+      debug('agent patched, res:', res);
+    })
+    .catch((err) => {
+      console.error(err);
+    })
   }
 }

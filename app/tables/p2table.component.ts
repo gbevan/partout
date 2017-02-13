@@ -1,7 +1,15 @@
+
 // Learning from https://github.com/valor-software/ng2-table (MIT License)
 
 import { Component, Input, OnInit } from '@angular/core';
 import { SocketService } from '../feathers/feathers.service';
+
+import { Subscriber } from 'rxjs';
+
+import * as _ from 'lodash';
+
+// enable in browser console: localStorage.debug = 'partout:*'
+const debug = require('debug').debug('partout:p2table');
 
 /*
  * config = {
@@ -37,7 +45,10 @@ import { SocketService } from '../feathers/feathers.service';
       <th *ngFor="let column of config.columns"
           class="p2Heading"
           ngClass="{{column.className || ''}}">
-        {{ column.title }}
+        <md-input type="text"
+                  placeholder="{{ column.title }}"
+                  [(ngModel)]="filters[column.field]"
+                  (keyup)="pageChanged($event)"></md-input>
       </th>
     </tr>
   </thead>
@@ -82,8 +93,8 @@ import { SocketService } from '../feathers/feathers.service';
   width: 100%;
 }
 .p2Heading {
-  background-color: #244519;
-  color: white;
+  /*background-color: white;*/
+  color: black;
 }
 .p2Row {
   vertical-align: middle;
@@ -106,9 +117,14 @@ export class P2TableComponent {
   private currentPage: number;
   private sortBy: string;
 
+  private filters = {};
+
+  private subscriber: Subscriber<any>;
+
   public constructor() {
     this.data = {};
     this.currentPage = 1;
+    this.subscriber = null;
   }
 
   ngOnInit() {
@@ -129,7 +145,8 @@ export class P2TableComponent {
       if (!col.field) {
         return null;
       }
-      return col.field;
+      let parent_field = (col.field.split(/\./))[0];
+      return parent_field;
     })
     .filter((f) => { return f !== null; });
   }
@@ -138,17 +155,35 @@ export class P2TableComponent {
     let sortBy = {};
     sortBy[this.sortBy] = 1;
 
-    this.rxservice.find({
+    let where = {};
+    _.each(this.filters, (v, k) => {
+      where[k] = {
+        'contains': v,
+        'caseSensitive': (this.config.hasOwnProperty('caseSensitive') ? this.config.caseSensitive : false)
+      };
+    });
+    debug('pageChanged: where:', where);
+
+    if (this.subscriber) {
+      // prevent subscription leaks
+      this.subscriber.unsubscribe();
+    }
+
+    this.subscriber = this.rxservice.find({
       query: {
         $select: this._select(),
-//        $sort: {os_hostname: 1},
-        $sort: sortBy,
-        $skip: (event.page - 1) * event.itemsPerPage
+        $sort: sortBy,  // TODO: fix support in sails
+        $skip: (event.page - 1) * event.itemsPerPage,
+        where: where
+//        where: {os_hostname: {'contains': this.filters['Hostname']}}
       }
     })
     .subscribe((data) => {
+      debug('Observable data:', data);
       this.data = data;
     });
+
+    console.log('this.subscriber:', this.subscriber);
   }
 
 }

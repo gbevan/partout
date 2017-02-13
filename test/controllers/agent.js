@@ -25,6 +25,8 @@
 
 /*jshint -W030 */
 
+// TODO: DEPRECATE TEST - in favour of feathers / waterline services
+
 /*global describe, before, it, should, context*/
 var cfg = new (require('../../etc/partout.conf.js'))(),
     db = new (require('../../lib/db.js'))(cfg),

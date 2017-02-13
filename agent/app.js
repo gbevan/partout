@@ -48,6 +48,7 @@ var console = require('better-console'),
     csrFile = ssl.agentCsrFile,
     certFile = ssl.agentCertFile,
     Master = require('./lib/master'),
+    forge = require('node-forge'),
     utils = require('./lib/utils');
 
 Q.longStackSupport = true;
@@ -147,7 +148,8 @@ var checkCert = function (master) {
             console.warn('Agent CSR randomart:');
             pfs.pReadFile(ssl.agentCsrFile)
             .then(function (csrData) {
-              console.warn(utils.toArt(csrData));
+              var csrBin = forge.util.decode64(csrData.toString());
+              console.warn(utils.toArt(csrBin));
 
               // Send csr to master
               console.warn('Sending agent certificate signing request to master');
@@ -191,9 +193,11 @@ var checkCert = function (master) {
       console.warn('Agent certificate randomart:');
       pfs.pReadFile(certFile)
       .then(function (certData) {
-        console.warn(utils.toArt(certData));
+        var certBin = forge.util.decode64(certData.toString());
+        console.warn(utils.toArt(certBin));
         deferred.resolve(true);
-      });
+      })
+      .done();
     }
   })
   .done();
@@ -433,9 +437,10 @@ module.exports = function (opts) {
             if (result) {
               serve(opts, master);
             } else {
+              console.log('retrying shortly...');
               setTimeout(function () {
                 reexec();
-              }, 500 + (60 * 1000 * Math.random())).unref();
+              }, 500 + (60 * 1000 * Math.random()));
             }
           })
           .done();
