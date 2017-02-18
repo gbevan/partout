@@ -166,7 +166,6 @@ Policy_Sync.prototype.sync = function (destfolder) {
       '\n-----END CERTIFICATE-----\n';
 
     self.server_cert_obj = pki.certificateFromPem(self.server_cert);
-    console.log('server_cert_obj:', self.server_cert_obj);
 
     self.master_fingerprint = pki.getPublicKeyFingerprint(
       self.server_cert_obj.publicKey,

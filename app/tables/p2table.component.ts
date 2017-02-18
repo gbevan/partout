@@ -169,6 +169,7 @@ export class P2TableComponent {
       this.subscriber.unsubscribe();
     }
 
+    // subscribe to real-time updates from upstream
     this.subscriber = this.rxservice.find({
       query: {
         $select: this._select(),
