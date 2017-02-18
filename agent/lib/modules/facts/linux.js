@@ -240,6 +240,7 @@ var Facts = P2M.Module(module.filename, function () {
                 }
                 var l_fact = ['os_dist_pretty_name', pretty_name];
                 promises.push(Q(l_fact));
+                promises.push(Q(['os_dist_version_id', rh[2]]));
               }
               os_deferred.resolve();
             });
