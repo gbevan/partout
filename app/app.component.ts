@@ -71,6 +71,7 @@ export class AppComponent {
         imgsrc: (row) => {
           if (row.os_dist_name) {
 
+            // TODO: Pre-load images via webpack if pos.
             if (row.os_dist_name.search(/centos/i) !== -1) {
               return '/assets/images/logos/centos.png';
 

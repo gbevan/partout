@@ -24,23 +24,24 @@
 /*jshint esversion: 6 */
 'use strict';
 
-var console = require('better-console'),
-    Q = require('q'),
-    cfg = new (require('./etc/partout.conf.js'))(),
-    fs = require('fs'),
-    u = require('util'),
-    ca = new (require('./lib/ca'))(),
+const console = require('better-console'),
+      Q = require('q'),
+      cfg = new (require('./etc/partout.conf.js'))(),
+      fs = require('fs'),
+      u = require('util'),
+      ca = new (require('./lib/ca'))(),
+      express = require('express'),
+      feathers = require('feathers'),
+      routerApi = express.Router(),
+      httpsApi = require('https'),
+      compression = require('compression'),
+      bodyParser = require('body-parser'),
+      morgan = require('morgan'),
+      logger = morgan('API :: :method :url :status :response-time ms - :res[content-length] bytes'),
+      passport = require('passport'),
+      serverMetrics = new (require('./lib/server_metrics'))();
 
-    express = require('express'),
-    feathers = require('feathers'),
-    routerApi = express.Router(),
-    httpsApi = require('https'),
-    compression = require('compression'),
-    bodyParser = require('body-parser'),
-    morgan = require('morgan'),
-    logger = morgan('API :: :method :url :status :response-time ms - :res[content-length] bytes'),
-    passport = require('passport'),
-    serverMetrics = new (require('./lib/server_metrics'))();
+const debug = require('debug').debug('partout:appApi');
 
 Q.longStackSupport = true;
 

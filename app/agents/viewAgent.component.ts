@@ -75,7 +75,7 @@ export class ViewAgentComponent {
   }
 
   envSelected() {
-    debug('envSelected() env:', this.agent.env, this.agent.environment);
+    debug('envSelected() environment:', this.agent.environment);
     this.agentsService.patch(this.agent.id, {environment: this.agent.environment})
     .then((res) => {
       debug('agent patched, res:', res);

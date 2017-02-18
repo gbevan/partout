@@ -25,41 +25,43 @@
 'use strict';
 
 const console = require('better-console'),
-    Q = require('q'),
-    cfg = new (require('./etc/partout.conf.js'))(),
-    fs = require('fs'),
-    u = require('util'),
-    ca = new (require('./lib/ca'))(),
-    utils = require('./agent/lib/utils'),
+      Q = require('q'),
+      cfg = new (require('./etc/partout.conf.js'))(),
+      fs = require('fs'),
+      u = require('util'),
+      ca = new (require('./lib/ca'))(),
+      utils = require('./agent/lib/utils'),
 
-    httpsUi = require('https'),
-    express = require('express'),
-    expressSession = require('express-session'),
-    ArangoDBStore = require('connect-arangodb-session')(expressSession),
-    flash = require('connect-flash'),
-    compression = require('compression'),
-    GitHubStrategy = require('passport-github2').Strategy,
-    GithubTokenStrategy = require('passport-github-token'),
-    cookieParser = require('cookie-parser'),
-    routerUi = express.Router(),
-    morgan = require('morgan'),
-    logger = morgan('UI :: :method :url :status :response-time ms - :res[content-length] bytes'),
-    passport = require('passport'),
-    db = new (require('./lib/db.js'))(cfg),
-    serverMetrics = new (require('./lib/server_metrics'))(),
-    _ = require('lodash'),
+      httpsUi = require('https'),
+      express = require('express'),
+      expressSession = require('express-session'),
+      ArangoDBStore = require('connect-arangodb-session')(expressSession),
+      flash = require('connect-flash'),
+      compression = require('compression'),
+      GitHubStrategy = require('passport-github2').Strategy,
+      GithubTokenStrategy = require('passport-github-token'),
+      cookieParser = require('cookie-parser'),
+      routerUi = express.Router(),
+      morgan = require('morgan'),
+      logger = morgan('UI :: :method :url :status :response-time ms - :res[content-length] bytes'),
+      passport = require('passport'),
+      db = new (require('./lib/db.js'))(cfg),
+      serverMetrics = new (require('./lib/server_metrics'))(),
+      _ = require('lodash'),
 
-    bodyParser = require('body-parser'),
-    feathers = require('feathers'),
-    staticServe = require('feathers').static,
-    cors = require('cors'),
-    rest = require('feathers-rest'),
-    socketio = require('feathers-socketio'),
-    errorHandler = require('feathers-errors/handler'),
-    hooks = require('feathers-hooks'),
-    jwt = require('feathers-authentication-jwt'),
-    local = require('feathers-authentication-local'),
-    auth = require('feathers-authentication');
+      bodyParser = require('body-parser'),
+      feathers = require('feathers'),
+      staticServe = require('feathers').static,
+      cors = require('cors'),
+      rest = require('feathers-rest'),
+      socketio = require('feathers-socketio'),
+      errorHandler = require('feathers-errors/handler'),
+      hooks = require('feathers-hooks'),
+      jwt = require('feathers-authentication-jwt'),
+      local = require('feathers-authentication-local'),
+      auth = require('feathers-authentication');
+
+const debug = require('debug').debug('partout:appUi');
 
 Q.longStackSupport = true;
 
@@ -107,7 +109,7 @@ var AppUi = function (opts, services) {
 
   function customizeJWTPayload() {
     return function(hook) {
-      console.log('Customizing JWT Payload, hook.params:', hook.params);
+      debug('Customizing JWT Payload, hook.params:', hook.params);
       hook.data.payload = {
         // You need to make sure you have the right id.
         // You can put whatever you want to be encoded in
@@ -129,18 +131,17 @@ var AppUi = function (opts, services) {
   .use(flash())
   .configure(rest())
   .configure(socketio(function (io) {
-    console.log('socketio created **********************************************');
 
     io.on('connection', function (socket) {
-      console.log('socket connection recvd');
+      debug('socket connection recvd');
 
       socket.on('login', function(entity, info) {
-        console.log('(Socket) User logged in', entity);
-        console.log('(Socket) user:', socket.user);
+        debug('(Socket) User logged in', entity);
+        debug('(Socket) user:', socket.user);
       });
 
       socket.on('logout', function(tokenPayload, info) {
-        console.log('(Socket) User logged out', tokenPayload);
+        debug('(Socket) User logged out', tokenPayload);
       });
     });
 
@@ -324,10 +325,10 @@ var AppUi = function (opts, services) {
           return new Promise((resolve, reject) => {
 
             if (options.data.status === 'signed' && !options.data.cert) {
-              console.log('signing csr');
+              debug('signing csr');
               ca.signCsrWithAgentSigner(options.data.csr, options.data.id)  // sign adding key/uuid as given name
               .then(function (signed) {
-                console.info('Signed cert from csr:\n' + signed.certPem);
+                debug('Signed cert from csr:\n' + signed.certPem);
 
                 // return to agent via the csr document in db
                 options.data.cert = signed.cert;
@@ -397,10 +398,10 @@ var AppUi = function (opts, services) {
   ///////////////////////////////////////////
 
   self.app.on('login', function(entity, info) {
-    console.log('(Rest) User logged in', entity);
+    debug('(Rest) User logged in', entity);
   });
   self.app.on('logout', function(tokenPayload, info) {
-    console.log('(Rest) User logged out', tokenPayload);
+    debug('(Rest) User logged out', tokenPayload);
   });
 
   var server = httpsUi.createServer(optionsUi, self.app)

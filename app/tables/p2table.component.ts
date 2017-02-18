@@ -172,10 +172,9 @@ export class P2TableComponent {
     this.subscriber = this.rxservice.find({
       query: {
         $select: this._select(),
-        $sort: sortBy,  // TODO: fix support in sails
+        $sort: sortBy,
         $skip: (event.page - 1) * event.itemsPerPage,
         where: where
-//        where: {os_hostname: {'contains': this.filters['Hostname']}}
       }
     })
     .subscribe((data) => {

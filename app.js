@@ -3,7 +3,7 @@
     Partout [Everywhere] - Policy-Based Configuration Management for the
     Data-Driven-Infrastructure.
 
-    Copyright (C) 2015  Graham Lee Bevan <graham.bevan@ntlworld.com>
+    Copyright (C) 2015-2017 Graham Lee Bevan <graham.bevan@ntlworld.com>
 
     This file is part of Partout.
 
@@ -346,7 +346,7 @@ class App {
 
   watchEnvironments() {
     fs.watch(cfg.MANIFESTDIR, (eventType, filename) => {
-      console.log('watchEnvironments() Manifest watcher:', eventType, 'on file:', filename, 'envs_changed:', this.envs_changed);
+      debug('watchEnvironments() Manifest watcher:', eventType, 'on file:', filename, 'envs_changed:', this.envs_changed);
       if (!this.envs_changed) {
         this.envs_changed = true;
 
@@ -362,7 +362,10 @@ class App {
     pfs.pReadDir(cfg.MANIFESTDIR)
     .then((files) => {
       files.forEach((env) => {
-        console.log('watching environment:', env);
+        if (env === '.gitignore') {
+          return;
+        }
+        debug('watching environment:', env);
         this.watchEnvironment(env);
       });
     });
@@ -371,7 +374,7 @@ class App {
   loadEnvironments(envChanged) {
     let promises = [];
 
-    console.log('envChanged:', envChanged);
+    debug('envChanged:', envChanged);
 
     pfs.pReadDir(cfg.MANIFESTDIR)
     .then((files) => {
@@ -421,7 +424,7 @@ class App {
                   description: envData ? envData.description : ''
                 });
               } else if (res.total === 1) {
-                console.log('updating env:', env, 'id:', res.data[0].id);
+                debug('updating env:', env, 'id:', res.data[0].id);
                 return this.appUi.app.service('environments')
                 .update(res.data[0].id, {
                   name: env,
@@ -432,7 +435,7 @@ class App {
               }
             })
             .catch((err) => {
-              console.log('env err:', err);
+              console.error('environments err:', err);
             });
           });
         });

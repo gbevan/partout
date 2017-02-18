@@ -166,6 +166,7 @@ Policy_Sync.prototype.sync = function (destfolder) {
       '\n-----END CERTIFICATE-----\n';
 
     self.server_cert_obj = pki.certificateFromPem(self.server_cert);
+    console.log('server_cert_obj:', self.server_cert_obj);
 
     self.master_fingerprint = pki.getPublicKeyFingerprint(
       self.server_cert_obj.publicKey,
@@ -176,11 +177,14 @@ Policy_Sync.prototype.sync = function (destfolder) {
       }
     );
 
+    var server_pub_key_pem = pki.publicKeyToPem(self.server_cert_obj.publicKey);
+    var server_pub_key_bin = forge.util.decode64(server_pub_key_pem.toString());
+
     if (self.firstTime) {
       self.firstTime = false;
       console.warn(new Array(self.master_fingerprint.length + 1).join('='));
       console.warn('Master API SSL fingerprint (SHA256):\n' + self.master_fingerprint);
-      console.warn('\nrandomart of upstream master public key:\n' + utils.toArt(cert.raw));
+      console.warn('\nrandomart of upstream master public key:\n' + utils.toArt(server_pub_key_bin));
       console.warn(new Array(self.master_fingerprint.length + 1).join('='));
     }
 
