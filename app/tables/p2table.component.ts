@@ -181,8 +181,6 @@ export class P2TableComponent {
       debug('Observable data:', data);
       this.data = data;
     });
-
-    console.log('this.subscriber:', this.subscriber);
   }
 
 }
