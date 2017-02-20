@@ -5,10 +5,14 @@ form {
 }
 
 /* Full-width inputs */
-md-input[type=text], md-input[type=password] {
+md-input-container {
+  display: block;
+  padding-top: 10px;
+}
+input[type=text], input[type=password] {
     border: 0;
     box-sizing: border-box;
-    display: inline-block;
+    display: block;
     margin: 8px 0;
     padding: 12px 20px 12px 0;
     width: 100%;

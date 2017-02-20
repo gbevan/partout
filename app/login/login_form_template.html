@@ -4,20 +4,24 @@
       (ngSubmit)="login(f.value)">
 
   <div class="container">
-    <md-input type="text"
-              placeholder="Enter User Name"
-              id="user"
-              required
-              autofocus
-              name="user"
-              ngModel></md-input>
+    <md-input-container>
+      <input mdInput type="text"
+                placeholder="Enter User Name"
+                id="user"
+                required
+                autofocus
+                name="user"
+                ngModel>
+    </md-input-container>
 
-    <md-input type="password"
-              placeholder="Enter Password"
-              id="password"
-              required
-              name="password"
-              ngModel></md-input>
+    <md-input-container>
+      <input mdInput type="password"
+                placeholder="Enter Password"
+                id="password"
+                required
+                name="password"
+                ngModel>
+    </md-input-container>
 
     <button type="submit"
             md-raised-button>Login</button>

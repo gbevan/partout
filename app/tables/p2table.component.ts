@@ -45,10 +45,12 @@ const debug = require('debug').debug('partout:p2table');
       <th *ngFor="let column of config.columns"
           class="p2Heading"
           ngClass="{{column.className || ''}}">
-        <md-input type="text"
-                  placeholder="{{ column.title }}"
-                  [(ngModel)]="filters[column.field]"
-                  (keyup)="pageChanged($event)"></md-input>
+        <md-input-container>
+          <input mdInput type="text"
+                    placeholder="{{ column.title }}"
+                    [(ngModel)]="filters[column.field]"
+                    (keyup)="pageChanged($event)">
+        </md-input-container>
       </th>
     </tr>
   </thead>

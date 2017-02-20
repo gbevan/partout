@@ -24,6 +24,7 @@
 /*jslint node: true */
 /*jshint esversion: 6 */
 'use strict';
+process.env['BLUEBIRD_WARNINGS'] = 0; // bluebird warnings in feathersjs
 
 const console = require('better-console'),
       AppUi = require('./appUi.js'),

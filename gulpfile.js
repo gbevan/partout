@@ -16,7 +16,8 @@ var gulp = require('gulp'),
     tsConfig = require('./tsconfig.json'),
     spawn = require('child_process').spawn,
     sourcemaps = require('gulp-sourcemaps'),
-    v8 = require('v8');
+    v8 = require('v8'),
+    Server = require('karma').Server;
 
 //v8.setFlagsFromString('--trace_gc');
 //v8.setFlagsFromString('--max_old_space_size=2048');
@@ -40,37 +41,11 @@ var DEBUG = '';
  */
 var env = process.env.NODE_ENV || 'development';
 
-gulp.task('clean', function () {
-  return del('dist/**/*');
-});
-
-// copy dependencies
-//gulp.task('copy:libs', ['clean'], function() {
-//  return gulp.src([
-//    'node_modules/core-js/client/shim.min.js',
-//    'node_modules/zone.js/dist/zone.js',
-//    'node_modules/reflect-metadata/Reflect.js',
-//    'node_modules/systemjs/dist/system.src.js'
-//  ])
-//  .pipe(gulp.dest('dist/lib'));
+//gulp.task('clean', function () {
+//  return del('dist/**/*');
 //});
 
-//gulp.task('compile', ['clean'], function () {
-//  return gulp
-//  .src('app/**/*.ts')
-//  .pipe(sourcemaps.init())
-//  .pipe(typescript(tsConfig.compilerOptions))
-//  .pipe(sourcemaps.write('.'))
-//  .pipe(gulp.dest('dist/app'));
-//});
-
-//gulp.task('app:css', ['compile'], function () {
-//  return gulp
-//  .src('app/**/*.css')
-//  .pipe(gulp.dest('dist/app'));
-//})
-
-gulp.task('webpack', ['clean'], function () {
+gulp.task('webpack', function () {
   return gulp.src('app/main.ts')
   .pipe(webpack(config, require('webpack')))
   .pipe(gulp.dest('dist'))
@@ -91,17 +66,10 @@ gulp.task('run', ['webpack'], function (done) {
   done();
 });
 
-//gulp.task('chain', ['clean', 'compile', 'run']);
-gulp.task('chain', ['clean', 'webpack', 'run']);
+gulp.task('chain', ['webpack', 'run']);
 
 gulp.task('default', function () {
-//  plugins.nodemon({
-//    script: 'bollocks',
-//    ignore: ['node_modules', 'agent', 'dist'],
-//    tasks: ['clean'/*, 'copy:libs', 'compile', 'run'*/]
-//  });
   watch([
-    'gulpfile.js',
     'systemjs.config.js',
     'app.js',
     'appApi.js',
@@ -114,7 +82,7 @@ gulp.task('default', function () {
     'server/**/*.js',
     'public/**/*.js',
     //'public/views/*.html',
-    'test/**'
+//    'test/**'
   ], {
     ignoreInitial: false,
     verbose: true,
@@ -141,7 +109,6 @@ gulp.task('mocha', function () {
 
 gulp.task('watch-mocha', function () {
   watch([
-    'gulpfile.js',
     'systemjs.config.js',
     'app.js',
     'appApi.js',
@@ -162,6 +129,14 @@ gulp.task('watch-mocha', function () {
   }, batch(function (events, done) {
     gulp.start('mocha', done);
   }));
+});
+
+// Karma / Jasmine
+gulp.task('karma', function (done) {
+  new Server({
+    configFile: __dirname + '/karma.conf.js',
+    singleRun: true
+  }, done).start();
 });
 
 gulp.task('docs', function (cb) {

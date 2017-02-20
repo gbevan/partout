@@ -52,7 +52,6 @@ var console = require('better-console'),
     utils = require('./lib/utils');
 
 Q.longStackSupport = true;
-process.env['BLUEBIRD_WARNINGS'] = 0; // bluebird warnings in feathersjs
 
 var MYUUID_FILE = path.join(cfg.PARTOUT_VARDIR, 'UUID');
 var MYUUID = (fs.existsSync(MYUUID_FILE) ? fs.readFileSync(MYUUID_FILE).toString() : '');

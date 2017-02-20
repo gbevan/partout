@@ -33,7 +33,7 @@ const html = require('./viewAgent.template.html');
 export class ViewAgentComponent {
   agent = {id: null, facts: {}, certInfo: {}, env: null, environment: {}};
   envs = [];
-  envsHash = {};
+//  envsHash = {};
 
   agentFactsKeys = [];
   agentCertKeys = [];
@@ -61,24 +61,26 @@ export class ViewAgentComponent {
       debug('setAgent() res:', res);
       this.envs = res.data;
 
-      this.envs.forEach((e) => {
-        this.envsHash[e.id] = e;
-      });
+//      this.envs.forEach((e) => {
+//        this.envsHash[e.id] = e;
+//      });
     });
   }
 
-  getEnv(id) {
-    if (this.envsHash[id]) {
-      return this.envsHash[id].name;
-    }
-    return '';
-  }
+//  getEnv(id) {
+//    debug('getEnv for id:', id, 'envsHash:', this.envsHash);
+//    if (this.envsHash[id]) {
+//      return this.envsHash[id].name;
+//    }
+//    return '';
+//  }
 
   envSelected() {
     debug('envSelected() environment:', this.agent.environment);
     this.agentsService.patch(this.agent.id, {environment: this.agent.environment})
     .then((res) => {
       debug('agent patched, res:', res);
+      this.agent = res;
     })
     .catch((err) => {
       console.error(err);
