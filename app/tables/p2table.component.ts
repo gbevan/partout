@@ -76,7 +76,16 @@ const debug = require('debug').debug('partout:p2table');
 
         <div *ngIf="!column.action && !column.imgsrc"
               [ngStyle]="setStyles(column, row[column.field])">
-          {{ column.valueFn ? column.valueFn(row[column.field]) : row[column.field] }}
+
+          <div [ngSwitch]="column.pipe">
+            <span *ngSwitchCase="'datetime'">
+              {{ (column.valueFn ? column.valueFn(row[column.field]) : row[column.field]) | date:'dd-MMM-y HH:mm:ss' }}
+            </span>
+            <span *ngSwitchDefault>
+              {{ column.valueFn ? column.valueFn(row[column.field]) : row[column.field] }}
+            </span>
+          </div>
+
         </div>
       </td>
     </tr>
@@ -147,21 +156,21 @@ export class P2TableComponent {
       if (!col.field) {
         return null;
       }
-      let parent_field = (col.field.split(/\./))[0];
+      const parent_field = (col.field.split(/\./))[0];
       return parent_field;
     })
-    .filter((f) => { return f !== null; });
+    .filter((f) => f !== null);
   }
 
   private pageChanged(event: any): void {
-    let sortBy = {};
+    const sortBy = {};
     sortBy[this.sortBy] = 1;
 
-    let where = {};
+    const where = {};
     _.each(this.filters, (v, k) => {
       where[k] = {
-        'contains': v,
-        'caseSensitive': (this.config.hasOwnProperty('caseSensitive') ? this.config.caseSensitive : false)
+        contains: v,
+        caseSensitive: (this.config.hasOwnProperty('caseSensitive') ? this.config.caseSensitive : false)
       };
     });
     debug('pageChanged: where:', where);
@@ -177,7 +186,7 @@ export class P2TableComponent {
         $select: this._select(),
         $sort: sortBy,
         $skip: (event.page - 1) * event.itemsPerPage,
-        where: where
+        where
       }
     })
     .subscribe((data) => {

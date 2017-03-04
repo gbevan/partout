@@ -15,7 +15,7 @@
           {{ env.name }}
         </md-option>
       </md-select>
-      {{ agent.environment.name }}
+      {{ agent.environment ? agent.environment.name : 'n/a'}}
     </td></tr>
     <tr><td>Last Seen</td><td>{{ agent.lastSeen }}</td></tr>
 

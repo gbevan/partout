@@ -1,3 +1,7 @@
+/*jslint node: true */
+/*jshint esversion: 6 */
+'use strict';
+
 // Karma configuration
 var webpackConfig = require('./webpack.config.js');
 //webpackConfig.entry = {};
@@ -79,6 +83,13 @@ module.exports = function(config) {
     browsers: ['PhantomJS'],
 //    browsers: ['Chrome'],
 
+//    plugins: [
+//      'karma-jasmine',
+//      'karma-phantomjs-launcher',
+//      'webpack',
+//      'sourcemap'
+//    ],
+
 
     // Continuous Integration mode
     // if true, Karma captures browsers, runs the tests and exits
@@ -87,5 +98,5 @@ module.exports = function(config) {
     // Concurrency level
     // how many browser should be started simultaneous
     concurrency: Infinity
-  })
-}
+  });
+};

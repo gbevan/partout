@@ -143,10 +143,11 @@ export class AppComponent {
       {
         field: 'lastSeen',
         title: 'Last Seen',
-        styles: {
-          'font-size': '80%',
-          'white-space': 'nowrap'
-        }
+//        styles: {
+//          'font-size': '80%',
+//          'white-space': 'nowrap'
+//        },
+        pipe: 'datetime'
       },
       {
         action: (id, index) => { this.deleteAgent(id, index); },
@@ -240,7 +241,7 @@ export class AppComponent {
         action: (id) => { this.deleteUser(id); },
         value: 'Delete',
         condFn: (id) => {
-          let u = this.restService.getUser();
+          const u = this.restService.getUser();
 //          console.log((new Error('condFn')).stack);
 //          console.log('id:', id, 'u.id:', u.id);
           return u.id !== id; // show if not logged in user

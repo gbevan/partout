@@ -1,21 +1,11 @@
 import { inject, fakeAsync, tick, TestBed, ComponentFixture } from '@angular/core/testing';
-import { DebugElement }    from '@angular/core';
-import { By }              from '@angular/platform-browser';
+import { DebugElement } from '@angular/core';
+import { By } from '@angular/platform-browser';
 
 import { MockBackend } from '@angular/http/testing';
 import { Http, ConnectionBackend, BaseRequestOptions, Response, ResponseOptions } from '@angular/http';
 
-import { LoginFormComponent } from 'app/login/login-form.component';
-
-//describe('App Component', function () {
-//  it('test', function () {
-//    expect(true).toEqual(true);
-//  });
-//
-//  it('test2', function () {
-//    expect(true).toEqual(true);
-//  });
-//});
+import { LoginFormComponent } from '../../app/login/login-form.component';
 
 describe('Login Form Component', () => {
   let comp: LoginFormComponent;
@@ -23,24 +13,37 @@ describe('Login Form Component', () => {
   let de: DebugElement;
   let el: HTMLElement;
 
-  beforeEach(() => {
+  beforeEach((done: Function) => {
     console.log('beforeEach');
-    TestBed.configureTestingModule({
-      declarations: [ LoginFormComponent ]
-    });
 
-    console.log('before fixture');
-    fixture = TestBed.createComponent(LoginFormComponent);
+    try {
+      TestBed.configureTestingModule({
+        declarations: [ LoginFormComponent ]
+      });
 
-    console.log('before comp');
-    comp = fixture.componentInstance;
+      console.log('before fixture - LoginFormComponent:', LoginFormComponent);
+      fixture = TestBed.createComponent(LoginFormComponent);
+
+      console.log('before comp');
+      comp = fixture.componentInstance;
+
+      console.log('*********************** done');
+      done();
+    } catch (e) {
+      console.log('beforeEach err:', e);
+      done(e);
+    }
   });
 
-  it('should have user name input field', () => {
-    de = fixture.debugElement.query(By.css('#user'));
-    console.log('de:', de);
-    el = de.nativeElement;
-    console.log('el:', el);
+  describe('input fields', () => {
+    it('should have user name input field', () => {
+      console.log('fixture:', fixture);
+      console.log('comp:', comp);
+      de = fixture.debugElement.query(By.css('#user'));
+      console.log('de:', de);
+      el = de.nativeElement;
+      console.log('el:', el);
+    });
   });
 
 });

@@ -25,7 +25,7 @@ var gulp = require('gulp'),
 
 var cp = null;
 
-var DEBUG = '';
+//var DEBUG = '';
 //var DEBUG = 'partout:*';
 //var DEBUG = 'feathers-authentication:main';
 //var DEBUG = 'feathers-authentication:authentication:utils';
@@ -59,7 +59,7 @@ gulp.task('run', ['webpack'], function (done) {
   cp = spawn('bin/partout', {
     env: {
       NODE_ENV: env,
-      DEBUG: DEBUG
+      DEBUG: process.env.DEBUG
     }, stdio: 'inherit'
   });
 

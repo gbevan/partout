@@ -31,6 +31,7 @@ const Agents = Waterline.Collection.extend({
   identity: 'agents',
   schema: true,
   connection: 'arangodb',
+
   attributes: {
 
     id: {
