@@ -8,14 +8,13 @@
     <tr><td>Id</td><td>{{ agent.id }}</td></tr>
     <tr><td>IP Address</td><td>{{ agent.ip }}</td></tr>
     <tr><td>Environment</td><td>
-      <md-select [(ngModel)]="agent.environment"
+      <md-select [(ngModel)]="agent.environment.id"
                  (onClose)="envSelected()"
                  *ngIf="envs && envs.length">
         <md-option *ngFor="let env of envs" [value]="env.id">
           {{ env.name }}
         </md-option>
       </md-select>
-      {{ agent.environment ? agent.environment.name : 'n/a'}}
     </td></tr>
     <tr><td>Last Seen</td><td>{{ agent.lastSeen }}</td></tr>
 
