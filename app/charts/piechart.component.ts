@@ -41,7 +41,7 @@ export class PieChartComponent {
   }
 
   ngOnInit() {
-    let sort = {};
+    const sort = {};
     sort[this.field] = 1;
 
     this.rxservice.find({
@@ -54,26 +54,30 @@ export class PieChartComponent {
         listStrategy: 'always'
       }
     })
-    .subscribe((data) => {
-      let to = data
-      .map((x) => { return x[this.field]; })
-      .sort()
-      .reduce((acc, v) => {
-        if (!acc[v]) {
-          acc[v] = 0;
-        }
-        acc[v] += 1;
-        return acc;
-      }, {});
+    .subscribe(
+      (data) => {
+        let to = data
+        .map((x) => { return x[this.field]; })
+        .sort()
+        .reduce((acc, v) => {
+          if (!acc[v]) {
+            acc[v] = 0;
+          }
+          acc[v] += 1;
+          return acc;
+        }, {});
 
-      this.doughnutChartLabels = [];
-      this.doughnutChartData = [];
-      _.map(to, (v: number, k: string) => {
-        this.doughnutChartLabels.push(k);
-        this.doughnutChartData.push(v);
-      });
-
-    });
+        this.doughnutChartLabels = [];
+        this.doughnutChartData = [];
+        _.map(to, (v: number, k: string) => {
+          this.doughnutChartLabels.push(k);
+          this.doughnutChartData.push(v);
+        });
+      },
+      (err) => {
+        console.error('pieChart subscribe error:', err);
+      }
+    )
   }
 
   chartClicked($event) {

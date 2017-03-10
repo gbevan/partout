@@ -24,7 +24,8 @@
 /*jslint node: true */
 /*jshint esversion: 6 */
 'use strict';
-process.env['BLUEBIRD_WARNINGS'] = 0; // bluebird warnings in feathersjs
+process.env.BLUEBIRD_WARNINGS = 0; // bluebird warnings in feathersjs
+process.env.BLUEBIRD_LONG_STACK_TRACES = 1;
 
 const console = require('better-console'),
       AppUi = require('./appUi.js'),
@@ -80,6 +81,8 @@ const Waterline = require('waterline'),
 const debug = require('debug').debug('partout:app');
 
 Q.longStackSupport = true;
+
+//process.on('unhandledRejection', r => console.warn(r));
 
 class CsrsService extends service.Service {
   constructor(o) {
@@ -265,12 +268,17 @@ class App {
 //        });
 //      });
 
-      debug('csrs find');
-      o.collections.csrs
-      .find()
-      .then((res) => {
-        debug('csrs res:', res.length);
-      });
+//      debug('csrs find');
+//      o.collections.csrs
+//      .find()
+//      .then((res) => {
+//        debug('csrs res:', res.length);
+//        process.exit(1);
+//      })
+//      .catch((err) => {
+//        console.error('CSRS find test err:', err);
+//        process.exit(1);
+//      });
 
       /////////////////////////////
       // Global Feathers services

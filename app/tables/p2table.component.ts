@@ -189,10 +189,15 @@ export class P2TableComponent {
         where
       }
     })
-    .subscribe((data) => {
-      debug('Observable data:', data);
-      this.data = data;
-    });
+    .subscribe(
+      (data) => {
+        debug('Observable data:', data);
+        this.data = data;
+      },
+      (err) => {
+        console.error('p2table subscribe err:', err);
+      }
+    );
   }
 
 }
