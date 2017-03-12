@@ -233,6 +233,9 @@ var AppUi = function (opts, services) {
       ],
       create: [
         local.hooks.hashPassword({ passwordField: 'password' })
+      ],
+      patch: [
+        local.hooks.hashPassword({ passwordField: 'password' })
       ]
     }
   });

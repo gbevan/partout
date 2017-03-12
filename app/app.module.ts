@@ -3,7 +3,8 @@ import { MaterialModule }       from '@angular/material';
 import { BrowserModule }        from '@angular/platform-browser';
 import { FormsModule }          from '@angular/forms';
 
-import { Ng2BootstrapModule, PaginationModule }   from 'ng2-bootstrap';
+import { Ng2BootstrapModule,
+         PaginationModule }     from 'ng2-bootstrap';
 import { ChartsModule }         from 'ng2-charts/ng2-charts';
 
 import { AppComponent }         from './app.component';
@@ -12,6 +13,7 @@ import { LoginFormComponent }   from './login/login-form.component';
 import { P2TableComponent }     from './tables/p2table.component';
 import { ViewAgentComponent }   from './agents/viewAgent.component';
 import { ViewCsrComponent }     from './csrs/viewCsr.component';
+import { UserComponent }        from './users/user.component';
 
 import { P2DashboardComponent } from './dashboard/p2dashboard.component';
 
@@ -45,7 +47,8 @@ import { RolesService }         from './feathers/roles.service';
     ViewAgentComponent,
     ViewCsrComponent,
     P2DashboardComponent,
-    PieChartComponent
+    PieChartComponent,
+    UserComponent
   ],
   bootstrap: [
     AppComponent
@@ -63,7 +66,8 @@ import { RolesService }         from './feathers/roles.service';
   ],
   entryComponents: [
     ViewAgentComponent,
-    ViewCsrComponent
+    ViewCsrComponent,
+    UserComponent
   ]
 })
 export class AppModule { }

@@ -1,0 +1,62 @@
+<h1>{{ user.id ? 'Edit' : 'Add' }} User:</h1>
+
+<form #userForm="ngForm">
+
+  <md-input-container>
+    <input mdInput
+           placeholder="User Name"
+           id="username"
+           name="username"
+           required
+           [(ngModel)]="user.username">
+  </md-input-container>
+  <br/>
+
+  <md-input-container>
+    <input mdInput
+           placeholder="Full Name"
+           id="name"
+           name="name"
+           required
+           size="40"
+           [(ngModel)]="user.name">
+  </md-input-container>
+  <br/>
+
+  <md-input-container>
+    <input mdInput
+           placeholder="Avatar Url"
+           id="avatarUrl"
+           name="avatarUrl"
+           size="80"
+           [(ngModel)]="user.avatarUrl">
+  </md-input-container>
+  <br/>
+
+  <md-input-container>
+    <input mdInput
+           placeholder="Enter Password"
+           type="password"
+           id="password1"
+           name="password1"
+           [(ngModel)]="user.password">
+  </md-input-container>
+  <br/>
+
+  <md-input-container>
+    <input mdInput
+           placeholder="Enter Password Again"
+           type="password"
+           id="password2"
+           name="password2"
+           [(ngModel)]="password2">
+  </md-input-container>
+  <br/>
+  <button md-button
+          [disabled]="userForm.form.invalid || ((user.password !== password2) && !user.id) || ((user.password !== password2) && (user.id && (user.password || password2)))"
+          (click)="save()">Save</button>
+
+  <button md-button
+          md-dialog-close>Cancel</button>
+</form>
+<span class="errmsg">{{ errmsg }}</span>

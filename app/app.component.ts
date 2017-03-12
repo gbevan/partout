@@ -8,6 +8,7 @@ import { UsersService } from './feathers/users.service';
 import { RolesService } from './feathers/roles.service';
 import { ViewAgentComponent } from './agents/viewAgent.component';
 import { ViewCsrComponent } from './csrs/viewCsr.component';
+import { UserComponent } from './users/user.component';
 
 const html = require('./app_template.html');
 
@@ -267,6 +268,7 @@ export class AppComponent {
 
   agentDialogRef: MdDialogRef<ViewAgentComponent>;
   csrDialogRef: MdDialogRef<ViewCsrComponent>;
+  userDialogRef: MdDialogRef<UserComponent>;
   config: MdDialogConfig;
 
   constructor(
@@ -379,16 +381,27 @@ export class AppComponent {
    * Users
    */
   addUser() {
-    console.log('TODO: add a user');
+    const cfg: MdDialogConfig = new MdDialogConfig();
+    cfg.disableClose = true;
+    this.userDialogRef = this.dialog.open(UserComponent, cfg);
   }
 
   editUser(id) {
-    console.log('TODO: edit a user, id:', id);
+    this.usersService.get(id, {})
+    .then((user) => {
+      const cfg: MdDialogConfig = new MdDialogConfig();
+      cfg.disableClose = true;
+      this.userDialogRef = this.dialog.open(UserComponent, cfg);
+      this.userDialogRef.componentInstance.setUser(user);
+    })
+    .catch((err) => {
+      console.error('editUser() err:', err);
+    });
   }
 
   deleteUser(id) {
     console.log('TODO: delete a user, id:', id);
-
+    this.usersService.remove(id);
   }
 
   /*****************************

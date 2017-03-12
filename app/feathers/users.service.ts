@@ -27,12 +27,20 @@ export class UsersService {
     return this._socket.get(id, query);
   }
 
-  public remove(id: string, query: any) {
+  public remove(id: string, query?: any) {
     return this._socket.remove(id, query);
   }
 
   public update(id: string, user: any) {
     return this._socket.update(id, user);
+  }
+
+  public patch(id: string, user: any) {
+    return this._socket.patch(id, user);
+  }
+
+  public create(user: any) {
+    return this._socket.create(user);
   }
 
 }

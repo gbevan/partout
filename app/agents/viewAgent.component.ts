@@ -1,6 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { MdDialogRef } from '@angular/material';
-//import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
+// import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import * as _ from 'lodash';
 
 import { EnvironmentsService } from '../feathers/environments.service';
@@ -84,6 +84,6 @@ export class ViewAgentComponent {
     })
     .catch((err) => {
       console.error(err);
-    })
+    });
   }
 }
