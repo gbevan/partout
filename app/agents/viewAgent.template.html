@@ -1,0 +1,41 @@
+<h1>View Agent Detail:</h1>
+<div class="viewAgentOuter">
+  <table class="table viewAgentTable">
+    <tr>
+      <th class="viewAgentHeading">Attribute</th>
+      <th class="viewAgentHeading">value</th>
+    </tr>
+    <tr><td>Id</td><td>{{ agent.id }}</td></tr>
+    <tr><td>IP Address</td><td>{{ agent.ip }}</td></tr>
+    <tr><td>Environment</td><td>
+      <md-select [(ngModel)]="agent.environment.id"
+                 (onClose)="envSelected()"
+                 *ngIf="envs && envs.length">
+        <md-option *ngFor="let env of envs" [value]="env.id">
+          {{ env.name }}
+        </md-option>
+      </md-select>
+    </td></tr>
+    <tr><td>Last Seen</td><td>{{ agent.lastSeen }}</td></tr>
+
+    <tr><td colspan="2"><b>Facts:</b></td></tr>
+    <tr *ngFor="let k of agentFactsKeys">
+      <td>
+        {{ k }}
+      </td>
+      <td>
+        <pre>{{ agent.facts[k] | json }}</pre>
+      </td>
+    </tr>
+
+    <tr><td colspan="2"><b>Agent Certificate:</b></td></tr>
+    <tr *ngFor="let k of agentCertKeys">
+      <td>
+        {{ k }}
+      </td>
+      <td>
+        <pre>{{ agent.certInfo[k] | json }}</pre>
+      </td>
+    </tr>
+  </table>
+</div>

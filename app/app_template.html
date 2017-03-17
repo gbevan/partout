@@ -1,0 +1,90 @@
+<div *ngIf="ready">
+  <div *ngIf="!(socketService.socket ? socketService.socket.authenticated : false)">
+    <login-form></login-form>
+  </div>
+
+  <div *ngIf="(socketService.socket ? socketService.socket.authenticated : false)">
+
+    <md-toolbar color="primary" class="app-top-toolbar">
+      <h1>Partout</h1>
+      <span class="app-toolbar-filler"></span>
+      Welcome {{ socketService.user.name }}&nbsp;<img class="user_avatar" src="{{ socketService.user.avatarUrl }}">
+      <span class="app-toolbar-sep"></span>
+      <button md-raised-button
+              color="accent"
+              (click)="logout()">
+        Logout
+      </button>
+      <span class="app-toolbar-sep"></span>
+    </md-toolbar>
+
+    <!--
+        MAIN TABBED VIEWS
+    -->
+
+    <md-tab-group class="app-main-tab-group">
+
+      <!-- Dashboard Tab -->
+
+      <md-tab class="p2-tab-label">
+        <template md-tab-label>Dashboard</template>
+        <p2-dashboard>
+        </p2-dashboard>
+      </md-tab>
+
+      <!-- CSRs Tab -->
+
+      <md-tab>
+        <template md-tab-label>Agent CSRs</template>
+        <p2-table [config]="csrs_config"
+                  [rxservice]="csrsService">
+        </p2-table>
+      </md-tab>
+
+      <!-- Agents Tab -->
+
+      <md-tab>
+        <template md-tab-label>Agents</template>
+        <p2-table [config]="agents_config"
+                  [rxservice]="agentsService">
+        </p2-table>
+      </md-tab>
+
+      <!-- Environments Tab -->
+
+      <md-tab>
+        <template md-tab-label>Environments</template>
+        <p2-table [config]="environments_config"
+                  [rxservice]="environmentsService">
+        </p2-table>
+      </md-tab>
+
+      <!-- Users Tab -->
+
+      <md-tab>
+        <template md-tab-label>Users</template>
+        <p2-table [config]="users_config"
+                  [rxservice]="usersService">
+        </p2-table>
+        <button md-raised-button
+                color="primary"
+                (click)="addUser()">Add</button>
+      </md-tab>
+
+      <!-- Roles Tab -->
+
+      <md-tab>
+        <template md-tab-label>Roles</template>
+        <p2-table [config]="roles_config"
+                  [rxservice]="rolesService">
+        </p2-table>
+        <button md-raised-button
+                color="primary"
+                (click)="addRole()">Add</button>
+      </md-tab>
+
+    </md-tab-group>
+
+  </div>
+
+</div>

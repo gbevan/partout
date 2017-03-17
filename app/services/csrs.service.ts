@@ -1,21 +1,18 @@
 import { Injectable } from '@angular/core';
 import { Observable, Observer } from 'rxjs';
-import { RestService, SocketService } from './feathers.service';
+import { SocketService } from './feathers.service';
 
 @Injectable()
 export class CsrsService {
   private _socket;
-  private _rest;
 
   constructor(
     private _socketService: SocketService,
-    private _restService: RestService
   ) {
-    this._rest = _restService.getService('csrs');
     this._socket = _socketService.getService('csrs');
 
     this._socket.rx({
-      listStrategy: 'smart'
+      listStrategy: 'always'
     });
   }
 

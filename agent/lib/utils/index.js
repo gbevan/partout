@@ -44,7 +44,9 @@ var console = require('better-console'),
     UtilsLogging = require('./logging'),
     UtilsString = require('./string'),
     UtilsValidations = require('./validations'),
-    UtilsWindows = require('./windows');
+    UtilsWindows = require('./windows'),
+    KeyArt = require('./keyart'),
+    While = require('./while');
 
 Q.longStackSupport = true;
 
@@ -126,5 +128,7 @@ _.mixin(Utils.prototype, UtilsLogging.prototype);
 _.mixin(Utils.prototype, UtilsString.prototype);
 _.mixin(Utils.prototype, UtilsValidations.prototype);
 _.mixin(Utils.prototype, UtilsWindows.prototype);
+_.mixin(Utils.prototype, KeyArt.prototype);
+_.mixin(Utils.prototype, While.prototype);
 
 module.exports = new Utils(); // anonymous object

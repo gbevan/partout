@@ -1,40 +1,43 @@
-import { NgModule }      from '@angular/core';
-import { MaterialModule } from '@angular/material';
-import { BrowserModule } from '@angular/platform-browser';
+import { NgModule }             from '@angular/core';
+import { MaterialModule }       from '@angular/material';
+import { BrowserModule }        from '@angular/platform-browser';
+import { FormsModule }          from '@angular/forms';
 
-import { Ng2BootstrapModule } from 'ng2-bootstrap/ng2-bootstrap';
-//import { PaginationModule } from 'ng2-bootstrap/ng2-bootstrap';
-import { PaginationModule } from 'ng2-bootstrap/components/pagination';
-//import { PaginationModule } from 'ng2-bootstrap';
-import { PrettyJsonModule } from 'angular2-prettyjson';
-import { ChartsModule } from 'ng2-charts/ng2-charts';
+import { Ng2BootstrapModule,
+         PaginationModule }     from 'ng2-bootstrap';
+import { ChartsModule }         from 'ng2-charts/ng2-charts';
 
-import { AppComponent }   from './app.component';
-import { LoginFormComponent }   from './login-form.component';
+import { AppComponent }         from './app.component';
+import { LoginFormComponent }   from './login/login-form.component';
 
-import { P2TableComponent }   from './p2table.component';
-import { ViewAgentComponent }   from './viewAgent.component';
-import { ViewCsrComponent }   from './viewCsr.component';
+import { P2TableComponent }     from './tables/p2table.component';
+import { ViewAgentComponent }   from './agents/viewAgent.component';
+import { ViewCsrComponent }     from './csrs/viewCsr.component';
+import { UserComponent }        from './users/user.component';
 
-import { P2DashboardComponent }   from './dashboard/p2dashboard.component';
+import { P2DashboardComponent } from './dashboard/p2dashboard.component';
 
-import { PieChartComponent }   from './charts/piechart.component';
+import { PieChartComponent }    from './charts/piechart.component';
 
 // Feathers Services
-import { RestService, SocketService } from './feathers.service';
-import { AgentsService } from './agents.service';
-import { AgentsAllService } from './agents_all.service';
-import { CsrsService } from './csrs.service';
-import { CsrsAllService } from './csrs_all.service';
+import { SocketService }        from './services/feathers.service';
+import { AgentsService }        from './services/agents.service';
+import { AgentsAllService }     from './services/agents_all.service';
+import { CsrsService }          from './services/csrs.service';
+import { CsrsAllService }       from './services/csrs_all.service';
+import { EnvironmentsService }  from './services/environments.service';
+import { UsersService }         from './services/users.service';
+import { RolesService }         from './services/roles.service';
 
 @NgModule({
   imports: [
     BrowserModule,
     MaterialModule.forRoot(),
     Ng2BootstrapModule,
-    PaginationModule,
-    PrettyJsonModule,
-    ChartsModule
+    PaginationModule.forRoot(),
+//    PrettyJsonModule,
+    ChartsModule,
+    FormsModule
   ],
   declarations: [
     AppComponent,
@@ -43,22 +46,26 @@ import { CsrsAllService } from './csrs_all.service';
     ViewAgentComponent,
     ViewCsrComponent,
     P2DashboardComponent,
-    PieChartComponent
+    PieChartComponent,
+    UserComponent
   ],
   bootstrap: [
     AppComponent
   ],
   providers: [
     SocketService,
-    RestService,
     AgentsService,
     AgentsAllService,
     CsrsService,
-    CsrsAllService
+    CsrsAllService,
+    EnvironmentsService,
+    UsersService,
+    RolesService
   ],
   entryComponents: [
     ViewAgentComponent,
-    ViewCsrComponent
+    ViewCsrComponent,
+    UserComponent
   ]
 })
 export class AppModule { }

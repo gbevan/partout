@@ -56,11 +56,7 @@ if (parsed.help) {
   console.log(options.getHelp());
   console.log(heredoc(function () {/*
 Commands:
-  init
   serve (default)
-  csr [list|sign agent-uuid]
-  listagents
-  setenv agent-uuid new-environment
 */}));
   process.exit(0);
 }
@@ -89,4 +85,5 @@ if (rest.length > 0) {
   opts.serve = true;
 }
 
-var app = require('../app')(opts);
+var app = new (require('../app'))();
+app.run(opts);

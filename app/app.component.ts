@@ -1,36 +1,65 @@
 import { Component, OnInit, ViewContainerRef } from '@angular/core';
 import { MdDialog, MdDialogRef, MdDialogConfig } from '@angular/material';
-import { RestService, SocketService } from './feathers.service';
-import { AgentsService } from './agents.service';
-import { CsrsService } from './csrs.service';
-import { ViewAgentComponent } from './viewAgent.component';
-import { ViewCsrComponent } from './viewCsr.component';
+import { SocketService } from './services/feathers.service';
+import { AgentsService } from './services/agents.service';
+import { CsrsService } from './services/csrs.service';
+import { EnvironmentsService } from './services/environments.service';
+import { UsersService } from './services/users.service';
+import { RolesService } from './services/roles.service';
+import { ViewAgentComponent } from './agents/viewAgent.component';
+import { ViewCsrComponent } from './csrs/viewCsr.component';
+import { UserComponent } from './users/user.component';
+
+const html = require('./app_template.html');
 
 @Component({
   selector: 'my-app',
-  templateUrl: 'views/app_template.html',
-  styleUrls: ['assets/css/app.component.css']
+  template: html,
+  styles: [`
+.app-top-toolbar {
+  -moz-border-radius: 5px;
+  border-radius: 5px;
+}
+
+.app-toolbar-filler {
+  flex: 1 1 auto;
+}
+
+.app-toolbar-sep:before {
+  content: '|';
+  padding-left: 10px;
+  padding-right: 10px;
+}
+`]
 })
 export class AppComponent {
-
   title = 'Partout with Feathers';
 
-  agents = [];
+//  agents = [];
   agents_config = {
     columns: [
       {
         field: 'id',
         title: 'ID',
-        action: (id) => { this.viewAgent(id) }
+        styles: {
+          'font-size': '80%'
+        },
+        action: (id) => { this.viewAgent(id); }
       },
       {
         field: 'os_hostname',
-        title: 'Hostname'
+        title: 'Hostname',
+        styles: {
+          'white-space': 'nowrap'
+        }
       },
       {
         field: 'ip',
         title: 'IP Address',
-        styles: {'font-family': 'monospace'}
+        styles: {
+          'font-family': 'monospace',
+          'font-size': '80%'
+        }
       },
       {
         field: 'platform',
@@ -42,6 +71,7 @@ export class AppComponent {
         imgsrc: (row) => {
           if (row.os_dist_name) {
 
+            // TODO: Pre-load images via webpack if pos.
             if (row.os_dist_name.search(/centos/i) !== -1) {
               return '/assets/images/logos/centos.png';
 
@@ -89,62 +119,166 @@ export class AppComponent {
         title: 'Arch'
       },
       {
-        field: 'env',
-        title: 'Environment'
+        field: 'environment',
+        title: 'Environment',
+        styles: (v) => {
+          if (!v || v === '') {
+            return {
+              'background-color': 'red',
+//              'content': 'n/a',
+              'color': 'white',
+              'padding-left': '5px',
+              'width': '100%'
+            };
+          }
+        },
+        valueFn: (v) => {
+          if (!v || v === '') {
+            return 'n/a';
+          }
+          return v.name;
+        }
 //        action: (id) => { this.changeAgentEnv(id) }
       },
       {
         field: 'lastSeen',
-        title: 'Last Seen'
+        title: 'Last Seen',
+//        styles: {
+//          'font-size': '80%',
+//          'white-space': 'nowrap'
+//        },
+        pipe: 'datetime'
       },
       {
-        action: (id, index) => { this.deleteAgent(id, index) },
+        action: (id, index) => { this.deleteAgent(id, index); },
         value: 'Delete'
       }
-    ]
+    ],
+    defaultSortBy: 'os_hostname'
+    // caseSensitive: true|false
   };
 
-  csrs = [];
+//  csrs = [];
   csrs_config = {
     columns: [
       {
         field: 'id',
         title: 'ID',
-        action: (id) => { this.viewCsr(id) }
+        action: (id) => { this.viewCsr(id); },
+        styles: {
+          'font-size': '80%'
+        },
       },
       {
         field: 'ip',
         title: 'IP Address',
-        styles: {'font-family': 'monospace'}
+        styles: {
+          'font-family': 'monospace',
+          'font-size': '80%'
+        }
       },
       {
         field: 'lastSeen',
-        title: 'Last Seen'
+        title: 'Last Seen',
+        styles: {
+          'font-size': '80%',
+          'white-space': 'nowrap'
+        }
       },
       {
         field: 'status',
         title: 'Status'
       },
       {
-        action: (id) => { this.signCsr(id) },
+        action: (id) => { this.signCsr(id); },
         value: 'Sign'
       },
       {
-        action: (id) => { this.rejectCsr(id) },
+        action: (id) => { this.rejectCsr(id); },
         value: 'Reject'
+      },
+      {
+        action: (id) => { this.deleteCsr(id); },
+        value: 'Delete'
       }
-    ]
+    ],
+    defaultSortBy: 'ip'
+  };
+
+  environments_config = {
+    columns: [
+      {
+        field: 'name',
+        title: 'Name'
+      },
+      {
+        field: 'description',
+        title: 'Description'
+      },
+      {
+        action: (id) => { this.deleteEnv(id); },
+        value: 'Delete'
+      }
+    ],
+    defaultSortBy: 'name'
+  };
+
+  users_config = {
+    columns: [
+      {
+        field: 'username',
+        title: 'User Name'
+      },
+      {
+        field: 'name',
+        title: 'Full Name'
+      },
+      {
+        action: (id) => { this.editUser(id); },
+        value: 'Edit'
+      },
+      {
+        action: (id) => { this.deleteUser(id); },
+        value: 'Delete',
+        condFn: (id) => {
+          const u = this.socketService.getUser();
+//          console.log((new Error('condFn')).stack);
+//          console.log('id:', id, 'u.id:', u.id);
+          return u.id !== id; // show if not logged in user
+        }
+      }
+    ],
+    defaultSortBy: 'username'
+  };
+
+  roles_config = {
+    columns: [
+      {
+        field: 'name',
+        title: 'Role Name'
+      },
+      {
+        field: 'description',
+        title: 'Description'
+      }
+    ],
+    defaultSortBy: 'name'
   };
 
   agentDialogRef: MdDialogRef<ViewAgentComponent>;
   csrDialogRef: MdDialogRef<ViewCsrComponent>;
+  userDialogRef: MdDialogRef<UserComponent>;
   config: MdDialogConfig;
 
+  private ready: boolean = false;
+
   constructor(
-    private restService: RestService,
     private socketService: SocketService,
     public agentsService: AgentsService,
     public csrsService: CsrsService,
+    public environmentsService: EnvironmentsService,
+    public usersService: UsersService,
+    public rolesService: RolesService,
     public dialog: MdDialog,
     private viewContainerRef: ViewContainerRef
   ) {
@@ -152,11 +286,16 @@ export class AppComponent {
     this.config.viewContainerRef = this.viewContainerRef; // for mdDialog
   }
 
-  logout() {
-    this.restService.logout();
-    this.socketService.logout();
+  ngOnInit() {
+    return this.socketService.init()
+    .then(() => {
+      this.ready = true;
+    });
   }
 
+  logout() {
+    this.socketService.logout();
+  }
 
   /*****************************
    * Agents
@@ -165,7 +304,8 @@ export class AppComponent {
   viewAgent(id) {
     this.agentsService.get(id, {})
     .then((agent) => {
-      this.agentDialogRef = this.dialog.open(ViewAgentComponent, this.config)
+      console.log('agent:', agent);
+      this.agentDialogRef = this.dialog.open(ViewAgentComponent, this.config);
       this.agentDialogRef.componentInstance.setAgent(agent);
     })
     .catch((err) => {
@@ -183,7 +323,6 @@ export class AppComponent {
     });
   }
 
-
   /*****************************
    * CSRs
    */
@@ -191,7 +330,7 @@ export class AppComponent {
   viewCsr(id) {
     this.csrsService.get(id, {})
     .then((csr) => {
-      this.csrDialogRef = this.dialog.open(ViewCsrComponent, this.config)
+      this.csrDialogRef = this.dialog.open(ViewCsrComponent, this.config);
       this.csrDialogRef.componentInstance.setCsr(csr);
     })
     .catch((err) => {
@@ -219,7 +358,63 @@ export class AppComponent {
     .catch((err) => {
       console.error('rejectCsr() err:', err);
     });
+  }
 
+  deleteCsr(id) {
+    this.csrsService.remove(id, {})
+    .then((csr) => {
+      console.log('deleteCsr() csr:', csr);
+    })
+    .catch((err) => {
+      console.error('deleteCsr() err:', err);
+    });
+  }
+
+  /*****************************
+   * Environments
+   */
+  deleteEnv(id) {
+    this.environmentsService.remove(id, {})
+    .then((env) => {
+      console.log('deleteEnv() env:', env);
+    })
+    .catch((err) => {
+      console.error('deleteEnv() err:', err);
+    });
+  }
+
+  /*****************************
+   * Users
+   */
+  addUser() {
+    const cfg: MdDialogConfig = new MdDialogConfig();
+    cfg.disableClose = true;
+    this.userDialogRef = this.dialog.open(UserComponent, cfg);
+  }
+
+  editUser(id) {
+    this.usersService.get(id, {})
+    .then((user) => {
+      const cfg: MdDialogConfig = new MdDialogConfig();
+      cfg.disableClose = true;
+      this.userDialogRef = this.dialog.open(UserComponent, cfg);
+      this.userDialogRef.componentInstance.setUser(user);
+    })
+    .catch((err) => {
+      console.error('editUser() err:', err);
+    });
+  }
+
+  deleteUser(id) {
+    console.log('TODO: delete a user, id:', id);
+    this.usersService.remove(id);
+  }
+
+  /*****************************
+   * Roles
+   */
+  addRole() {
+    console.log('TODO: add a role');
   }
 
 }

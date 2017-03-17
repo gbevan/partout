@@ -11,12 +11,13 @@ var gulp = require('gulp'),
     watch = require('gulp-watch'),
     batch = require('gulp-batch'),
     typescript = require('gulp-typescript'),
-    webpack = require('gulp-webpack'),
+    webpack = require('webpack-stream'),
     config = require('./webpack.config.js'),
     tsConfig = require('./tsconfig.json'),
     spawn = require('child_process').spawn,
     sourcemaps = require('gulp-sourcemaps'),
-    v8 = require('v8');
+    v8 = require('v8'),
+    Server = require('karma').Server;
 
 //v8.setFlagsFromString('--trace_gc');
 //v8.setFlagsFromString('--max_old_space_size=2048');
@@ -24,11 +25,13 @@ var gulp = require('gulp'),
 
 var cp = null;
 
+//var DEBUG = '';
+//var DEBUG = 'partout:*';
 //var DEBUG = 'feathers-authentication:main';
 //var DEBUG = 'feathers-authentication:authentication:utils';
-var DEBUG = 'sails-arangodb';
+//var DEBUG = 'sails-arangodb:connection, sails-arangodb:adapter, partout:app';
 //var DEBUG = 'feathers-authentication-local:verify';
-//var DEBUG = '';
+//var DEBUG = 'api:routes';
 
 /*
  * Currently env does not determine the arangodb being selected here, as all
@@ -38,92 +41,69 @@ var DEBUG = 'sails-arangodb';
  */
 var env = process.env.NODE_ENV || 'development';
 
-gulp.task('clean', function () {
-  return del('dist/**/*');
-});
-
-// copy dependencies
-//gulp.task('copy:libs', ['clean'], function() {
-//  return gulp.src([
-//    'node_modules/core-js/client/shim.min.js',
-//    'node_modules/zone.js/dist/zone.js',
-//    'node_modules/reflect-metadata/Reflect.js',
-//    'node_modules/systemjs/dist/system.src.js'
-//  ])
-//  .pipe(gulp.dest('dist/lib'));
+//gulp.task('clean', function () {
+//  return del('dist/**/*');
 //});
 
-//gulp.task('compile', ['clean'], function () {
-//  return gulp
-//  .src('app/**/*.ts')
-//  .pipe(sourcemaps.init())
-//  .pipe(typescript(tsConfig.compilerOptions))
-//  .pipe(sourcemaps.write('.'))
-//  .pipe(gulp.dest('dist/app'));
-//});
-
-//gulp.task('app:css', ['compile'], function () {
-//  return gulp
-//  .src('app/**/*.css')
-//  .pipe(gulp.dest('dist/app'));
-//})
-
-gulp.task('webpack', ['clean'], function () {
-  return gulp.src('app/main.ts')
-  .pipe(webpack(config))
+// Webpack does its own watching, see weback.config.js
+gulp.task('webpack', function () {
+  gulp.src('app/main.ts')
+  .pipe(
+    webpack(config, require('webpack'))
+    .on('error', (err) => {
+      gutil.log('WEBPACK ERROR:', err);
+      this.emit('end');
+    })
+  )
   .pipe(gulp.dest('dist'))
   ;
 });
 
 //gulp.task('run', ['compile'], function (done) {
-gulp.task('run', ['webpack'], function (done) {
+gulp.task('run', function (done) {
   // exec bin/partout
   console.log('starting partout');
   cp = spawn('bin/partout', {
     env: {
       NODE_ENV: env,
-      DEBUG: DEBUG
+      DEBUG: process.env.DEBUG
     }, stdio: 'inherit'
   });
 
   done();
 });
 
-//gulp.task('chain', ['clean', 'compile', 'run']);
-gulp.task('chain', ['clean', 'webpack', 'run']);
+//gulp.task('chain', ['webpack', 'run']);
 
-gulp.task('default', function () {
-//  plugins.nodemon({
-//    script: 'bollocks',
-//    ignore: ['node_modules', 'agent', 'dist'],
-//    tasks: ['clean'/*, 'copy:libs', 'compile', 'run'*/]
-//  });
+gulp.task('watch', function () {
   watch([
-    'gulpfile.js',
     'systemjs.config.js',
     'app.js',
     'appApi.js',
     'appUi.js',
-    'app/**',
+//    'app/**',
     'lib/**',
     'etc/*.js',
-    'agent/lib/*.js',
+    'agent/lib/utils/**/*.js',
+    'agent/lib/pfs.js',
     'server/**/*.js',
     'public/**/*.js',
     //'public/views/*.html',
-    'test/**'
+//    'test/**'
   ], {
     ignoreInitial: false,
     verbose: true,
     readDelay: 1500 // filter duplicate changed events from Brackets
   }, batch(function (events, done) {
     if (cp) {
-      console.log('killing');
+      console.log('killing partout');
       cp.kill();
     }
-    gulp.start('chain', done);
+    gulp.start('run', done);
   }));
 });
+
+gulp.task('default', ['watch', 'webpack']);
 
 gulp.task('mocha', function () {
   global.INMOCHA = true;
@@ -138,12 +118,18 @@ gulp.task('mocha', function () {
 
 gulp.task('watch-mocha', function () {
   watch([
-    'gulpfile.js',
+    'systemjs.config.js',
     'app.js',
+    'appApi.js',
+    'appUi.js',
+    'app/**',
     'lib/**',
     'etc/*.js',
-    'agent/lib/*.js',
+    'agent/lib/utils/**/*.js',
+    'agent/lib/pfs.js',
     'server/**/*.js',
+    'public/**/*.js',
+    //'public/views/*.html',
     'test/**'
   ], {
     ignoreInitial: false,
@@ -152,6 +138,14 @@ gulp.task('watch-mocha', function () {
   }, batch(function (events, done) {
     gulp.start('mocha', done);
   }));
+});
+
+// Karma / Jasmine
+gulp.task('karma', function (done) {
+  new Server({
+    configFile: __dirname + '/karma.conf.js',
+    singleRun: true
+  }, done).start();
 });
 
 gulp.task('docs', function (cb) {

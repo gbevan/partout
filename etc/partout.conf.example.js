@@ -21,7 +21,23 @@ var Cfg = function () {
     self.database_name = 'partout';
   }
 
-  self.database_url = 'http://root:yourdbpass@127.0.0.1:8529';
+  self.waterline_config = {
+    connections: {
+      arangodb: {
+        adapter: 'arangodb',
+        host: '127.0.0.1',
+        port: 8529,
+        user: 'root',
+        password: 'your_password',
+        database: 'partout'
+      }
+    },
+    defaults: {}
+  };
+  var dbcfg = self.waterline_config.connections.arangodb;
+  self.database_url = 'http://' +
+    dbcfg.user + ':' + dbcfg.password + '@' +
+    dbcfg.host + ':' + dbcfg.port;
 
   // Settings
   self.event_rate_divisor = 100;
@@ -37,6 +53,8 @@ var Cfg = function () {
 
   self.GITHUB_CLIENT_ID = "--insert-github-client-id-here--";
   self.GITHUB_CLIENT_SECRET = "--insert-github-client-secret-here--";
+
+  self.MANIFESTDIR = 'etc/manifest';
 };
 
 module.exports = Cfg;

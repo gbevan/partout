@@ -48,6 +48,7 @@ var console = require('better-console'),
     csrFile = ssl.agentCsrFile,
     certFile = ssl.agentCertFile,
     Master = require('./lib/master'),
+    forge = require('node-forge'),
     utils = require('./lib/utils');
 
 Q.longStackSupport = true;
@@ -144,12 +145,19 @@ var checkCert = function (master) {
             console.warn('CSR fingerprint:', fingerprint);
             console.warn('============================================================================');
 
-            // Send csr to master
-            console.warn('Sending agent certificate signing request to master');
+            console.warn('Agent CSR randomart:');
+            pfs.pReadFile(ssl.agentCsrFile)
+            .then(function (csrData) {
+              var csrBin = forge.util.decode64(csrData.toString());
+              console.warn(utils.toArt(csrBin));
 
-            _sendCsr(master)
-            .then(function(resp) {
-              deferred.resolve(false);
+              // Send csr to master
+              console.warn('Sending agent certificate signing request to master');
+
+              _sendCsr(master)
+              .then(function(resp) {
+                deferred.resolve(false);
+              }).done();
             }).done();
 
           });
@@ -182,7 +190,14 @@ var checkCert = function (master) {
 
     } else { // cert exists
       console.log('agent certificate exists, continuing');
-      deferred.resolve(true);
+      console.warn('Agent certificate randomart:');
+      pfs.pReadFile(certFile)
+      .then(function (certData) {
+        var certBin = forge.util.decode64(certData.toString());
+        console.warn(utils.toArt(certBin));
+        deferred.resolve(true);
+      })
+      .done();
     }
   })
   .done();
@@ -278,7 +293,7 @@ var serve = function (opts, master) {
   app._apply = function (cb) {
 
     if (!app.apply_site_p2) {
-      console.warn('Policy Sync has not yet resolved a site policy. Please ensure this agent has been assigned to a valid environment by the Partout Master Administrator (see `partout setenv` command).');
+      console.warn('Policy Sync has not yet resolved a site policy. Please ensure this agent has been assigned to a valid environment by the Partout Master Administrator.');
       cb({retry: true});
       return;
     }
@@ -290,11 +305,10 @@ var serve = function (opts, master) {
 
       } else {
         apply([app.apply_site_p2], {app: app, daemon: true})
-        .then(function () {
+        .done(function () {
           console.log('apply resolved');
           cb();
-        })
-        .done(null, function (err) {
+        }, function (err) {
           console.error('app _apply err:', err);
           console.error(err.stack);
           cb();
@@ -316,39 +330,28 @@ var serve = function (opts, master) {
 
       setTimeout(function () {
 
-        policy_sync.sync(cfg.PARTOUT_MASTER_MANIFEST_DIR, cfg.PARTOUT_AGENT_MANIFEST_DIR)
+        policy_sync.sync(cfg.PARTOUT_AGENT_MANIFEST_DIR)
         .then(function () {
           app.apply_site_p2 = cfg.PARTOUT_AGENT_MANIFEST_SITE_P2;
 
           app._apply(function (res) {
-            if (res && res.retry) {
-              var secs = 10;
-              console.warn('sleeping', secs, 'secs for retry');
-              setTimeout(function () {
-                console.warn('retrying app.run()');
-                deferred.resolve(app.run());    // RETRY
-              }, secs * 1000);
-              return;
-            }
-
             app.inRun = false;
             console.log('### FINISHED POLICY (after sync) ###########################################');
-            deferred.resolve();
+            deferred.resolve(res ? res.retry : false);
           });
         })
-        .fail(function (err) {
+        .done(null, function (err) {
           console.error(err);
           console.error(err.stack);
           console.warn('policy_sync call failed, will continue to run existing cached manifest (if available)');
 
-          app._apply(function () {
+          app._apply(function (res) {
             app.inRun = false;
             console.log('### FINISHED POLICY (after FAILED sync) ###########################################');
-            deferred.resolve();
+            deferred.resolve(res ? res.retry : false);
           });
-        })
-        .done();
-      }, splay);  // Random Splay
+        });
+      }, splay).unref();  // Random Splay
 
     } else {
       app._apply(function () {
@@ -379,19 +382,18 @@ var serve = function (opts, master) {
     object: 'partout-agent',
     msg: 'Partout-Agent has (re)started https server'
   });
-  app.run()
-  .done(function () {
-    if (opts.once) {
-      process.exit(0);
-    }
-  }, function (err) {
-    console.error('server run err:', err);
-    if (opts.once) {
-      process.exit(0);
-    }
-  });
 
-  if (!app.opts.once) {
+  var retry = false;
+  utils.pWhile({
+    condition: function (retry) { return retry; },
+    action:    app.run,
+    delay:     10 * 1000
+  })
+  .then(function () {
+    if (opts.once) {
+      process.exit(0);
+    }
+
     setInterval(function () {
       if (!app.inRun) {
         app.run();
@@ -400,7 +402,12 @@ var serve = function (opts, master) {
       }
     }, (app.apply_every_mins * 60 * 1000))
     .unref();
-  }
+
+  })
+  .done(null, function (err) {
+    console.error('looper errored');
+    throw err;
+  });
 
 };
 
@@ -430,6 +437,7 @@ module.exports = function (opts) {
             if (result) {
               serve(opts, master);
             } else {
+              console.log('retrying shortly...');
               setTimeout(function () {
                 reexec();
               }, 500 + (60 * 1000 * Math.random()));

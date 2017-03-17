@@ -1,4 +1,4 @@
-/*jshint newcap: false, esnext: true*/
+/*jshint newcap: false*/
 /*
     Partout [Everywhere] - Policy-Based Configuration Management for the
     Data-Driven-Infrastructure.
@@ -27,7 +27,7 @@
 var Q = require('q'),
     u = require('util'),
     Common = require('./common'),
-    uuid = require('node-uuid');
+    uuid = require('uuid');
 
 /**
  * Controller for the csrs collection.

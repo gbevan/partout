@@ -24,23 +24,24 @@
 /*jshint esversion: 6 */
 'use strict';
 
-var console = require('better-console'),
-    Q = require('q'),
-    cfg = new (require('./etc/partout.conf.js'))(),
-    fs = require('fs'),
-    u = require('util'),
-    ca = new (require('./lib/ca'))(),
+const console = require('better-console'),
+      Q = require('q'),
+      cfg = new (require('./etc/partout.conf.js'))(),
+      fs = require('fs'),
+      u = require('util'),
+      ca = new (require('./lib/ca'))(),
+      express = require('express'),
+      feathers = require('feathers'),
+      routerApi = express.Router(),
+      httpsApi = require('https'),
+      compression = require('compression'),
+      bodyParser = require('body-parser'),
+      morgan = require('morgan'),
+      logger = morgan('API :: :method :url :status :response-time ms - :res[content-length] bytes'),
+      passport = require('passport'),
+      serverMetrics = new (require('./lib/server_metrics'))();
 
-    express = require('express'),
-    routerApi = express.Router(),
-    httpsApi = require('https'),
-    compression = require('compression'),
-    bodyParser = require('body-parser'),
-    morgan = require('morgan'),
-    logger = morgan('API :: :method :url :status :response-time ms - :res[content-length] bytes'),
-    passport = require('passport'),
-    db = new (require('./lib/db.js'))(cfg),
-    serverMetrics = new (require('./lib/server_metrics'))();
+const debug = require('debug').debug('partout:appApi');
 
 Q.longStackSupport = true;
 
@@ -57,10 +58,11 @@ passport.deserializeUser(function(obj, done) {
  * @class appApi
  * @memberof App
  */
-var AppApi = function (opts, controllers) {
+var AppApi = function (opts, appUi) {
   var self = this;
 
-  self.app = express();
+//  self.app = express();
+  self.app = feathers();
   var optionsApi = {
       key: fs.readFileSync(ca.masterApiPrivateKeyFile),
       cert: fs.readFileSync(ca.masterApiCertFile),
@@ -83,25 +85,23 @@ var AppApi = function (opts, controllers) {
       rejectUnauthorized: false
     };
 
-    self.app.opts = opts;
 
-//        self.app.use(passport.initialize());
-//        self.app.use(passport.authenticate('client-cert', {session: false}));
+  self.app.opts = opts;
 
-    self.app.use(compression());
-    routerApi.use(logger);
-    self.app.use(bodyParser.json({limit: '50mb'}));
-    self.app.use(bodyParser.urlencoded({ extended: true }));
+  self.app.use(compression());
+  routerApi.use(logger);
+  self.app
+  .use(bodyParser.json({limit: '50mb'}))
+  .use(bodyParser.urlencoded({ extended: true }));
 
-    require('./lib/api/routes')(routerApi, cfg, db.getDb(), controllers, serverMetrics);
+  require('./lib/api/routes')(routerApi, cfg, self.app, appUi, serverMetrics);
 
-    self.app.use('/', routerApi);
-    self.app.use(express.static('public'));
+  self.app.use('/', routerApi);
+  self.app.use(express.static('public'));
 
-    httpsApi.createServer(optionsApi, self.app)
-    .listen(cfg.partout_api_port);
-    console.info('Master API listening on port', cfg.partout_api_port);
-
+  httpsApi.createServer(optionsApi, self.app)
+  .listen(cfg.partout_api_port);
+  console.info('Master API listening on port', cfg.partout_api_port);
 
 };
 

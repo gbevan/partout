@@ -36,7 +36,8 @@ var console = require('better-console'),
     forge = require('node-forge'),
     readline = require('readline'),
     deleteEmpty = require('delete-empty'),
-    randomart = require('randomart');
+    debug = require('debug')('agent:policy_sync');
+//    randomart = require('randomart');
 
 /**
  * @class
@@ -49,6 +50,7 @@ var Policy_Sync = function (app) {
   self.app = app;
   self.https = app.https;
   self.server_cert = null;
+  self.firstTime = true;
 };
 
 /**
@@ -144,13 +146,11 @@ Policy_Sync.prototype.get_file = function (srcfile, tgtrelname, cb) {
   .done();
 };
 
-Policy_Sync.prototype.sync = function (srcfolder, destfolder) {
+Policy_Sync.prototype.sync = function (destfolder) {
   var self = this,
-    outer_deferred = Q.defer();
-  //console.log('syncing srcfolder:', srcfolder, 'destfolder:', destfolder);
+      outer_deferred = Q.defer();
 
   self.accepted_master_fingerprint = '';
-  //console.log('get server cert');
 
   self.load_master_fingerprint()
   .then(function (accepted_master_fingerprint) {
@@ -176,10 +176,16 @@ Policy_Sync.prototype.sync = function (srcfolder, destfolder) {
       }
     );
 
-    console.warn(new Array(self.master_fingerprint.length + 1).join('='));
-    console.warn('Master API SSL fingerprint (SHA256):\n' + self.master_fingerprint);
-    console.warn('\nrandomart of master public key:\n' + randomart(self.server_cert_obj.publicKey));
-    console.warn(new Array(self.master_fingerprint.length + 1).join('='));
+    var server_pub_key_pem = pki.publicKeyToPem(self.server_cert_obj.publicKey);
+    var server_pub_key_bin = forge.util.decode64(server_pub_key_pem.toString());
+
+    if (self.firstTime) {
+      self.firstTime = false;
+      console.warn(new Array(self.master_fingerprint.length + 1).join('='));
+      console.warn('Master API SSL fingerprint (SHA256):\n' + self.master_fingerprint);
+      console.warn('\nrandomart of upstream master public key:\n' + utils.toArt(server_pub_key_bin));
+      console.warn(new Array(self.master_fingerprint.length + 1).join('='));
+    }
 
     if (self.app.opts.yes) {
       console.warn('Accepting (--yes) new master SSL as trusted');
@@ -218,42 +224,29 @@ Policy_Sync.prototype.sync = function (srcfolder, destfolder) {
   })
   .then(function () {
 
-    console.info('syncing from:', srcfolder, 'to:', destfolder);
-    //self.get_manifest(function (manifest) {
-//    self.app.master.get('/manifest?environment=' + self.app.cfg.environment)
+    console.info('syncing to:', destfolder);
     self.app.master.get('/manifest')
-    .fail(function (err) {
-      console.error('Sync failed, err:', err);
-      outer_deferred.reject(err);
-    })
     .then(function (obj) {
-      if (!obj || !obj.data) {
-        return;
+      if (!obj || !obj.data || !obj.data.environment) {
+        //throw 'No environment set';
+        return outer_deferred.resolve();
       }
       var manifest = obj.data.manifest;
+      debug('manifest %O', manifest);
 
-//      self.app.cfg.environment = obj.data.environment;
-      //console.log('self.app.cfg.environment #1:', self.app.cfg.environment);
-      //console.log('obj.data.environment:', obj.data.environment);
       self.app.cfg.setEnvironment(obj.data.environment);
-      //console.log('self.app.cfg.environment #2:', self.app.cfg.environment);
-      //console.info('manifest:', manifest);
 
       // Get hashWalk of local manifest
       pfs.hashWalk(destfolder, function (local_manifest) {
-        //console.log('local_manifest:', local_manifest);
 
         var files = Object.keys(manifest),
           local_files = Object.keys(local_manifest),
           tasks = [];
 
-        //console.log('files:', files);
-
         _.each(files, function (srcfile) {
           tasks.push(function (done) {
             var srcrelname = manifest[srcfile].relname,
                 destfile = path.join(self.app.cfg.PARTOUT_AGENT_MANIFEST_DIR, srcrelname);
-            //console.log('srcfile:', srcfile, 'relname:', srcrelname, 'hash:', manifest[srcfile]);
 
             // TODO: Restrict permissions on sync'd files - 600.
 
@@ -325,7 +318,10 @@ Policy_Sync.prototype.sync = function (srcfolder, destfolder) {
       });
 
     })
-    .done();
+    .fail(function (err) {
+      console.error('Sync failed, err:', err);
+      outer_deferred.reject(err);
+    });
 
   })
 

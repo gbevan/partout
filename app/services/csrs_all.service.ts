@@ -1,18 +1,15 @@
 import { Injectable } from '@angular/core';
 import { Observable, Observer } from 'rxjs';
-import { RestService, SocketService } from './feathers.service';
+import { SocketService } from './feathers.service';
 
 @Injectable()
-export class AgentsAllService {
+export class CsrsAllService {
   private _socket;
-  private _rest;
 
   constructor(
     private _socketService: SocketService,
-    private _restService: RestService
   ) {
-    this._rest = _restService.getService('agents_all');
-    this._socket = _socketService.getService('agents_all');
+    this._socket = _socketService.getService('csrs_all');
 
     this._socket.rx({
       listStrategy: 'always'

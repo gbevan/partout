@@ -26,12 +26,11 @@
 
 const Waterline = require('waterline');
 
-// Agents
-const Agents = Waterline.Collection.extend({
-  identity: 'agents',
+// Roles
+const Roles = Waterline.Collection.extend({
+  identity: 'roles',
   schema: true,
   connection: 'arangodb',
-
   attributes: {
 
     id: {
@@ -39,24 +38,14 @@ const Agents = Waterline.Collection.extend({
       primaryKey: true,
       columnName: '_key'
     },
-//    env: { type: 'string' },
-    environment: {
-      model: 'environments'
+    name: {
+      type: 'string',
+      required: true
     },
-    facts: { type: 'object' },
-    ip: { type: 'string' },
-    certInfo: { type: 'object' },
-    lastSeen: { type: 'date' },
-    platform: { type: 'string' },
-    os_release: { type: 'string' },
-    os_arch: { type: 'string' },
-    os_family: { type: 'string' },
-    os_dist_version_id: { type: 'string' },
-    os_dist_name: { type: 'string' },
-    os_hostname: { type: 'string' },
-
+    description: {
+      type: 'string'
+    }
   }
-
 });
 
-module.exports = Agents;
+module.exports = Roles;

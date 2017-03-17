@@ -1,7 +1,5 @@
 
 import { Component, Input, OnInit } from '@angular/core';
-import * as d3 from 'd3';
-import * as Rx from 'rxjs';
 import * as _ from 'lodash';
 
 @Component({
@@ -33,51 +31,52 @@ export class PieChartComponent {
   @Input() rxservice: any;
   @Input() field: string;
 
-  private data: any;
-
   // Doughnut
-  public doughnutChartLabels:string[] = [];
-  public doughnutChartData:number[] = [];
-  public doughnutChartType:string = 'doughnut';
+  public doughnutChartLabels: string[] = [];
+  public doughnutChartData: number[] = [];
+  public doughnutChartType: string = 'doughnut';
 
-  public constructor(
-  ) {
-    this.data = [];
-  }
+//  public constructor(
+//  ) { }
 
   ngOnInit() {
-    let sort = {};
+    const sort = {};
     sort[this.field] = 1;
 
     this.rxservice.find({
       query: {
-        $select: [this.field],
-        $sort: sort
+        $select: [this.field]
+        // $sort: sort
       },
       paginate: false,
       rx: {
         listStrategy: 'always'
       }
     })
-    .subscribe(data => {
-      let to = data
-      .map(x => { return x[this.field]; })
-      .reduce((acc, v) => {
-        if (!acc[v]) {
-          acc[v] = 0;
-        }
-        acc[v] += 1;
-        return acc;
-      }, {});
+    .subscribe(
+      (data) => {
+        const to = data
+        .map((x) => x[this.field])
+        .sort()
+        .reduce((acc, v) => {
+          if (!acc[v]) {
+            acc[v] = 0;
+          }
+          acc[v] += 1;
+          return acc;
+        }, {});
 
-      this.doughnutChartLabels = [];
-      this.doughnutChartData = [];
-      _.map(to, (v:number, k:string) => {
-        this.doughnutChartLabels.push(k);
-        this.doughnutChartData.push(v);
-      });
-
-    });
+        this.doughnutChartLabels = [];
+        this.doughnutChartData = [];
+        _.map(to, (v: number, k: string) => {
+          this.doughnutChartLabels.push(k);
+          this.doughnutChartData.push(v);
+        });
+      },
+      (err) => {
+        console.error('pieChart subscribe error:', err);
+      }
+    );
   }
 
   chartClicked($event) {

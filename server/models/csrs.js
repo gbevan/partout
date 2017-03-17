@@ -26,7 +26,7 @@
 
 const Waterline = require('waterline');
 
-// Agents
+// CSRs
 const Csrs = Waterline.Collection.extend({
   identity: 'csrs',
   schema: true,

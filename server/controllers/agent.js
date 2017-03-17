@@ -36,7 +36,7 @@ var Q = require('q'),
  * _key = agent uuid
  *
  */
-// TODO: Convert to Waterline ORM
+// TODO: DEPRECATED - Convert to Waterline ORM
 var Agent = function (db) {
   var self = this;
 
