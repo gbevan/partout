@@ -45,7 +45,6 @@ const console = require('better-console'),
       morgan = require('morgan'),
       logger = morgan('UI :: :method :url :status :response-time ms - :res[content-length] bytes'),
       passport = require('passport'),
-      db = new (require('./lib/db.js'))(cfg),
       serverMetrics = new (require('./lib/server_metrics'))(),
       _ = require('lodash'),
 

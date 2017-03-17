@@ -58,7 +58,7 @@ passport.deserializeUser(function(obj, done) {
  * @class appApi
  * @memberof App
  */
-var AppApi = function (opts, appUi) { // TODO: deprecate controllers for services (feathers) in appUi
+var AppApi = function (opts, appUi) {
   var self = this;
 
 //  self.app = express();

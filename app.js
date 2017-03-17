@@ -32,8 +32,6 @@ const console = require('better-console'),
       AppApi = require('./appApi.js'),
       express = require('express'),
       flash = require('connect-flash'),
-  //    routerApi = express.Router(),
-  //    httpsApi = require('https'),
       bodyParser = require('body-parser'),
       pki = require('node-forge').pki,
       forge = require('node-forge'),
@@ -50,9 +48,6 @@ const console = require('better-console'),
       ca = new (require('./lib/ca'))(),
       Q = require('q'),
       cfg = new (require('./etc/partout.conf.js'))(),
-//      db = new (require('./lib/db.js'))(cfg),   // TODO: deprecate to waterline
-//      Csr = require('./server/controllers/csr.js'),   // TODO: deprecate to waterline
-//      Agent = require('./server/controllers/agent.js'),   // TODO: deprecate to waterline
       utils = require('./agent/lib/utils'),
       pfs = require('./agent/lib/pfs'),
       serverMetrics = new (require('./lib/server_metrics'))(),
@@ -62,7 +57,6 @@ const console = require('better-console'),
       expressSession = require('express-session'),
       printf = require('printf'),
       uuid = require('uuid');
-//    randomart = require('randomart');
 
 const Waterline = require('waterline'),
       arangodbAdaptor = require('sails-arangodb'),
@@ -212,22 +206,10 @@ class App {
     this.env_changed = {};
     this.env_watchers = {};
 
-    this.waterline_config = { // TODO: move to config file
-      adapters: {
-        'default': arangodbAdaptor,
-        arangodb: arangodbAdaptor
-      },
-      connections: {
-        arangodb: {
-          adapter: 'arangodb',
-          host: '127.0.0.1',
-          port: 8529,
-          user: 'root',
-          password: 'Part2fly%25',
-          database: 'partout'
-        }
-      },
-      defaults: {}
+    this.waterline_config = cfg.waterline_config;
+    this.waterline_config.adapters = {
+      'default': arangodbAdaptor,
+      arangodb: arangodbAdaptor
     };
 
     ///////////////////
@@ -522,23 +504,6 @@ class App {
         console.info('\nrandomart of master public key:\n' + utils.toArt(pubKeyBin));
         console.info(new Array(master_fingerprint.length + 1).join('='));
 
-//        db.connect()
-//        .then(function (status) {
-//          console.log('db:', status);
-//
-//          //db.useDatabase(cfg.database_name);
-//          //console.warn('db:',db);
-//
-////          var controllers = {
-////            'csr': new Csr(db.getDb()),
-////            'agent': new Agent(db.getDb())
-////          };
-////          controllers.csr.init();  // create collections if req'd. returns a promise
-////          controllers.agent.init();  // create collections if req'd. returns a promise
-//
-//
-//        }).done();
-
         /****************************
          * Start Master UI Server
          */
@@ -568,226 +533,8 @@ class App {
     this.init()
     .then(() => {
 
-      /////////////////////////////////////////////////////////////
-      // TODO: deprecate everything below this line in favor of UI
-      // Then remove old db ORM and controllers in favor of
-      // waterline ORM
-
       if (opts.serve) {
         this.serve(opts);
-
-      } else if (opts.csr) {
-        //console.log('csr args:', opts.args);
-
-        db.connect()
-        .then(function (status) {
-          //console.log('csr db:', status);
-          var csr = new Csr(db.getDb()),
-              //agent = new Agent(db.getDb()),
-              key;
-
-          if (opts.args.length === 0) {
-            opts.args[0] = 'list';
-          }
-
-          if (opts.args[0] === 'list') {  // partout csr list
-            //console.log('in list');
-            csr.all()
-            .then(function (csrList) {
-              //console.log('csrList:', csrList);
-
-              csrList = _.sortBy(csrList, function (o) { return o.lastSeen; });
-
-              //console.warn('CSRs:');
-              for (var i in csrList) {
-                var csrObj = ca.pki.certificationRequestFromPem(csrList[i].csr),
-                    fingerprint = ca.pki.getPublicKeyFingerprint(csrObj.publicKey, {encoding: 'hex', delimiter: ':'}),
-                    logrow = csrList[i]._key + ' : ' + csrList[i].status + ' : ' + csrList[i].ip + ' : ' + fingerprint + ' : ' + csrList[i].lastSeen;
-
-                if (csrList[i].status === 'unsigned') {
-                  console.log(logrow);
-                } else {
-                  console.info(logrow);
-                }
-              }
-            })
-            .fail(function (err) {
-              console.error(err);
-            })
-            .done();
-
-          } else if (opts.args[0] === 'sign') { // partout csr sign
-            //console.log('args legnth:', opts.args.length);
-            if (opts.args.length < 2) {
-              console.error('Error: Missing csr key to sign');
-              process.exit(1);
-            }
-            key = opts.args[1];
-            console.warn('Signing csr for agent:', key);
-
-            csr.query({_key: key})
-            .then(function (cursor) {
-    //          console.log('cursor:', cursor);
-              if (cursor.count === 0) {
-                console.error('csr not found');
-                process.exit(1);
-              } else if (cursor.count > 1) {
-                console.error('Internal error, query for csr key returned more than 1 document');
-                process.exit(1);
-              } else {
-                cursor.next()
-                .then(function (csrDoc) {
-                  //console.info('Signing CSR:\n', csrDoc.csr);
-                  ca.signCsrWithAgentSigner(csrDoc.csr, key)  // sign adding key/uuid as given name
-                  .then(function (signed) {
-                    console.info('Signed cert from csr:\n' + signed.certPem);
-
-                    // return to agent via the csr document in db
-                    csrDoc.cert = signed.cert;
-                    csrDoc.certPem = signed.certPem;
-                    csrDoc.status = 'signed';
-                    return csr.update(csrDoc);
-                  }).done();
-                })
-                .done();
-              }
-            })
-            .done();
-
-          } else if (opts.args[0].match(/^(reject|delete)$/)) { // partout csr reject ...
-            if (opts.args.length < 2) {
-              console.error('Error missing csr key to reject');
-              process.exit(1);
-            }
-            key = opts.args[1];
-
-    //        if (key === 'all') {
-    //          console.warn('rejecting all csrs...');
-    //          csr.deleteAll()
-    //          .done();
-    //        } else {
-              console.warn('rejecting csr for agent:', key);
-
-              csr.query({_key: key})
-              .then(function (cursor) {
-                if (cursor.count === 0) {
-                  console.error('csr not found');
-                  process.exit(1);
-                } else if (cursor.count > 1) {
-                  console.error('Internal error, query for csr key returned more than 1 document');
-                  process.exit(1);
-                } else {
-                  cursor.next()
-                  .then(function (csrDoc) {
-                    //return csr.delete(csrDoc._key);
-                    csrDoc.status = 'rejected';
-                    return csr.update(csrDoc);
-                  })
-                  .done();
-                }
-              })
-              .done();
-    //        }
-
-          } else {
-            console.error('Error: Unrecognised sub command');
-            process.exit(1);
-          } // if args[0]
-
-        })
-        .done();
-
-      // TODO: deprecate in favor of the UI
-      } else if (opts.setenv) { // set agent environment
-        // partout setenv uuid new-environment
-        uuid = opts.args[0];
-        var newenv = opts.args[1];
-
-        db.connect()
-        .then(function (status) {
-          //console.log('csr db:', status);
-          var agent = new Agent(db.getDb());
-
-          agent.queryOne({_key: uuid})
-          .then(function (doc) {
-            if (!doc) {
-              console.error('UUID', uuid, 'not found in agents collection');
-              process.exit(1);
-            }
-            if (doc.environment !== newenv) {
-              doc.env = newenv;
-              return agent.update(doc);
-            }
-          })
-          .done();
-        })
-        .done();
-
-      } else if (opts.delete) { // delete agent
-        // partout delete uuid
-        uuid = opts.args[0];
-
-        db.connect()
-        .then(function (status) {
-          //console.log('csr db:', status);
-          var agent = new Agent(db.getDb());
-
-          agent.delete(uuid)
-          .then(function (doc) {
-            if (!doc) {
-              console.error('UUID', uuid, 'not found in agents collection');
-              process.exit(1);
-            }
-            console.info(uuid, 'deleted');
-          })
-          .done();
-        })
-        .done();
-
-      } else if (opts.listagents) { // list agents
-        db.connect()
-        .then(function (status) {
-          //console.log('csr db:', status);
-          var agent = new Agent(db.getDb());
-          return agent.all()
-          .then(function (agents) {
-
-            // Headers
-            console.info(printf(
-              '%-36s %-15s %s',
-              'Agent UUID',
-              'Environment',
-              'Agent Cert Info (from->to)'
-            ));
-
-            console.info(printf(
-              '%36s %-15s %s',
-              '='.repeat(36),
-              '='.repeat(15),
-              '='.repeat(80-(36+15))
-            ));
-
-            agents.forEach(function (a) {
-              var c = (a.env ? console.info : console.log);
-              c(printf(
-                '%-36s %-15s %s %s -> %s',
-                a._key,
-                a.env || 'n/a',
-                (function () {
-                  var str = '';
-                  for (var i=0; i<2; i++) {
-                    var sattr = a.certInfo.subject.attributes[i];
-                    str += sattr.value + (i===0 ? '/' : '');
-                  }
-                  return str;
-                })(),
-                a.certInfo.valid_from || 'n/a',
-                a.certInfo.valid_to || 'n/a'
-              ));
-            });
-          });
-        })
-        .done();
 
       } else {
         console.error('Error: Unrecognised command');
