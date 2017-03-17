@@ -5,7 +5,7 @@ import * as _ from 'lodash';
 import { UsersService } from '../services/users.service';
 
 // enable in browser console: localStorage.debug = 'partout:*'
-const debug = require('debug').debug('partout:user');
+const debug = require('debug').debug('partout:component:user');
 
 const html = require('./user.template.html');
 

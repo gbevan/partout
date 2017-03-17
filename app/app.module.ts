@@ -14,6 +14,7 @@ import { P2TableComponent }     from './tables/p2table.component';
 import { ViewAgentComponent }   from './agents/viewAgent.component';
 import { ViewCsrComponent }     from './csrs/viewCsr.component';
 import { UserComponent }        from './users/user.component';
+import { RoleComponent }        from './roles/role.component';
 
 import { P2DashboardComponent } from './dashboard/p2dashboard.component';
 
@@ -47,7 +48,8 @@ import { RolesService }         from './services/roles.service';
     ViewCsrComponent,
     P2DashboardComponent,
     PieChartComponent,
-    UserComponent
+    UserComponent,
+    RoleComponent
   ],
   bootstrap: [
     AppComponent
@@ -65,7 +67,8 @@ import { RolesService }         from './services/roles.service';
   entryComponents: [
     ViewAgentComponent,
     ViewCsrComponent,
-    UserComponent
+    UserComponent,
+    RoleComponent
   ]
 })
 export class AppModule { }

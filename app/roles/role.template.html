@@ -1,0 +1,62 @@
+<h1>{{ role.id ? 'Edit' : 'Add' }} role:</h1>
+
+<form #roleForm="ngForm">
+
+  <table>
+    <tr>
+      <td>
+        <md-input-container>
+          <input mdInput
+                 placeholder="role Name"
+                 id="name"
+                 name="name"
+                 required
+                 [(ngModel)]="role.name">
+        </md-input-container>
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        <md-input-container>
+          <input mdInput
+                 placeholder="Description"
+                 id="description"
+                 name="description"
+                 size="40"
+                 [(ngModel)]="role.description">
+        </md-input-container>
+      </td>
+    </tr>
+
+    <tr *ngFor="let rp of role.permissions; let i = index">
+      <td>
+        <md-input-container>
+          <input mdInput
+                 placeholder="Permission"
+                 id="permission_{{i}}"
+                 name="permission_{{i}}"
+                 size="40"
+                 [(ngModel)]="role.permissions[i]">
+        </md-input-container>
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        <button md-button
+                [disabled]="!role.name"
+                (click)="addPermission()">Add Permission</button>
+
+        <br/>
+        <button md-raised-button
+                [disabled]="roleForm.form.invalid"
+                (click)="save()">Save</button>
+
+        <button md-button
+                md-dialog-close>Cancel</button>
+      </td>
+    </tr>
+  </table>
+</form>
+<span class="errmsg">{{ errmsg }}</span>

@@ -20,16 +20,24 @@ export class RolesService {
     return this._socket.find(query);
   }
 
-  public get(id: string, query: any) {
+  public get(id: string, query?: any) {
     return this._socket.get(id, query);
   }
 
-  public remove(id: string, query: any) {
+  public remove(id: string, query?: any) {
     return this._socket.remove(id, query);
   }
 
-  public update(id: string, csr: any) {
-    return this._socket.update(id, csr);
+  public update(id: string, role: any) {
+    return this._socket.update(id, role);
+  }
+
+  public patch(id: string, role: any) {
+    return this._socket.patch(id, role);
+  }
+
+  public create(role: any) {
+    return this._socket.create(role);
   }
 
 }
