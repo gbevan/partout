@@ -2,7 +2,7 @@ import { Component, Input } from '@angular/core';
 import { MdDialogRef } from '@angular/material';
 import * as _ from 'lodash';
 
-import { UsersService } from '../feathers/users.service';
+import { UsersService } from '../services/users.service';
 
 // enable in browser console: localStorage.debug = 'partout:*'
 const debug = require('debug').debug('partout:user');

@@ -79,7 +79,7 @@
     "zone.js": "^0.7.2"
   },
   "devDependencies": {
-    "@types/core-js": "^0.9.34",
+    "@types/core-js": "<0.9.37",
     "@types/jasmine": "^2.5.43",
     "@types/node": "^6.0.45",
     "@types/socket.io-client": "^1.4.28",
@@ -121,7 +121,7 @@
     "supertest": "^1.1.0",
     "to-string-loader": "^1.1.5",
     "ts-loader": "^1.2.2",
-    "tslint": "^4.4.2",
+    "tslint": "~4.4.2",
     "typescript": "^2.0.3",
     "webpack": "^2.2.1",
     "webpack-stream": "^3.2.0"

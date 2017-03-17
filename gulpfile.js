@@ -45,15 +45,22 @@ var env = process.env.NODE_ENV || 'development';
 //  return del('dist/**/*');
 //});
 
+// Webpack does its own watching, see weback.config.js
 gulp.task('webpack', function () {
-  return gulp.src('app/main.ts')
-  .pipe(webpack(config, require('webpack')))
+  gulp.src('app/main.ts')
+  .pipe(
+    webpack(config, require('webpack'))
+    .on('error', (err) => {
+      gutil.log('WEBPACK ERROR:', err);
+      this.emit('end');
+    })
+  )
   .pipe(gulp.dest('dist'))
   ;
 });
 
 //gulp.task('run', ['compile'], function (done) {
-gulp.task('run', ['webpack'], function (done) {
+gulp.task('run', function (done) {
   // exec bin/partout
   console.log('starting partout');
   cp = spawn('bin/partout', {
@@ -66,15 +73,15 @@ gulp.task('run', ['webpack'], function (done) {
   done();
 });
 
-gulp.task('chain', ['webpack', 'run']);
+//gulp.task('chain', ['webpack', 'run']);
 
-gulp.task('default', function () {
+gulp.task('watch', function () {
   watch([
     'systemjs.config.js',
     'app.js',
     'appApi.js',
     'appUi.js',
-    'app/**',
+//    'app/**',
     'lib/**',
     'etc/*.js',
     'agent/lib/utils/**/*.js',
@@ -89,12 +96,14 @@ gulp.task('default', function () {
     readDelay: 1500 // filter duplicate changed events from Brackets
   }, batch(function (events, done) {
     if (cp) {
-      console.log('killing');
+      console.log('killing partout');
       cp.kill();
     }
-    gulp.start('chain', done);
+    gulp.start('run', done);
   }));
 });
+
+gulp.task('default', ['watch', 'webpack']);
 
 gulp.task('mocha', function () {
   global.INMOCHA = true;

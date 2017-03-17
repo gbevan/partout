@@ -20,9 +20,6 @@ const debug = require('debug').debug('partout:service:feathers');
 // TODO: Remove REST support and focus on Realtime Socket.io for UI
 const superagent = require('superagent');
 
-// TODO: make configurable
-const HOST = 'https://officepc.net:11443'; // Your base server URL here
-
 ///////////////////
 // Socket.io
 @Injectable()
@@ -35,7 +32,7 @@ export class SocketService {
   constructor() {
     this.user = {};
 
-    this.socket = io(HOST);
+    this.socket = io(window.location.origin);
 
     this._app = feathers()
     .configure(socketio(this.socket, {timeout: 20000}))

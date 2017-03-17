@@ -2,7 +2,7 @@
 // Learning from https://github.com/valor-software/ng2-table (MIT License)
 
 import { Component, Input, OnInit } from '@angular/core';
-import { SocketService } from '../feathers/feathers.service';
+import { SocketService } from '../services/feathers.service';
 
 import { Subscriber } from 'rxjs';
 

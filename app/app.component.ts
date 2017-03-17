@@ -1,11 +1,11 @@
 import { Component, OnInit, ViewContainerRef } from '@angular/core';
 import { MdDialog, MdDialogRef, MdDialogConfig } from '@angular/material';
-import { SocketService } from './feathers/feathers.service';
-import { AgentsService } from './feathers/agents.service';
-import { CsrsService } from './feathers/csrs.service';
-import { EnvironmentsService } from './feathers/environments.service';
-import { UsersService } from './feathers/users.service';
-import { RolesService } from './feathers/roles.service';
+import { SocketService } from './services/feathers.service';
+import { AgentsService } from './services/agents.service';
+import { CsrsService } from './services/csrs.service';
+import { EnvironmentsService } from './services/environments.service';
+import { UsersService } from './services/users.service';
+import { RolesService } from './services/roles.service';
 import { ViewAgentComponent } from './agents/viewAgent.component';
 import { ViewCsrComponent } from './csrs/viewCsr.component';
 import { UserComponent } from './users/user.component';

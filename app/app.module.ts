@@ -20,14 +20,14 @@ import { P2DashboardComponent } from './dashboard/p2dashboard.component';
 import { PieChartComponent }    from './charts/piechart.component';
 
 // Feathers Services
-import { SocketService }        from './feathers/feathers.service';
-import { AgentsService }        from './feathers/agents.service';
-import { AgentsAllService }     from './feathers/agents_all.service';
-import { CsrsService }          from './feathers/csrs.service';
-import { CsrsAllService }       from './feathers/csrs_all.service';
-import { EnvironmentsService }  from './feathers/environments.service';
-import { UsersService }         from './feathers/users.service';
-import { RolesService }         from './feathers/roles.service';
+import { SocketService }        from './services/feathers.service';
+import { AgentsService }        from './services/agents.service';
+import { AgentsAllService }     from './services/agents_all.service';
+import { CsrsService }          from './services/csrs.service';
+import { CsrsAllService }       from './services/csrs_all.service';
+import { EnvironmentsService }  from './services/environments.service';
+import { UsersService }         from './services/users.service';
+import { RolesService }         from './services/roles.service';
 
 @NgModule({
   imports: [

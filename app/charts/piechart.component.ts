@@ -36,9 +36,8 @@ export class PieChartComponent {
   public doughnutChartData: number[] = [];
   public doughnutChartType: string = 'doughnut';
 
-  public constructor(
-  ) {
-  }
+//  public constructor(
+//  ) { }
 
   ngOnInit() {
     const sort = {};
@@ -47,7 +46,7 @@ export class PieChartComponent {
     this.rxservice.find({
       query: {
         $select: [this.field]
-        //$sort: sort
+        // $sort: sort
       },
       paginate: false,
       rx: {
@@ -56,8 +55,8 @@ export class PieChartComponent {
     })
     .subscribe(
       (data) => {
-        let to = data
-        .map((x) => { return x[this.field]; })
+        const to = data
+        .map((x) => x[this.field])
         .sort()
         .reduce((acc, v) => {
           if (!acc[v]) {
@@ -77,7 +76,7 @@ export class PieChartComponent {
       (err) => {
         console.error('pieChart subscribe error:', err);
       }
-    )
+    );
   }
 
   chartClicked($event) {

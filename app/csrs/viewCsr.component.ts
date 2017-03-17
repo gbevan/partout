@@ -46,7 +46,7 @@ export class ViewCsrComponent {
   constructor(public dialogRef: MdDialogRef<ViewCsrComponent>) {
   }
 
-  setCsr(csr:any) {
+  setCsr(csr: any) {
     this.csr = csr;
   }
 }

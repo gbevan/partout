@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { SocketService } from '../feathers/feathers.service';
+import { SocketService } from '../services/feathers.service';
 // import { Subscription } from 'rxjs';
 
 const html = require('./login_form_template.html');
