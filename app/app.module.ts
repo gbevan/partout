@@ -20,8 +20,7 @@ import { P2DashboardComponent } from './dashboard/p2dashboard.component';
 import { PieChartComponent }    from './charts/piechart.component';
 
 // Feathers Services
-import { RestService,
-         SocketService }        from './feathers/feathers.service';
+import { SocketService }        from './feathers/feathers.service';
 import { AgentsService }        from './feathers/agents.service';
 import { AgentsAllService }     from './feathers/agents_all.service';
 import { CsrsService }          from './feathers/csrs.service';
@@ -55,7 +54,6 @@ import { RolesService }         from './feathers/roles.service';
   ],
   providers: [
     SocketService,
-    RestService,
     AgentsService,
     AgentsAllService,
     CsrsService,

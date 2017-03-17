@@ -1,3 +1,4 @@
+import { Injectable, OnInit } from '@angular/core';
 
 ////////////
 // Feathers
@@ -12,64 +13,74 @@ const authentication  = require('feathers-authentication-client');
 const reactive        = require('feathers-reactive');
 const RxJS            = require('rxjs');
 
+const debug = require('debug').debug('partout:service:feathers');
+
 ///////////////
 // REST
-import { Injectable } from '@angular/core';
+// TODO: Remove REST support and focus on Realtime Socket.io for UI
 const superagent = require('superagent');
 
 // TODO: make configurable
 const HOST = 'https://officepc.net:11443'; // Your base server URL here
 
+///////////////////
+// Socket.io
 @Injectable()
-export class RestService {
+export class SocketService {
+  public socket: SocketIOClient.Socket; // see https://github.com/feathersjs/feathers-docs/issues/211 re @types/...
+  public user: any = {};
+
   private _app: any;
 
-  public loggedIn: boolean;
-
   constructor() {
-    let self = this;
-    self.loggedIn = false;
+    this.user = {};
 
-    self._app = feathers() // Initialize feathers
-    .configure(rest(HOST).superagent(superagent)) // Fire up rest
-    .configure(hooks()) // Configure feathers-hooks
+    this.socket = io(HOST);
+
+    this._app = feathers()
+    .configure(socketio(this.socket, {timeout: 20000}))
+    .configure(reactive(RxJS, {}))
+    .configure(hooks())
     .configure(authentication({ storage: window.localStorage }));
   }
 
-  login(username, password) {
-    var self = this;
-    self.loggedIn = false;
+  init() {
+    this.user = {};
 
     return new Promise<any>((resolve, reject) => {
-
-      self._app.authenticate({
-        strategy: 'local',
-        username: username,
-        password: password
+      // try reauthenticate using stored JWT
+      return this._app
+      .authenticate()
+      .then((response) => {
+        this.handleAuthResponse(response);
+        resolve();
       })
-      .then(response => {
-        return self._app.passport.verifyJWT(response.accessToken);
-      })
-      .then(payload => {
-        return self._app.service('users').get(payload.userId);
-      })
-      .then(user => {
-        self._app.set('user', user);
-        self.loggedIn = true;
-        resolve('logged in');
-      })
-      .catch(function (err) {
-        console.error('Rest authenticate err:', err);
-        self.loggedIn = false;
-        reject(err);
+      .catch((err) => {
+        console.warn('Socket reauthenticate err:', err);
+        resolve(); // dont reject as jwt may not be available
       });
-
     });
   }
 
+  login(username, password) {
+    const self = this;
+    this.user = {};
+
+    return self._app.authenticate({
+      strategy: 'local',
+      username,
+      password
+    })
+    .then((response) => { this.handleAuthResponse(response); });
+  }
+
   logout() {
-    this.loggedIn = false;
     this._app.logout();
+    this.user = {};
+  }
+
+  getService(name) {
+    return this._app.service(name);
   }
 
   getApp() {
@@ -80,78 +91,15 @@ export class RestService {
     return this._app.get('user');
   }
 
-  getService(name) {
-    return this._app.service(name);
-  }
-}
-
-///////////////////
-// Socket.io
-@Injectable()
-export class SocketService {
-  public socket: SocketIOClient.Socket; // see https://github.com/feathersjs/feathers-docs/issues/211 re @types/...
-  private _app: any;
-
-  public loggedIn: boolean;
-
-  constructor() {
-    let self = this;
-    self.loggedIn = false;
-
-//    super();
-    self.socket = io(HOST);
-
-    self._app = feathers()
-    .configure(socketio(self.socket, {timeout: 20000}))
-    .configure(reactive(RxJS, {}))
-    .configure(hooks())
-    .configure(authentication({ storage: window.localStorage }));
-  }
-
-  login(username, password) {
-    var self = this;
-    self.loggedIn = false;
-
-    return new Promise<any>((resolve, reject) => {
-      self._app.authenticate({
-        strategy: 'local',
-        username: username,
-        password: password
-      })
-      .then(response => {
-        if (response) {
-          self._app.user = response.data;
-        } else {
-          self._app.user = null;
-        }
-
-        return self._app.passport.verifyJWT(response.accessToken);
-      })
-      .then(payload => {
-        return self._app.service('users').get(payload.userId);
-      })
-      .then(user => {
-        self._app.set('user', user);
-        self.loggedIn = true;
-        resolve('logged in');
-      })
-      .catch(function (err) {
-        console.error('Socket authenticate err:', err);
-        self.loggedIn = false;
-        reject(err);
-      });
-
+  private handleAuthResponse(response: any) {
+    return this._app.passport.verifyJWT(response.accessToken)
+    .then((payload) => {
+      return this._app.service('users').get(payload.userId);
+    })
+    .then((user) => {
+      this.user = user;
+      this._app.set('user', user);
     });
-
-  }
-
-  logout() {
-    this.loggedIn = false;
-    this._app.logout();
-  }
-
-  getService(name) {
-    return this._app.service(name);
   }
 
 }

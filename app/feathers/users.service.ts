@@ -1,17 +1,14 @@
 import { Injectable } from '@angular/core';
 import { Observable, Observer } from 'rxjs';
-import { RestService, SocketService } from './feathers.service';
+import { SocketService } from './feathers.service';
 
 @Injectable()
 export class UsersService {
   private _socket;
-  private _rest;
 
   constructor(
     private _socketService: SocketService,
-    private _restService: RestService
   ) {
-    this._rest = _restService.getService('users');
     this._socket = _socketService.getService('users');
 
     this._socket.rx({

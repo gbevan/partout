@@ -1,6 +1,6 @@
 import { Component, OnInit, ViewContainerRef } from '@angular/core';
 import { MdDialog, MdDialogRef, MdDialogConfig } from '@angular/material';
-import { RestService, SocketService } from './feathers/feathers.service';
+import { SocketService } from './feathers/feathers.service';
 import { AgentsService } from './feathers/agents.service';
 import { CsrsService } from './feathers/csrs.service';
 import { EnvironmentsService } from './feathers/environments.service';
@@ -33,7 +33,6 @@ const html = require('./app_template.html');
 `]
 })
 export class AppComponent {
-
   title = 'Partout with Feathers';
 
 //  agents = [];
@@ -242,7 +241,7 @@ export class AppComponent {
         action: (id) => { this.deleteUser(id); },
         value: 'Delete',
         condFn: (id) => {
-          const u = this.restService.getUser();
+          const u = this.socketService.getUser();
 //          console.log((new Error('condFn')).stack);
 //          console.log('id:', id, 'u.id:', u.id);
           return u.id !== id; // show if not logged in user
@@ -271,8 +270,9 @@ export class AppComponent {
   userDialogRef: MdDialogRef<UserComponent>;
   config: MdDialogConfig;
 
+  private ready: boolean = false;
+
   constructor(
-    private restService: RestService,
     private socketService: SocketService,
     public agentsService: AgentsService,
     public csrsService: CsrsService,
@@ -286,8 +286,14 @@ export class AppComponent {
     this.config.viewContainerRef = this.viewContainerRef; // for mdDialog
   }
 
+  ngOnInit() {
+    return this.socketService.init()
+    .then(() => {
+      this.ready = true;
+    });
+  }
+
   logout() {
-    this.restService.logout();
     this.socketService.logout();
   }
 

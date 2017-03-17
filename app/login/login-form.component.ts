@@ -1,9 +1,11 @@
 import { Component, OnInit } from '@angular/core';
-import { RestService, SocketService } from '../feathers/feathers.service';
-//import { Subscription } from 'rxjs';
+import { SocketService } from '../feathers/feathers.service';
+// import { Subscription } from 'rxjs';
 
 const html = require('./login_form_template.html');
 const css = require('./login-form.component.css');
+
+const debug = require('debug').debug('partout:component:login-form');
 
 @Component({
   selector: 'login-form',
@@ -16,31 +18,13 @@ export class LoginFormComponent implements OnInit {
   errorMsg = '';
   loginFailedMsg = 'Login failed, check your details and try again.';
 
-  constructor(private restService: RestService, private socketService: SocketService) {
-    this.restService = restService;
-  }
+  constructor(private socketService: SocketService) { }
 
   login(form: any) {
     this.errorMsg = '';
 
-    // Login Rest Service
-    this.restService.login(form.user, form.password)
-//    .then((result) => {
-//      this.stateRest = result;
-//    })
-    .catch((err) => {
-      if (err.code) {
-        this.errorMsg = err.code + ' - ' + this.loginFailedMsg;
-      } else {
-        this.errorMsg = err;
-      }
-    });
-
-    // Login Socket Service
+    // Login via Socket Service
     this.socketService.login(form.user, form.password)
-//    .then((result) => {
-//      this.stateSock = result;
-//    })
     .catch((err) => {
       if (err.code) {
         this.errorMsg = err.code + ' - ' + this.loginFailedMsg;

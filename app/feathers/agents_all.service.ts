@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable, Observer } from 'rxjs';
-import { RestService, SocketService } from './feathers.service';
+import { SocketService } from './feathers.service';
 
 // enable in browser console: localStorage.debug = 'partout:*'
 const debug = require('debug').debug('partout:service:agents_all');
@@ -8,13 +8,10 @@ const debug = require('debug').debug('partout:service:agents_all');
 @Injectable()
 export class AgentsAllService {
   private _socket;
-  private _rest;
 
   constructor(
     private _socketService: SocketService,
-    private _restService: RestService
   ) {
-    this._rest = _restService.getService('agents_all');
     this._socket = _socketService.getService('agents_all');
 
     this._socket.rx({

@@ -3,6 +3,7 @@
   "rules": {
     "import-spacing": false,
     "interface-name": false,
+    "max-classes-per-file": false,
     "member-access": false,
     "no-var-requires": false,
     "object-literal-sort-keys": false,
