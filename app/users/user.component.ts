@@ -38,9 +38,10 @@ export class UserComponent {
   save() {
     debug('save()');
     if (this.user.id) {
+      debug('updating');
       this.usersService.patch(this.user.id, this.user)
-      .then(() => {
-        console.log('user updated');
+      .then((patcheduser) => {
+        console.log('user updated:', patcheduser);
         this.dialogRef.close();
       })
       .catch((err) => {
@@ -49,10 +50,11 @@ export class UserComponent {
       });
 
     } else {
+      debug('creating');
 
       this.usersService.create(this.user)
-      .then(() => {
-        console.log('user created');
+      .then((newuser) => {
+        console.log('user created:', newuser);
         this.dialogRef.close();
       })
       .catch((err) => {

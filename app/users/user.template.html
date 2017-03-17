@@ -35,6 +35,7 @@
 
   <md-input-container>
     <input mdInput
+           [required]="user.id === undefined"
            placeholder="Enter Password"
            type="password"
            id="password1"
@@ -45,6 +46,7 @@
 
   <md-input-container>
     <input mdInput
+           [required]="user.id === undefined"
            placeholder="Enter Password Again"
            type="password"
            id="password2"

@@ -20,7 +20,7 @@ export class UsersService {
     return this._socket.find(query);
   }
 
-  public get(id: string, query: any) {
+  public get(id: string, query?: any) {
     return this._socket.get(id, query);
   }
 
