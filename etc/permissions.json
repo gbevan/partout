@@ -1,0 +1,95 @@
+[
+  {
+    type: "app",
+    subtype: "mainmenu",
+    name: "dashboard",
+    description: "Main Menu Dashboard"
+  },
+  {
+    type: "app",
+    subtype: "mainmenu",
+    name: "agent_csrs",
+    description: "Main Menu Agent CSRs"
+  },
+  {
+    type: "app",
+    subtype: "mainmenu",
+    name: "agents",
+    description: "Main Menu Agents"
+  },
+  {
+    type: "app",
+    subtype: "mainmenu",
+    name: "environments",
+    description: "Main Menu Environments"
+  },
+  {
+    type: "app",
+    subtype: "mainmenu",
+    name: "users",
+    description: "Main Menu Users"
+  },
+  {
+    type: "app",
+    subtype: "mainmenu",
+    name: "roles",
+    description: "Main Menu Roles"
+  },
+  {
+    type: "app",
+    subtype: "mainmenu",
+    name: "permissions",
+    description: "Main Menu Permissions"
+  },
+
+  {
+    type: "app",
+    subtype: "service",
+    name: "agents",
+    flags: [ "C", "R", "U", "D"],
+    description: "Service: Agents"
+  },
+  {
+    type: "app",
+    subtype: "service",
+    name: "csrs",
+    flags: [ "C", "R", "U", "D"],
+    description: "Service: CSRs"
+  },
+  {
+    type: "app",
+    subtype: "service",
+    name: "environments",
+    flags: [ "C", "R", "U", "D"],
+    description: "Service: Environments"
+  },
+  {
+    type: "app",
+    subtype: "service",
+    name: "profiles",
+    flags: [ "C", "R", "U", "D"],
+    description: "Service: Profiles"
+  },
+  {
+    type: "app",
+    subtype: "service",
+    name: "roles",
+    flags: [ "C", "R", "U", "D"],
+    description: "Service: Roles"
+  },
+  {
+    type: "app",
+    subtype: "service",
+    name: "users",
+    flags: [ "C", "R", "U", "D"],
+    description: "Service: Users"
+  },
+  {
+    type: "app",
+    subtype: "service",
+    name: "permissions",
+    flags: [ "C", "R", "U", "D"],
+    description: "Service: Permissions"
+  },
+
+]

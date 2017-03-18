@@ -1,0 +1,41 @@
+[
+  {
+    "name": "administrator",
+    "description": "Administrator (super-user role)",
+    "permissions": [
+      {
+        "type": "*",
+        "subtype": "*",
+        "name": "*",
+        "flags": "*"
+      }
+    ]
+  },
+  {
+    "name": "guest",
+    "description": "Guest Role",
+    "permissions": [
+      {
+        "type": "app",
+        "subtype": "mainmenu",
+        "name": "dashboard"
+      },
+      {
+        "type": "app",
+        "subtype": "mainmenu",
+        "name": "agents"
+      },
+      {
+        "type": "app",
+        "subtype": "mainmenu",
+        "name": "environments"
+      },
+      {
+        "type": "app",
+        "subtype": "service",
+        "name": "*",
+        "flags": ['R']
+      }
+    ]
+  }
+]
