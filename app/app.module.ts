@@ -28,6 +28,7 @@ import { CsrsService }          from './services/csrs.service';
 import { CsrsAllService }       from './services/csrs_all.service';
 import { EnvironmentsService }  from './services/environments.service';
 import { UsersService }         from './services/users.service';
+import { PermissionsService }   from './services/permissions.service';
 import { RolesService }         from './services/roles.service';
 
 @NgModule({
@@ -62,6 +63,7 @@ import { RolesService }         from './services/roles.service';
     CsrsAllService,
     EnvironmentsService,
     UsersService,
+    PermissionsService,
     RolesService
   ],
   entryComponents: [

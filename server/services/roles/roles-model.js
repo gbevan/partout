@@ -45,11 +45,9 @@ const Roles = Waterline.Collection.extend({
     description: {
       type: 'string'
     },
-    permissions: [
-      {
-        type: 'string'
-      }
-    ]
+    permissions: {
+      type: 'array'
+    }
   }
 });
 

@@ -5,6 +5,7 @@ import { AgentsService } from './services/agents.service';
 import { CsrsService } from './services/csrs.service';
 import { EnvironmentsService } from './services/environments.service';
 import { UsersService } from './services/users.service';
+import { PermissionsService } from './services/permissions.service';
 import { RolesService } from './services/roles.service';
 import { ViewAgentComponent } from './agents/viewAgent.component';
 import { ViewCsrComponent } from './csrs/viewCsr.component';
@@ -276,6 +277,40 @@ export class AppComponent {
     defaultSortBy: 'name'
   };
 
+  permissions_config = {
+    columns: [
+      {
+        field: 'type',
+        title: 'Resource Type'
+      },
+      {
+        field: 'subtype',
+        title: 'Resource SubType'
+      },
+      {
+        field: 'name',
+        title: 'Resource Name'
+      },
+      {
+        field: 'description',
+        title: 'Description'
+      },
+      {
+        field: 'flags',
+        title: 'Flags'
+      },
+      {
+        action: (id) => { this.editPermission(id); },
+        value: 'Edit'
+      },
+      {
+        action: (id) => { this.deletePermission(id); },
+        value: 'Delete'
+      }
+    ],
+    defaultSortBy: 'description'
+  };
+
   agentDialogRef: MdDialogRef<ViewAgentComponent>;
   csrDialogRef: MdDialogRef<ViewCsrComponent>;
   userDialogRef: MdDialogRef<UserComponent>;
@@ -291,6 +326,7 @@ export class AppComponent {
     public environmentsService: EnvironmentsService,
     public usersService: UsersService,
     public rolesService: RolesService,
+    public permissionsService: PermissionsService,
     public dialog: MdDialog,
     private viewContainerRef: ViewContainerRef
   ) {
@@ -437,7 +473,27 @@ export class AppComponent {
   }
 
   deleteRole(id: string) {
-    debug('delete Role');
+    debug('delete Role:', id);
+    this.rolesService.remove(id);
+  }
+
+  /*****************************
+   * Permissions
+   */
+  addPermission() {
+    debug('TODO: add a Permission');
+//    const cfg: MdDialogConfig = new MdDialogConfig();
+//    cfg.disableClose = true;
+//    this.roleDialogRef = this.dialog.open(RoleComponent, cfg);
+  }
+
+  editPermission(id: string) {
+    debug('edit Permission');
+  }
+
+  deletePermission(id: string) {
+    debug('delete Permission:', id);
+    this.permissionsService.remove(id);
   }
 
 }

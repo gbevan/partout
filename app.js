@@ -45,8 +45,8 @@ const console = require('better-console'),
       certFile = 'etc/ssl/server.crt',
       os = require('os'),
       hostName = os.hostname(),
-      ca = new (require('./lib/ca'))(),
       Q = require('q'),
+      ca = new (require('./lib/ca'))(),
       cfg = new (require('./etc/partout.conf.js'))(),
       utils = require('./agent/lib/utils'),
       pfs = require('./agent/lib/pfs'),
@@ -194,8 +194,125 @@ class App {
         this.envs_changed = false;
       }
     });
+  } // loadEnvironments
 
-  }
+  loadPermissions() {
+    const self = this;
+    return new Promise((resolve, reject) => {
+
+      // load etc/permissions.json
+      fs.readFile('etc/permissions.json', (err, data) => {
+        if (err) {
+          return reject(err);
+        }
+        const perms = JSON.parse(data.toString());
+        debug('perms:', perms);
+
+        // import any missing or changed entries into permissions collection
+        let promises = [];
+        perms.forEach((perm) => {
+          debug('perm:', perm);
+          promises.push(new Promise((inner_resolve, inner_reject) => {
+            debug('before find');
+            self.appUi.app.service('permissions')
+            .find({query: {
+              type: perm.type,
+              subtype: perm.subtype,
+              name: perm.name
+            }})
+            .then((perm_res) => {
+              debug('perm_res:', perm_res);
+
+              if (perm_res.total === 0) {
+                // Create
+                self.appUi.app.service('permissions')
+                .create(perm)
+                .then(() => {
+                  inner_resolve();
+                })
+                .catch((err) => {
+                  inner_reject(err);
+                });
+
+              } else if (perm_res.total === 1) {
+                // Update
+                debug('updating ', perm_res.data[0].id, 'with:', perm);
+                self.appUi.app.service('permissions')
+                .patch(perm_res.data[0].id, perm)
+                .then(() => {
+                  inner_resolve();
+                })
+                .catch((err) => {
+                  inner_reject(err);
+                });
+              } else {
+                let errmsg = `permissions query returned >1 results, perm: ${perm.type}, perm_res: ${perm_res.total} - ${typeof perm_res.total}`;
+                console.error(errmsg);
+                throw new Error(errmsg);
+              }
+            })
+            .catch((err) => {
+              console.error(err);
+              inner_reject(err);
+            });
+          }));
+        });
+        Promise.all(promises)
+        .then(() => {
+          debug('permissions load complete');
+          resolve();
+        })
+        .catch((err) => {
+          console.error(err);
+          reject(err);
+        });
+      });
+
+    });
+  } // loadPermissions
+
+  loadDefaultRoles() {
+    const self = this;
+    debug('roles');
+    return new Promise((resolve, reject) => {
+      debug('in promise');
+      // If there are no roles
+      self.appUi.app.service('roles')
+      .find()
+      .then((roles_res) => {
+        debug('roles_res:', roles_res);
+        if (roles_res.total > 0) {
+          return resolve();
+        }
+
+        // load the default set from etc/roles.json
+        fs.readFile('etc/roles.json', (err, data) => {
+          if (err) {
+            return reject(err);
+          }
+          const roles = JSON.parse(data.toString());
+          debug('roles:', roles);
+          let promises = [];
+          roles.forEach((role) => {
+            promises.push(new Promise((inner_resolve, inner_reject) => {
+              debug('creating role:', role);
+              self.appUi.app.service('roles')
+              .create(role)
+              .then(() => { inner_resolve(); })
+              .catch((err) => { inner_reject(err); });
+            }));
+          });
+          Promise.all(promises)
+          .then(() => { resolve(); })
+          .catch((err) => { reject(err); });
+        });
+      })
+      .catch((err) => {
+        console.error('find roles err:', err);
+        reject(err);
+      });
+    });
+  } // loadDefaultRoles
 
   /**
    * Serve the Partout Master API and UI engine
@@ -231,7 +348,8 @@ class App {
     .then(function() {
       console.info('Certificates ok, generating trusted key chain');
 
-      ca.generateTrustedCertChain(function () {
+      return Q.ninvoke(ca, 'generateTrustedCertChain')
+      .then(() => {
 
         console.info('Starting Master API.');
 
@@ -260,8 +378,8 @@ class App {
         /****************************
          * Start Master UI Server
          */
-        self.appUi = new AppUi(opts);
-        self.appUi.init(opts)
+        self.appUi = new AppUi();
+        return self.appUi.init(opts)
         .then(() => {
 
           /****************************
@@ -269,11 +387,14 @@ class App {
            */
           self.appApi = new AppApi(opts, self.appUi);
 
-          self.loadEnvironments();
-          self.watchEnvironments();
-        })
-        .catch((err) => {
-          throw new Error(err);
+          return self.loadPermissions()
+          .then(() => {
+            return self.loadDefaultRoles();
+          })
+          .then(() => {
+            self.loadEnvironments();
+            self.watchEnvironments();
+          });
         });
       });
 
