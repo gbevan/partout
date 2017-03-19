@@ -3,13 +3,13 @@ import { Observable, Observer } from 'rxjs';
 import { SocketService } from './feathers.service';
 
 @Injectable()
-export class RolesService {
+export class PermissionsService {
   private _socket;
 
   constructor(
     private _socketService: SocketService,
   ) {
-    this._socket = _socketService.getService('roles');
+    this._socket = _socketService.getService('permissions');
 
     this._socket.rx({
       listStrategy: 'always'

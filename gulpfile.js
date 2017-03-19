@@ -84,6 +84,7 @@ gulp.task('watch', function () {
 //    'app/**',
     'lib/**',
     'etc/*.js',
+    'etc/*.json',
     'agent/lib/utils/**/*.js',
     'agent/lib/pfs.js',
     'server/**/*.js',
@@ -93,7 +94,7 @@ gulp.task('watch', function () {
   ], {
     ignoreInitial: false,
     verbose: true,
-    readDelay: 1500 // filter duplicate changed events from Brackets
+    readDelay: 2000 // filter duplicate changed events from Brackets
   }, batch(function (events, done) {
     if (cp) {
       console.log('killing partout');

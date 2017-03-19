@@ -5,12 +5,16 @@ import { AgentsService } from './services/agents.service';
 import { CsrsService } from './services/csrs.service';
 import { EnvironmentsService } from './services/environments.service';
 import { UsersService } from './services/users.service';
+import { PermissionsService } from './services/permissions.service';
 import { RolesService } from './services/roles.service';
 import { ViewAgentComponent } from './agents/viewAgent.component';
 import { ViewCsrComponent } from './csrs/viewCsr.component';
 import { UserComponent } from './users/user.component';
+import { RoleComponent } from './roles/role.component';
 
 const html = require('./app_template.html');
+
+const debug = require('debug').debug('partout:component:app');
 
 @Component({
   selector: 'my-app',
@@ -260,14 +264,57 @@ export class AppComponent {
       {
         field: 'description',
         title: 'Description'
+      },
+      {
+        action: (id) => { this.editRole(id); },
+        value: 'Edit'
+      },
+      {
+        action: (id) => { this.deleteRole(id); },
+        value: 'Delete'
       }
     ],
     defaultSortBy: 'name'
   };
 
+  permissions_config = {
+    columns: [
+      {
+        field: 'type',
+        title: 'Resource Type'
+      },
+      {
+        field: 'subtype',
+        title: 'Resource SubType'
+      },
+      {
+        field: 'name',
+        title: 'Resource Name'
+      },
+      {
+        field: 'description',
+        title: 'Description'
+      },
+      {
+        field: 'flags',
+        title: 'Flags'
+      },
+      {
+        action: (id) => { this.editPermission(id); },
+        value: 'Edit'
+      },
+      {
+        action: (id) => { this.deletePermission(id); },
+        value: 'Delete'
+      }
+    ],
+    defaultSortBy: 'description'
+  };
+
   agentDialogRef: MdDialogRef<ViewAgentComponent>;
   csrDialogRef: MdDialogRef<ViewCsrComponent>;
   userDialogRef: MdDialogRef<UserComponent>;
+  roleDialogRef: MdDialogRef<RoleComponent>;
   config: MdDialogConfig;
 
   private ready: boolean = false;
@@ -279,6 +326,7 @@ export class AppComponent {
     public environmentsService: EnvironmentsService,
     public usersService: UsersService,
     public rolesService: RolesService,
+    public permissionsService: PermissionsService,
     public dialog: MdDialog,
     private viewContainerRef: ViewContainerRef
   ) {
@@ -392,7 +440,7 @@ export class AppComponent {
     this.userDialogRef = this.dialog.open(UserComponent, cfg);
   }
 
-  editUser(id) {
+  editUser(id: string) {
     this.usersService.get(id, {})
     .then((user) => {
       const cfg: MdDialogConfig = new MdDialogConfig();
@@ -405,7 +453,7 @@ export class AppComponent {
     });
   }
 
-  deleteUser(id) {
+  deleteUser(id: string) {
     console.log('TODO: delete a user, id:', id);
     this.usersService.remove(id);
   }
@@ -414,7 +462,38 @@ export class AppComponent {
    * Roles
    */
   addRole() {
-    console.log('TODO: add a role');
+    debug('TODO: add a role');
+    const cfg: MdDialogConfig = new MdDialogConfig();
+    cfg.disableClose = true;
+    this.roleDialogRef = this.dialog.open(RoleComponent, cfg);
+  }
+
+  editRole(id: string) {
+    debug('edit Role');
+  }
+
+  deleteRole(id: string) {
+    debug('delete Role:', id);
+    this.rolesService.remove(id);
+  }
+
+  /*****************************
+   * Permissions
+   */
+  addPermission() {
+    debug('TODO: add a Permission');
+//    const cfg: MdDialogConfig = new MdDialogConfig();
+//    cfg.disableClose = true;
+//    this.roleDialogRef = this.dialog.open(RoleComponent, cfg);
+  }
+
+  editPermission(id: string) {
+    debug('edit Permission');
+  }
+
+  deletePermission(id: string) {
+    debug('delete Permission:', id);
+    this.permissionsService.remove(id);
   }
 
 }
