@@ -46,50 +46,105 @@
     "type": "app",
     "subtype": "service",
     "name": "agents",
-    "flags": [ "C", "R", "U", "D"],
-    "description": "Service: Agents"
+    "access": "R",
+    "description": "Service: Agents - Read Only"
+  },
+  {
+    "type": "app",
+    "subtype": "service",
+    "name": "agents",
+    "access": "RW",
+    "description": "Service: Agents - Read / Write"
+  },
+
+  {
+    "type": "app",
+    "subtype": "service",
+    "name": "csrs",
+    "access": "R",
+    "description": "Service: CSRs - Read Only"
   },
   {
     "type": "app",
     "subtype": "service",
     "name": "csrs",
-    "flags": [ "C", "R", "U", "D"],
-    "description": "Service: CSRs"
+    "access": "RW",
+    "description": "Service: CSRs - Read / Write"
   },
+
   {
     "type": "app",
     "subtype": "service",
     "name": "environments",
-    "flags": [ "C", "R", "U", "D"],
-    "description": "Service: Environments"
+    "access": "R",
+    "description": "Service: Environments - Read Only"
+  },
+   {
+    "type": "app",
+    "subtype": "service",
+    "name": "environments",
+    "access": "RW",
+    "description": "Service: Environments - Read / Write"
+  },
+
+  {
+    "type": "app",
+    "subtype": "service",
+    "name": "profiles",
+    "access": "R",
+    "description": "Service: Profiles - Read Only"
   },
   {
     "type": "app",
     "subtype": "service",
     "name": "profiles",
-    "flags": [ "C", "R", "U", "D"],
-    "description": "Service: Profiles"
+    "access": "RW",
+    "description": "Service: Profiles - Read / Write"
+  },
+
+  {
+    "type": "app",
+    "subtype": "service",
+    "name": "roles",
+    "access": "R",
+    "description": "Service: Roles - Read Only"
   },
   {
     "type": "app",
     "subtype": "service",
     "name": "roles",
-    "flags": [ "C", "R", "U", "D"],
-    "description": "Service: Roles"
+    "access": "RW",
+    "description": "Service: Roles - Read / Write"
+  },
+
+  {
+    "type": "app",
+    "subtype": "service",
+    "name": "users",
+    "access": "R",
+    "description": "Service: Users - Read Only"
   },
   {
     "type": "app",
     "subtype": "service",
     "name": "users",
-    "flags": [ "C", "R", "U", "D"],
-    "description": "Service: Users"
+    "access": "RW",
+    "description": "Service: Users - Read / Write"
+  },
+
+  {
+    "type": "app",
+    "subtype": "service",
+    "name": "permissions",
+    "access": "R",
+    "description": "Service: Permissions - Read Only"
   },
   {
     "type": "app",
     "subtype": "service",
     "name": "permissions",
-    "flags": [ "C", "R", "U", "D"],
-    "description": "Service: Permissions"
+    "access": "RW",
+    "description": "Service: Permissions - Read / Write"
   }
 
 ]

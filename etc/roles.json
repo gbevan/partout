@@ -4,10 +4,81 @@
     "description": "Administrator (super-user role)",
     "permissions": [
       {
-        "type": "*",
-        "subtype": "*",
-        "name": "*",
-        "flags": ["*"]
+        "type": "app",
+        "subtype": "mainmenu",
+        "name": "dashboard"
+      },
+      {
+        "type": "app",
+        "subtype": "mainmenu",
+        "name": "agent_csrs"
+      },
+      {
+        "type": "app",
+        "subtype": "mainmenu",
+        "name": "agents"
+      },
+      {
+        "type": "app",
+        "subtype": "mainmenu",
+        "name": "environments"
+      },
+      {
+        "type": "app",
+        "subtype": "mainmenu",
+        "name": "users"
+      },
+      {
+        "type": "app",
+        "subtype": "mainmenu",
+        "name": "roles"
+      },
+      {
+        "type": "app",
+        "subtype": "mainmenu",
+        "name": "permissions"
+      },
+      {
+        "type": "app",
+        "subtype": "service",
+        "name": "agents",
+        "access": "RW"
+      },
+      {
+        "type": "app",
+        "subtype": "service",
+        "name": "csrs",
+        "access": "RW"
+      },
+      {
+        "type": "app",
+        "subtype": "service",
+        "name": "environments",
+        "access": "RW"
+      },
+      {
+        "type": "app",
+        "subtype": "service",
+        "name": "profiles",
+        "access": "RW"
+      },
+      {
+        "type": "app",
+        "subtype": "service",
+        "name": "roles",
+        "access": "RW"
+      },
+      {
+        "type": "app",
+        "subtype": "service",
+        "name": "users",
+        "access": "RW"
+      },
+      {
+        "type": "app",
+        "subtype": "service",
+        "name": "permissions",
+        "access": "RW"
       }
     ]
   },
@@ -33,8 +104,14 @@
       {
         "type": "app",
         "subtype": "service",
-        "name": "*",
-        "flags": ["R"]
+        "name": "agents",
+        "access": "R"
+      },
+      {
+        "type": "app",
+        "subtype": "service",
+        "name": "environments",
+        "access": "R"
       }
     ]
   }

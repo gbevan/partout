@@ -35,8 +35,6 @@ const console = require('better-console'),
       bodyParser = require('body-parser'),
       pki = require('node-forge').pki,
       forge = require('node-forge'),
-      morgan = require('morgan'),
-      logger = morgan('combined'),
       compression = require('compression'),
       fs = require('fs'),
       path = require('path'),
@@ -199,6 +197,7 @@ class App {
   loadPermissions() {
     const self = this;
     return new Promise((resolve, reject) => {
+      debug('loading/updating permissions');
 
       // load etc/permissions.json
       fs.readFile('etc/permissions.json', (err, data) => {
@@ -213,12 +212,14 @@ class App {
         perms.forEach((perm) => {
           debug('perm:', perm);
           promises.push(new Promise((inner_resolve, inner_reject) => {
-            debug('before find');
+            debug('before find, perm:', perm);
+
             self.appUi.app.service('permissions')
             .find({query: {
               type: perm.type,
               subtype: perm.subtype,
-              name: perm.name
+              name: perm.name,
+              access: perm.access
             }})
             .then((perm_res) => {
               debug('perm_res:', perm_res);
@@ -284,6 +285,7 @@ class App {
         if (roles_res.total > 0) {
           return resolve();
         }
+        debug('loading default roles');
 
         // load the default set from etc/roles.json
         fs.readFile('etc/roles.json', (err, data) => {
@@ -387,11 +389,14 @@ class App {
            */
           self.appApi = new AppApi(opts, self.appUi);
 
+          debug('before loadPermissions');
           return self.loadPermissions()
           .then(() => {
+            debug('before loadDefaultRoles');
             return self.loadDefaultRoles();
           })
           .then(() => {
+            debug('before loadEnvironments');
             self.loadEnvironments();
             self.watchEnvironments();
           });

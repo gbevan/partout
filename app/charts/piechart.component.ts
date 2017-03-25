@@ -48,7 +48,7 @@ export class PieChartComponent {
         $select: [this.field]
         // $sort: sort
       },
-      paginate: false,
+//      paginate: false,  set in *_all services on the server side
       rx: {
         listStrategy: 'always'
       }
