@@ -16,10 +16,19 @@ module.exports = function () {
     }
   };
 
+  const options_all = {
+    Model: app.orm.collections.permissions,
+    paginate: false
+  };
+
   app.use('/permissions', service(options));
+  app.use('/permissions_all', service(options_all));
 
   const permissionsService = app.service('/permissions');
-
   permissionsService.before(hooks.before);
   permissionsService.after(hooks.after);
+
+  const permissionsAllService = app.service('/permissions_all');
+  permissionsAllService.before(hooks.before);
+  permissionsAllService.after(hooks.after);
 };

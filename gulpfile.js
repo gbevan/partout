@@ -47,16 +47,22 @@ var env = process.env.NODE_ENV || 'development';
 
 // Webpack does its own watching, see weback.config.js
 gulp.task('webpack', function () {
+  // delay to let gulp start up the app
+  setTimeout(function () {
   gulp.src('app/main.ts')
   .pipe(
     webpack(config, require('webpack'))
-    .on('error', (err) => {
+    .on('error', function (err) {
       gutil.log('WEBPACK ERROR:', err);
+      if (cp) {
+        console.log('killing partout');
+        cp.kill();
+      }
       this.emit('end');
     })
   )
-  .pipe(gulp.dest('dist'))
-  ;
+  .pipe(gulp.dest('dist'));
+  }, 3000);
 });
 
 //gulp.task('run', ['compile'], function (done) {
@@ -77,7 +83,7 @@ gulp.task('run', function (done) {
 
 gulp.task('watch', function () {
   watch([
-    'systemjs.config.js',
+//    'systemjs.config.js',
     'app.js',
     'appApi.js',
     'appUi.js',

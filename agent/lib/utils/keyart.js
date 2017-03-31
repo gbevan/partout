@@ -7,7 +7,8 @@ var KeyArt = function () {
 };
 
 KeyArt.prototype.toArt = function (data) {
-  var buf = Buffer.from(data);
+//  var buf = Buffer.from(data); // v6
+  var buf = new Buffer(data); // v4
   buf = Array.prototype.slice.call(buf, 0);
 
   var lines = randomart(buf).split(/\r?\n/);

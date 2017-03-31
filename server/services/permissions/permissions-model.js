@@ -50,12 +50,11 @@ const Permissions = Waterline.Collection.extend({
       type: 'string',
       required: true
     },
-    description: {
+    access: {
       type: 'string'
     },
-    flags: {
-      // e.g. [ 'C', 'R', 'U', 'D'] for Create, Read, Update and Delete
-      type: 'array'
+    description: {
+      type: 'string'
     }
   }
 });

@@ -10,8 +10,8 @@
     <tr><td>Environment</td><td>
       <md-select [(ngModel)]="agent.environment.id"
                  (onClose)="envSelected()"
-                 *ngIf="envs && envs.length">
-        <md-option *ngFor="let env of envs" [value]="env.id">
+                 *ngIf="envs ? envs.length : false">
+        <md-option *ngFor="let env of envs" [value]="env ? env.id : undefined">
           {{ env.name }}
         </md-option>
       </md-select>

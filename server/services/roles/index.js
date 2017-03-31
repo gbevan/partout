@@ -16,10 +16,19 @@ module.exports = function () {
     }
   };
 
+  const options_all = {
+    Model: app.orm.collections.roles,
+    paginate: false
+  };
+
   app.use('/roles', service(options));
+  app.use('/roles_all', service(options_all));
 
   const rolesService = app.service('/roles');
-
   rolesService.before(hooks.before);
   rolesService.after(hooks.after);
+
+  const rolesAllService = app.service('/roles_all');
+  rolesAllService.before(hooks.before);
+  rolesAllService.after(hooks.after);
 };

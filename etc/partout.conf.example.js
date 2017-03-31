@@ -55,6 +55,7 @@ var Cfg = function () {
   self.GITHUB_CLIENT_SECRET = "--insert-github-client-secret-here--";
 
   self.MANIFESTDIR = 'etc/manifest';
+  self.DEFAULT_ENVIRONMENT = 'default';
 };
 
 module.exports = Cfg;

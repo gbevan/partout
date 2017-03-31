@@ -7,18 +7,12 @@ const socketio        = require('feathers-socketio/client');
 const io              = require('socket.io-client');
 const localstorage    = require('feathers-localstorage');
 const hooks           = require('feathers-hooks');
-const rest            = require('feathers-rest/client');
 const authentication  = require('feathers-authentication-client');
 
 const reactive        = require('feathers-reactive');
 const RxJS            = require('rxjs');
 
 const debug = require('debug').debug('partout:service:feathers');
-
-///////////////
-// REST
-// TODO: Remove REST support and focus on Realtime Socket.io for UI
-const superagent = require('superagent');
 
 ///////////////////
 // Socket.io

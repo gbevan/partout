@@ -296,8 +296,8 @@ export class AppComponent {
         title: 'Description'
       },
       {
-        field: 'flags',
-        title: 'Flags'
+        field: 'access',
+        title: 'Access'
       },
       {
         action: (id) => { this.editPermission(id); },
@@ -469,7 +469,17 @@ export class AppComponent {
   }
 
   editRole(id: string) {
-    debug('edit Role');
+    debug('edit Role:', id);
+    this.rolesService.get(id, {})
+    .then((role) => {
+      const cfg: MdDialogConfig = new MdDialogConfig();
+      cfg.disableClose = true;
+      this.roleDialogRef = this.dialog.open(RoleComponent, cfg);
+      this.roleDialogRef.componentInstance.setRole(role);
+    })
+    .catch((err) => {
+      console.error('editRole() err:', err);
+    });
   }
 
   deleteRole(id: string) {

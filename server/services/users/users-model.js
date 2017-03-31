@@ -66,6 +66,10 @@ const Users = Waterline.Collection.extend({
       type: 'string'
     },
 
+    roles: {
+      type: 'array'
+    },
+
     toJSON: function() {
       var obj = this.toObject();
       delete obj.password;

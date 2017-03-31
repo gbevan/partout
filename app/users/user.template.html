@@ -2,63 +2,115 @@
 
 <form #userForm="ngForm">
 
-  <md-input-container>
-    <input mdInput
-           placeholder="User Name"
-           id="username"
-           name="username"
-           required
-           [(ngModel)]="user.username">
-  </md-input-container>
-  <br/>
+  <md-dialog-content>
+    <md-input-container>
+      <input mdInput
+             placeholder="User Name"
+             id="username"
+             name="username"
+             required
+             [(ngModel)]="user.username">
+    </md-input-container>
+    <br/>
 
-  <md-input-container>
-    <input mdInput
-           placeholder="Full Name"
-           id="name"
-           name="name"
-           required
-           size="40"
-           [(ngModel)]="user.name">
-  </md-input-container>
-  <br/>
+    <md-input-container>
+      <input mdInput
+             placeholder="Full Name"
+             id="name"
+             name="name"
+             required
+             size="40"
+             [(ngModel)]="user.name">
+    </md-input-container>
+    <br/>
 
-  <md-input-container>
-    <input mdInput
-           placeholder="Avatar Url"
-           id="avatarUrl"
-           name="avatarUrl"
-           size="80"
-           [(ngModel)]="user.avatarUrl">
-  </md-input-container>
-  <br/>
+    <md-input-container>
+      <input mdInput
+             placeholder="Avatar Url"
+             id="avatarUrl"
+             name="avatarUrl"
+             size="80"
+             [(ngModel)]="user.avatarUrl">
+    </md-input-container>
+    <br/>
 
-  <md-input-container>
-    <input mdInput
-           [required]="user.id === undefined"
-           placeholder="Enter Password"
-           type="password"
-           id="password1"
-           name="password1"
-           [(ngModel)]="user.password">
-  </md-input-container>
-  <br/>
+    <md-input-container>
+      <input mdInput
+             [required]="user.id === undefined"
+             placeholder="Enter Password"
+             type="password"
+             id="password1"
+             name="password1"
+             [(ngModel)]="user.password">
+    </md-input-container>
+    <br/>
 
-  <md-input-container>
-    <input mdInput
-           [required]="user.id === undefined"
-           placeholder="Enter Password Again"
-           type="password"
-           id="password2"
-           name="password2"
-           [(ngModel)]="password2">
-  </md-input-container>
-  <br/>
-  <button md-button
-          [disabled]="userForm.form.invalid || ((user.password !== password2) && !user.id) || ((user.password !== password2) && (user.id && (user.password || password2)))"
-          (click)="save()">Save</button>
+    <md-input-container>
+      <input mdInput
+             [required]="user.id === undefined"
+             placeholder="Enter Password Again"
+             type="password"
+             id="password2"
+             name="password2"
+             [(ngModel)]="password2">
+    </md-input-container>
+    <br/>
 
-  <button md-button
-          md-dialog-close>Cancel</button>
+    <h2>Roles:</h2>
+
+    <table class="list">
+      <thead>
+        <tr class="roles">
+          <th>Role</th>
+          <th>&nbsp;</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let ur of user.roles; let i = index"
+            class="roles">
+          <td>
+            <md-select [(ngModel)]="ur.name"
+                       name="role_name_{{i}}">
+              <md-option *ngFor="let r of roles"
+                         [value]="ur.name">
+                {{ r.name }} :
+                {{ r.description }}
+              </md-option>
+            </md-select>
+          </td>
+
+          <td>
+            <button md-raised-button
+                    color="warn"
+                    (click)="deleteRole(i)">Delete</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+  </md-dialog-content>
+
+  <md-dialog-actions>
+    <table>
+      <tr>
+        <td>
+          <button md-button
+                  [disabled]="!user.username"
+                  (click)="addRole()">Add Role</button>
+
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <button md-button
+                  [disabled]="userForm.form.invalid || ((user.password !== password2) && !user.id) || ((user.password !== password2) && (user.id && (user.password || password2)))"
+                  (click)="save()">Save</button>
+
+          <button md-button
+                  md-dialog-close>Cancel</button>
+        </td>
+      </tr>
+    </table>
+  </md-dialog-actions>
 </form>
 <span class="errmsg">{{ errmsg }}</span>

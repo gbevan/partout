@@ -88,16 +88,17 @@ var AppApi = function (opts, appUi) {
 
   self.app.opts = opts;
 
-  self.app.use(compression());
-  routerApi.use(logger);
   self.app
+  .use(compression())
+  .use(logger)
   .use(bodyParser.json({limit: '50mb'}))
   .use(bodyParser.urlencoded({ extended: true }));
 
   require('./lib/api/routes')(routerApi, cfg, self.app, appUi, serverMetrics);
 
-  self.app.use('/', routerApi);
-  self.app.use(express.static('public'));
+  self.app
+  .use('/', routerApi)
+  .use(express.static('public'));
 
   httpsApi.createServer(optionsApi, self.app)
   .listen(cfg.partout_api_port);
