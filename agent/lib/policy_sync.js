@@ -188,7 +188,7 @@ Policy_Sync.prototype.sync = function (destfolder) {
     }
 
     if (self.app.opts.yes) {
-      console.warn('Accepting (--yes) new master SSL as trusted');
+//      console.warn('Accepting (--yes) new master SSL as trusted');
       deferred.resolve(self.save_master_fingerprint(self.master_fingerprint));
 
     } else {

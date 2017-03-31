@@ -2,128 +2,119 @@
 <form #roleForm="ngForm">
 
   <md-dialog-content>
-  <h1>{{ role.id ? 'Edit' : 'Add' }} role:</h1>
-  <table>
-    <tr>
-      <td>
-        <md-input-container>
-          <input mdInput
-                 placeholder="role Name"
-                 id="name"
-                 name="name"
-                 required
-                 [(ngModel)]="role.name">
-        </md-input-container>
-      </td>
-    </tr>
-
-    <tr>
-      <td>
-        <md-input-container>
-          <input mdInput
-                 placeholder="Description"
-                 id="description"
-                 name="description"
-                 size="40"
-                 [(ngModel)]="role.description">
-        </md-input-container>
-      </td>
-    </tr>
-  </table>
-
-  <table class="list">
-    <thead>
-      <tr class="permissions">
-        <th>Type</th>
-        <th>SubType</th>
-        <th>Name</th>
-        <th>Access</th>
-        <th>&nbsp;</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngFor="let rp of role.permissions; let i = index"
-          class="permissions">
+    <h1>{{ role.id ? 'Edit' : 'Add' }} role:</h1>
+    <table>
+      <tr>
         <td>
-  <!--
-          <md-select [(ngModel)]="role.permissions[i]"
-                     name="permission_{{i}}">
-            <md-option *ngFor="let p of permissions"
-                       [value]="role.permissions[i]">
-              {{ p.type }} : {{ p.subtype }} : {{ p.name }} : {{ p.flags }} - {{ p.description }}
-            </md-option>
-          </md-select>
-  -->
-          <md-select [(ngModel)]="rp.type"
-                     name="permission_type_{{i}}">
-            <md-option *ngFor="let t of permissionTypes"
-                       [value]="t">
-              {{ t }}
-            </md-option>
-          </md-select>
-        </td>
-
-        <td>
-          <md-select [(ngModel)]="rp.subtype"
-                     name="permission_subtype_{{i}}">
-            <md-option *ngFor="let st of permissionSubtypesByType[rp.type]"
-                       [value]="st">
-              {{ st }}
-            </md-option>
-          </md-select>
-        </td>
-
-        <td>
-          <md-select [(ngModel)]="rp.name"
-                     name="permission_name_{{i}}">
-            <md-option *ngFor="let n of permissionNamesByTypeSubType[rp.type + ':' + rp.subtype]"
-                       [value]="n">
-              {{ n }}
-            </md-option>
-          </md-select>
-        </td>
-
-        <td>
-          <md-select [(ngModel)]="rp.access"
-                     name="permission_access_{{i}}">
-            <md-option *ngFor="let a of permissionAccessByTypeSubTypeName[rp.type + ':' + rp.subtype + ':' + rp.name]"
-                       [value]="a">
-              {{ a }}
-            </md-option>
-          </md-select>
-        </td>
-
-        <td>
-          <button md-raised-button
-                  color="warn"
-                  (click)="deletePermission(i)">Delete</button>
+          <md-input-container>
+            <input mdInput
+                   placeholder="role Name"
+                   id="name"
+                   name="name"
+                   required
+                   [(ngModel)]="role.name">
+          </md-input-container>
         </td>
       </tr>
-    </tbody>
-  </table>
+
+      <tr>
+        <td>
+          <md-input-container>
+            <input mdInput
+                   placeholder="Description"
+                   id="description"
+                   name="description"
+                   size="40"
+                   [(ngModel)]="role.description">
+          </md-input-container>
+        </td>
+      </tr>
+    </table>
+
+    <table class="list">
+      <thead>
+        <tr class="permissions">
+          <th>Type</th>
+          <th>SubType</th>
+          <th>Name</th>
+          <th>Access</th>
+          <th>&nbsp;</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let rp of role.permissions; let i = index"
+            class="permissions">
+          <td>
+            <md-select [(ngModel)]="rp.type"
+                       name="permission_type_{{i}}">
+              <md-option *ngFor="let t of permissionTypes"
+                         [value]="t">
+                {{ t }}
+              </md-option>
+            </md-select>
+          </td>
+
+          <td>
+            <md-select [(ngModel)]="rp.subtype"
+                       name="permission_subtype_{{i}}">
+              <md-option *ngFor="let st of permissionSubtypesByType[rp.type]"
+                         [value]="st">
+                {{ st }}
+              </md-option>
+            </md-select>
+          </td>
+
+          <td>
+            <md-select [(ngModel)]="rp.name"
+                       name="permission_name_{{i}}">
+              <md-option *ngFor="let n of permissionNamesByTypeSubType[rp.type + ':' + rp.subtype]"
+                         [value]="n">
+                {{ n }}
+              </md-option>
+            </md-select>
+          </td>
+
+          <td>
+            <md-select [(ngModel)]="rp.access"
+                       name="permission_access_{{i}}">
+              <md-option *ngFor="let a of permissionAccessByTypeSubTypeName[rp.type + ':' + rp.subtype + ':' + rp.name]"
+                         [value]="a">
+                {{ a }}
+              </md-option>
+            </md-select>
+          </td>
+
+          <td>
+            <button md-raised-button
+                    color="warn"
+                    (click)="deletePermission(i)">Delete</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
   </md-dialog-content>
 
   <md-dialog-actions>
-  <table>
-    <tr>
-      <td>
-        <button md-button
-                [disabled]="!role.name"
-                (click)="addPermission()">Add Permission</button>
+    <table>
+      <tr>
+        <td>
+          <button md-button
+                  [disabled]="!role.name"
+                  (click)="addPermission()">Add Permission</button>
 
-      </td>
-    </tr>
-    <tr>
-      <td>
-        <button md-raised-button
-                [disabled]="roleForm.form.invalid"
-                (click)="save()">Save</button>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <button md-raised-button
+                  [disabled]="roleForm.form.invalid"
+                  (click)="save()">Save</button>
 
-        <button md-button
-                md-dialog-close>Cancel</button>
-      </td>
-    </tr>
-  </table>
+          <button md-button
+                  md-dialog-close>Cancel</button>
+        </td>
+      </tr>
+    </table>
   </md-dialog-actions>
 </form>
 <span class="errmsg">{{ errmsg }}</span>

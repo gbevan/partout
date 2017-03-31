@@ -2,7 +2,7 @@
 default-character-set = utf8
 
 [mysqld]
-bind-address = {{ f.os_nics.br0.ipv4.address }}
+bind-address = {{ opts.parms.bind_ip }}
 default-storage-engine = innodb
 innodb_file_per_table
 max_connections = 4096

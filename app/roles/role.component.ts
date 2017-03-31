@@ -53,7 +53,9 @@ export class RoleComponent {
     private dialogRef: MdDialogRef<RoleComponent>,
     private rolesService: RolesService,
     private permissionsAllService: PermissionsAllService
-  ) { }
+  ) {
+    this.getPermissionTypes();
+  }
 
 //  getPermissions() {
 //    this.permissionsAllService.find()
@@ -99,7 +101,7 @@ export class RoleComponent {
 
         // collect uniq subtypes for each type
         if (!this.permissionSubtypesByType[subTypeKey]) {
-          this.permissionSubtypesByType[subTypeKey] = ['*'];
+          this.permissionSubtypesByType[subTypeKey] = [];
         }
         if (!seenSubType[subTypeKey][p.subtype]) {
           this.permissionSubtypesByType[subTypeKey].push(p.subtype);
@@ -108,7 +110,7 @@ export class RoleComponent {
 
         // collect uniq names for each type:subtype
         if (!this.permissionNamesByTypeSubType[nameKey]) {
-          this.permissionNamesByTypeSubType[nameKey] = ['*'];
+          this.permissionNamesByTypeSubType[nameKey] = [];
         }
         if (!seenName[nameKey][p.name]) {
           debug('pushing to', nameKey, 'name', p.name);
@@ -118,7 +120,7 @@ export class RoleComponent {
 
         // collect uniq access types for each type:subtype:name
         if (!this.permissionAccessByTypeSubTypeName[accessKey]) {
-          this.permissionAccessByTypeSubTypeName[accessKey] = ['*'];
+          this.permissionAccessByTypeSubTypeName[accessKey] = [];
         }
         if (!seenAccess[accessKey][p.access]) {
           debug('pushing to', accessKey, 'access:', p.access);
@@ -147,7 +149,7 @@ export class RoleComponent {
     if (!this.role.permissions) {
       this.role.permissions = [];
     }
-    this.role.permissions.push('');
+    this.role.permissions.push({});
   }
 
   save() {

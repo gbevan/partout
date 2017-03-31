@@ -103,7 +103,7 @@ Master.prototype.set_agent_cert = function (key, cert) {
  * @returns Promise (returned data)
  */
 Master.prototype.post = function (path, o, cb) {
-  //utils.dlog('POST: path:', path, 'data:', o, 'type:', typeof(o));
+  utils.dlog('POST: path:', path, 'data:', o, 'type:', typeof(o));
   var self = this,
       deferred = Q.defer(),
       post_data = JSON.stringify(o),
@@ -117,12 +117,23 @@ Master.prototype.post = function (path, o, cb) {
       };
 
   _.merge(options, self.options);
-  //console.log('post merged options:', options);
+  utils.dlog('post merged options:', options);
 
   //debugger;
   var post_req = self.https.request(options, function(res) {
-    //console.log('res:', res);
+//    console.log('res:', res.statusCode, res.statusMessage);
     var data = '';
+
+    if (res.statusCode !== 200) {
+      var errmsg = 'POST to master failed: ' + res.statusCode + ' - ' + res.statusMessage;
+//      console.error(errmsg);
+
+      var err = new Error(errmsg);
+      if (cb) {
+        cb(err);
+      }
+      return deferred.reject(err);
+    }
 
     res.setEncoding('utf8');
     res.on('data', function (chunk) {
@@ -148,7 +159,7 @@ Master.prototype.post = function (path, o, cb) {
     }
     deferred.reject(err);
   });
-  //console.log('post_data:', post_data);
+  utils.dlog('post_data:', post_data);
   post_req.write(post_data);
   //console.log('before end()')
   post_req.end();

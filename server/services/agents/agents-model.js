@@ -53,7 +53,7 @@ const Agents = Waterline.Collection.extend({
     os_family: { type: 'string' },
     os_dist_version_id: { type: 'string' },
     os_dist_name: { type: 'string' },
-    os_hostname: { type: 'string' },
+    os_hostname: { type: 'string' }
 
   }
 

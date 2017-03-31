@@ -20,6 +20,8 @@ import { P2DashboardComponent } from './dashboard/p2dashboard.component';
 
 import { PieChartComponent }    from './charts/piechart.component';
 
+import { DefaultPipe }          from './common/pipes/default.pipe';
+
 // Feathers Services
 import { SocketService }        from './services/feathers.service';
 import { AgentsService }        from './services/agents.service';
@@ -31,6 +33,7 @@ import { UsersService }         from './services/users.service';
 import { PermissionsService }   from './services/permissions.service';
 import { PermissionsAllService } from './services/permissions_all.service';
 import { RolesService }         from './services/roles.service';
+import { RolesAllService }         from './services/roles_all.service';
 
 @NgModule({
   imports: [
@@ -51,7 +54,8 @@ import { RolesService }         from './services/roles.service';
     P2DashboardComponent,
     PieChartComponent,
     UserComponent,
-    RoleComponent
+    RoleComponent,
+    DefaultPipe
   ],
   bootstrap: [
     AppComponent
@@ -66,7 +70,8 @@ import { RolesService }         from './services/roles.service';
     UsersService,
     PermissionsService,
     PermissionsAllService,
-    RolesService
+    RolesService,
+    RolesAllService
   ],
   entryComponents: [
     ViewAgentComponent,
