@@ -189,7 +189,8 @@ p2
         },
         securitygroup: {
           enable_security_group: 'True',
-          firewall_driver: 'neutron.agent.linux.iptables_firewall.IptablesFirewallDriver'
+//          firewall_driver: 'neutron.agent.linux.iptables_firewall.IptablesFirewallDriver'
+          firewall_driver: 'iptables'
         },
         vxlan: {
           enable_vxlan: 'True',
