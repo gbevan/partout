@@ -15,7 +15,10 @@ const html = require('./p2dashboard.template.html');
   selector: 'p2-dashboard',
   template: html,
   styles: [`
-
+.pie {
+  height: 80%;
+  width: 80%;
+}
 `]
 })
 

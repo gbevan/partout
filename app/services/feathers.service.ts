@@ -20,11 +20,12 @@ const debug = require('debug').debug('partout:service:feathers');
 export class SocketService {
   public socket: SocketIOClient.Socket; // see https://github.com/feathersjs/feathers-docs/issues/211 re @types/...
   public user: any = {};
+  public permissions: any = {};
 
   private _app: any;
 
   constructor() {
-    this.user = {};
+    this.resetUser();
 
     this.socket = io(window.location.origin);
 
@@ -35,8 +36,13 @@ export class SocketService {
     .configure(authentication({ storage: window.localStorage }));
   }
 
-  init() {
+  resetUser() {
     this.user = {};
+    this.permissions = {};
+  }
+
+  init() {
+    this.resetUser();
 
     return new Promise<any>((resolve, reject) => {
       // try reauthenticate using stored JWT
@@ -55,19 +61,22 @@ export class SocketService {
 
   login(username, password) {
     const self = this;
-    this.user = {};
+    this.resetUser();
 
     return self._app.authenticate({
       strategy: 'local',
       username,
       password
     })
-    .then((response) => { this.handleAuthResponse(response); });
+    .then((response) => {
+      debug('login() response:', response);
+      this.handleAuthResponse(response);
+    });
   }
 
   logout() {
     this._app.logout();
-    this.user = {};
+    this.resetUser();
   }
 
   getService(name) {
@@ -90,6 +99,32 @@ export class SocketService {
     .then((user) => {
       this.user = user;
       this._app.set('user', user);
+
+      // get user's permissions
+      const promises = [];
+      this.user.roles.forEach((role) => {
+        debug('handleAuthResponse() role:', role);
+
+        promises.push(this._app.service('roles')
+        .find({query: {name: role.name}})
+        .subscribe((role_res) => {
+          if (role_res.total === 1) {
+//            this.permissions = this.permissions.concat(role_res.data[0].permissions);
+            role_res.data[0].permissions.forEach((p) => {
+              this.permissions[
+                (p.type || '') + ':' +
+                (p.subtype || '') + ':' +
+                (p.name || '') +
+                (p.access ? `:${p.access}` : '')
+              ] = true;
+            });
+            debug('accum permissions:', this.permissions);
+          } else {
+            debug('role_res returned:', role_res.total);
+          }
+        }));
+      });
+      return Promise.all(promises);
     });
   }
 

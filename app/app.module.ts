@@ -1,6 +1,7 @@
 import { NgModule }             from '@angular/core';
 import { MaterialModule }       from '@angular/material';
 import { BrowserModule }        from '@angular/platform-browser';
+// import { RouterModule, Routes } from '@angular/router';
 import { FormsModule }          from '@angular/forms';
 
 import { Ng2BootstrapModule,
@@ -22,6 +23,8 @@ import { PieChartComponent }    from './charts/piechart.component';
 
 import { DefaultPipe }          from './common/pipes/default.pipe';
 
+import { HasPermissionGuard }   from './common/guards/rbac.guard';
+
 // Feathers Services
 import { SocketService }        from './services/feathers.service';
 import { AgentsService }        from './services/agents.service';
@@ -33,7 +36,7 @@ import { UsersService }         from './services/users.service';
 import { PermissionsService }   from './services/permissions.service';
 import { PermissionsAllService } from './services/permissions_all.service';
 import { RolesService }         from './services/roles.service';
-import { RolesAllService }         from './services/roles_all.service';
+import { RolesAllService }      from './services/roles_all.service';
 
 @NgModule({
   imports: [
@@ -55,6 +58,7 @@ import { RolesAllService }         from './services/roles_all.service';
     PieChartComponent,
     UserComponent,
     RoleComponent,
+
     DefaultPipe
   ],
   bootstrap: [
@@ -71,7 +75,9 @@ import { RolesAllService }         from './services/roles_all.service';
     PermissionsService,
     PermissionsAllService,
     RolesService,
-    RolesAllService
+    RolesAllService,
+
+    HasPermissionGuard
   ],
   entryComponents: [
     ViewAgentComponent,
