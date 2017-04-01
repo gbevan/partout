@@ -8,7 +8,7 @@
 #
 
 
-NODE_LINUX_X64=https://nodejs.org/dist/v4.2.1/node-v4.2.1-linux-x64.tar.gz
+NODE_LINUX_X64=https://nodejs.org/dist/v6.10.1/node-v6.10.1-linux-x64.tar.gz
 
 # TODO: add other platforms
 

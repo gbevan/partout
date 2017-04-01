@@ -71,8 +71,9 @@
           <td>
             <md-select [(ngModel)]="ur.name"
                        name="role_name_{{i}}">
+              <md-option></md-option>
               <md-option *ngFor="let r of roles"
-                         [value]="ur.name">
+                         [value]="r.name">
                 {{ r.name }} :
                 {{ r.description }}
               </md-option>
