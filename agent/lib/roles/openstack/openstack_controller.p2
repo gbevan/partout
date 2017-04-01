@@ -913,7 +913,8 @@ EOF
         },
         securitygroup: {
           enable_security_group: 'True',
-          firewall_driver: 'neutron.agent.linux.iptables_firewall.IptablesFirewallDriver'
+//          firewall_driver: 'neutron.agent.linux.iptables_firewall.IptablesFirewallDriver'
+          firewall_driver: 'iptables'
         },
         vxlan: {
           enable_vxlan: 'True',
@@ -927,7 +928,8 @@ EOF
       cfg: {
         DEFAULT: {
           external_network_bridge: '',
-          interface_driver: 'neutron.agent.linux.interface.BridgeInterfaceDriver'
+//          interface_driver: 'neutron.agent.linux.interface.BridgeInterfaceDriver'
+          interface_driver: 'linuxbridge'
         }
       }
     })
@@ -937,7 +939,8 @@ EOF
         DEFAULT: {
           dhcp_driver: 'neutron.agent.linux.dhcp.Dnsmasq',
           enable_isolated_metadata: 'True',
-          interface_driver: 'neutron.agent.linux.interface.BridgeInterfaceDriver'
+//          interface_driver: 'neutron.agent.linux.interface.BridgeInterfaceDriver'
+          interface_driver: 'linuxbridge'
         }
       }
     })

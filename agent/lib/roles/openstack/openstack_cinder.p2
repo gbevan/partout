@@ -47,7 +47,8 @@ p2
  *   rabbit_host: 'controller1',
  *   rabbit_pass: '*****',
  *   glance_host: 'controller1',
- *   controller_host: 'controller1'
+ *   controller_host: 'controller1',
+ *   my_ip: 'cinder host ip'
  * })
  * ```
  */
@@ -90,7 +91,7 @@ p2
           auth_strategy: 'keystone',
           enabled_backends: 'lvm',
           glance_api_servers: 'http://{{ opts.parms.controller_host }}:9292',
-          my_ip: '{{ f.os_nics.ens3.ipv4.address }}',
+          my_ip: opts.my_ip,
           transport_url: 'rabbit://openstack:{{ opts.parms.rabbit_pass }}@{{ opts.parms.controller_host }}'
         },
         database: {
