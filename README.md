@@ -5,8 +5,6 @@ The goal is to develop a pure Javascript/Node.js DevOps Data and Event Driven Po
 
 "Partout" /paʀtu/ - is french for "Everywhere"
 
-\* THIS PROJECT IS UNDER DEVELOPMENT AND IS NOT READY FOR **ANY** FORM OF PRODUCTION USE YET \*
-
 See also [this OpenStack Proof-of-concept deployment using Partout](https://github.com/gbevan/partout_openstack_poc).
 
 Licensed under the GNU General Public License Version 3 (GPLv3 - see [COPYING](./COPYING)).
@@ -24,7 +22,7 @@ Currently supporting:
 * Linux
 
 ### Prerequisites
-* Node.js v4 or above - see https://nodejs.org/en/download/
+* Node.js v6 or above - see https://nodejs.org/en/download/
 * ArangoDB (master only) - see https://www.arangodb.com/download/. For an up to date Gentoo ebuild use overlay https://github.com/gbevan/portage-arangodb-overlay - the current version being used in development is now version 3.0.*
 
 Agent Platforms
@@ -117,7 +115,7 @@ COPYRIGHT
     Partout [Everywhere] - Policy-Based Configuration Management for the
     Data-Driven-Infrastructure.
 
-    Copyright (C) 2015-2016 Graham Lee Bevan <graham.bevan@ntlworld.com>
+    Copyright (C) 2015-2017 Graham Lee Bevan <graham.bevan@ntlworld.com>
 
     This file is part of Partout.
 
