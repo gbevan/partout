@@ -26,74 +26,88 @@
 
       <!-- Dashboard Tab -->
 
-      <md-tab class="p2-tab-label">
-        <template md-tab-label>Dashboard</template>
-        <p2-dashboard>
-        </p2-dashboard>
-      </md-tab>
+      <div *ngIf="hasPermissionGuard.canActivate('app:mainmenu:dashboard')">
+        <md-tab [disabled]="!hasPermissionGuard.canActivate('app:mainmenu:dashboard')">
+          <template md-tab-label>Dashboard</template>
+          <p2-dashboard>
+          </p2-dashboard>
+        </md-tab>
+      </div>
 
       <!-- CSRs Tab -->
 
-      <md-tab>
-        <template md-tab-label>Agent CSRs</template>
-        <p2-table [config]="csrs_config"
-                  [rxservice]="csrsService">
-        </p2-table>
-      </md-tab>
+      <div *ngIf="hasPermissionGuard.canActivate('app:mainmenu:agent_csrs')">
+        <md-tab>
+          <template md-tab-label>Agent CSRs</template>
+          <p2-table [config]="csrs_config"
+                    [rxservice]="csrsService">
+          </p2-table>
+        </md-tab>
+      </div>
 
       <!-- Agents Tab -->
 
-      <md-tab>
-        <template md-tab-label>Agents</template>
-        <p2-table [config]="agents_config"
-                  [rxservice]="agentsService">
-        </p2-table>
-      </md-tab>
+      <div *ngIf="hasPermissionGuard.canActivate('app:mainmenu:agents')">
+        <md-tab>
+          <template md-tab-label>Agents</template>
+          <p2-table [config]="agents_config"
+                    [rxservice]="agentsService">
+          </p2-table>
+        </md-tab>
+      </div>
 
       <!-- Environments Tab -->
 
-      <md-tab>
-        <template md-tab-label>Environments</template>
-        <p2-table [config]="environments_config"
-                  [rxservice]="environmentsService">
-        </p2-table>
-      </md-tab>
+      <div *ngIf="hasPermissionGuard.canActivate('app:mainmenu:environments')">
+        <md-tab>
+          <template md-tab-label>Environments</template>
+          <p2-table [config]="environments_config"
+                    [rxservice]="environmentsService">
+          </p2-table>
+        </md-tab>
+      </div>
 
       <!-- Users Tab -->
 
-      <md-tab>
-        <template md-tab-label>Users</template>
-        <p2-table [config]="users_config"
-                  [rxservice]="usersService">
-        </p2-table>
-        <button md-raised-button
-                color="primary"
-                (click)="addUser()">Add</button>
-      </md-tab>
+      <div *ngIf="hasPermissionGuard.canActivate('app:mainmenu:users')">
+        <md-tab>
+          <template md-tab-label>Users</template>
+          <p2-table [config]="users_config"
+                    [rxservice]="usersService">
+          </p2-table>
+          <button md-raised-button
+                  color="primary"
+                  (click)="addUser()">Add</button>
+        </md-tab>
+      </div>
 
       <!-- Roles Tab -->
 
-      <md-tab>
-        <template md-tab-label>Roles</template>
-        <p2-table [config]="roles_config"
-                  [rxservice]="rolesService">
-        </p2-table>
-        <button md-raised-button
-                color="primary"
-                (click)="addRole()">Add</button>
-      </md-tab>
+      <div *ngIf="hasPermissionGuard.canActivate('app:mainmenu:roles')">
+        <md-tab>
+          <template md-tab-label>Roles</template>
+          <p2-table [config]="roles_config"
+                    [rxservice]="rolesService">
+          </p2-table>
+          <button md-raised-button
+                  color="primary"
+                  (click)="addRole()">Add</button>
+        </md-tab>
+      </div>
 
       <!-- Permissions Tab -->
 
-      <md-tab>
-        <template md-tab-label>Permissions</template>
-        <p2-table [config]="permissions_config"
-                  [rxservice]="permissionsService">
-        </p2-table>
-        <button md-raised-button
-                color="primary"
-                (click)="addPermission()">Add</button>
-      </md-tab>
+      <div *ngIf="hasPermissionGuard.canActivate('app:mainmenu:permissions')">
+        <md-tab>
+          <template md-tab-label>Permissions</template>
+          <p2-table [config]="permissions_config"
+                    [rxservice]="permissionsService">
+          </p2-table>
+          <button md-raised-button
+                  color="primary"
+                  (click)="addPermission()">Add</button>
+        </md-tab>
+      </div>
 
     </md-tab-group>
 

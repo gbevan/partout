@@ -3,26 +3,30 @@
 <md-grid-list cols="4">
   <md-grid-tile>
     <pie-chart title="By Environment"
-             [rxservice]="agentsAllService"
-             [field]="'env'"></pie-chart>
+               [rxservice]="agentsAllService"
+               [field]="'env'"
+               class="pie"></pie-chart>
   </md-grid-tile>
 
   <md-grid-tile>
     <pie-chart title="By OS Family"
                [rxservice]="agentsAllService"
-               [field]="'os_family'"></pie-chart>
+               [field]="'os_family'"
+               class="pie"></pie-chart>
   </md-grid-tile>
 
   <md-grid-tile>
     <pie-chart title="By OS Distribution"
                [rxservice]="agentsAllService"
-               [field]="'os_dist_name'"></pie-chart>
+               [field]="'os_dist_name'"
+               class="pie"></pie-chart>
   </md-grid-tile>
 
   <md-grid-tile>
     <pie-chart title="By Last Seen"
                [rxservice]="agentsAllService"
-               [field]="'lastSeenBucket'"></pie-chart>
+               [field]="'lastSeenBucket'"
+               class="pie"></pie-chart>
   </md-grid-tile>
 </md-grid-list>
 
@@ -31,7 +35,8 @@
 <md-grid-list cols="4">
   <md-grid-tile>
     <pie-chart title="By Status"
-             [rxservice]="csrsAllService"
-             [field]="'status'"></pie-chart>
+               [rxservice]="csrsAllService"
+               [field]="'status'"
+               class="pie"></pie-chart>
   </md-grid-tile>
 </md-grid-list>

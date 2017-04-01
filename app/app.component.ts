@@ -12,6 +12,8 @@ import { ViewCsrComponent } from './csrs/viewCsr.component';
 import { UserComponent } from './users/user.component';
 import { RoleComponent } from './roles/role.component';
 
+import { HasPermissionGuard }   from './common/guards/rbac.guard';
+
 const html = require('./app_template.html');
 
 const debug = require('debug').debug('partout:component:app');
@@ -328,7 +330,8 @@ export class AppComponent {
     public rolesService: RolesService,
     public permissionsService: PermissionsService,
     public dialog: MdDialog,
-    private viewContainerRef: ViewContainerRef
+    private viewContainerRef: ViewContainerRef,
+    private hasPermissionGuard: HasPermissionGuard
   ) {
     this.config = new MdDialogConfig();
     this.config.viewContainerRef = this.viewContainerRef; // for mdDialog
