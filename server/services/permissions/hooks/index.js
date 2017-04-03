@@ -7,14 +7,25 @@ const globalHooks = require('../../../hooks'),
 
 exports.before = {
   all: [
-    auth.authenticate('jwt')
+    auth.authenticate('jwt'),
+    globalHooks.hasPermission({permission: 'app:service:permissions', access: 'R'})
   ],
-  find: [],
-  get: [],
-  create: [],
-  update: [],
-  patch: [],
-  remove: [],
+  find: [
+  ],
+  get: [
+  ],
+  create: [
+    globalHooks.hasPermission({permission: 'app:service:permissions', access: 'RW'})
+  ],
+  update: [
+    globalHooks.hasPermission({permission: 'app:service:permissions', access: 'RW'})
+  ],
+  patch: [
+    globalHooks.hasPermission({permission: 'app:service:permissions', access: 'RW'})
+  ],
+  remove: [
+    globalHooks.hasPermission({permission: 'app:service:permissions', access: 'RW'})
+  ],
 };
 
 exports.after = {

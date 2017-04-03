@@ -80,9 +80,9 @@ p2
     .package('uvtool-libvirt')
     .package('traceroute')
 
-    .file('/etc/default/grub', {
-      content: {file: path.join(__dirname, 'files', 'default_grub.template')}
-    })
+//    .file('/etc/default/grub', {
+//      content: {file: path.join(__dirname, 'files', 'default_grub.template')}
+//    })
 
     ;
 

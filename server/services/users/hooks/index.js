@@ -8,20 +8,26 @@ const globalHooks = require('../../../hooks'),
 
 exports.before = {
   all: [
-    auth.authenticate('jwt')
+    auth.authenticate('jwt'),
+    globalHooks.hasPermission({permission: 'app:service:users', access: 'R'})
   ],
   find: [],
   get: [],
   create: [
-    local.hooks.hashPassword({ passwordField: 'password' })
+    local.hooks.hashPassword({ passwordField: 'password' }),
+    globalHooks.hasPermission({permission: 'app:service:users', access: 'RW'})
   ],
   update: [
-    local.hooks.hashPassword({ passwordField: 'password' })
+    local.hooks.hashPassword({ passwordField: 'password' }),
+    globalHooks.hasPermission({permission: 'app:service:users', access: 'RW'})
   ],
   patch: [
-    local.hooks.hashPassword({ passwordField: 'password' })
+    local.hooks.hashPassword({ passwordField: 'password' }),
+    globalHooks.hasPermission({permission: 'app:service:users', access: 'RW'})
   ],
-  remove: [],
+  remove: [
+    globalHooks.hasPermission({permission: 'app:service:users', access: 'RW'})
+  ],
 };
 
 exports.after = {

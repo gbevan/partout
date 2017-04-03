@@ -68,7 +68,9 @@ p2
  *   neutron_db_pass: 'password',
  *   neutron_user_pass: 'password',
  *   cinder_db_pass: 'password',
- *   cinder_user_pass: 'password'
+ *   cinder_user_pass: 'password',
+ *   dns_resolvers: ['dns1', 'dns2'],
+ *   ext_bridge_nic: 'enp2s0'
  * })
  * ```
  */
@@ -909,7 +911,7 @@ EOF
     .ini_file('/etc/neutron/plugins/ml2/linuxbridge_agent.ini', {
       cfg: {
         linux_bridge: {
-          physical_interface_mappings: 'provider:veth1' // virt provider net bridge to local lan
+          physical_interface_mappings: 'provider:' + opts.ext_bridge_nic // virt provider net bridge to local lan
         },
         securitygroup: {
           enable_security_group: 'True',
@@ -940,7 +942,8 @@ EOF
           dhcp_driver: 'neutron.agent.linux.dhcp.Dnsmasq',
           enable_isolated_metadata: 'True',
 //          interface_driver: 'neutron.agent.linux.interface.BridgeInterfaceDriver'
-          interface_driver: 'linuxbridge'
+          interface_driver: 'linuxbridge',
+          dnsmasq_dns_servers: opts.dns_resolvers ? opts.dns_resolvers.join(',') : ''
         }
       }
     })
