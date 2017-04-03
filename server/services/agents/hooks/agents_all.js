@@ -7,7 +7,8 @@ const globalHooks = require('../../../hooks'),
 
 exports.before = {
   all: [
-    auth.authenticate('jwt')
+    auth.authenticate('jwt'),
+    globalHooks.hasPermission({permission: 'app:service:agents', access: 'R'})
   ],
   find: [
     (hook) => { // allow client to disable pagination
@@ -18,10 +19,18 @@ exports.before = {
     }
   ],
   get: [],
-  create: [],
-  update: [],
-  patch: [],
-  remove: [],
+  create: [
+    globalHooks.hasPermission({permission: 'app:service:agents', access: 'RW'})
+  ],
+  update: [
+    globalHooks.hasPermission({permission: 'app:service:agents', access: 'RW'})
+  ],
+  patch: [
+    globalHooks.hasPermission({permission: 'app:service:agents', access: 'RW'})
+  ],
+  remove: [
+    globalHooks.hasPermission({permission: 'app:service:agents', access: 'RW'})
+  ],
 };
 
 exports.after = {

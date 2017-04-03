@@ -159,6 +159,7 @@ p2
             (opts.allocation_pool ? '--allocation-pool ' + opts.allocation_pool : ''),
             (opts.disable_dhcp ? '--disable-dhcp' : ''),
             (opts.gateway ? '--gateway ' + opts.gateway : ''),
+//            (opts.dns_nameservers ? '--dns-nameserver ' + opts.dns_nameservers.join(',') : ''),
             opts.cidr
           ))
           ;

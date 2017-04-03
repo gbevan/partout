@@ -49,7 +49,8 @@ p2
  *   controller_ip: 'controller_ip_address',
  *   rabbit_pass: 'rabbit password',
  *   nova_user_pass: 'nova user password',
- *   neutron_user_pass: 'neutron user password'
+ *   neutron_user_pass: 'neutron user password',
+ *   ext_bridge_nic: 'enp2s0'
  * })
  * ```
  */
@@ -185,7 +186,7 @@ p2
       cfg: {
         linux_bridge: {
           //physical_interface_mappings: 'provider:veth1',
-          physical_interface_mappings: 'provider:veth1',
+          physical_interface_mappings: 'provider:' + opts.ext_bridge_nic
         },
         securitygroup: {
           enable_security_group: 'True',

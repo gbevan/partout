@@ -27,12 +27,18 @@ export class SocketService {
   constructor() {
     this.resetUser();
 
+    // Connect to the origin server using websockets
     this.socket = io(window.location.origin);
 
+    // Establish the feathers client app on the websocket connection
     this._app = feathers()
     .configure(socketio(this.socket, {timeout: 20000}))
+
+    // Enable Reactive RxJS Observable Streams support
     .configure(reactive(RxJS, {}))
     .configure(hooks())
+
+    // Configure authentication to store JWT in browser's localStorage
     .configure(authentication({ storage: window.localStorage }));
   }
 
@@ -45,7 +51,7 @@ export class SocketService {
     this.resetUser();
 
     return new Promise<any>((resolve, reject) => {
-      // try reauthenticate using stored JWT
+      // Reauthenticate using locally stored JSON Web Token
       return this._app
       .authenticate()
       .then((response) => {
@@ -107,16 +113,15 @@ export class SocketService {
 
         promises.push(this._app.service('roles')
         .find({query: {name: role.name}})
-        .subscribe((role_res) => {
+        .then((role_res) => {
           if (role_res.total === 1) {
 //            this.permissions = this.permissions.concat(role_res.data[0].permissions);
             role_res.data[0].permissions.forEach((p) => {
               this.permissions[
                 (p.type || '') + ':' +
                 (p.subtype || '') + ':' +
-                (p.name || '') +
-                (p.access ? `:${p.access}` : '')
-              ] = true;
+                (p.name || '')
+              ] = p.access || true;
             });
             debug('accum permissions:', this.permissions);
           } else {

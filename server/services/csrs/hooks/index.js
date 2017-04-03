@@ -10,12 +10,16 @@ const debug = require('debug').debug('partout:service:csrs');
 
 exports.before = {
   all: [
-    auth.authenticate('jwt')
+    auth.authenticate('jwt'),
+    globalHooks.hasPermission({permission: 'app:service:csrs', access: 'R'})
   ],
   find: [],
   get: [],
-  create: [],
+  create: [
+    globalHooks.hasPermission({permission: 'app:service:csrs', access: 'RW'})
+  ],
   update: [
+    globalHooks.hasPermission({permission: 'app:service:csrs', access: 'RW'}),
     (options) => {
       return new Promise((resolve, reject) => {
 
@@ -48,8 +52,12 @@ exports.before = {
       });
     }
   ],
-  patch: [],
-  remove: [],
+  patch: [
+    globalHooks.hasPermission({permission: 'app:service:csrs', access: 'RW'})
+  ],
+  remove: [
+    globalHooks.hasPermission({permission: 'app:service:csrs', access: 'RW'})
+  ],
 };
 
 exports.after = {

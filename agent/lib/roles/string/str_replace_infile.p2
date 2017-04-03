@@ -58,6 +58,7 @@ p2
     .then(function (contents) {
       var newcontents = contents.replace(opts.regex, opts.with);
       if (newcontents !== contents) {
+//        console.log('newcontents:', newcontents);
         return pfs.pWriteFile(title, newcontents)
         .then(function () {
           return Q({result: 'changed'});

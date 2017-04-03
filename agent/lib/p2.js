@@ -653,7 +653,7 @@ var P2 = function () {
           c.runAction.apply(c, immedArgs);
 
         } else {
-          utils.vlog(u.format('module %s has no runAction method', m));
+          utils.dlog(u.format('module %s has no runAction method', m));
         }
 
         if (c.addStep) {
