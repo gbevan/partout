@@ -49,7 +49,7 @@ p2
 .role('reboot', {
   p2: function (title, opts) {
 
-    console.warn(new Date(), 'Rebooting now for ' + title);
+    console.warn(new Date(), 'Rebooting for ' + title);
 
     p2
     .clear_actions()
@@ -61,8 +61,17 @@ p2
       .file('/var/lib/cloud/instance/sem/config_scripts_user', {ensure: 'absent'})
       ;
     }
+
+    process.chdir('/'); // leave any partition that needs unmounting
+
     p2
-    .command('reboot')
+    .command('cd /; sleep 10; shutdown -r now', function () {
+      console.warn('sleeping partout for reboot...');
+      setTimeout(() => {
+        console.warn('Error: reach partout sleep timeout waiting for reboot, exiting...');
+        process.exit(1);
+      }, 60000);
+    })
     ;
   }
 })
