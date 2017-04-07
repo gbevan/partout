@@ -2,6 +2,8 @@
 import { Component, Input, OnInit } from '@angular/core';
 import * as _ from 'lodash';
 
+const debug = require('debug').debug('partout:piechart');
+
 @Component({
   selector: 'pie-chart',
   template: `
@@ -43,9 +45,11 @@ export class PieChartComponent {
     const sort = {};
     sort[this.field] = 1;
 
+    const rootField = _.split(this.field, '.', 1)[0];
+
     this.rxservice.find({
       query: {
-        $select: [this.field]
+        $select: [rootField]
         // $sort: sort
       },
 //      paginate: false,  set in *_all services on the server side
@@ -56,7 +60,9 @@ export class PieChartComponent {
     .subscribe(
       (data) => {
         const to = data
-        .map((x) => x[this.field])
+        .map((x) => {
+          return _.get(x, this.field);
+        })
         .sort()
         .reduce((acc, v) => {
           if (!acc[v]) {
