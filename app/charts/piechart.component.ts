@@ -8,7 +8,8 @@ const debug = require('debug').debug('partout:piechart');
   selector: 'pie-chart',
   template: `
 
-<div class="piecontainer">
+<div class="piecontainer"
+     *ngIf="dataPresent">
   <h4>{{ title }}</h4>
 
   <div style="display: block">
@@ -38,6 +39,8 @@ export class PieChartComponent {
   public doughnutChartData: number[] = [];
   public doughnutChartType: string = 'doughnut';
 
+  private dataPresent: boolean = false;
+
 //  public constructor(
 //  ) { }
 
@@ -59,6 +62,11 @@ export class PieChartComponent {
     })
     .subscribe(
       (data) => {
+        if (data && data.length > 0) {
+          this.dataPresent = true;
+        } else {
+          this.dataPresent = false;
+        }
         const to = data
         .map((x) => {
           return _.get(x, this.field);
