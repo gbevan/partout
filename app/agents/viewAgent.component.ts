@@ -56,7 +56,7 @@ export class ViewAgentComponent {
       this.agentCertKeys.push(k);
     });
 
-    this.environmentsService.find({})
+    this.environmentsService.find({query: {$sort: {name: 1}}})
     .then((res) => {
       debug('setAgent() res:', res);
       this.envs = res.data;
