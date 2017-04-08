@@ -125,7 +125,9 @@ export class AppComponent {
         title: 'Arch'
       },
       {
-        field: 'environment',
+//        field: 'environment',
+        field: 'environment.name',
+        select: 'environment',
         title: 'Environment',
         styles: (v) => {
           if (!v || v === '') {
@@ -137,14 +139,13 @@ export class AppComponent {
               'width': '100%'
             };
           }
-        },
-        valueFn: (v) => {
-          if (!v || v === '') {
-            return 'n/a';
-          }
-          return v.name;
         }
-//        action: (id) => { this.changeAgentEnv(id) }
+//        valueFn: (v) => {
+//          if (!v || v === '') {
+//            return 'n/a';
+//          }
+//          return v.name;
+//        }
       },
       {
         field: 'lastSeen',
