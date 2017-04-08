@@ -62,7 +62,7 @@ const debug = require('debug').debug('partout:p2table');
                 class="p2TableFieldActionButton"
                 *ngIf="column.action && column.field"
                 [ngStyle]="setStyles(column)"
-                (click)="column.action(row.id)">{{ row[column.field] }}</button>
+                (click)="column.action(row.id)">{{ getValue(row, column.field) }}</button>
 
         <button md-raised-button
                 *ngIf="column.action && column.value && (!column.condFn || column.condFn(row.id))"
@@ -75,14 +75,14 @@ const debug = require('debug').debug('partout:p2table');
               src="{{ column.imgsrc(row) }}">
 
         <div *ngIf="!column.action && !column.imgsrc"
-              [ngStyle]="setStyles(column, row[column.field])">
+              [ngStyle]="setStyles(column, getValue(row, column.field))">
 
           <div [ngSwitch]="column.pipe">
             <span *ngSwitchCase="'datetime'">
-              {{ (column.valueFn ? column.valueFn(row[column.field]) : row[column.field]) | date:'dd-MMM-y HH:mm:ss' }}
+              {{ (column.valueFn ? column.valueFn(row[column.field]) : getValue(row, column.field)) | date:'dd-MMM-y HH:mm:ss' }}
             </span>
             <span *ngSwitchDefault>
-              {{ column.valueFn ? column.valueFn(row[column.field]) : row[column.field] }}
+              {{ column.valueFn ? column.valueFn(row[column.field]) : getValue(row, column.field) }}
             </span>
           </div>
 
@@ -156,10 +156,22 @@ export class P2TableComponent {
       if (!col.field) {
         return null;
       }
-      const parent_field = (col.field.split(/\./))[0];
-      return parent_field;
+//      const parent_field = (col.field.split(/\./))[0];
+//      debug('_select() parent_field:', parent_field);
+//      return parent_field;
+      if (col.select) {
+        return col.select;
+      }
+      return col.field;
     })
     .filter((f) => f !== null);
+  }
+
+  private setWhere(cfg, v) {
+    return {
+      contains: v,
+      caseSensitive: (cfg.hasOwnProperty('caseSensitive') ? cfg.caseSensitive : false)
+    };
   }
 
   private pageChanged(event: any): void {
@@ -168,10 +180,31 @@ export class P2TableComponent {
 
     const where = {};
     _.each(this.filters, (v, k) => {
-      where[k] = {
-        contains: v,
-        caseSensitive: (this.config.hasOwnProperty('caseSensitive') ? this.config.caseSensitive : false)
-      };
+      debug('where k:', k);
+      const levels = k.split(/[.]/);
+      debug('where levels:', levels);
+      let path;
+      const last = levels.pop();
+      levels.forEach((l) => {
+        if (!path) {
+          where[l] = {};
+          path = l;
+        } else {
+          const w = _.get(where, path);
+          w[l] = {};
+          path += `.${l}`;
+        }
+      });
+
+      const w = _.get(where, path);
+      debug('w:', w);
+      w[last] = this.setWhere(this.config, v);
+      debug('w:', w);
+
+//      where[k] = {
+//        contains: v,
+//        caseSensitive: (this.config.hasOwnProperty('caseSensitive') ? this.config.caseSensitive : false)
+//      };
     });
     debug('pageChanged: where:', where);
 
@@ -181,9 +214,11 @@ export class P2TableComponent {
     }
 
     // subscribe to real-time updates from upstream
+    const fields = this._select();
+    debug('select fields:', fields);
     this.subscriber = this.rxservice.find({
       query: {
-        $select: this._select(),
+        $select: fields,
         $sort: sortBy,
         $skip: (event.page - 1) * event.itemsPerPage,
         where
@@ -198,6 +233,10 @@ export class P2TableComponent {
         console.error('p2table subscribe err:', err);
       }
     );
+  }
+
+  private getValue(r, f) {
+    return _.get(r, f);
   }
 
 }
