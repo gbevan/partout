@@ -106,7 +106,7 @@ export class AppComponent {
           }
           return '/assets/images/logos/unknown.png';
         },
-        styles: {'height': '35px', 'text-align': 'center'}
+        styles: {'height': '35px', 'text-align': 'center', 'margin': 'auto', 'display': 'table'}
       },
       {
         field: 'os_dist_version_id',
