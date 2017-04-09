@@ -1,42 +1,49 @@
-<h2>Agents</h2>
+<div *ngIf="agentsTotal > 0">
+  <h2>Agents</h2>
 
-<md-grid-list cols="4">
-  <md-grid-tile>
-    <pie-chart title="By Environment"
-               [rxservice]="agentsAllService"
-               [field]="'environment.name'"
-               class="pie"></pie-chart>
-  </md-grid-tile>
+  <md-grid-list cols="4">
+    <md-grid-tile>
+      <pie-chart title="By Environment"
+                 [rxservice]="agentsAllService"
+                 [field]="'environment.name'"
+                 class="pie"></pie-chart>
+    </md-grid-tile>
 
-  <md-grid-tile>
-    <pie-chart title="By OS Family"
-               [rxservice]="agentsAllService"
-               [field]="'os_family'"
-               class="pie"></pie-chart>
-  </md-grid-tile>
+    <md-grid-tile>
+      <pie-chart title="By OS Family"
+                 [rxservice]="agentsAllService"
+                 [field]="'os_family'"
+                 class="pie"></pie-chart>
+    </md-grid-tile>
 
-  <md-grid-tile>
-    <pie-chart title="By OS Distribution"
-               [rxservice]="agentsAllService"
-               [field]="'os_dist_name'"
-               class="pie"></pie-chart>
-  </md-grid-tile>
+    <md-grid-tile>
+      <pie-chart title="By OS Distribution"
+                 [rxservice]="agentsAllService"
+                 [field]="'os_dist_name'"
+                 class="pie"></pie-chart>
+    </md-grid-tile>
 
-  <md-grid-tile>
-    <pie-chart title="By Last Seen"
-               [rxservice]="agentsAllService"
-               [field]="'lastSeenBucket'"
-               class="pie"></pie-chart>
-  </md-grid-tile>
-</md-grid-list>
+    <md-grid-tile>
+      <pie-chart title="By Last Seen"
+                 [rxservice]="agentsAllService"
+                 [field]="'lastSeenBucket'"
+                 class="pie"></pie-chart>
+    </md-grid-tile>
+  </md-grid-list>
+</div>
+<div *ngIf="agentsTotal === 0">
+  <h2>No Agents Present</h2>
+</div>
 
-<h2>CSRs</h2>
+<div *ngIf="csrsTotal > 0">
+  <h2>CSRs</h2>
 
-<md-grid-list cols="4">
-  <md-grid-tile>
-    <pie-chart title="By Status"
-               [rxservice]="csrsAllService"
-               [field]="'status'"
-               class="pie"></pie-chart>
-  </md-grid-tile>
-</md-grid-list>
+  <md-grid-list cols="4">
+    <md-grid-tile>
+      <pie-chart title="By Status"
+                 [rxservice]="csrsAllService"
+                 [field]="'status'"
+                 class="pie"></pie-chart>
+    </md-grid-tile>
+  </md-grid-list>
+</div>
