@@ -95,6 +95,9 @@ export class AppComponent {
 
             } else if (row.os_dist_name.search(/ubuntu/i) !== -1) {
               return '/assets/images/logos/ubuntu.png';
+
+            } else if (row.os_dist_name.search(/raspbian/i) !== -1) {
+              return '/assets/images/logos/raspbian.png';
             }
           }
 
