@@ -15,7 +15,11 @@ exports.before = {
       hook.service.paginate = false;
 
       // handle lastSeenBucket
-      hook.params.query.$select = hook.params.query.$select.map(x => { return x === 'lastSeenBucket' ? 'lastSeen' : x; });
+      if (hook.params.query.$select) {
+        hook.params.query.$select = hook.params.query.$select.map((x) => {
+          return x === 'lastSeenBucket' ? 'lastSeen' : x;
+        });
+      }
     }
   ],
   get: [],

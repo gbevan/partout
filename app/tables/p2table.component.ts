@@ -79,7 +79,8 @@ const debug = require('debug').debug('partout:p2table');
 
           <div [ngSwitch]="column.pipe">
             <span *ngSwitchCase="'datetime'">
-              {{ (column.valueFn ? column.valueFn(row[column.field]) : getValue(row, column.field)) | date:'dd-MMM-y HH:mm:ss' }}
+              {{ (column.valueFn ? column.valueFn(row[column.field]) :
+                  getValue(row, column.field)) | date:'dd-MMM-y HH:mm:ss' }}
             </span>
             <span *ngSwitchDefault>
               {{ column.valueFn ? column.valueFn(row[column.field]) : getValue(row, column.field) }}
@@ -179,13 +180,16 @@ export class P2TableComponent {
     sortBy[this.sortBy] = 1;
 
     const where = {};
+    debug('pageChanged() filters:', this.filters);
     _.each(this.filters, (v, k) => {
       debug('where k:', k);
       const levels = k.split(/[.]/);
       debug('where levels:', levels);
       let path;
       const last = levels.pop();
+      debug('popped last:', last);
       levels.forEach((l) => {
+        debug('l:', l, 'path:', path);
         if (!path) {
           where[l] = {};
           path = l;
@@ -196,15 +200,13 @@ export class P2TableComponent {
         }
       });
 
-      const w = _.get(where, path);
+      debug('path after loop:', path, 'where:', where);
+      let w = _.get(where, path);
       debug('w:', w);
+      w = w ? w : where;
+
       w[last] = this.setWhere(this.config, v);
       debug('w:', w);
-
-//      where[k] = {
-//        contains: v,
-//        caseSensitive: (this.config.hasOwnProperty('caseSensitive') ? this.config.caseSensitive : false)
-//      };
     });
     debug('pageChanged: where:', where);
 
