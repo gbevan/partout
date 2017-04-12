@@ -80,7 +80,7 @@ Typically a policy file takes the form of:
 
     p2
     .exec('cmd')
-    .file('file-to-manage', content='whatever {{ Template}}', ...)
+    .file('file-to-manage', content='whatever {{ Template }}', ...)
     .powershell('some powershell')
     ...
     ;
@@ -97,16 +97,6 @@ Design / Proposal / Brain-Storm Documents
 * [PoC bootstrapping agents over a RESTful API](./agent/docs/shell_rest_notes.md)
 * [Agent Event Sending Algorythmic Statistical Backoff for Scalability](./docs/Event_Sending_Statistical_Backoff.md)
 
-Quick Sign All Pending Agent SSL CSRs
--------------------------------------
-
-    bin/partout csr | grep unsigned | awk '{print $1;}' | xargs -i@ bin/partout csr sign @; bin/partout csr
-
-Workaround for OOM in gulp
---------------------------
-```bash
-node --max-old-space-size=2000 ./node_modules/.bin/gulp
-```
 
 ----
 
