@@ -1,6 +1,7 @@
 import { NgModule }             from '@angular/core';
 import { MaterialModule }       from '@angular/material';
 import { BrowserModule }        from '@angular/platform-browser';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 // import { RouterModule, Routes } from '@angular/router';
 import { FormsModule }          from '@angular/forms';
 
@@ -41,6 +42,7 @@ import { RolesAllService }      from './services/roles_all.service';
 @NgModule({
   imports: [
     BrowserModule,
+    BrowserAnimationsModule,
     MaterialModule.forRoot(),
     Ng2BootstrapModule,
     PaginationModule.forRoot(),

@@ -28,7 +28,7 @@
 
       <div *ngIf="hasPermissionGuard.canActivate('app:mainmenu:dashboard')">
         <md-tab [disabled]="!hasPermissionGuard.canActivate('app:mainmenu:dashboard')">
-          <template md-tab-label>Dashboard</template>
+          <ng-template md-tab-label>Dashboard</ng-template>
           <p2-dashboard>
           </p2-dashboard>
         </md-tab>
@@ -38,7 +38,7 @@
 
       <div *ngIf="hasPermissionGuard.canActivate('app:mainmenu:agent_csrs')">
         <md-tab>
-          <template md-tab-label>Agent CSRs</template>
+          <ng-template md-tab-label>Agent CSRs</ng-template>
           <p2-table [config]="csrs_config"
                     [rxservice]="csrsService">
           </p2-table>
@@ -49,7 +49,7 @@
 
       <div *ngIf="hasPermissionGuard.canActivate('app:mainmenu:agents')">
         <md-tab>
-          <template md-tab-label>Agents</template>
+          <ng-template md-tab-label>Agents</ng-template>
           <p2-table [config]="agents_config"
                     [rxservice]="agentsService">
           </p2-table>
@@ -60,7 +60,7 @@
 
       <div *ngIf="hasPermissionGuard.canActivate('app:mainmenu:environments')">
         <md-tab>
-          <template md-tab-label>Environments</template>
+          <ng-template md-tab-label>Environments</ng-template>
           <p2-table [config]="environments_config"
                     [rxservice]="environmentsService">
           </p2-table>
@@ -71,7 +71,7 @@
 
       <div *ngIf="hasPermissionGuard.canActivate('app:mainmenu:users')">
         <md-tab>
-          <template md-tab-label>Users</template>
+          <ng-template md-tab-label>Users</ng-template>
           <p2-table [config]="users_config"
                     [rxservice]="usersService">
           </p2-table>
@@ -85,7 +85,7 @@
 
       <div *ngIf="hasPermissionGuard.canActivate('app:mainmenu:roles')">
         <md-tab>
-          <template md-tab-label>Roles</template>
+          <ng-template md-tab-label>Roles</ng-template>
           <p2-table [config]="roles_config"
                     [rxservice]="rolesService">
           </p2-table>
@@ -99,7 +99,7 @@
 
       <div *ngIf="hasPermissionGuard.canActivate('app:mainmenu:permissions')">
         <md-tab>
-          <template md-tab-label>Permissions</template>
+          <ng-template md-tab-label>Permissions</ng-template>
           <p2-table [config]="permissions_config"
                     [rxservice]="permissionsService">
           </p2-table>
