@@ -53,22 +53,10 @@ export class RoleComponent {
     private dialogRef: MdDialogRef<RoleComponent>,
     private rolesService: RolesService,
     private permissionsAllService: PermissionsAllService
-  ) {
-    this.getPermissionTypes();
-  }
-
-//  getPermissions() {
-//    this.permissionsAllService.find()
-//    .then((p_res) => {
-//      debug('p_res:', p_res);
-//      this.permissionTypes = _.uniq(p_res);
-//    })
-//    .catch((err) => {
-//      console.error(err);
-//    });
-//  }
+  ) { }
 
   getPermissionTypes() {
+    debug('getPermissionTypes()');
     this.permissionTypes = [];
     this.permissionSubtypesByType = {};
     this.permissionNamesByTypeSubType = {};
@@ -141,7 +129,6 @@ export class RoleComponent {
   setRole(role) {
     debug('setRole() role:', role);
     this.role = role;
-//    this.getPermissions();
     this.getPermissionTypes();
   }
 
@@ -180,11 +167,6 @@ export class RoleComponent {
       });
     }
   }
-
-//  permissionToString(p) {
-//    debug('in permissionToString for permission:', p);
-//    return p.type + ':' + p.subtype + ':' + p.name + (p.flags ? ':' + p.flags.join(':') : '');
-//  }
 
   deletePermission(i) {
     this.role.permissions.splice(i, 1);

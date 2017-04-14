@@ -304,14 +304,14 @@ export class AppComponent {
       {
         field: 'access',
         title: 'Access'
-      },
-      {
-        action: (id) => { this.editPermission(id); },
-        value: 'Edit'
-      },
-      {
-        action: (id) => { this.deletePermission(id); },
-        value: 'Delete'
+//      },
+//      {
+//        action: (id) => { this.editPermission(id); },
+//        value: 'Edit'
+//      },
+//      {
+//        action: (id) => { this.deletePermission(id); },
+//        value: 'Delete'
       }
     ],
     defaultSortBy: 'description'
@@ -496,7 +496,6 @@ export class AppComponent {
 
   /*****************************
    * Permissions
-   */
   addPermission() {
     debug('TODO: add a Permission');
 //    const cfg: MdDialogConfig = new MdDialogConfig();
@@ -512,5 +511,6 @@ export class AppComponent {
     debug('delete Permission:', id);
     this.permissionsService.remove(id);
   }
+   */
 
 }

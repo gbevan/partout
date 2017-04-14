@@ -32,7 +32,7 @@ const html = require('./user.template.html');
 }
 
 .roles md-select {
-  /*width: 500px;*/
+  width: 280px;
 }
 
 .list
