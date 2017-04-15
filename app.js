@@ -205,14 +205,14 @@ class App {
           return reject(err);
         }
         const perms = JSON.parse(data.toString());
-        debug('perms:', perms);
+//        debug('perms:', perms);
 
         // import any missing or changed entries into permissions collection
         let promises = [];
         perms.forEach((perm) => {
-          debug('perm:', perm);
+//          debug('perm:', perm);
           promises.push(new Promise((inner_resolve, inner_reject) => {
-            debug('before find, perm:', perm);
+//            debug('before find, perm:', perm);
 
             self.appUi.app.service('permissions')
             .find({query: {
@@ -222,14 +222,14 @@ class App {
               access: perm.access
             }})
             .then((perm_res) => {
-              debug('perm_res:', perm_res);
+//              debug('perm_res:', perm_res);
 
               if (perm_res.total === 0) {
                 // Create
                 self.appUi.app.service('permissions')
                 .create(perm)
-                .then(() => {
-                  inner_resolve();
+                .then((permission) => {
+                  inner_resolve(permission);
                 })
                 .catch((err) => {
                   inner_reject(err);
@@ -237,11 +237,11 @@ class App {
 
               } else if (perm_res.total === 1) {
                 // Update
-                debug('updating ', perm_res.data[0].id, 'with:', perm);
+//                debug('updating ', perm_res.data[0].id, 'with:', perm);
                 self.appUi.app.service('permissions')
                 .patch(perm_res.data[0].id, perm)
-                .then(() => {
-                  inner_resolve();
+                .then((permission) => {
+                  inner_resolve(permission);
                 })
                 .catch((err) => {
                   inner_reject(err);
@@ -259,9 +259,20 @@ class App {
           }));
         });
         Promise.all(promises)
-        .then(() => {
-          debug('permissions load complete');
-          resolve();
+        .then((loaded_permissions) => {
+          debug('permissions load complete, total:', loaded_permissions.length);
+
+          const perm_ids = loaded_permissions.map((p) => p.id);
+          debug('loaded permission ids:', perm_ids);
+
+          // Delete permissions not in perm_ids to complete the sync.
+          return self.appUi.app.service('permissions')
+          .remove(null, {query: {id: {'!': perm_ids}}})
+          .then((res) => {
+            debug('removed permissions res:', res);
+            resolve();
+          });
+
         })
         .catch((err) => {
           console.error(err);
@@ -281,7 +292,7 @@ class App {
       self.appUi.app.service('roles')
       .find()
       .then((roles_res) => {
-        debug('roles_res:', roles_res);
+//        debug('roles_res:', roles_res);
         if (roles_res.total > 0) {
           return resolve();
         }
