@@ -110,7 +110,25 @@
       {
         "type": "app",
         "subtype": "service",
+        "name": "csrs",
+        "access": "R"
+      },
+      {
+        "type": "app",
+        "subtype": "service",
         "name": "environments",
+        "access": "R"
+      },
+      {
+        "type": "app",
+        "subtype": "service",
+        "name": "users",
+        "access": "R"
+      },
+      {
+        "type": "app",
+        "subtype": "service",
+        "name": "roles",
         "access": "R"
       }
     ]
