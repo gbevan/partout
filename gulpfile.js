@@ -54,10 +54,10 @@ gulp.task('webpack', function () {
     webpack(config, require('webpack'))
     .on('error', function (err) {
       gutil.log('WEBPACK ERROR:', err);
-      if (cp) {
-        console.log('killing partout');
-        cp.kill();
-      }
+//      if (cp) {
+//        console.log('killing partout');
+//        cp.kill();
+//      }
       this.emit('end');
     })
   )

@@ -1,0 +1,76 @@
+<h1>Environment Git Repository Management:</h1>
+<form #F>
+  <md-dialog-content>
+    <md-input-container>
+      <input mdInput
+             placeholder="Environment Name"
+             name="name"
+             readonly
+             [ngModel]="env.name">
+    </md-input-container>
+
+    <md-input-container>
+      <textarea mdInput
+             placeholder="Description"
+             name="description"
+             readonly
+             rows="4"
+             cols="80"
+             [ngModel]="env.description"></textarea>
+    </md-input-container>
+
+    <md-input-container>
+      <input mdInput
+             placeholder="URL of git repo"
+             name="url"
+             size="80"
+             [(ngModel)]="env.url">
+    </md-input-container>
+
+    <md-input-container>
+      <input mdInput
+             placeholder="master, branch, tag, commit, ..."
+             name="branchtag"
+             size="80"
+             [(ngModel)]="env.branchtag">
+    </md-input-container>
+
+    <md-radio-group [(ngModel)]="env.keyType"
+                    name="keyType">
+      <md-radio-button value="file">File</md-radio-button>
+      <md-radio-button value="text">Text</md-radio-button>
+    </md-radio-group>
+
+    <md-input-container *ngIf="env.keyType == 'file'">
+      <input mdInput
+             placeholder="SSH Private Key file path"
+             name="key"
+             readonly
+             size="80"
+             [ngModel]="env.key">
+    </md-input-container>
+
+    <md-input-container *ngIf="env.keyType == 'text'">
+      <textarea mdInput
+                placeholder="SSH Private Readonly Deployment key text (paste here)"
+                name="key"
+                readonly
+                rows="26"
+                cols="80"
+                class="key"
+                [ngModel]="env.key"></textarea>
+    </md-input-container>
+  </md-dialog-content>
+
+  <md-dialog-actions>
+    <div>
+      <button md-raised-button
+              color="primary"
+              (click)="save()">Save</button>
+
+      <button md-button
+              md-dialog-close>Cancel</button>
+    </div>
+  </md-dialog-actions>
+
+</form>

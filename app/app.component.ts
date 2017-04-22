@@ -1,16 +1,19 @@
 import { Component, OnInit, ViewContainerRef } from '@angular/core';
 import { MdDialog, MdDialogRef, MdDialogConfig } from '@angular/material';
-import { SocketService } from './services/feathers.service';
-import { AgentsService } from './services/agents.service';
-import { CsrsService } from './services/csrs.service';
-import { EnvironmentsService } from './services/environments.service';
-import { UsersService } from './services/users.service';
-import { PermissionsService } from './services/permissions.service';
-import { RolesService } from './services/roles.service';
+
+import { SocketService,
+         AgentsService,
+         CsrsService,
+         EnvironmentsService,
+         UsersService,
+         PermissionsService,
+         RolesService } from './services/services.module';
+
 import { ViewAgentComponent } from './agents/viewAgent.component';
 import { ViewCsrComponent } from './csrs/viewCsr.component';
 import { UserComponent } from './users/user.component';
 import { RoleComponent } from './roles/role.component';
+import { EnvRepoMgmtComponent } from './environments/env-repo-mgmt.component';
 
 import { HasPermissionGuard }   from './common/guards/rbac.guard';
 
@@ -220,10 +223,19 @@ export class AppComponent {
       {
         field: 'name',
         title: 'Name'
+//        action: (id) => { this.envRepoMgmt(id); }
       },
       {
         field: 'description',
         title: 'Description'
+      },
+      {
+        field: 'keyType',
+        title: 'Key Type'
+      },
+      {
+        action: (id) => { this.envRepoMgmt(id); },
+        value: 'Edit'
       },
       {
         action: (id) => { this.deleteEnv(id); },
@@ -321,6 +333,7 @@ export class AppComponent {
   csrDialogRef: MdDialogRef<ViewCsrComponent>;
   userDialogRef: MdDialogRef<UserComponent>;
   roleDialogRef: MdDialogRef<RoleComponent>;
+  envDialogRef: MdDialogRef<EnvRepoMgmtComponent>;
   config: MdDialogConfig;
 
   private ready: boolean = false;
@@ -428,6 +441,21 @@ export class AppComponent {
   /*****************************
    * Environments
    */
+  envRepoMgmt(id: string) {
+    debug('envRepoMgmt() id:', id);
+
+    this.environmentsService.get(id, {})
+    .then((env) => {
+      const cfg: MdDialogConfig = new MdDialogConfig();
+      cfg.disableClose = true;
+      this.envDialogRef = this.dialog.open(EnvRepoMgmtComponent, cfg);
+      this.envDialogRef.componentInstance.setEnv(env);
+    })
+    .catch((err) => {
+      console.error('envRepoMgmt() err:', err);
+    });
+  }
+
   deleteEnv(id) {
     this.environmentsService.remove(id, {})
     .then((env) => {
@@ -493,24 +521,5 @@ export class AppComponent {
     debug('delete Role:', id);
     this.rolesService.remove(id);
   }
-
-  /*****************************
-   * Permissions
-  addPermission() {
-    debug('TODO: add a Permission');
-//    const cfg: MdDialogConfig = new MdDialogConfig();
-//    cfg.disableClose = true;
-//    this.roleDialogRef = this.dialog.open(RoleComponent, cfg);
-  }
-
-  editPermission(id: string) {
-    debug('edit Permission');
-  }
-
-  deletePermission(id: string) {
-    debug('delete Permission:', id);
-    this.permissionsService.remove(id);
-  }
-   */
 
 }

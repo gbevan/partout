@@ -2,8 +2,8 @@ import { Component, Input } from '@angular/core';
 import { MdDialogRef } from '@angular/material';
 import * as _ from 'lodash';
 
-import { UsersService } from '../services/users.service';
-import { RolesAllService } from '../services/roles_all.service';
+import { UsersService,
+         RolesAllService} from '../services/services.module';
 
 // enable in browser console: localStorage.debug = 'partout:*'
 const debug = require('debug').debug('partout:component:user');
@@ -38,7 +38,12 @@ const html = require('./user.template.html');
 .list
   overflow-y: scroll;
 }
-  `]
+
+md-dialog-actions div {
+  display: block;
+}
+
+`]
 })
 
 export class UserComponent {

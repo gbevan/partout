@@ -44,6 +44,20 @@ const Environments = Waterline.Collection.extend({
     },
     description: {
       type: 'string'
+    },
+    url: {
+      type: 'string'
+    },
+    branchtag: {
+      type: 'string',
+      default: 'master'
+    },
+    keyType: {
+      type: 'string',  // 'file' or 'text'
+      default: "text"
+    },
+    key: {
+      type: 'string'  // depends on keyType, file-path vs text of private ro key
     }
     // TODO: GitHub url etc for clone of site manifest project
   }

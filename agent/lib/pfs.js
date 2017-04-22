@@ -51,6 +51,14 @@ var Pfs = function () {
 };
 
 /**
+ * Rename a file.
+ * @param oldPath
+ * @param newPath
+ * @return {Promise}
+ */
+Pfs.prototype.pRename = Q.denodeify(fs.rename);
+
+/**
  * Generate a sha512 hash of data.
  * @param {String} data   data to hash
  * @return {String} sha512 hex hash of data

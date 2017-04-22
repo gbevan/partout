@@ -2,8 +2,8 @@ import { Component, Input } from '@angular/core';
 import { MdDialogRef } from '@angular/material';
 import * as _ from 'lodash';
 
-import { RolesService } from '../services/roles.service';
-import { PermissionsAllService } from '../services/permissions_all.service';
+import { RolesService,
+         PermissionsAllService} from '../services/services.module';
 
 // enable in browser console: localStorage.debug = 'partout:*'
 const debug = require('debug').debug('partout:component:role');

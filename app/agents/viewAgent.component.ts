@@ -3,8 +3,8 @@ import { MdDialogRef } from '@angular/material';
 // import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import * as _ from 'lodash';
 
-import { EnvironmentsService } from '../services/environments.service';
-import { AgentsService } from '../services/agents.service';
+import { AgentsService,
+         EnvironmentsService } from '../services/services.module';
 
 // enable in browser console: localStorage.debug = 'partout:*'
 const debug = require('debug').debug('partout:viewAgent');
