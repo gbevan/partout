@@ -20,27 +20,22 @@ export class EnvironmentsService {
   }
 
   public find(query?: any) {
-    debug('find() query:', query);
     return this._socket.find(query);
   }
 
   public get(id: string, query?: any) {
-    debug('get() id:', id, query);
     return this._socket.get(id, query);
   }
 
   public remove(id: string, query?: any) {
-    debug('remove() id:', id, query);
     return this._socket.remove(id, query);
   }
 
   public update(id: string, environment: any) {
-    debug('update() id:', id, environment);
     return this._socket.update(id, environment);
   }
 
   public patch(id: string, environment: any) {
-    debug('patch() id:', id, environment);
     return this._socket.patch(id, environment);
   }
 
