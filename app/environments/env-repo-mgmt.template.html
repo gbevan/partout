@@ -45,31 +45,36 @@
       <input mdInput
              placeholder="SSH Private Key file path"
              name="key"
-             readonly
              size="80"
-             [ngModel]="env.key">
+             [(ngModel)]="env.key">
     </md-input-container>
 
     <md-input-container *ngIf="env.keyType == 'text'">
       <textarea mdInput
                 placeholder="SSH Private Readonly Deployment key text (paste here)"
                 name="key"
-                readonly
                 rows="26"
                 cols="80"
                 class="key"
-                [ngModel]="env.key"></textarea>
+                [(ngModel)]="env.key"></textarea>
     </md-input-container>
   </md-dialog-content>
 
   <md-dialog-actions>
-    <div>
-      <button md-raised-button
-              color="primary"
-              (click)="save()">Save</button>
+    <div fxLayout="row" class="actionsRow">
+      <div fxFlex="none">
+        <button md-raised-button
+                color="primary"
+                (click)="save()">Save</button>
+      </div>
 
-      <button md-button
-              md-dialog-close>Cancel</button>
+      <div fxFlex="grow"
+           class="errmsg">{{ errmsg }}</div>
+
+      <div fxFlex="none">
+        <button md-button
+                md-dialog-close>Cancel</button>
+      </div>
     </div>
   </md-dialog-actions>
 

@@ -27,7 +27,7 @@
       <!-- Dashboard Tab -->
 
       <div *ngIf="hasPermissionGuard.canActivate('app:mainmenu:dashboard')">
-        <md-tab [disabled]="!hasPermissionGuard.canActivate('app:mainmenu:dashboard')">
+        <md-tab>
           <ng-template md-tab-label>Dashboard</ng-template>
           <p2-dashboard>
           </p2-dashboard>
@@ -39,7 +39,7 @@
       <div *ngIf="hasPermissionGuard.canActivate('app:mainmenu:agent_csrs')">
         <md-tab>
           <ng-template md-tab-label>Agent CSRs</ng-template>
-          <p2-table [config]="csrs_config"
+          <p2-table [config]="csrsTabClass.getConfig()"
                     [rxservice]="csrsService">
           </p2-table>
         </md-tab>
@@ -50,7 +50,7 @@
       <div *ngIf="hasPermissionGuard.canActivate('app:mainmenu:agents')">
         <md-tab>
           <ng-template md-tab-label>Agents</ng-template>
-          <p2-table [config]="agents_config"
+          <p2-table [config]="agentsTabClass.getConfig()"
                     [rxservice]="agentsService">
           </p2-table>
         </md-tab>
@@ -61,9 +61,12 @@
       <div *ngIf="hasPermissionGuard.canActivate('app:mainmenu:environments')">
         <md-tab>
           <ng-template md-tab-label>Environments</ng-template>
-          <p2-table [config]="environments_config"
+          <p2-table [config]="environmentsTabClass.getConfig()"
                     [rxservice]="environmentsService">
           </p2-table>
+          <button md-raised-button
+                  color="primary"
+                  (click)="addEnv()">Add</button>
         </md-tab>
       </div>
 
@@ -72,7 +75,7 @@
       <div *ngIf="hasPermissionGuard.canActivate('app:mainmenu:users')">
         <md-tab>
           <ng-template md-tab-label>Users</ng-template>
-          <p2-table [config]="users_config"
+          <p2-table [config]="usersTabClass.getConfig()"
                     [rxservice]="usersService">
           </p2-table>
           <button md-raised-button
@@ -86,7 +89,7 @@
       <div *ngIf="hasPermissionGuard.canActivate('app:mainmenu:roles')">
         <md-tab>
           <ng-template md-tab-label>Roles</ng-template>
-          <p2-table [config]="roles_config"
+          <p2-table [config]="rolesTabClass.getConfig()"
                     [rxservice]="rolesService">
           </p2-table>
           <button md-raised-button
@@ -100,7 +103,7 @@
       <div *ngIf="hasPermissionGuard.canActivate('app:mainmenu:permissions')">
         <md-tab>
           <ng-template md-tab-label>Permissions</ng-template>
-          <p2-table [config]="permissions_config"
+          <p2-table [config]="permissionsTabClass.getConfig()"
                     [rxservice]="permissionsService">
           </p2-table>
 <!--

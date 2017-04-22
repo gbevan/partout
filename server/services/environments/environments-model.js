@@ -50,11 +50,11 @@ const Environments = Waterline.Collection.extend({
     },
     branchtag: {
       type: 'string',
-      default: 'master'
+      defaultsTo: 'master'
     },
     keyType: {
       type: 'string',  // 'file' or 'text'
-      default: "text"
+      defaultsTo: 'text'
     },
     key: {
       type: 'string'  // depends on keyType, file-path vs text of private ro key

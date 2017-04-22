@@ -4,6 +4,7 @@ import { BrowserModule }        from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 // import { RouterModule, Routes } from '@angular/router';
 import { FormsModule }          from '@angular/forms';
+import { FlexLayoutModule }     from '@angular/flex-layout';
 
 import { NgbModule }            from '@ng-bootstrap/ng-bootstrap';
 import { ChartsModule }         from 'ng2-charts/ng2-charts';
@@ -37,6 +38,7 @@ import { ServicesModule }       from './services/services.module';
     NgbModule.forRoot(),
     ChartsModule,
     FormsModule,
+    FlexLayoutModule,
 
     ServicesModule
   ],
@@ -46,7 +48,9 @@ import { ServicesModule }       from './services/services.module';
     LoginFormComponent,
     ViewAgentComponent,
     ViewCsrComponent,
+
     P2DashboardComponent,
+
     PieChartComponent,
     UserComponent,
     RoleComponent,
@@ -59,6 +63,7 @@ import { ServicesModule }       from './services/services.module';
   ],
   providers: [
     HasPermissionGuard
+//    AgentTabClass
   ],
   entryComponents: [
     ViewAgentComponent,
