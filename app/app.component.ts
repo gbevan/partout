@@ -1,5 +1,9 @@
-import { Component, OnInit, ViewContainerRef } from '@angular/core';
-import { MdDialog, MdDialogRef, MdDialogConfig } from '@angular/material';
+import { Component,
+         OnInit,
+         ViewContainerRef }     from '@angular/core';
+import { MdDialog,
+         MdDialogRef,
+         MdDialogConfig }       from '@angular/material';
 
 import { SocketService,
          AgentsService,
@@ -7,18 +11,18 @@ import { SocketService,
          EnvironmentsService,
          UsersService,
          PermissionsService,
-         RolesService } from './services/services.module';
+         RolesService }         from './services/services.module';
 
-import { RoleComponent } from './roles/role.component';
+import { RoleComponent }        from './roles/role.component';
 
 import { HasPermissionGuard }   from './common/guards/rbac.guard';
 
-import { AgentsTabClass } from './agents/agents-tab.class';
-import { CsrsTabClass } from './csrs/csrs-tab.class';
+import { AgentsTabClass }       from './agents/agents-tab.class';
+import { CsrsTabClass }         from './csrs/csrs-tab.class';
 import { EnvironmentsTabClass } from './environments/envs-tab.class';
-import { UsersTabClass } from './users/users-tab.class';
-import { RolesTabClass } from './roles/roles-tab.class';
-import { PermissionsTabClass } from './permissions/permissions-tab.class';
+import { UsersTabClass }        from './users/users-tab.class';
+import { RolesTabClass }        from './roles/roles-tab.class';
+import { PermissionsTabClass }  from './permissions/permissions-tab.class';
 
 const html = require('./app_template.html');
 
@@ -74,12 +78,12 @@ export class AppComponent {
     this.config = new MdDialogConfig();
     this.config.viewContainerRef = this.viewContainerRef; // for mdDialog
 
-    this.agentsTabClass = new AgentsTabClass(agentsService, dialog);
-    this.csrsTabClass = new CsrsTabClass(csrsService, dialog);
+    this.agentsTabClass       = new AgentsTabClass(agentsService, dialog);
+    this.csrsTabClass         = new CsrsTabClass(csrsService, dialog);
     this.environmentsTabClass = new EnvironmentsTabClass(environmentsService, dialog);
-    this.usersTabClass = new UsersTabClass(usersService, dialog, socketService);
-    this.rolesTabClass = new RolesTabClass(rolesService, dialog);
-    this.permissionsTabClass = new PermissionsTabClass(permissionsService, dialog);
+    this.usersTabClass        = new UsersTabClass(usersService, dialog, socketService);
+    this.rolesTabClass        = new RolesTabClass(rolesService, dialog);
+    this.permissionsTabClass  = new PermissionsTabClass(permissionsService, dialog);
   }
 
   ngOnInit() {
