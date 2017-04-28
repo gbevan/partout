@@ -95,26 +95,26 @@
   </md-dialog-content>
 
   <md-dialog-actions>
-    <table>
-      <tr>
-        <td>
-          <button md-button
-                  [disabled]="!role.name"
-                  (click)="addPermission()">Add Permission</button>
+    <div fxLayout="row" class="userActionsRow">
+      <div fxFlex="none">
+        <button md-button
+                [disabled]="!role.name"
+                (click)="addPermission()">Add Permission</button>
 
-        </td>
-      </tr>
-      <tr>
-        <td>
-          <button md-raised-button
-                  [disabled]="roleForm.form.invalid"
-                  (click)="save()">Save</button>
+      </div>
+      <div fxFlex="none">
+        <button md-raised-button
+                [disabled]="roleForm.form.invalid"
+                (click)="save()">Save</button>
+      </div>
 
-          <button md-button
-                  md-dialog-close>Cancel</button>
-        </td>
-      </tr>
-    </table>
+      <div fxFlex="grow"
+           class="errmsg">{{ errmsg }}</div>
+
+      <div fxFlex="none">
+        <button md-button
+                md-dialog-close>Cancel</button>
+      </div>
+    </div>
   </md-dialog-actions>
 </form>
-<span class="errmsg">{{ errmsg }}</span>

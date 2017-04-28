@@ -182,6 +182,13 @@ P2M.prototype.action = function (fn, action_args) {
    * @param {function} cb    callback to DSL
    */
   self.addStep = function (_impl, title, opts, cb) {
+    if (_.isArray(title)) {
+      title.forEach(function (t) {
+        self.addStep(_impl, t, opts, cb);
+      });
+      return;
+    }
+
     if (!opts) {
       opts = {};
     }

@@ -6,10 +6,10 @@ import { SocketService } from '../services/feathers.service';
 import * as _ from 'lodash';
 import * as Rx from 'rxjs';
 
-import { AgentsService } from '../services/agents.service';
-import { AgentsAllService } from '../services/agents_all.service';
-import { CsrsService } from '../services/csrs.service';
-import { CsrsAllService } from '../services/csrs_all.service';
+import { AgentsService,
+         AgentsAllService,
+         CsrsService,
+         CsrsAllService } from '../services/services.module';
 
 const html = require('./p2dashboard.template.html');
 

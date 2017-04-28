@@ -19,6 +19,7 @@
     "@angular/platform-server": "^4.0.2",
     "@angular/router": "^4.0.2",
     "@angular/upgrade": "~4.0.2",
+    "@ng-bootstrap/ng-bootstrap": "^1.0.0-alpha.23",
     "@types/d3": "^4.7.0",
     "@types/lodash": "^4.14.62",
     "angular-in-memory-web-api": "~0.3.1",
@@ -59,7 +60,6 @@
     "moment": "^2.18.1",
     "morgan": "^1.8.1",
     "mustache": "^2.3.0",
-    "ng2-bootstrap": "^1.6.3",
     "ng2-charts": "1.5.0",
     "node-forge": "^0.7.1",
     "node-sass": "^4.5.2",
@@ -76,6 +76,7 @@
     "rxjs": "5.3.0",
     "socket.io-client": "^1.7.3",
     "superagent": "^3.5.2",
+    "tempfile": "^2.0.0",
     "typescript": "^2.2.2",
     "uuid": "^3.0.1",
     "walk": "^2.3.9",
@@ -128,6 +129,6 @@
     "tslint": "~5.1.0",
     "typescript": "^2.2.2",
     "webpack": "^2.3.3",
-    "webpack-stream": "^3.2.0"
+    "webpack-stream-fixed": "^3.2.2"
   }
 }

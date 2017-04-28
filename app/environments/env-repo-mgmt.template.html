@@ -1,0 +1,90 @@
+<h1>Environment Git Repository Management:</h1>
+<form #F>
+  <md-dialog-content>
+    <md-input-container>
+      <input mdInput
+             placeholder="Environment Name"
+             name="name"
+             [disabled]="env.id"
+             [(ngModel)]="env.name">
+    </md-input-container>
+
+    <md-input-container>
+      <textarea mdInput
+             placeholder="Description"
+             name="description"
+             [disabled]="true"
+             rows="4"
+             cols="80"
+             [ngModel]="env.description"></textarea>
+    </md-input-container>
+
+    <md-input-container>
+      <input mdInput
+             placeholder="URL of git repo"
+             name="url"
+             [disabled]="env.id"
+             size="80"
+             [(ngModel)]="env.url">
+    </md-input-container>
+
+    <md-input-container>
+      <input mdInput
+             placeholder="master, branch, tag, commit, ..."
+             name="branchtag"
+             [disabled]="env.id"
+             size="80"
+             [(ngModel)]="env.branchtag">
+    </md-input-container>
+
+    <div class="label">Is Cloned?</div>
+    <div>
+      <md-checkbox [checked]="env.cloneStatus == 'cloned'"
+                   (change)="setCloneStatus($event)"></md-checkbox>
+    </div>
+
+    <div class="label">SSH Key</div>
+    <md-radio-group [(ngModel)]="env.keyType"
+                    name="keyType">
+      <md-radio-button value="file">File</md-radio-button>
+      <md-radio-button value="text">Text</md-radio-button>
+    </md-radio-group>
+
+    <md-input-container *ngIf="env.keyType == 'file'">
+      <input mdInput
+             placeholder="SSH Private Key file path"
+             name="key"
+             size="80"
+             [(ngModel)]="env.key">
+    </md-input-container>
+
+    <md-input-container *ngIf="env.keyType == 'text'">
+      <textarea mdInput
+                placeholder="SSH Private Readonly Deployment key text (paste here)"
+                name="key"
+                rows="26"
+                cols="80"
+                class="key"
+                [(ngModel)]="env.key"></textarea>
+    </md-input-container>
+  </md-dialog-content>
+
+  <md-dialog-actions>
+    <div fxLayout="row" class="actionsRow">
+      <div fxFlex="none">
+        <button md-raised-button
+                color="primary"
+                (click)="save()">{{ !env.id && env.url && env.url !== '' ? 'Clone' : 'Save' }}</button>
+      </div>
+
+      <div fxFlex="grow"
+           class="errmsg">{{ errmsg }}</div>
+
+      <div fxFlex="none">
+        <button md-button
+                md-dialog-close>Cancel</button>
+      </div>
+    </div>
+  </md-dialog-actions>
+
+</form>

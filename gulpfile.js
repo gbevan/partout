@@ -11,7 +11,7 @@ var gulp = require('gulp'),
     watch = require('gulp-watch'),
     batch = require('gulp-batch'),
     typescript = require('gulp-typescript'),
-    webpack = require('webpack-stream'),
+    webpack = require('webpack-stream-fixed'),
     config = require('./webpack.config.js'),
     tsConfig = require('./tsconfig.json'),
     spawn = require('child_process').spawn,
@@ -54,10 +54,10 @@ gulp.task('webpack', function () {
     webpack(config, require('webpack'))
     .on('error', function (err) {
       gutil.log('WEBPACK ERROR:', err);
-      if (cp) {
-        console.log('killing partout');
-        cp.kill();
-      }
+//      if (cp) {
+//        console.log('killing partout');
+//        cp.kill();
+//      }
       this.emit('end');
     })
   )

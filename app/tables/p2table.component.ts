@@ -2,7 +2,6 @@
 // Learning from https://github.com/valor-software/ng2-table (MIT License)
 
 import { Component, Input, OnInit } from '@angular/core';
-import { SocketService } from '../services/feathers.service';
 
 import { Subscriber } from 'rxjs';
 
@@ -65,9 +64,9 @@ const debug = require('debug').debug('partout:p2table');
                 (click)="column.action(row.id)">{{ getValue(row, column.field) }}</button>
 
         <button md-raised-button
-                *ngIf="column.action && column.value && (!column.condFn || column.condFn(row.id))"
+                *ngIf="column.action && column.value && (!column.condFn || column.condFn(row))"
                 [ngStyle]="setStyles(column)"
-                color="warn"
+                [color]="column.color || 'primary'"
                 (click)="column.action(row.id, idx)">{{ column.value }}</button>
 
         <img *ngIf="!column.action && column.imgsrc && column.imgsrc != ''"
@@ -83,7 +82,19 @@ const debug = require('debug').debug('partout:p2table');
                   getValue(row, column.field)) | date:'dd-MMM-y HH:mm:ss' }}
             </span>
             <span *ngSwitchDefault>
-              {{ column.valueFn ? column.valueFn(row[column.field]) : getValue(row, column.field) }}
+              <span [ngSwitch]="column.type">
+                <span *ngSwitchCase="'chip'">
+                  <md-chip-list *ngIf="column.valueFn ? column.valueFn(row[column.field]) :
+                                        getValue(row, column.field)">
+                  <md-chip color="{{ column.color || 'accent' }}">
+                    {{ column.valueFn ? column.valueFn(row[column.field]) : getValue(row, column.field) }}
+                  </md-chip>
+                  </md-chip-list>
+                </span>
+                <span *ngSwitchDefault>
+                  {{ column.valueFn ? column.valueFn(row[column.field]) : getValue(row, column.field) }}
+                </span>
+              </span>
             </span>
           </div>
 
@@ -92,11 +103,14 @@ const debug = require('debug').debug('partout:p2table');
     </tr>
   </tbody>
 </table>
-<div class="p2Pager">
-  <pagination [(ngModel)]="currentPage"
-              [totalItems]="data.total"
-              (pageChanged)="pageChanged($event)"></pagination>
-</div>
+<ngb-pagination [(page)]="currentPage"
+                [collectionSize]="data.total"
+                [pageSize]="10"
+                [maxSize]="5"
+                [boundaryLinks]="true"
+                [rotate]="true"
+                (pageChange)="pageChanged($event)"
+                class="p2Pager"></ngb-pagination>
 
 `,
   styles: [`
@@ -107,15 +121,19 @@ const debug = require('debug').debug('partout:p2table');
 .p2Heading {
   /*background-color: white;*/
   color: black;
+  font-size: 80%;
 }
 .p2Row {
+  font-size: 70%;
   vertical-align: middle;
 }
 .p2TableFieldActionButton {
   font-family: monospace;
 }
 .p2Pager {
-  text-align: center;
+  display: table;
+  margin-left: auto;
+  margin-right: auto;
 }
 `]
 })
@@ -141,7 +159,7 @@ export class P2TableComponent {
 
   ngOnInit() {
     this.sortBy = this.config.defaultSortBy;
-    this.pageChanged({page: 1, itemsPerPage: 10});
+    this.pageChanged(1);
   }
 
   setStyles(column, v) {
@@ -175,7 +193,8 @@ export class P2TableComponent {
     };
   }
 
-  private pageChanged(event: any): void {
+  private pageChanged(page: any): void {
+    debug('pageChanged page:', page);
     const sortBy = {};
     sortBy[this.sortBy] = 1;
 
@@ -222,7 +241,7 @@ export class P2TableComponent {
       query: {
         $select: fields,
         $sort: sortBy,
-        $skip: (event.page - 1) * event.itemsPerPage,
+        $skip: (page - 1) * 10,
         where
       }
     })

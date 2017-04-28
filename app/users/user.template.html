@@ -92,26 +92,27 @@
   </md-dialog-content>
 
   <md-dialog-actions>
-    <table>
-      <tr>
-        <td>
-          <button md-button
-                  [disabled]="!user.username"
-                  (click)="addRole()">Add Role</button>
+    <div fxLayout="row" class="userActionsRow">
+      <div fxFlex="none">
+        <button md-button
+                [disabled]="!user.username"
+                (click)="addRole()">Add Role</button>
 
-        </td>
-      </tr>
-      <tr>
-        <td>
-          <button md-button
-                  [disabled]="userForm.form.invalid || ((user.password !== password2) && !user.id) || ((user.password !== password2) && (user.id && (user.password || password2)))"
-                  (click)="save()">Save</button>
+      </div>
+      <div fxFlex="none">
+        <button md-raised-button
+                [disabled]="userForm.form.invalid || ((user.password !== password2) && !user.id) || ((user.password !== password2) && (user.id && (user.password || password2)))"
+                (click)="save()">Save</button>
+      </div>
 
-          <button md-button
-                  md-dialog-close>Cancel</button>
-        </td>
-      </tr>
-    </table>
+      <div fxFlex="grow"
+           class="errmsg">{{ errmsg }}</div>
+
+      <div fxFlex="none">
+        <button md-button
+                md-dialog-close>Cancel</button>
+      </div>
+    </div>
   </md-dialog-actions>
+
 </form>
-<span class="errmsg">{{ errmsg }}</span>

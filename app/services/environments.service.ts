@@ -19,24 +19,28 @@ export class EnvironmentsService {
     });
   }
 
-  public find(query: any) {
-    debug('find() query:', query);
+  public find(query?: any) {
     return this._socket.find(query);
   }
 
-  public get(id: string, query: any) {
-    debug('get() id:', id, query);
+  public get(id: string, query?: any) {
     return this._socket.get(id, query);
   }
 
-  public remove(id: string, query: any) {
-    debug('remove() id:', id, query);
+  public remove(id: string, query?: any) {
     return this._socket.remove(id, query);
   }
 
   public update(id: string, environment: any) {
-    debug('update() id:', id, environment);
     return this._socket.update(id, environment);
+  }
+
+  public patch(id: string, environment: any) {
+    return this._socket.patch(id, environment);
+  }
+
+  public create(environment: any) {
+    return this._socket.create(environment);
   }
 
 }
