@@ -127,7 +127,8 @@ export class AgentsTabClass {
       },
       {
         action: (id, index) => { this.deleteAgent(id, index); },
-        value: 'Delete'
+        value: 'Delete',
+        color: 'warn'
       }
     ],
     defaultSortBy: 'os_hostname'

@@ -44,11 +44,13 @@ export class CsrsTabClass {
       },
       {
         action: (id) => { this.rejectCsr(id); },
-        value: 'Reject'
+        value: 'Reject',
+        color: 'warn'
       },
       {
         action: (id) => { this.deleteCsr(id); },
-        value: 'Delete'
+        value: 'Delete',
+        color: 'warn'
       }
     ],
     defaultSortBy: 'ip'

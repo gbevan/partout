@@ -5,15 +5,15 @@
       <input mdInput
              placeholder="Environment Name"
              name="name"
-             readonly
-             [ngModel]="env.name">
+             [disabled]="env.id"
+             [(ngModel)]="env.name">
     </md-input-container>
 
     <md-input-container>
       <textarea mdInput
              placeholder="Description"
              name="description"
-             readonly
+             [disabled]="true"
              rows="4"
              cols="80"
              [ngModel]="env.description"></textarea>
@@ -23,6 +23,7 @@
       <input mdInput
              placeholder="URL of git repo"
              name="url"
+             [disabled]="env.id"
              size="80"
              [(ngModel)]="env.url">
     </md-input-container>
@@ -31,10 +32,18 @@
       <input mdInput
              placeholder="master, branch, tag, commit, ..."
              name="branchtag"
+             [disabled]="env.id"
              size="80"
              [(ngModel)]="env.branchtag">
     </md-input-container>
 
+    <div class="label">Is Cloned?</div>
+    <div>
+      <md-checkbox [checked]="env.cloneStatus == 'cloned'"
+                   (change)="setCloneStatus($event)"></md-checkbox>
+    </div>
+
+    <div class="label">SSH Key</div>
     <md-radio-group [(ngModel)]="env.keyType"
                     name="keyType">
       <md-radio-button value="file">File</md-radio-button>
@@ -65,7 +74,7 @@
       <div fxFlex="none">
         <button md-raised-button
                 color="primary"
-                (click)="save()">Save</button>
+                (click)="save()">{{ !env.id && env.url && env.url !== '' ? 'Clone' : 'Save' }}</button>
       </div>
 
       <div fxFlex="grow"

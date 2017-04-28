@@ -28,11 +28,12 @@ export class UsersTabClass {
       {
         action: (id) => { this.deleteUser(id); },
         value: 'Delete',
-        condFn: (id) => {
+        color: 'warn',
+        condFn: (row) => {
           const u = this.socketService.getUser();
 //          console.log((new Error('condFn')).stack);
 //          console.log('id:', id, 'u.id:', u.id);
-          return u.id !== id; // show if not logged in user
+          return u.id !== row.id; // show if not logged in user
         }
       }
     ],

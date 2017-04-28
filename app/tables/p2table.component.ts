@@ -64,9 +64,9 @@ const debug = require('debug').debug('partout:p2table');
                 (click)="column.action(row.id)">{{ getValue(row, column.field) }}</button>
 
         <button md-raised-button
-                *ngIf="column.action && column.value && (!column.condFn || column.condFn(row.id))"
+                *ngIf="column.action && column.value && (!column.condFn || column.condFn(row))"
                 [ngStyle]="setStyles(column)"
-                color="warn"
+                [color]="column.color || 'primary'"
                 (click)="column.action(row.id, idx)">{{ column.value }}</button>
 
         <img *ngIf="!column.action && column.imgsrc && column.imgsrc != ''"
@@ -82,7 +82,19 @@ const debug = require('debug').debug('partout:p2table');
                   getValue(row, column.field)) | date:'dd-MMM-y HH:mm:ss' }}
             </span>
             <span *ngSwitchDefault>
-              {{ column.valueFn ? column.valueFn(row[column.field]) : getValue(row, column.field) }}
+              <span [ngSwitch]="column.type">
+                <span *ngSwitchCase="'chip'">
+                  <md-chip-list *ngIf="column.valueFn ? column.valueFn(row[column.field]) :
+                                        getValue(row, column.field)">
+                  <md-chip color="{{ column.color || 'accent' }}">
+                    {{ column.valueFn ? column.valueFn(row[column.field]) : getValue(row, column.field) }}
+                  </md-chip>
+                  </md-chip-list>
+                </span>
+                <span *ngSwitchDefault>
+                  {{ column.valueFn ? column.valueFn(row[column.field]) : getValue(row, column.field) }}
+                </span>
+              </span>
             </span>
           </div>
 

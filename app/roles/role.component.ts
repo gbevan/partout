@@ -16,6 +16,8 @@ const html = require('./role.template.html');
   styles: [`
 .errmsg {
   color: red;
+  font-weight: bold;
+  text-align: center;
 }
 
 .permissions th {

@@ -161,16 +161,17 @@ class App {
             .find({query: {name: env}})
             .then((res) => {
               if (res.total === 0) {
-                console.log('added env:', env);
-                return this.appUi.app.service('environments')
-                .create({
-                  name: env,
-                  description: envData ? envData.description : ''
-                });
+//                console.log('added env:', env);
+//                return this.appUi.app.service('environments')
+//                .create({
+//                  name: env,
+//                  description: envData ? envData.description : ''
+//                });
+                return Promise.resolve();
               } else if (res.total === 1) {
-                debug('updating env:', env, 'id:', res.data[0].id);
+                debug('patching env:', env, 'id:', res.data[0].id);
                 return this.appUi.app.service('environments')
-                .update(res.data[0].id, {
+                .patch(res.data[0].id, {
                   name: env,
                   description: envData ? envData.description : ''
                 });

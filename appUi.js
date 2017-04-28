@@ -99,6 +99,7 @@ AppUi.prototype.init = function (opts) {
       };
 
     self.app.opts = opts;
+    self.app.set('cfg', cfg);
 
     var store = new ArangoDBStore({
       url: cfg.database_url,

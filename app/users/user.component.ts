@@ -14,8 +14,13 @@ const html = require('./user.template.html');
   selector: 'user-dialog',
   template: html,
   styles: [`
+.userActionsRow {
+  width: 100%;
+}
 .errmsg {
   color: red;
+  font-weight: bold;
+  text-align: center;
 }
 
 .roles th {
@@ -35,12 +40,8 @@ const html = require('./user.template.html');
   width: 280px;
 }
 
-.list
+.list {
   overflow-y: scroll;
-}
-
-md-dialog-actions div {
-  display: block;
 }
 
 `]

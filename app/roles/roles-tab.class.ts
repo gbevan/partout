@@ -26,7 +26,8 @@ export class RolesTabClass {
       },
       {
         action: (id) => { this.deleteRole(id); },
-        value: 'Delete'
+        value: 'Delete',
+        color: 'warn'
       }
     ],
     defaultSortBy: 'name'
@@ -49,6 +50,7 @@ export class RolesTabClass {
     const cfg: MdDialogConfig = new MdDialogConfig();
     cfg.disableClose = true;
     this.dialogRef = this.dialog.open(RoleComponent, cfg);
+    this.dialogRef.componentInstance.setRole({});
   }
 
   editRole(id: string) {

@@ -39,4 +39,8 @@ export class EnvironmentsService {
     return this._socket.patch(id, environment);
   }
 
+  public create(environment: any) {
+    return this._socket.create(environment);
+  }
+
 }

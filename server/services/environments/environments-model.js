@@ -41,6 +41,7 @@ const Environments = Waterline.Collection.extend({
     name: {
       type: 'string',
       required: true
+//      unique: true  // not yet supported in sails-arangodb
     },
     description: {
       type: 'string'
@@ -58,8 +59,19 @@ const Environments = Waterline.Collection.extend({
     },
     key: {
       type: 'string'  // depends on keyType, file-path vs text of private ro key
+    },
+    cloneOutput: {
+      type: 'string'
+    },
+    cloneStatus: {
+      type: 'string'
+    },
+    pullOutput: {
+      type: 'string'
+    },
+    pullStatus: {
+      type: 'string'
     }
-    // TODO: GitHub url etc for clone of site manifest project
   }
 });
 
