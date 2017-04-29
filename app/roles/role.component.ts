@@ -14,6 +14,9 @@ const html = require('./role.template.html');
   selector: 'role-dialog',
   template: html,
   styles: [`
+.roleActionsRow {
+  width: 100%;
+}
 .errmsg {
   color: red;
   font-weight: bold;
