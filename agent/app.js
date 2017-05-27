@@ -49,7 +49,8 @@ var console = require('better-console'),
     certFile = ssl.agentCertFile,
     Master = require('./lib/master'),
     forge = require('node-forge'),
-    utils = require('./lib/utils');
+    utils = require('./lib/utils'),
+    Capture = require('./lib/capture');
 
 Q.longStackSupport = true;
 
@@ -259,6 +260,12 @@ var serve = function (opts, master) {
   console.info('Agent UUID:', MYUUID);
 
   app.inRun = false;
+
+  if (!opts.once) {
+    // Start fact gathering plugins, e.g. netdep
+    app.capture = new Capture();
+    app.capture.start();
+  }
 
   process.on('SIGINT', function () {
     app.sendevent({

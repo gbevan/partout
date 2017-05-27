@@ -24,7 +24,8 @@
         {{ k }}
       </td>
       <td>
-        <pre>{{ agent.facts[k] | json }}</pre>
+        <collapsable-view content="{{ agent.facts[k] | json }}"></collapsable-view>
+<!--        <pre>{{ agent.facts[k] | json }}</pre>-->
       </td>
     </tr>
 
@@ -34,7 +35,8 @@
         {{ k }}
       </td>
       <td>
-        <pre>{{ agent.certInfo[k] | json }}</pre>
+        <collapsable-view content="{{ agent.certInfo[k] | json }}"></collapsable-view>
+<!--        <pre>{{ agent.certInfo[k] | json }}</pre>-->
       </td>
     </tr>
   </table>
