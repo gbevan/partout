@@ -59,6 +59,10 @@ function Policy(args, opts) {
     /** @global */
     global.p2_agent_opts = self.opts = opts;
 
+    if (self.app && self.app.capture) {
+      p2.facts.captured = self.app.capture.get();
+    }
+
     // Post facts to master
     if (self.master) {
       // TODO: Only post on startup and when facts change !!!

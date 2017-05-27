@@ -25,6 +25,8 @@ import { PieChartComponent }    from './charts/piechart.component';
 
 import { ViewLogDialogComponent } from './common/dialogs/view-log-dialog.component';
 
+import { CollapsableViewComponent } from './common/views/collapsable-view.component';
+
 import { DefaultPipe }          from './common/pipes/default.pipe';
 
 import { HasPermissionGuard }   from './common/guards/rbac.guard';
@@ -52,6 +54,7 @@ import { ServicesModule }       from './services/services.module';
     ViewCsrComponent,
 
     ViewLogDialogComponent,
+    CollapsableViewComponent,
 
     P2DashboardComponent,
 
