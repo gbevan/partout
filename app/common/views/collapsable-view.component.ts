@@ -1,8 +1,12 @@
-import { Component, Input } from '@angular/core';
+import { Component,
+         Input,
+         OnInit } from '@angular/core';
 
 import * as _ from 'lodash';
 
 const debug = require('debug').debug('partout:common:collapsable-view');
+
+const THRESHOLD = 100;
 
 @Component({
   selector: 'collapsable-view',
@@ -20,7 +24,13 @@ const debug = require('debug').debug('partout:common:collapsable-view');
 `]
 })
 
-export class CollapsableViewComponent {
+export class CollapsableViewComponent implements OnInit {
   @Input() content: string = '';
   private isCollapsed: boolean = true;
+
+  ngOnInit() {
+    if (this.content.length <= THRESHOLD) {
+      this.isCollapsed = false;
+    }
+  }
 }
