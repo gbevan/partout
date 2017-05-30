@@ -16,20 +16,24 @@ export class CsrsService {
     });
   }
 
-  public find(query: any) {
+  public find(query?: any) {
     return this._socket.find(query);
   }
 
-  public get(id: string, query: any) {
+  public get(id: string, query?: any) {
     return this._socket.get(id, query);
   }
 
-  public remove(id: string, query: any) {
+  public remove(id: string, query?: any) {
     return this._socket.remove(id, query);
   }
 
-  public update(id: string, csr: any) {
-    return this._socket.update(id, csr);
+  public update(id: string, csr: any, params?: any) {
+    return this._socket.update(id, csr, params);
+  }
+
+  public patch(id: string, csr: any, params?: any) {
+    return this._socket.patch(id, csr, params);
   }
 
 }

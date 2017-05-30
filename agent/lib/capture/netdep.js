@@ -118,7 +118,7 @@ NetDep.prototype.getAllNics = function () {
 
 NetDep.prototype.init_buckets = function () {
   var self = this;
-  this.buckets = {};
+  this.buckets = {datetime: new Date()};
 
   _.range(1, 25)
   .forEach(function (hour) {
@@ -264,6 +264,10 @@ NetDep.prototype.start = function () {
 
   var intvl = setInterval(function () {
 
+    if (self.buckets.datetime.toDateString() !== (new Date()).toDateString()) {
+      this.init_buckets();
+    }
+
     self.getAllNics()
     .then(function () {
       return pfs.pExists(LSOF);
@@ -278,7 +282,7 @@ NetDep.prototype.start = function () {
       });
 
       lsof.stderr.on('data', function (stderr) {
-        console.error('stderr');
+        console.error(stderr);
       });
 
       lsof.stdout.on('data', function (data) {
@@ -286,8 +290,8 @@ NetDep.prototype.start = function () {
       });
 
       lsof.on('close', function (rc) {
-        console.log(LSOF, 'completed rc:', rc);
-        console.log(lsof_output);
+//        console.log(LSOF, 'completed rc:', rc);
+//        console.log(lsof_output);
         self.parse_lsof(lsof_output);
       });
 
