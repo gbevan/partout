@@ -23,7 +23,7 @@ const html = require('./viewAgent.template.html');
   padding-right: 5px;
 }
 .viewAgentOuter {
-  overflow: scroll;
+  overflow: auto;
   height: 500px;
   width: 800px;
 }

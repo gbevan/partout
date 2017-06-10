@@ -1,4 +1,6 @@
-import { MdDialog, MdDialogRef, MdDialogConfig } from '@angular/material';
+import { MdDialog,
+         MdDialogRef,
+         MdDialogConfig } from '@angular/material';
 
 import { AgentsService } from '../services/services.module';
 import { ViewAgentComponent } from '../agents/viewAgent.component';
@@ -150,7 +152,10 @@ export class AgentsTabClass {
     this.agentsService.get(id, {})
     .then((agent) => {
       console.log('agent:', agent);
-      this.dialogRef = this.dialog.open(ViewAgentComponent, this.config);
+      const dlgCfg: MdDialogConfig = new MdDialogConfig();
+//      dlgCfg.width = '80%';
+//      dlgCfg.height = '80%';
+      this.dialogRef = this.dialog.open(ViewAgentComponent, dlgCfg);
       this.dialogRef.componentInstance.setAgent(agent);
     })
     .catch((err) => {

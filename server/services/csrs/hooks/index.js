@@ -18,41 +18,43 @@ exports.before = {
   create: [
     globalHooks.hasPermission({permission: 'app:service:csrs', access: 'RW'})
   ],
-  update: [
+  patch: [
     globalHooks.hasPermission({permission: 'app:service:csrs', access: 'RW'}),
-    (options) => {
+    (hook) => {
       return new Promise((resolve, reject) => {
+        console.log('hook:', hook);
 
-        if (options.data.status === 'signed' && !options.data.cert) {
+        if (hook.data.status === 'signed' && !hook.data.certPem) {
           debug('signing csr');
-          ca.signCsrWithAgentSigner(options.data.csr, options.data.id)  // sign adding key/uuid as given name
+          ca.signCsrWithAgentSigner(hook.data.csr, hook.id)  // sign adding key/uuid as given name
           .then(function (signed) {
             debug('Signed cert from csr:\n' + signed.certPem);
 
             // return to agent via the csr document in db
-            options.data.cert = signed.cert;
-            options.data.certPem = signed.certPem;
+            hook.data.cert = JSON.parse(JSON.stringify(signed.cert));
+            debug('cleansed cert:', hook.data.cert);
+            hook.data.certPem = signed.certPem;
 
-//                  console.log('csr signed, options:', options);
-            resolve(options);
+//            debug('csr signed, hook:', hook);
+            resolve(hook);
           })
           .fail(err => {
             console.error(err);
             reject(err);
           });
 
-        } else if (options.data.status === 'rejected' && options.data.cert) {
-          delete options.data.cert;
-          delete options.data.certPem;
+        } else if (hook.data.status === 'rejected' && hook.data.certPem) {
+//          delete hook.data.cert;
+          delete hook.data.certPem;
 
-          resolve(options);
+          resolve(hook);
         } else {
-          resolve();
+          resolve(hook);
         }
       });
     }
   ],
-  patch: [
+  update: [
     globalHooks.hasPermission({permission: 'app:service:csrs', access: 'RW'})
   ],
   remove: [

@@ -53,9 +53,12 @@ class CsrsService extends service.Service {
           throw new Error('Csrs query by agent uuid returned incorrect number of records:', doc.total);
         }
         doc = doc.data[0];
-        doc.csr = csr;
-        doc.lastSeen = now;
-        return self.update(doc.id, doc)
+//        doc.csr = csr;
+//        doc.lastSeen = now;
+        return self.patch(doc.id, {
+          csr: csr,
+          lastSeen: now
+        })
         .then(function () {
           return doc;
         });

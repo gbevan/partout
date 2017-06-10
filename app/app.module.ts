@@ -1,5 +1,4 @@
 import { NgModule }             from '@angular/core';
-import { MaterialModule }       from '@angular/material';
 import { BrowserModule }        from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 // import { RouterModule, Routes } from '@angular/router';
@@ -8,6 +7,8 @@ import { FlexLayoutModule }     from '@angular/flex-layout';
 
 import { NgbModule }            from '@ng-bootstrap/ng-bootstrap';
 import { ChartsModule }         from 'ng2-charts/ng2-charts';
+
+import { PartoutMaterialModule } from './partout-material.module';
 
 import { AppComponent }         from './app.component';
 import { LoginFormComponent }   from './login/login-form.component';
@@ -38,7 +39,7 @@ import { ServicesModule }       from './services/services.module';
   imports: [
     BrowserModule,
     BrowserAnimationsModule,
-    MaterialModule.forRoot(),
+    PartoutMaterialModule,
     NgbModule.forRoot(),
     ChartsModule,
     FormsModule,

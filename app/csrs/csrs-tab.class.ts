@@ -81,8 +81,13 @@ export class CsrsTabClass {
   signCsr(id) {
     this.csrsService.get(id, {})
     .then((csr) => {
-      csr.status = 'signed';
-      this.csrsService.update(id, csr);
+//      csr.status = 'signed';
+//      this.csrsService.update(id, csr);
+      this.csrsService.patch(id, {
+        status: 'signed',
+        certPem: csr.certPem,
+        csr: csr.csr
+      });
     })
     .catch((err) => {
       console.error('signCsr() err:', err);
@@ -92,8 +97,9 @@ export class CsrsTabClass {
   rejectCsr(id) {
     this.csrsService.get(id, {})
     .then((csr) => {
-      csr.status = 'rejected';
-      this.csrsService.update(id, csr);
+//      csr.status = 'rejected';
+//      this.csrsService.update(id, csr);
+      this.csrsService.patch(id, {status: 'rejected'});
     })
     .catch((err) => {
       console.error('rejectCsr() err:', err);
