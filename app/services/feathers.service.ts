@@ -50,7 +50,7 @@ export class SocketService {
   init() {
     this.resetUser();
 
-    return new Promise<any>((resolve, reject) => {
+    return new Promise((resolve, reject) => {
       // Reauthenticate using locally stored JSON Web Token
       return this._app
       .authenticate()
