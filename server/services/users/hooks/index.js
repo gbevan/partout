@@ -4,8 +4,8 @@
 const globalHooks = require('../../../hooks'),
       hooks = require('feathers-hooks'),
       local = require('feathers-authentication-local'),
-      auth = require('feathers-authentication').hooks;
-//      { remove, when } = require('feathers-hooks-common');
+      auth = require('feathers-authentication').hooks,
+      { discard, when } = require('feathers-hooks-common');
 
 const debug = require('debug').debug('partout:service:users:hooks');
 
@@ -57,8 +57,7 @@ exports.before = {
 
 exports.after = {
   all: [
-//    when((hook) => hook.params.provider, remove('password'))
-    hooks.remove('password')  // TODO: deprecated
+    when((hook) => hook.params.provider, discard('password'))
   ],
   find: [],
   get: [],
