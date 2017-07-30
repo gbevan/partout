@@ -7,7 +7,7 @@ const cfg = new (require('../../etc/partout.conf.js'))(),
       uuid = require('uuid');
 
 const Waterline = require('waterline'),
-      arangodbAdaptor = require('sails-arangodb'),
+      arangodbAdaptor = require('@partoutx/sails-arangodb'),
       service = require('feathers-waterline'),
       serviceUtils = require('feathers-waterline/lib/utils'),
       errors = require('feathers-errors'),

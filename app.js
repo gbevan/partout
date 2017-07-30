@@ -50,7 +50,7 @@ const console = require('better-console'),
       pfs = require('./agent/lib/pfs'),
       _ = require('lodash');
 
-const arangodbAdaptor = require('sails-arangodb');
+const arangodbAdaptor = require('@partoutx/sails-arangodb');
 
 const debug = require('debug').debug('partout:app');
 
