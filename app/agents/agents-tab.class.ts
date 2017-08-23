@@ -3,7 +3,7 @@ import { MdDialog,
          MdDialogConfig } from '@angular/material';
 
 import { AgentsService } from '../services/services.module';
-import { ViewAgentComponent } from '../agents/viewAgent.component';
+import { ViewAgentComponent } from './viewAgent.component';
 
 /*
  * Define Agents main table view and actions

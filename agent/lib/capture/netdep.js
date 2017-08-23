@@ -265,7 +265,7 @@ NetDep.prototype.start = function () {
   var intvl = setInterval(function () {
 
     if (self.buckets.datetime.toDateString() !== (new Date()).toDateString()) {
-      this.init_buckets();
+      self.init_buckets();
     }
 
     self.getAllNics()

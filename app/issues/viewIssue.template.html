@@ -1,0 +1,13 @@
+<h1>View Issue Detail:</h1>
+
+<!--div>{{ issue.id }}</div-->
+<div class="message">{{ issue.message }}</div>
+<div>Count: {{ issue.count }}</div>
+<div>
+  <buckets-chart title="Hourly Counts"
+                 [bucketsChartData]="hourlyValues"
+                 [bucketsChartLabels]="hourlyLabels"></buckets-chart>
+</div>
+<hr>
+<pre>Stack Trace:
+{{ issue.stack }}</pre>

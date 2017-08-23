@@ -7,6 +7,8 @@ import { AgentsAllService }       from './agents_all.service';
 import { CsrsService }            from './csrs.service';
 import { CsrsAllService }         from './csrs_all.service';
 import { EnvironmentsService }    from './environments.service';
+import { IssuesService }          from './issues.service';
+import { IssuesAllService }       from './issues_all.service';
 import { UsersService }           from './users.service';
 import { PermissionsService }     from './permissions.service';
 import { PermissionsAllService }  from './permissions_all.service';
@@ -20,6 +22,8 @@ const SERVICES = [
   CsrsService,
   CsrsAllService,
   EnvironmentsService,
+  IssuesService,
+  IssuesAllService,
   UsersService,
   PermissionsService,
   PermissionsAllService,
@@ -42,6 +46,8 @@ export {
   CsrsService,
   CsrsAllService,
   EnvironmentsService,
+  IssuesService,
+  IssuesAllService,
   UsersService,
   PermissionsService,
   PermissionsAllService,

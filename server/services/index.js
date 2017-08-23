@@ -18,6 +18,7 @@ const Waterline = require('waterline'),
       Agents = require('./agents'),
       Csrs = require('./csrs'),
       Environments = require('./environments'),
+      Issues = require('./issues'),
       Permissions = require('./permissions'),
       Profiles = require('./profiles'),
       Roles = require('./roles'),
@@ -26,6 +27,7 @@ const Waterline = require('waterline'),
       Agents_Model = require('./agents/agents-model'),
       Csrs_Model = require('./csrs/csrs-model'),
       Environments_Model = require('./environments/environments-model'),
+      Issues_Model = require('./issues/issues-model'),
       Permissions_Model = require('./permissions/permissions-model'),
       Profiles_Model = require('./profiles/profiles-model'),
       Roles_Model = require('./roles/roles-model'),
@@ -47,6 +49,7 @@ module.exports = function(cb) {
     ORM.loadCollection(Csrs_Model);
     ORM.loadCollection(Environments_Model);
   //    ORM.loadCollection(Profiles_Model);
+    ORM.loadCollection(Issues_Model);
     ORM.loadCollection(Permissions_Model);
     ORM.loadCollection(Roles_Model);
     ORM.loadCollection(Users_Model);
@@ -68,6 +71,7 @@ module.exports = function(cb) {
       app.configure(Agents);
       app.configure(Csrs);
       app.configure(Environments);
+      app.configure(Issues);
       app.configure(Permissions);
 //      app.configure(Profiles);
       app.configure(Roles);

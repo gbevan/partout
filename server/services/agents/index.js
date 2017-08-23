@@ -11,9 +11,12 @@ const service = require('feathers-waterline'),
       hooks = require('./hooks'),
       a_hooks = require('./hooks/agents_all');
 
+const debug = require('debug').debug('partout:service:agents');
+
 class AgentsService extends service.Service {
-  constructor(o) {
+  constructor(o, app) {
     super(o);
+    this.app = app;
   }
 
   // Overload _get method to populate environment
@@ -61,16 +64,20 @@ class AgentsService extends service.Service {
   // Overload _get method to populate environment
   // see https://github.com/feathersjs/feathers-waterline/blob/master/src/index.js (MIT)
   _get (id) {
+    const self = this;
+
     return this.Model.findOne({ id })
     .populate('environment')
     .then((instance) => {
       if (!instance) {
-        throw new errors.NotFound(`No record found for id '${id}'`);
+        debug('app:', self.app);
+//        consself.app.report_issue(errors.NotFound(`No record found for id '${id}'`));
+        throw self.app.report_issue(new errors.NotFound(`No record found for agent uuid '${id}', perhaps the agent needs re-registering.`));
       }
 
       return instance;
-    })
-    .catch(utils.errorHandler);
+    });
+//    .catch(utils.errorHandler);
   }
 }
 
@@ -85,8 +92,8 @@ module.exports = function () {
     }
   };
 
-  app.use('/agents', new AgentsService(options));
-  app.use('/agents_all', new AgentsService(options));
+  app.use('/agents', new AgentsService(options, app));
+  app.use('/agents_all', new AgentsService(options, app));
 
   const agentsService = app.service('/agents');
   agentsService.before(hooks.before);

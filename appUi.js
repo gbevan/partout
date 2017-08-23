@@ -31,6 +31,7 @@ const console = require('better-console'),
       u = require('util'),
       ca = new (require('./lib/ca'))(),
       utils = require('./agent/lib/utils'),
+      Issues = require('./lib/issues'),
 
       httpsUi = require('https'),
       express = require('express'),
@@ -144,6 +145,9 @@ AppUi.prototype.init = function (opts) {
     }))
     .configure(services(function (err, orm) {
       debug('services cb');
+
+      const issues = new Issues(self.app);
+      self.app.report_issue = issues.report_issue.bind(issues);
 
       self.app
       //.use(express.static('public')); // /assets, /css. etc

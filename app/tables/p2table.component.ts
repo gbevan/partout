@@ -143,7 +143,7 @@ export class P2TableComponent {
   @Input() config: any;
   @Input() rxservice: any;  // a feathers-reactive service
 
-  private data: Object;
+  private data: {};
   private currentPage: number;
   private sortBy: string;
 
@@ -170,7 +170,7 @@ export class P2TableComponent {
     }
   }
 
-   private _select() {
+  private _select() {
     return this.config.columns.map((col) => {
       if (!col.field) {
         return null;
@@ -195,8 +195,12 @@ export class P2TableComponent {
 
   private pageChanged(page: any): void {
     debug('pageChanged page:', page);
-    const sortBy = {};
-    sortBy[this.sortBy] = 1;
+    let sortBy = {};
+    if (typeof(this.sortBy) === 'object') {
+      sortBy = this.sortBy;
+    } else {
+      sortBy[this.sortBy] = 1;
+    }
 
     const where = {};
     debug('pageChanged() filters:', this.filters);
@@ -213,8 +217,8 @@ export class P2TableComponent {
           where[l] = {};
           path = l;
         } else {
-          const w = _.get(where, path);
-          w[l] = {};
+//          const w = _.get(where, path);
+//          w[l] = {};
           path += `.${l}`;
         }
       });

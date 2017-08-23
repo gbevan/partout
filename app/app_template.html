@@ -88,7 +88,7 @@
 
       <div *ngIf="hasPermissionGuard.canActivate('app:mainmenu:roles')">
         <md-tab>
-          <ng-template md-tab-label>Roles</ng-template>
+          <ng-template md-tab-label>User Roles</ng-template>
           <p2-table [config]="rolesTabClass.getConfig()"
                     [rxservice]="rolesService">
           </p2-table>
@@ -106,13 +106,20 @@
           <p2-table [config]="permissionsTabClass.getConfig()"
                     [rxservice]="permissionsService">
           </p2-table>
-<!--
-          <button md-raised-button
-                  color="primary"
-                  (click)="addPermission()">Add</button>
--->
         </md-tab>
       </div>
+
+      <!-- Issues Tab -->
+
+      <div *ngIf="hasPermissionGuard.canActivate('app:mainmenu:issues')">
+        <md-tab>
+          <ng-template md-tab-label>Issues</ng-template>
+          <p2-table [config]="issuesTabClass.getConfig()"
+                    [rxservice]="issuesService">
+          </p2-table>
+        </md-tab>
+      </div>
+
 
     </md-tab-group>
 
