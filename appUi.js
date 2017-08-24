@@ -172,7 +172,19 @@ AppUi.prototype.init = function (opts) {
         role: 'master'
       };
       self.app.engine('html', require('ejs').renderFile);
-      self.app.use(errorHandler());
+
+//      self.app.use(function (req, res, next) {
+//        console.log('IN MY FUNC');
+//        next(new Error('TEST errorHandler'));
+//      });
+
+      self.app.use(errorHandler({
+        html: function (error, req, res, next) {
+          console.error('errorHandler html error:', error);
+          self.app.report_issue(error);
+          next();
+        }
+      }));
 
       ///////////////////////////////////////////
 

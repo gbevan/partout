@@ -1,5 +1,7 @@
 
-import { Component, Input, OnInit } from '@angular/core';
+import { Component,
+         Input,
+         OnChanges } from '@angular/core';
 import * as _ from 'lodash';
 
 const debug = require('debug').debug('partout:bucketschart');
@@ -27,15 +29,15 @@ const debug = require('debug').debug('partout:bucketschart');
 .chart {
   display: block;
   height: 150px;
-  width: 350px;
+  width: 400px;
 }
 `]
 })
 
-export class BucketsChartComponent {
+export class BucketsChartComponent implements OnChanges {
 
   @Input() title: string;
-  @Input() bucketsChartData: any[];
+  @Input() bucketsChartData: any = [];
   @Input() bucketsChartLabels: string[] = [];
 
   private bucketsChartType: string = 'bar';
@@ -51,6 +53,10 @@ export class BucketsChartComponent {
 
 //  ngOnInit() {
 //  }
+
+  ngOnChanges() {
+    debug('BucketsChartComponent changed');
+  }
 
   chartClicked($event) {
     console.log('chart clicked');
