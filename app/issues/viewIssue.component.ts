@@ -1,7 +1,9 @@
 import { Component,
          Input,
-         OnInit } from '@angular/core';
+         OnInit,
+         OnDestroy } from '@angular/core';
 import { MdDialogRef } from '@angular/material';
+import { Subscriber } from 'rxjs';
 import * as _ from 'lodash';
 
 import { IssuesService,
@@ -24,10 +26,12 @@ const html = require('./viewIssue.template.html');
   `]
 })
 
-export class ViewIssueComponent implements OnInit {
+export class ViewIssueComponent implements OnInit, OnDestroy {
   private issue: any = {};
   private hourlyLabels: string[] = [];
   private hourlyValues: any = [];
+
+  private subscriber: Subscriber<any>;
 
   constructor(
     private dialogRef: MdDialogRef<ViewIssueComponent>,
@@ -52,7 +56,13 @@ export class ViewIssueComponent implements OnInit {
 
   setIssue(issue: any) {
     debug('setIssue() issue:', issue);
-    this.issuesService
+
+    if (this.subscriber) {
+      // prevent subscription leaks
+      this.subscriber.unsubscribe();
+    }
+
+    this.subscriber = this.issuesService
     .get(issue.id)
     .subscribe((s_issue) => {
       this.issue = s_issue;
@@ -67,6 +77,13 @@ export class ViewIssueComponent implements OnInit {
     (err) => {
       console.error('viewissue subscribe err:', err);
     });
+  }
+
+  ngOnDestroy() {
+    if (this.subscriber) {
+      // prevent subscription leaks
+      this.subscriber.unsubscribe();
+    }
   }
 
 }
