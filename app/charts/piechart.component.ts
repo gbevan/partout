@@ -62,11 +62,12 @@ export class PieChartComponent {
     })
     .subscribe(
       (data) => {
-        if (data && data.length > 0) {
-          this.dataPresent = true;
-        } else {
-          this.dataPresent = false;
-        }
+        this.dataPresent = (data && data.length > 0);
+//        if (data && data.length > 0) {
+//          this.dataPresent = true;
+//        } else {
+//          this.dataPresent = false;
+//        }
         const to = data
         .map((x) => {
           return _.get(x, this.field);

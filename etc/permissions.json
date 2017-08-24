@@ -41,6 +41,12 @@
     "name": "permissions",
     "description": "Main Menu Permissions"
   },
+  {
+    "type": "app",
+    "subtype": "mainmenu",
+    "name": "issues",
+    "description": "Main Menu Issues"
+  },
 
   {
     "type": "app",
@@ -145,6 +151,21 @@
     "name": "permissions",
     "access": "RW",
     "description": "Service: Permissions - Read / Write"
+  },
+
+  {
+    "type": "app",
+    "subtype": "service",
+    "name": "issues",
+    "access": "R",
+    "description": "Service: Issues - Read Only"
+  },
+  {
+    "type": "app",
+    "subtype": "service",
+    "name": "issues",
+    "access": "RW",
+    "description": "Service: Issues - Read / Write"
   }
 
 ]
