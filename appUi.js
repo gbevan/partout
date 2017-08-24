@@ -146,8 +146,9 @@ AppUi.prototype.init = function (opts) {
     .configure(services(function (err, orm) {
       debug('services cb');
 
+      // Create issue reporter for collection into db/ui
       const issues = new Issues(self.app);
-      self.app.report_issue = issues.report_issue.bind(issues);
+      self.report_isssue = self.app.report_issue = issues.report_issue.bind(issues);
 
       self.app
       //.use(express.static('public')); // /assets, /css. etc

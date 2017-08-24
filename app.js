@@ -399,20 +399,24 @@ class App {
           process.on('uncaughtException', (err) => {
             const errstr = 'app: Uncaught Exception err: ' + err;
             console.error(errstr);
-            self.appUi.report_issue(new Error(errstr));
+            if (self.report_issue) {
+              self.report_issue(new Error(errstr));
+            }
           });
 
           process.on('unhandledRejection', (reason, p) => {
             const err = 'app: Unhandled Rejection at: Promise: ' + p + 'reason: ' + reason;
             console.error(err);
-            self.appUi.report_issue(new Error(err));
+            if (self.report_issue) {
+              self.report_issue(new Error(err));
+            }
           });
 
           /****************************
            * Start Master API Server
            */
           self.appApi = new AppApi(opts, self.appUi);
-          self.appApi.report_issue = self.appUi.report_issue;
+          self.appApi.report_issue = self.report_issue;
 
           debug('before loadPermissions');
           return self.loadPermissions()
