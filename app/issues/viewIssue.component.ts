@@ -20,10 +20,16 @@ const html = require('./viewIssue.template.html');
   styles: [`
 .message {
   color: red;
-  font-size: 120%;
+  font-family: monospaced;
+  font-size: 80%;
+  line-height: normal;
   margin-bottom: 10px;
+  white-space: pre-wrap;
 }
-  `]
+.stack {
+  font-size: 80%;
+}
+`]
 })
 
 export class ViewIssueComponent implements OnInit, OnDestroy {
