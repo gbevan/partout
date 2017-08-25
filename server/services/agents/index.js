@@ -70,9 +70,7 @@ class AgentsService extends service.Service {
     .populate('environment')
     .then((instance) => {
       if (!instance) {
-        debug('app:', self.app);
-//        consself.app.report_issue(errors.NotFound(`No record found for id '${id}'`));
-        throw self.app.report_issue(new errors.NotFound(`No record found for agent uuid '${id}', perhaps the agent needs re-registering.`));
+        throw new errors.NotFound(`No record found for agent uuid '${id}', perhaps the agent needs re-registering.`);
       }
 
       return instance;

@@ -1,16 +1,21 @@
-<h1>View Issue Detail:</h1>
+<div md-dialog-title>
+  <h1>View Issue Detail:</h1>
 
-<div class="message">{{ issue.message }}</div>
-<hr>
-<div>
-  <buckets-chart title="Hourly Distribution"
-                 [bucketsChartData]="hourlyValues"
-                 [bucketsChartLabels]="hourlyLabels"></buckets-chart>
+  <div class="message">{{ issue.message }}</div>
 </div>
 
-<div>Total Count: {{ issue.count }}</div>
+<md-dialog-content>
+  <hr>
+  <div>
+    <buckets-chart title="Hourly Distribution"
+                   [bucketsChartData]="hourlyValues"
+                   [bucketsChartLabels]="hourlyLabels"></buckets-chart>
+  </div>
 
-<hr>
-<h4>Stack Trace:</h4>
-<pre>{{ issue.stack }}</pre>
-<hr>
+  <div>Total Count: {{ issue.count }}</div>
+
+  <hr>
+  <h4>Stack Trace:</h4>
+    <pre class="stack">{{ issue.stack }}</pre>
+  <hr>
+</md-dialog-content>

@@ -19,7 +19,12 @@ export class IssuesTabClass {
         title: 'Message',
         styles: {
           'font-size': '120%',
-          'color': 'red'
+          'color': 'red',
+          'line-height': 'normal',
+          'text-align': 'left',
+          'padding-top': '10px',
+          'padding-bottom': '10px',
+          'white-space': 'pre-wrap'
         },
         action: (id) => { this.viewIssue(id); }
       },
