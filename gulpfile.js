@@ -157,7 +157,10 @@ gulp.task('karma', function (done) {
 
 gulp.task('docs', function (cb) {
   del(['./jsdocs/**']);
-  gulp.src(['./app.js', 'lib/**/*.js', 'etc/**/*.p2', './README.md'])
+  gulp.src([
+    './app.js', 'lib/**/*.js',
+    'docs/*.md', './README.md'
+  ])
   .pipe(jsdoc(
     {
       opts: {
@@ -177,6 +180,10 @@ gulp.task('docs', function (cb) {
         "navType": "vertical",
         "linenums": true,
         "dateFormat": "MMMM Do YYYY, h:mm:ss a"
+      },
+      "source": {
+        "includePattern": ".+\\.(js|p2|md)$",
+        "excludePattern": "node_modules"
       }
     },
     cb
