@@ -1,9 +1,27 @@
 {
   "name": "partout",
+  "description": "A pure Javascript/Node.js DevOps Data and Event Driven Policy Based Configuration Management tool for the Internet of Everything",
   "version": "0.1.0",
   "license": "GPL-3.0",
   "scripts": {
     "start": "node ./bin/partout"
+  },
+  "keywords": [
+    "Partout",
+    "DevOps",
+    "Infrastructure",
+    "Node",
+    "Nodejs",
+    "javascript",
+    "agent",
+    "dsl",
+    "arangodb"
+  ],
+  "author": "Graham Lee Bevan <graham.bevan@ntlworld.com> (https://github.com/gbevan)",
+  "homepage": "https://github.com/partoutx/partout",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/partoutx/partout.git"
   },
   "dependencies": {
     "@angular/animations": "^4.3.5",

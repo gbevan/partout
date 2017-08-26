@@ -15,16 +15,15 @@ Features
 * Integration with operating system provided real-time notification of file system object changes (e.g. linux inotify) to trigger re-scan against policy - real-time repair...
 * Policy files compile to native machine code at runtime (expressed as a DSL in Javascript under Node.js - imagine puppet/chef meets d3.js).
 
-Master Platforms
-----------------
+Master Platform
+---------------
 
 Currently supporting:
 * Linux
 
 ### Prerequisites
 * Node.js v6 or above - see https://nodejs.org/en/download/
-* ArangoDB (master only) - see https://www.arangodb.com/download/. For an up to date Gentoo ebuild use overlay https://github.com/gbevan/portage-arangodb-overlay - the current version being used in development is now version 3.0.*
-* ~~[gbevan/sails-arangodb](https://github.com/gbevan/sails-arangodb/tree/D20170129_fix_nongraph_joins) - this fork and branch is in progress.  Partout currently will only work with this version.  The tracking pull request can be viewed [here](https://github.com/gabriel-letarte/sails-arangodb/pull/22).~~
+* ArangoDB (master only) - see https://www.arangodb.com/download/. For an up to date Gentoo ebuild use overlay https://github.com/gbevan/portage-arangodb-overlay - the current version being used in development is now version 3.2.*
 
 Agent Platforms
 ---------------
