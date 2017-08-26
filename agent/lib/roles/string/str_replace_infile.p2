@@ -54,19 +54,39 @@ p2
  */
 .role('str_replace_infile', {
   p2: function (title, opts) {
-    return pfs.pReadFile(title, 'utf8')
-    .then(function (contents) {
-      var newcontents = contents.replace(opts.regex, opts.with);
-      if (newcontents !== contents) {
-//        console.log('newcontents:', newcontents);
-        return pfs.pWriteFile(title, newcontents)
-        .then(function () {
-          return Q({result: 'changed'});
+    var _watch_state = (opts.watch ? true : p2._watch_state);
+
+    var replace_infile = function () {
+      return pfs.pReadFile(title, 'utf8')
+      .then(function (contents) {
+        var newcontents = contents.replace(opts.regex, opts.with);
+        if (newcontents !== contents) {
+  //        console.log('newcontents:', newcontents);
+          return pfs.pWriteFile(title, newcontents)
+          .then(function () {
+            return Q({result: 'changed'});
+          });
+        }
+        return Q.resolve();
+      });
+    };
+
+    return replace_infile()
+    .then(function (res) {
+      if (_watch_state && global.p2_agent_opts.daemon) {
+        p2.P2_watch(title, function (next_event_cb) { // watch_action_fn from P2_watch()
+          utils.dlog('-Watcher Triggered>>>--------------------------------');
+          utils.dlog('watcher triggered. file:', title, 'this:', this);
+
+          replace_infile()
+          .then(function () {
+            next_event_cb();
+          });
         });
       }
-      return Q.resolve();
-    })
-    ;
+
+      return Q(res);
+    });
   }
 })
 ;

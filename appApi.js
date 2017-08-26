@@ -87,6 +87,7 @@ var AppApi = function (opts, appUi) {
 
 
   self.app.opts = opts;
+  self.report_issue = self.app.report_issue = appUi.report_issue;
 
   self.app
   .use(compression())
