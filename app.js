@@ -395,6 +395,7 @@ class App {
         self.appUi = new AppUi();
         return self.appUi.init(opts)
         .then(() => {
+          self.report_issue = self.appUi.report_issue;
 
           process.on('uncaughtException', (err) => {
             const errstr = 'app: Uncaught Exception err: ' + err;
@@ -416,7 +417,7 @@ class App {
            * Start Master API Server
            */
           self.appApi = new AppApi(opts, self.appUi);
-          self.appApi.report_issue = self.report_issue;
+//          self.appApi.report_issue = self.report_issue;
 
           debug('before loadPermissions');
           return self.loadPermissions()
