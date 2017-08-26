@@ -46,7 +46,7 @@ var NetDep = function () {
 
 NetDep.prototype.parse_ipaddr = function (o) {
   var self = this,
-      nicRe = /^\d+:\s+(\w+):.*$/,
+      nicRe = /^\d+:\s+([a-zA-Z0-9\-_]+):.*$/,
       inetRe = /^\s+inet\s+(\d+\.\d+\.\d+\.\d+).*$/,
       inet6Re = /^\s+inet6\s+([:0-9a-z]+)\/.*$/,
       currentNic = '';
@@ -213,7 +213,15 @@ NetDep.prototype.parse_lsof = function (o) {
               self.buckets[hour][ipversion][ip].listeners[proto][conn_from_port] = {connections: {}};
             });
           } else {
-            self.buckets[hour][ipversion][conn_from_ip].listeners[proto][conn_from_port] = {connections: {}};
+            if (self.buckets[hour][ipversion][conn_from_ip]) {
+              self.buckets[hour][ipversion][conn_from_ip].listeners[proto][conn_from_port] = {connections: {}};
+            } else {
+              console.error('Error: bucket missing: hour:', hour,
+                            'ipversion:', ipversion,
+                            'conn_from_ip:', conn_from_ip,
+                            'maybe the NIC wasn\'t extracted from ip addr, check nicRe in parse_ipaddr()');
+            }
+
           }
 
         } else if (phase === 'connections' && state.match(/.*ESTABLISHED.*/)) {
