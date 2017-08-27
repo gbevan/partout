@@ -117,6 +117,8 @@ var Package = P2M.Module(module.filename, function () {
             });
             deferred.resolve({result: (err ? 'failed' : 'changed')});
           });
+        } else {
+          deferred.resolve();
         }
 
       } else if (opts.ensure.match(/^(absent|purged)$/)) {
