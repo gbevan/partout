@@ -89,6 +89,7 @@ utils.pIsAdmin()
       p2Test.runP2Str(
         heredoc.strip(function () {/*
         p2
+        .package('ntp')
         .service('ntp', {
           enabled: false,
           ensure: 'stopped'

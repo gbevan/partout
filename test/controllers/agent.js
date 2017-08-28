@@ -33,8 +33,8 @@ var cfg = new (require('../../etc/partout.conf.js'))(),
     Agent = require('../../server/controllers/agent.js'),
     Q = require('q');
 
-global.should = require('should');
-should.extend();
+var should = require('should');
+//should.extend();
 
 Q.longStackSupport = true;
 

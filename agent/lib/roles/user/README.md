@@ -19,5 +19,5 @@ Platform Support (i.e. tested on):
 | Platform/OS | Support Status | Unit Tests |
 |:------------|:--------------:|:----------:|
 | Linux/all   | &#x2713;       | &#x2713;   |
-| Windows/10  | &#x2718;       | &#x2718;   |
+| Windows/10  | &#x2713;       | &#x2713;   | (tested for local acc's only)
 | Pi/Raspbian jessie  | &#x2713; | &#x2713; |

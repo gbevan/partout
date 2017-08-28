@@ -60,6 +60,8 @@ else
   curl --silent --location https://rpm.nodesource.com/setup_4.x | bash -
   yum -y install nodejs
   npm install --global gulp-cli
+  echo "# fixed for tty spawn loop" > /etc/init/tty.conf
+  reboot
 EOF
 fi
 
@@ -93,12 +95,12 @@ else
   lxc config device add p-gentoo passwd disk path=/opt/partout/passwd-group-obj source=/home/bev/Documents/Brackets/passwd-group-obj
   sleep $WAITFORNET
   lxc exec p-gentoo bash <<EOF
-  echo "net-libs/nodejs" >> /etc/portage/package.keywords
+#  echo "net-libs/nodejs" >> /etc/portage/package.keywords
   emerge -v nodejs --autounmask-write y
   etc-update <<EEOF
   -5
 EEOF
-  USE="-bindist" emerge -v openssl openssh nodejs
+  USE="-bindist" emerge -v openssl openssh nodejs vim eix
   npm install --global gulp-cli
 EOF
 fi
@@ -122,6 +124,8 @@ else
   curl --silent --location https://rpm.nodesource.com/setup_4.x | bash -
   yum -y install nodejs
   npm install --global gulp-cli
+  echo "# fixed for tty spawn loop" > /etc/init/tty.conf
+  reboot
 EOF
 fi
 
@@ -149,14 +153,16 @@ if
 then
   :
 else
-  echo ">>>>>>> Launching opensuse132"
-  lxc launch images:opensuse/13.2/amd64 p-opensuse132 --config security.privileged=1
-  lxc config device add p-opensuse132 partout disk path=/opt/partout/agent source=/home/bev/Documents/Brackets/partout/agent
-  lxc config device add p-opensuse132 passwd disk path=/opt/partout/passwd-group-obj source=/home/bev/Documents/Brackets/passwd-group-obj
+  echo ">>>>>>> Launching opensuse423"
+  lxc launch images:opensuse/42.3/amd64 p-opensuse423 --config security.privileged=1
+  lxc config device add p-opensuse423 partout disk path=/opt/partout/agent source=/home/bev/Documents/Brackets/partout/agent
+  lxc config device add p-opensuse423 passwd disk path=/opt/partout/passwd-group-obj source=/home/bev/Documents/Brackets/passwd-group-obj
   sleep $WAITFORNET
-  lxc exec p-opensuse132 bash <<EOF
-  zypper ar http://download.opensuse.org/repositories/devel:/languages:/nodejs/openSUSE_13.1/ Node.js
-  zypper --no-gpg-checks --non-interactive in -l -f  nodejs nodejs-devel
+  lxc exec p-opensuse423 bash <<EOF
+#  zypper ar http://download.opensuse.org/repositories/devel:/languages:/nodejs/openSUSE_13.1/ Node.js
+#  zypper --no-gpg-checks --non-interactive in -l -f  nodejs nodejs-devel
+  zypper --no-gpg-checks --non-interactive install -l -f nodejs4
+  npm config set strict-ssl false
   npm install --global gulp-cli
 EOF
 fi

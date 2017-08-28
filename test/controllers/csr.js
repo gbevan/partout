@@ -31,8 +31,8 @@ var cfg = new (require('../../etc/partout.conf.js'))(),
     Csr = require('../../server/controllers/csr.js'),
     Q = require('q');
 
-global.should = require('should');
-should.extend();
+var should = require('should');
+//should.extend();
 
 Q.longStackSupport = true;
 

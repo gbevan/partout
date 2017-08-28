@@ -36,8 +36,8 @@ var assert = require('assert'),
   path = require('path'),
   os = require('os');
 
-global.should = require('should');
-should.extend();
+var should = require('should');
+//should.extend();
 
 Q.longStackSupport = true;
 

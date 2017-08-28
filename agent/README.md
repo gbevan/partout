@@ -127,7 +127,7 @@ an appropriate implementation to sync from the master to the agent, in folder:
 Open Node shell window as Administrator
 
 ```msdos
-net use P: \\your-server\partout_agent
+net use P: \\your-server\partout_agent /user:guest
 P:
 node bin\partout-agent --debug
 ```
