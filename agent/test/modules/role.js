@@ -38,13 +38,12 @@ var Q = require('q'),
     heredoc = require('heredoc'),
     p2Test = require('../../lib/p2_test');
 
-global.should = require('should');
-should.extend();
+var should = require('should');
 
 Q.longStackSupport = true;
 
 // Simulate commandline options --verbose, --debug and --timing
-global.partout = {opts: {verbose: false, debug: true, timing: false}};
+global.partout = {opts: {verbose: false, debug: false, timing: false}};
 
 
 describe('Module role', function () {

@@ -37,8 +37,7 @@ var Q = require('q'),
     os = require('os'),
     p2Test = require('../../lib/p2_test');
 
-global.should = require('should');
-should.extend();
+var should = require('should');
 
 Q.longStackSupport = true;
 

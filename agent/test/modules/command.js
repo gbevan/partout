@@ -38,8 +38,7 @@ var Q = require('q'),
     p2Test = require('../../lib/p2_test'),
     heredoc = require('heredoc');
 
-global.should = require('should');
-should.extend();
+var should = require('should');
 
 Q.longStackSupport = true;
 Q.onerror = function (err) {

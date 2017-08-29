@@ -44,8 +44,7 @@ if (process.platform === 'linux') {
   PUser = require('passwd-group-obj').PUser;
 }
 
-global.should = require('should');
-should.extend();
+var should = require('should');
 
 Q.longStackSupport = true;
 

@@ -12,8 +12,6 @@ Q.longStackSupport = true;
 var Cfg = function () {
   var self = this;
 
-  //console.log('global:', u.inspect(global, {colors: true, depth: 1}));
-
   //self.partout_master_hostname = 'officepc.net';
   self.partout_master_hostname = '192.168.0.64';
   self.partout_master_port = 10443;
@@ -32,7 +30,7 @@ var Cfg = function () {
       throw new Error('Unsupported version of Windows');
     }
   } else {
-    if (global.INMOCHA) {
+    if (process.env.NODE_ENV === 'test') {
       self.PARTOUT_VARDIR = '/tmp/var/opt/partout';
     } else {
       self.PARTOUT_VARDIR = '/var/opt/partout';
@@ -71,7 +69,7 @@ var Cfg = function () {
       oldenv = fs.readFileSync(self.PARTOUT_AGENT_ENVIRONMENT_FILE).toString().trim();
     }
 
-    if (optenv && !global.INMOCHA) {
+    if (optenv && process.env.NODE_ENV === 'production') {
 
       if (!stat || oldenv !== optenv) {
         try {

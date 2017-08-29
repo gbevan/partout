@@ -39,9 +39,7 @@ var Q = require('q'),
     console = require('better-console'),
     heredoc = require('heredoc');
 
-
-global.should = require('should');
-should.extend();
+var should = require('should');
 
 Q.longStackSupport = true;
 
