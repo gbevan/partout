@@ -4,4 +4,11 @@
 /*global p2*/
 p2
 .logmsg('Hello World!')
+
+// prereqs for partout itself
+.package('lsof', {
+  onlyif: function(f) {
+    return f.platform !== 'win32';
+  }
+})
 ;

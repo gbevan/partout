@@ -44,8 +44,7 @@ if (process.platform === 'linux') {
   PUser = require('passwd-group-obj').PUser;
 }
 
-global.should = require('should');
-should.extend();
+var should = require('should');
 
 Q.longStackSupport = true;
 
@@ -166,6 +165,7 @@ utils.pIsAdmin()
           this.timeout(20000);
           p2Test.runP2Str(
             'p2\n' +
+            //'.user(\'{{{ newUser }}}\', {ensure: \'absent\'})\n',
             '.user(\'{{{ newUser }}}\')',
             {
               newUser: newUser
@@ -183,6 +183,7 @@ utils.pIsAdmin()
 
             return utils.runPs('Get-WmiObject -Class Win32_UserAccount | ConvertTo-Json -compress')
             .then(function (res) {
+              console.log('create user res:', res);
               var rc = res[0],
                   stdout = res[1],
                   stderr = res[2],

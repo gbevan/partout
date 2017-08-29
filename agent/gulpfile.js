@@ -1,6 +1,5 @@
 /*jslint browser: true, node: true, vars: true*/
 'use strict';
-global.INMOCHA = true;
 
 var gulp = require('gulp'),
     mocha = require('gulp-mocha'),
@@ -19,12 +18,15 @@ var gulp = require('gulp'),
     watch = require('gulp-watch'),
     batch = require('gulp-batch');
 
-var env = process.env.NODE_ENV || 'development';
-console.log('Invoking gulp -', env);
+var env = process.env.NODE_ENV = process.env.NODE_ENV || 'development';
 
 Q.longStackSupport = true;
 
 var filter_files = filter(['**', '!**/files/*']);  // prevent test files from executing by gulp as tests in themselves
+
+if (os.platform() === 'win32') {
+  process.env.PATH += ';.\\node_modules\\mocha\\bin;.\\node_modules\\.bin\\';
+}
 
 gulp.task('default', function () {
   plugins.nodemon({
@@ -36,53 +38,54 @@ gulp.task('default', function () {
 });
 
 gulp.task('mocha1', function () {
+  process.env.NODE_ENV = 'test';
   var localStatus = 'OK';
   return gulp.src(['test/**/*.js'], { read: false })
   .pipe(filter_files)
   .pipe(mocha({
     reporter: 'spec',
-    globals: {
-      should: require('should').noConflict()
-    }
-//    globals: ['INMOCHA']
+//    globals: {
+//      should: require('should').noConflict()
+//    },
   }));
 });
 
 gulp.task('package_winfeature', function () {
+  process.env.NODE_ENV = 'test';
   var localStatus = 'OK';
   return gulp.src(['test/modules/package_winfeature.js'], { read: false })
   .pipe(filter_files)
   .pipe(mocha({
     reporter: 'spec',
-    globals: {
-      should: require('should').noConflict()
-    }
-//    globals: ['INMOCHA']
+//    globals: {
+//      should: require('should').noConflict()
+//    }
   }));
 });
 
 gulp.task('powershell', function () {
+  process.env.NODE_ENV = 'test';
   var localStatus = 'OK';
   return gulp.src(['test/modules/powershell.js'], { read: false })
   .pipe(filter_files)
   .pipe(mocha({
     reporter: 'spec',
-    globals: {
-      should: require('should').noConflict()
-    }
-//    globals: ['INMOCHA']
+//    globals: {
+//      should: require('should').noConflict()
+//    }
   }));
 });
 
 gulp.task('mocha', function () {
+  process.env.NODE_ENV = 'test';
   var localStatus = 'OK';
   return gulp.src(['test/**/*.js'], { read: false })
   .pipe(filter_files)
   .pipe(mocha({
     reporter: 'spec',
-    globals: {
-      should: require('should').noConflict()
-    }
+//    globals: {
+//      should: require('should').noConflict()
+//    }
   }))
 
   .once('error', function () {

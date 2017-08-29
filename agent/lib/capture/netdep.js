@@ -270,6 +270,11 @@ NetDep.prototype.start = function () {
   this.init_buckets();
 //  console.log('NetDep starting, buckets:', this.buckets);
 
+  // TODO: support windows via netstat?
+  if (os.platform() === 'win32') {
+    return;
+  }
+
   var intvl = setInterval(function () {
 
     if (self.buckets.datetime.toDateString() !== (new Date()).toDateString()) {
@@ -281,6 +286,10 @@ NetDep.prototype.start = function () {
       return pfs.pExists(LSOF);
     })
     .then(function (exists) {
+      if (!exists) {
+        console.error(`${LSOF} not found, network dependencies cant be collected`);
+        return;
+      }
       var lsof = spawn(LSOF, ['-nP', '-i']),
           lsof_output = '';
 

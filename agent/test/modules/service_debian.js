@@ -39,9 +39,7 @@ var Q = require('q'),
     console = require('better-console'),
     heredoc = require('heredoc');
 
-
-global.should = require('should');
-should.extend();
+var should = require('should');
 
 Q.longStackSupport = true;
 
@@ -89,6 +87,7 @@ utils.pIsAdmin()
       p2Test.runP2Str(
         heredoc.strip(function () {/*
         p2
+        .package('ntp')
         .service('ntp', {
           enabled: false,
           ensure: 'stopped'

@@ -111,6 +111,7 @@ p2
 
     } else if (p2.facts.platform === 'win32') {
       var psVer = parseFloat(p2.facts.PSVersion.Major + '.' + p2.facts.PSVersion.Minor);
+      console.log('title:', title);
       console.log('psVer:', psVer);
 
       if (psVer < 5.1) {
@@ -119,26 +120,42 @@ p2
 
       if (opts.ensure === 'present') {
         p2
-        .lambda('Ensure user exists', function (f, opts) {
-
-//          var puser = new PUser(opts);
-//
-//          puser.name = title;
-//
-//          if (!passwd[title]) {
-//            return passwd.$addUser(puser);
-//          } else {
-//            opts.name = title;
-//            delete opts.ensure;
-//            var u_pass = new PUser(opts);
-//            return passwd[title].$set(u_pass);
-//          }
-        });
+        .powershell(p2.heredoc(function () {/*
+          # powershell
+          $Computername = $env:COMPUTERNAME
+          $ADSIComp = [adsi]"WinNT://$Computername"
+          $Username = '{{{ opts.parms.user }}}'
+          $NewUser = $ADSIComp.Create('User', $Username)
+          $NewUser.SetInfo()
+        */}), {
+          parms: {
+            user: title
+          }
+        }, function (rc, stdout, stderr) {
+          console.log('rc:', rc);
+          console.log('stdout:', stdout);
+          console.log('stderr:', stderr);
+        })
+        ;
 
       } else if (opts.ensure === 'absent') {
-//        if (passwd[title]) {
-//          return passwd[title].$delete();
-//        }
+        p2
+        .powershell(p2.heredoc(function () {/*
+          # powershell
+          $Computername = $env:COMPUTERNAME
+          $ADSIComp = [adsi]"WinNT://$Computername"
+          $Username = '{{{ opts.parms.user }}}'
+          $ADSIComp.Delete('User', $Username)
+        */}), {
+          parms: {
+            user: title
+          }
+        }, function (rc, stdout, stderr) {
+          console.log('rc:', rc);
+          console.log('stdout:', stdout);
+          console.log('stderr:', stderr);
+        })
+        ;
       }
 
     }

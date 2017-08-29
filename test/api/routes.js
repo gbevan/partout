@@ -39,8 +39,8 @@ var assert = require('assert'),
     u = require('util');
   //utils = new (require('../agent/lib/utils'))();
 
-global.should = require('should');
-should.extend();
+var should = require('should');
+//should.extend();
 
 Q.longStackSupport = true;
 Q.onerror = function (err) {
