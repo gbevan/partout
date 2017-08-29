@@ -91,7 +91,8 @@ utils.pIsAdmin()
         .service('ntp', {
           enabled: false,
           ensure: 'stopped'
-        });
+        })
+        .sleep(30);
         */}),
         {}
       )
@@ -125,7 +126,8 @@ utils.pIsAdmin()
         .service('ntp', {
           enabled: false,
           ensure: 'running'
-        });
+        })
+        .sleep(30);
         */}),
         {}
       )
@@ -159,7 +161,8 @@ utils.pIsAdmin()
         .service('ntp', {
           enabled: false,
           ensure: 'stopped'
-        });
+        })
+        .sleep(30);
         */}),
         {}
       )
