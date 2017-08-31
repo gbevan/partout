@@ -113,13 +113,13 @@ gulp.task('watch', function () {
 gulp.task('default', ['watch', 'webpack']);
 
 gulp.task('mocha', function () {
-  global.INMOCHA = true;
+  process.env.NODE_ENV = 'test';
   return gulp.src(['test/**/*.js'], { read: false })
   .pipe(mocha({
     reporter: 'spec',
-    globals: {
-      should: require('should').noConflict()
-    }
+//    globals: {
+//      should: require('should').noConflict()
+//    }
   }));
 });
 

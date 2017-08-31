@@ -13,9 +13,11 @@ var Cfg = function () {
   self.partout_ui_port = 11443;
   self.partout_api_port = 10443;
 
+  self.token = { secret: 'SECRET' };  // put a random hash secret here
+
   //console.log('env:', process.env.NODE_ENV);
 
-  if (global.INMOCHA) {
+  if (process.env.NODE_ENV === 'test') {
     self.database_name = 'partout-test';
   } else {
     self.database_name = 'partout';
@@ -51,8 +53,8 @@ var Cfg = function () {
   self.em_threshold_mod = 2000;
   self.em_threshold_uuid = 5000;
 
-  self.GITHUB_CLIENT_ID = "--insert-github-client-id-here--";
-  self.GITHUB_CLIENT_SECRET = "--insert-github-client-secret-here--";
+//  self.GITHUB_CLIENT_ID = "--insert-github-client-id-here--";
+//  self.GITHUB_CLIENT_SECRET = "--insert-github-client-secret-here--";
 
   self.MANIFESTDIR = 'etc/manifest';
   self.DEFAULT_ENVIRONMENT = 'default';

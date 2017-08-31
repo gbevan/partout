@@ -11,6 +11,7 @@
   "dimitrk.exclude-indexing-filetree.excludeList": [
     ".git(?!ignore)",
     "dist",
+    "jsdocs",
     "bower_components",
     "node_modules"
   ]
