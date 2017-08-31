@@ -16,7 +16,8 @@ var gulp = require('gulp'),
     printf = require('printf'),
     os = require('os'),
     watch = require('gulp-watch'),
-    batch = require('gulp-batch');
+    batch = require('gulp-batch'),
+    spawn = require('child_process').spawn;
 
 var env = process.env.NODE_ENV = process.env.NODE_ENV || 'development';
 
@@ -37,17 +38,15 @@ gulp.task('default', function () {
   });
 });
 
-gulp.task('mocha1', function () {
+gulp.task('mocha1', function (done) {
   process.env.NODE_ENV = 'test';
-  var localStatus = 'OK';
-  return gulp.src(['test/**/*.js'], { read: false })
-  .pipe(filter_files)
-  .pipe(mocha({
-    reporter: 'spec',
-//    globals: {
-//      should: require('should').noConflict()
-//    },
-  }));
+  var cp = spawn('node_modules/.bin/nyc', [
+    'node_modules/.bin/mocha',
+    'test/**/*.js'
+  ], {stdio: 'inherit'});
+  cp.on('close', (rc) => {
+    done(rc === 0 ? null : new Error('mocha failed rc=' + rc));
+  });
 });
 
 gulp.task('package_winfeature', function () {

@@ -6,3 +6,5 @@
 /jsdocs/
 /.vagrant/
 /npm-debug.log
+/.nyc_*/
+/coverage/

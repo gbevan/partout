@@ -17,7 +17,8 @@ var gulp = require('gulp'),
     spawn = require('child_process').spawn,
     sourcemaps = require('gulp-sourcemaps'),
     v8 = require('v8'),
-    Server = require('karma').Server;
+    Server = require('karma').Server,
+    stopper = require('karma').stopper;
 
 //v8.setFlagsFromString('--trace_gc');
 //v8.setFlagsFromString('--max_old_space_size=2048');
@@ -112,15 +113,15 @@ gulp.task('watch', function () {
 
 gulp.task('default', ['watch', 'webpack']);
 
-gulp.task('mocha', function () {
-  global.INMOCHA = true;
-  return gulp.src(['test/**/*.js'], { read: false })
-  .pipe(mocha({
-    reporter: 'spec',
-    globals: {
-      should: require('should').noConflict()
-    }
-  }));
+gulp.task('mocha', function (done) {
+  process.env.NODE_ENV = 'test';
+  var cp = spawn('node_modules/.bin/nyc', [
+    'node_modules/.bin/mocha',
+    'test/**/*.js'
+  ], {stdio: 'inherit'});
+  cp.on('close', (rc) => {
+    done(rc === 0 ? null : new Error('mocha failed rc=' + rc));
+  });
 });
 
 gulp.task('watch-mocha', function () {
@@ -149,10 +150,20 @@ gulp.task('watch-mocha', function () {
 
 // Karma / Jasmine
 gulp.task('karma', function (done) {
-  new Server({
+  const server = new Server({
     configFile: __dirname + '/karma.conf.js',
     singleRun: true
-  }, done).start();
+  });
+
+  server.on('run_complete', (browsersCollection, results) => {
+    console.info('karma server run complete, stopping... results:', results);
+    stopper.stop({ port: 9876 });
+
+    const exitCode = results.exitCode;
+    done(exitCode === 0 ? null : new Error('Karma failed rc=' + exitCode));
+  });
+
+  server.start();
 });
 
 gulp.task('docs', function (cb) {

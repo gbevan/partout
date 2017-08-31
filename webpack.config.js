@@ -21,6 +21,12 @@ module.exports = {
     rules: [
       // all files with a `.ts` or `.tsx` extension will be handled by `ts-loader`
       { test: /\.tsx?$/, loader: 'ts-loader' },
+      {
+        test: /app\/.+\.ts$/,
+        exclude: /(node_modules|\.spec\.ts$)/,
+        loader: 'istanbul-instrumenter-loader',
+        enforce: 'post'
+      },
       { test: /\.js$/, exclude: /node_modules/, loader: 'babel-loader' },
       {
         test: /\.s?css$/,
