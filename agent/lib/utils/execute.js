@@ -195,7 +195,7 @@ UtilsExecute.prototype.runCmd = function (shellcmd, options, resolve_to_childpro
   args.push(shellcmd);
 
   return self.pSpawn(
-    (self.isWin() ? 'cmd' : 'sh'),
+    (self.isWin() ? 'cmd.exe' : '/bin/sh'),
     args,
     options,
     resolve_to_childprocess

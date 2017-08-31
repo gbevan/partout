@@ -31,7 +31,8 @@ module.exports = function(config) {
       'node_modules/hammerjs/hammer.min.js',
 //      'dist/bundle.js.map',
 //      { pattern: 'dist/test.bundle.js', watched: false }
-      { pattern: 'test/spec/*.ts', watched: false }
+//      { pattern: 'test/spec/*.ts', watched: false }
+      'app/main.spec.ts'
     ],
 
 
@@ -46,7 +47,9 @@ module.exports = function(config) {
 //      'dist/test.bundle.js': ['webpack', 'sourcemap', 'inject-html'],
 //      'dist/test.bundle.js': ['webpack', 'sourcemap'],
 //      'test/spec/**/*.ts': ['babel']
-      'test/spec/*.ts': ['webpack', 'sourcemap'] //, 'inject-html']
+//      'test/spec/*.ts': ['webpack', 'sourcemap'] //, 'inject-html']
+      'app/main.spec.ts': ['webpack', 'sourcemap'],
+      'app/**/!(*spec).ts': ['coverage']
     },
 
     injectHtml: {
@@ -54,16 +57,30 @@ module.exports = function(config) {
     },
 
     webpack: webpackConfig,
+    webpackMiddleware: {
+      noInfo: true,
+      stats: 'errors-only'
+    },
 
     // test results reporter to use
     // possible values: 'dots', 'progress'
     // available reporters: https://npmjs.org/browse/keyword/karma-reporter
-    reporters: ['progress'],
+//    reporters: ['progress'],
+    reporters: ['progress', 'coverage', 'remap-coverage'],
 
+    // save interim raw coverage report in memory
+    coverageReporter: {
+      type: 'in-memory'
+    },
+
+    // define where to save final remaped coverage reports
+    remapCoverageReporter: {
+      'text-summary': null,
+      html: './coverage/client/html'
+    },
 
     // web server port
     port: 9876,
-
 
     // enable / disable colors in the output (reporters and logs)
     colors: true,
@@ -93,7 +110,9 @@ module.exports = function(config) {
 
     // Continuous Integration mode
     // if true, Karma captures browsers, runs the tests and exits
-    singleRun: false,
+    singleRun: true,
+
+    captureTimeout: 60000,
 
     // Concurrency level
     // how many browser should be started simultaneous

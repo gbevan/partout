@@ -514,7 +514,7 @@ describe('Module command', function () {
   describe('onlyif as a string', function () {
 
     it('Policy should execute command if onlyif returns rc=0', function (done) {
-      this.timeout(240000);
+      this.timeout(10000);
 
       var testFile = utils.escapeBackSlash(tmp.tmpNameSync() + '.TEST');
 
@@ -543,7 +543,7 @@ describe('Module command', function () {
     });
 
     it('Policy should not execute command if onlyif returns rc!=0', function (done) {
-      this.timeout(240000);
+      this.timeout(10000);
 
       var testFile = utils.escapeBackSlash(tmp.tmpNameSync() + '.TEST');
 
@@ -580,7 +580,7 @@ describe('Module command', function () {
   describe('onlyif as a file reference', function () {
 
     it('Policy should execute command if onlyif returns rc=0', function (done) {
-      this.timeout(240000);
+      this.timeout(10000);
 
       var testFile = utils.escapeBackSlash(tmp.tmpNameSync() + '.TEST');
 
@@ -609,7 +609,7 @@ describe('Module command', function () {
     });
 
     it('Policy should not execute command if onlyif returns rc!=0', function (done) {
-      this.timeout(240000);
+      this.timeout(10000);
 
       var testFile = utils.escapeBackSlash(tmp.tmpNameSync() + '.TEST');
 

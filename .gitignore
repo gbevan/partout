@@ -7,3 +7,5 @@
 /out/
 /.test_remotes
 /dist/
+/.nyc*/
+/coverage/

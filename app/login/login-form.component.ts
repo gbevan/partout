@@ -27,11 +27,12 @@ export class LoginFormComponent implements OnInit {
     // Login via Socket Service
     this.socketService.login(form.user, form.password)
     .catch((err) => {
-      if (err.code) {
-        this.errorMsg = err.code + ' - ' + this.loginFailedMsg;
-      } else {
-        this.errorMsg = err;
-      }
+//      if (err.code) {
+//        this.errorMsg = err.code + ' - ' + this.loginFailedMsg;
+//      } else {
+//        this.errorMsg = err;
+//      }
+      this.errorMsg = err.code ? err.code + ' - ' + this.loginFailedMsg : err;
     });
   }
 

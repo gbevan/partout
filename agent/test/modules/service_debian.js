@@ -92,12 +92,12 @@ utils.pIsAdmin()
           enabled: false,
           ensure: 'stopped'
         })
-        .sleep(30);
+        .sleep(5);
         */}),
         {}
       )
       .then(function () {
-        utils.runCmd('ps -efl | grep ntp | grep -v grep')
+        utils.runCmd('ps -efl | grep -v grep | grep ntp')
         .then(function (res) {
           //console.log('service_debian: res:', res);
           var rc = res[0],
@@ -127,12 +127,12 @@ utils.pIsAdmin()
           enabled: false,
           ensure: 'running'
         })
-        .sleep(30);
+        .sleep(5);
         */}),
         {}
       )
       .then(function () {
-        utils.runCmd('ps -efl | grep ntp | grep -v grep')
+        utils.runCmd('ps -efl | grep -v grep | grep ntp')
         .then(function (res) {
           //console.log('service_debian: res:', res);
           var rc = res[0],
@@ -162,12 +162,12 @@ utils.pIsAdmin()
           enabled: false,
           ensure: 'stopped'
         })
-        .sleep(30);
+        .sleep(5);
         */}),
         {}
       )
       .then(function () {
-        utils.runCmd('ps -efl | grep ntp | grep -v grep')
+        utils.runCmd('ps -efl | grep -v grep | grep ntp')
         .then(function (res) {
           //console.log('service_debian: res:', res);
           var rc = res[0],
