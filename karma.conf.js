@@ -18,21 +18,29 @@ module.exports = function(config) {
 
     // frameworks to use
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
-    frameworks: ['jasmine'],
+    frameworks: [ 'jasmine-jquery', 'jasmine' ],
 
 
     // list of files / patterns to load in the browser
     files: [
 //      'node_modules/es6-shim/es6-shim.js',
-      'node_modules/core-js/client/shim.min.js',
+//      'node_modules/core-js/client/shim.min.js',
+      'node_modules/core-js/client/core.js',
       'node_modules/zone.js/dist/zone.js',
+      'node_modules/zone.js/dist/long-stack-trace-zone.js',
+      'node_modules/zone.js/dist/async-test.js',
+      'node_modules/zone.js/dist/fake-async-test.js',
+      'node_modules/zone.js/dist/sync-test.js',
+      'node_modules/zone.js/dist/proxy.js',
+      'node_modules/zone.js/dist/jasmine-patch.js',
       'node_modules/reflect-metadata/Reflect.js',
       'node_modules/chart.js/dist/Chart.bundle.min.js',
       'node_modules/hammerjs/hammer.min.js',
 //      'dist/bundle.js.map',
 //      { pattern: 'dist/test.bundle.js', watched: false }
 //      { pattern: 'test/spec/*.ts', watched: false }
-      'app/main.spec.ts'
+      'app/main.spec.ts',
+      './node_modules/@angular/material/prebuilt-themes/deeppurple-amber.css'
     ],
 
 
@@ -101,10 +109,11 @@ module.exports = function(config) {
 //    browsers: ['Chrome'],
 
 //    plugins: [
-//      'karma-jasmine',
 //      'karma-phantomjs-launcher',
-//      'webpack',
-//      'sourcemap'
+//      'karma-jasmine-jquery',
+//      'karma-jasmine'
+////      'webpack',
+////      'sourcemap'
 //    ],
 
 

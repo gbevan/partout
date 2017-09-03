@@ -14,10 +14,10 @@ const debug = require('debug').debug('partout:component:login-form');
   styles: [css]
 })
 export class LoginFormComponent implements OnInit {
-  user = '';
-  password = '';
-  errorMsg = '';
-  loginFailedMsg = 'Login failed, check your details and try again.';
+  private user: string = '';
+  private password: string = '';
+  private errorMsg: string = '';
+  private loginFailedMsg: string = 'Login failed, check your details and try again.';
 
   constructor(private socketService: SocketService) { }
 
@@ -32,11 +32,16 @@ export class LoginFormComponent implements OnInit {
 //      } else {
 //        this.errorMsg = err;
 //      }
-      this.errorMsg = err.code ? err.code + ' - ' + this.loginFailedMsg : err;
+      this.errorMsg = err.code ? err.code + ' - ' + this.loginFailedMsg : err.message;
     });
   }
 
   ngOnInit(): void {
     document.getElementById('user').focus();
+  }
+
+  // used for unit testing mock up of login form
+  _setErrorMsg(errmsg): void {
+    this.errorMsg = errmsg;
   }
 }

@@ -139,6 +139,10 @@ NetDep.prototype.parse_lsof = function (o) {
 //    debug('nic name:', name, 'nic_o:', nic_o);
 
     if (nic_o.IPv4.ip) {
+      if (!self.buckets[hour].IPv4) {
+        self.buckets[hour].IPv4 = {};
+      }
+
       if (!self.buckets[hour].IPv4[nic_o.IPv4.ip]) {
         self.buckets[hour].IPv4[nic_o.IPv4.ip] = {
           nic: name,

@@ -9,3 +9,4 @@
 /dist/
 /.nyc*/
 /coverage/
+/npm-debug.log
