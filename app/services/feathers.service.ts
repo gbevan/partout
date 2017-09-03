@@ -66,10 +66,9 @@ export class SocketService {
   }
 
   login(username, password) {
-    const self = this;
     this.resetUser();
 
-    return self._app.authenticate({
+    return this._app.authenticate({
       strategy: 'local',
       username,
       password

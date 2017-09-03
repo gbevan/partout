@@ -13,7 +13,8 @@
     "lib": ["es2015", "dom"]
   },
   "types": [
-    "socket.io-client"
+    "socket.io-client",
+    "jasmine-jquery-matchers"
   ],
   "exclude": [
     "node_modules"
