@@ -1,0 +1,24 @@
+<h3 md-dialog-header>
+  {{ data.header | default:'Confirmation...' }}
+</h3>
+
+<md-dialog-content>
+  <div class="msg">
+    {{ data.msg | default:'Are you sure?' }}
+  </div>
+</md-dialog-content>
+
+<md-dialog-actions>
+  <div fxLayout="row" class="fxActionRow">
+    <div fxFlex="none">
+      <button md-raised-button
+              (click)="dialogRef.close('Ok')">Ok</button>
+    </div>
+    <div fxFlex="grow"></div>
+    <div fxFlex="none">
+      <button md-raised-button
+              (click)="dialogRef.close('Cancel')">Cancel</button>
+    </div>
+  </div>
+</md-dialog-actions>
+

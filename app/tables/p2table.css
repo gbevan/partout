@@ -1,0 +1,25 @@
+.p2Table {
+  margin-top: 15px;
+  width: 100%;
+}
+.p2Heading {
+  /*background-color: white;*/
+  color: black;
+  font-size: 80%;
+}
+.p2Row {
+  font-size: 70%;
+  vertical-align: middle;
+}
+.p2TableFieldActionButton {
+  font-family: monospace;
+}
+.p2Pager {
+  display: table;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.mat-form-field {
+  width: inherit; /* fix width:200px from material */
+}

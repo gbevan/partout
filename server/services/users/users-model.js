@@ -24,8 +24,7 @@
 /*jshint esversion: 6 */
 'use strict';
 
-const Waterline = require('waterline'),
-      bcrypt = require('bcryptjs');
+const Waterline = require('waterline');
 
 // Users
 // See http://iliketomatoes.com/implement-passport-js-authentication-with-sails-js-0-10-2/

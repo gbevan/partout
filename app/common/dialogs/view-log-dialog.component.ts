@@ -60,7 +60,7 @@ export class ViewLogDialogComponent {
     }
 
     this.subscriber = this.data.rx.service
-    .find({query: {id: this.data.rx.id}})
+    .findRx({query: {id: this.data.rx.id}})
     .subscribe((res) => {
       debug('res:', res);
       if (res.total === 1) {

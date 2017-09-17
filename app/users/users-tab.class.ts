@@ -1,8 +1,10 @@
 import { MdDialog, MdDialogRef, MdDialogConfig } from '@angular/material';
 
-import { SocketService } from '../services/services.module';
-import { UsersService } from '../services/services.module';
+import { SocketService,
+         UsersService } from '../services/services.module';
 import { UserComponent } from '../users/user.component';
+
+import { OkCancelDialogComponent } from '../common/dialogs/ok-cancel-dialog.component';
 
 const debug = require('debug').debug('partout:component:users:tabclass');
 
@@ -26,7 +28,7 @@ export class UsersTabClass {
         value: 'Edit'
       },
       {
-        action: (id) => { this.deleteUser(id); },
+        action: (id, idx, user) => { this.deleteUser(id, idx, user); },
         value: 'Delete',
         color: 'warn',
         condFn: (row) => {
@@ -71,8 +73,18 @@ export class UsersTabClass {
     });
   }
 
-  deleteUser(id: string) {
-    console.log('TODO: delete a user, id:', id);
-    this.usersService.remove(id);
+  deleteUser(id: string, idx: number, user: any) {
+    console.log('delete user, id:', id, 'user:', user);
+    const config: MdDialogConfig = new MdDialogConfig();
+    config.data = {
+      msg: `Are you sure you want to delete this user - ${user.username}?`
+    };
+    this.dialog.open(OkCancelDialogComponent, config)
+    .afterClosed()
+    .subscribe((res) => {
+      if (res === 'Ok') {
+        this.usersService.remove(id);
+      }
+    });
   }
 }

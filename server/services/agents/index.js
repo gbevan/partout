@@ -85,7 +85,7 @@ module.exports = function () {
   const options = {
     Model: app.orm.collections.agents,
     paginate: {
-      default: 10,
+      default: 8,
       max: 10
     }
   };

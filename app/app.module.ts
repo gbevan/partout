@@ -27,6 +27,7 @@ import { PieChartComponent }    from './charts/piechart.component';
 import { BucketsChartComponent } from './charts/bucketschart.component';
 
 import { ViewLogDialogComponent } from './common/dialogs/view-log-dialog.component';
+import { OkCancelDialogComponent } from './common/dialogs/ok-cancel-dialog.component';
 
 import { CollapsableViewComponent } from './common/views/collapsable-view.component';
 
@@ -58,6 +59,7 @@ import { ServicesModule }       from './services/services.module';
     ViewIssueComponent,
 
     ViewLogDialogComponent,
+    OkCancelDialogComponent,
     CollapsableViewComponent,
 
     P2DashboardComponent,
@@ -85,7 +87,8 @@ import { ServicesModule }       from './services/services.module';
     UserComponent,
     RoleComponent,
     EnvRepoMgmtComponent,
-    ViewLogDialogComponent
+    ViewLogDialogComponent,
+    OkCancelDialogComponent
   ]
 })
 export class AppModule { }

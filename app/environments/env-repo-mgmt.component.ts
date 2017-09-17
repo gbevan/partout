@@ -7,33 +7,14 @@ import { EnvironmentsService } from '../services/services.module';
 import { ViewLogDialogComponent } from '../common/dialogs/view-log-dialog.component';
 
 const html = require('./env-repo-mgmt.template.html');
+const css = require('./env-repo-mgmt.css');
 
 const debug = require('debug').debug('partout:component:environments');
 
 @Component({
   selector: 'env-repo-mgmt',
   template: html,
-  styles: [`
-md-input-container {
-  display: table;
-}
-.key {
-  background-color: #eaeaea;
-  font-family: monospace;
-  font-size: 50%;
-}
-.actionsRow {
-  width: 100%;
-}
-.errmsg {
-  color: red;
-  font-weight: bold;
-  text-align: center;
-}
-.label {
-  color: rgba(0, 0, 0, 0.38);
-}
-`]
+  styles: [css]
 })
 
 export class EnvRepoMgmtComponent {
@@ -62,11 +43,7 @@ export class EnvRepoMgmtComponent {
 
   setCloneStatus(checkboxChange) {
     debug('setCloneStatus checkboxChange:', checkboxChange);
-    if (checkboxChange.checked) {
-      this.env.cloneStatus = 'cloned';
-    } else {
-      this.env.cloneStatus = '';
-    }
+    this.env.cloneStatus = checkboxChange.checked ? 'cloned' : '';
   }
 
   save() {

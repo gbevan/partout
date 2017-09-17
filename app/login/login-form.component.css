@@ -70,3 +70,7 @@ span.psw {
   padding: 3px;
   text-align: center;
 }
+
+.mat-form-field {
+  width: inherit; /* fix width:200px from material */
+}

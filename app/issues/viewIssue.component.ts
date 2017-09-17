@@ -69,7 +69,7 @@ export class ViewIssueComponent implements OnInit, OnDestroy {
     }
 
     this.subscriber = this.issuesService
-    .get(issue.id)
+    .getRx(issue.id)
     .subscribe((s_issue) => {
       this.issue = s_issue;
       this.initHourlyValues();

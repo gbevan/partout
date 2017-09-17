@@ -40,8 +40,12 @@ const html = require('./role.template.html');
   /*width: 500px;*/
 }
 
-.list
+.list {
   overflow-y: scroll;
+}
+
+.mat-form-field {
+  width: inherit; /* fix width:200px from material */
 }
   `]
 })

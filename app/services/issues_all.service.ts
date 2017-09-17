@@ -2,6 +2,8 @@ import { Injectable } from '@angular/core';
 import { Observable, Observer } from 'rxjs';
 import { SocketService } from './feathers.service';
 
+const debug = require('debug').debug('partout:service:issues_all');
+
 @Injectable()
 export class IssuesAllService {
   private _socket;
@@ -20,8 +22,21 @@ export class IssuesAllService {
     return this._socket.find(query);
   }
 
+  public findRx(query: any) {
+    debug('findRx() query:', query);
+    return this._socket
+    .watch()
+    .find(query);
+  }
+
   public get(id: string, query?: any) {
     return this._socket.get(id, query);
+  }
+
+  public getRx(id: string, query?: any) {
+    return this._socket
+    .watch()
+    .get(id, query);
   }
 
   public remove(id: string, query?: any) {

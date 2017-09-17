@@ -35,7 +35,8 @@ export class SocketService {
     .configure(socketio(this.socket, {timeout: 20000}))
 
     // Enable Reactive RxJS Observable Streams support
-    .configure(reactive(RxJS, {}))
+//    .configure(reactive(RxJS, {}))
+    .configure(reactive({ idField: 'id' }))
     .configure(hooks())
 
     // Configure authentication to store JWT in browser's localStorage
