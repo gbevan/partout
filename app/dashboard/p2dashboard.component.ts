@@ -20,8 +20,10 @@ const debug = require('debug').debug('partout:component:p2dashboard');
   template: html,
   styles: [`
 .pie {
+/*
   height: 80%;
-  width: 80%;
+  width: 100%;
+*/
 }
 `]
 })

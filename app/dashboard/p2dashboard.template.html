@@ -1,7 +1,7 @@
 <div *ngIf="agentsTotal > 0">
   <h2>Agents</h2>
 
-  <md-grid-list cols="4">
+  <md-grid-list cols="2" rowHeight="3:1">
     <md-grid-tile>
       <pie-chart title="By Environment"
                  [rxservice]="agentsAllService"
@@ -38,7 +38,7 @@
 <div *ngIf="csrsTotal > 0">
   <h2>CSRs</h2>
 
-  <md-grid-list cols="4">
+  <md-grid-list cols="2">
     <md-grid-tile>
       <pie-chart title="By Status"
                  [rxservice]="csrsAllService"
