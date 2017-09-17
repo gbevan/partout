@@ -98,8 +98,4 @@ export class AppComponent {
     });
   }
 
-  logout() {
-    this.socketService.logout();
-  }
-
 }

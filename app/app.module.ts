@@ -37,6 +37,7 @@ import { HasPermissionGuard }   from './common/guards/rbac.guard';
 
 // Feathers Services
 import { ServicesModule }       from './services/services.module';
+import { ToolbarModule }        from './toolbar/toolbar.module';
 
 @NgModule({
   imports: [
@@ -48,7 +49,8 @@ import { ServicesModule }       from './services/services.module';
     FormsModule,
     FlexLayoutModule,
 
-    ServicesModule
+    ServicesModule,
+    ToolbarModule
   ],
   declarations: [
     AppComponent,
