@@ -1,0 +1,12 @@
+<md-toolbar color="primary" class="app-top-toolbar">
+  <h1>Partout</h1>
+  <span class="app-toolbar-filler"></span>
+  Welcome {{ socketService.user.name }}&nbsp;<img class="user_avatar" src="{{ socketService.user.avatarUrl }}">
+  <span class="app-toolbar-sep"></span>
+  <button md-raised-button
+          color="accent"
+          (click)="logout()">
+    Logout
+  </button>
+  <span class="app-toolbar-sep"></span>
+</md-toolbar>
