@@ -5,6 +5,8 @@ import { MdDialog,
 import { AgentsService } from '../services/services.module';
 import { ViewAgentComponent } from './viewAgent.component';
 
+import { OkCancelDialogComponent } from '../common/dialogs/ok-cancel-dialog.component';
+
 /*
  * Define Agents main table view and actions
  */
@@ -128,7 +130,7 @@ export class AgentsTabClass {
         pipe: 'datetime'
       },
       {
-        action: (id, index) => { this.deleteAgent(id, index); },
+        action: (id, index, agent) => { this.deleteAgent(id, index, agent); },
         value: 'Delete',
         color: 'warn'
       }
@@ -163,13 +165,23 @@ export class AgentsTabClass {
     });
   }
 
-  deleteAgent(id, index) {
-    this.agentsService.remove(id, {})
-    .then((agent) => {
-      console.log('deleteAgent() agent:', agent, 'index:', index);
-    })
-    .catch((err) => {
-      console.error('deleteAgent() err:', err);
+  deleteAgent(id: string, index: number, agent: any) {
+    const config: MdDialogConfig = new MdDialogConfig();
+    config.data = {
+      msg: `Are you sure you want to delete this agent - ${agent.os_hostname}?`
+    };
+    this.dialog.open(OkCancelDialogComponent, config)
+    .afterClosed()
+    .subscribe((res) => {
+      if (res === 'Ok') {
+        this.agentsService.remove(id, {})
+        .then((deletedagent) => {
+          console.log('deleteAgent() agent:', deletedagent, 'index:', index);
+        })
+        .catch((err) => {
+          console.error('deleteAgent() err:', err);
+        });
+      }
     });
   }
 }

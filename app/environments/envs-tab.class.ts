@@ -4,6 +4,8 @@ import { EnvironmentsService } from '../services/services.module';
 import { EnvRepoMgmtComponent } from '../environments/env-repo-mgmt.component';
 import { ViewLogDialogComponent } from '../common/dialogs/view-log-dialog.component';
 
+import { OkCancelDialogComponent } from '../common/dialogs/ok-cancel-dialog.component';
+
 const debug = require('debug').debug('partout:component:environments:tabclass');
 
 /*
@@ -42,7 +44,7 @@ export class EnvironmentsTabClass {
         value: 'Edit'
       },
       {
-        action: (id) => { this.deleteEnv(id); },
+        action: (id, idx, env) => { this.deleteEnv(id, idx, env); },
         value: 'Delete',
         color: 'warn'
       }
@@ -83,13 +85,23 @@ export class EnvironmentsTabClass {
     this.dialogRef.componentInstance.setEnv({});
   }
 
-  deleteEnv(id) {
-    this.environmentsService.remove(id, {})
-    .then((env) => {
-      console.log('deleteEnv() env:', env);
-    })
-    .catch((err) => {
-      console.error('deleteEnv() err:', err);
+  deleteEnv(id, idx, env) {
+    const config: MdDialogConfig = new MdDialogConfig();
+    config.data = {
+      msg: `Are you sure you want to delete this environment - ${env.name}?`
+    };
+    this.dialog.open(OkCancelDialogComponent, config)
+    .afterClosed()
+    .subscribe((res) => {
+      if (res === 'Ok') {
+        this.environmentsService.remove(id, {})
+        .then((deletedenv) => {
+          console.log('deleteEnv() env:', deletedenv);
+        })
+        .catch((err) => {
+          console.error('deleteEnv() err:', err);
+        });
+      }
     });
   }
 
