@@ -3,6 +3,8 @@ import { MdDialog, MdDialogRef, MdDialogConfig } from '@angular/material';
 import { RolesService } from '../services/services.module';
 import { RoleComponent } from '../roles/role.component';
 
+import { OkCancelDialogComponent } from '../common/dialogs/ok-cancel-dialog.component';
+
 const debug = require('debug').debug('partout:component:roles:tabclass');
 
 /*
@@ -25,7 +27,7 @@ export class RolesTabClass {
         value: 'Edit'
       },
       {
-        action: (id) => { this.deleteRole(id); },
+        action: (id, idx, role) => { this.deleteRole(id, idx, role); },
         value: 'Delete',
         color: 'warn'
       }
@@ -66,8 +68,18 @@ export class RolesTabClass {
     });
   }
 
-  deleteRole(id: string) {
-    debug('delete Role:', id);
-    this.rolesService.remove(id);
+  deleteRole(id: string, idx: number, role: any) {
+    const config: MdDialogConfig = new MdDialogConfig();
+    config.data = {
+      msg: `Are you sure you want to delete this role - ${role.name}?`
+    };
+    this.dialog.open(OkCancelDialogComponent, config)
+    .afterClosed()
+    .subscribe((res) => {
+      if (res === 'Ok') {
+        debug('delete Role:', id);
+        this.rolesService.remove(id);
+      }
+    });
   }
 }
