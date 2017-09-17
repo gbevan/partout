@@ -50,7 +50,7 @@ export class PieChartComponent {
 
     const rootField = _.split(this.field, '.', 1)[0];
 
-    this.rxservice.find({
+    this.rxservice.findRx({
       query: {
         $select: [rootField]
         // $sort: sort

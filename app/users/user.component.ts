@@ -44,6 +44,10 @@ const html = require('./user.template.html');
   overflow-y: scroll;
 }
 
+.mat-form-field {
+  width: inherit; /* fix width:200px from material */
+}
+
 `]
 })
 

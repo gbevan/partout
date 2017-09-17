@@ -35,8 +35,8 @@ const console = require('better-console'),
 
       httpsUi = require('https'),
       express = require('express'),
-      expressSession = require('express-session'),
-      ArangoDBStore = require('connect-arangodb-session')(expressSession),
+//      expressSession = require('express-session'),
+//      ArangoDBStore = require('connect-arangodb-session')(expressSession),
       flash = require('connect-flash'),
       compression = require('compression'),
       GitHubStrategy = require('passport-github2').Strategy,
@@ -102,6 +102,7 @@ AppUi.prototype.init = function (opts) {
     self.app.opts = opts;
     self.app.set('cfg', cfg);
 
+    /*
     var store = new ArangoDBStore({
       url: cfg.database_url,
       dbName: cfg.database_name
@@ -112,6 +113,7 @@ AppUi.prototype.init = function (opts) {
         throw new Error(err);
       }
     });
+    */
 
     self.app
     .use(compression())

@@ -10,6 +10,9 @@ import * as _ from 'lodash';
 // enable in browser console: localStorage.debug = 'partout:*'
 const debug = require('debug').debug('partout:p2table');
 
+const html = require('./p2table.template.html');
+const css = require('./p2table.css');
+
 /*
  * config = {
  *   className: 'optional table class',
@@ -35,107 +38,8 @@ const debug = require('debug').debug('partout:p2table');
  */
 @Component({
   selector: 'p2-table',
-  template: `
-
-<table class="table p2Table"
-       ngClass="{{config.className || ''}}">
-  <thead>
-    <tr>
-      <th *ngFor="let column of config.columns"
-          class="p2Heading"
-          ngClass="{{column.className || ''}}">
-        <md-input-container>
-          <input mdInput type="text"
-                    placeholder="{{ column.title }}"
-                    [(ngModel)]="filters[column.field]"
-                    (keyup)="pageChanged($event)">
-        </md-input-container>
-      </th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr *ngFor="let row of data.data; let idx=index">
-      <td *ngFor="let column of config.columns" class="p2Row">
-
-        <button md-raised-button
-                class="p2TableFieldActionButton"
-                *ngIf="column.action && column.field"
-                [ngStyle]="setStyles(column)"
-                (click)="column.action(row.id)">{{ getValue(row, column.field) }}</button>
-
-        <button md-raised-button
-                *ngIf="column.action && column.value && (!column.condFn || column.condFn(row))"
-                [ngStyle]="setStyles(column)"
-                [color]="column.color || 'primary'"
-                (click)="column.action(row.id, idx)">{{ column.value }}</button>
-
-        <img *ngIf="!column.action && column.imgsrc && column.imgsrc != ''"
-              [ngStyle]="setStyles(column)"
-              src="{{ column.imgsrc(row) }}">
-
-        <div *ngIf="!column.action && !column.imgsrc"
-              [ngStyle]="setStyles(column, getValue(row, column.field))">
-
-          <div [ngSwitch]="column.pipe">
-            <span *ngSwitchCase="'datetime'">
-              {{ (column.valueFn ? column.valueFn(row[column.field]) :
-                  getValue(row, column.field)) | date:'dd-MMM-y HH:mm:ss' }}
-            </span>
-            <span *ngSwitchDefault>
-              <span [ngSwitch]="column.type">
-                <span *ngSwitchCase="'chip'">
-                  <md-chip-list *ngIf="column.valueFn ? column.valueFn(row[column.field]) :
-                                        getValue(row, column.field)">
-                  <md-chip color="{{ column.color || 'accent' }}">
-                    {{ column.valueFn ? column.valueFn(row[column.field]) : getValue(row, column.field) }}
-                  </md-chip>
-                  </md-chip-list>
-                </span>
-                <span *ngSwitchDefault>
-                  {{ column.valueFn ? column.valueFn(row[column.field]) : getValue(row, column.field) }}
-                </span>
-              </span>
-            </span>
-          </div>
-
-        </div>
-      </td>
-    </tr>
-  </tbody>
-</table>
-<ngb-pagination [(page)]="currentPage"
-                [collectionSize]="data.total"
-                [pageSize]="10"
-                [maxSize]="5"
-                [boundaryLinks]="true"
-                [rotate]="true"
-                (pageChange)="pageChanged($event)"
-                class="p2Pager"></ngb-pagination>
-
-`,
-  styles: [`
-.p2Table {
-  margin-top: 15px;
-  width: 100%;
-}
-.p2Heading {
-  /*background-color: white;*/
-  color: black;
-  font-size: 80%;
-}
-.p2Row {
-  font-size: 70%;
-  vertical-align: middle;
-}
-.p2TableFieldActionButton {
-  font-family: monospace;
-}
-.p2Pager {
-  display: table;
-  margin-left: auto;
-  margin-right: auto;
-}
-`]
+  template: html,
+  styles: [css]
 })
 
 export class P2TableComponent {
@@ -241,7 +145,7 @@ export class P2TableComponent {
     // subscribe to real-time updates from upstream
     const fields = this._select();
     debug('select fields:', fields);
-    this.subscriber = this.rxservice.find({
+    this.subscriber = this.rxservice.findRx({
       query: {
         $select: fields,
         $sort: sortBy,

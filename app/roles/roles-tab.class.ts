@@ -46,7 +46,6 @@ export class RolesTabClass {
   }
 
   addRole() {
-    debug('TODO: add a role');
     const cfg: MdDialogConfig = new MdDialogConfig();
     cfg.disableClose = true;
     this.dialogRef = this.dialog.open(RoleComponent, cfg);

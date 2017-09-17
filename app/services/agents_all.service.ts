@@ -24,9 +24,22 @@ export class AgentsAllService {
     return this._socket.find(query);
   }
 
+  public findRx(query: any) {
+    debug('findRx() query:', query);
+    return this._socket
+    .watch()
+    .find(query);
+  }
+
   get(id: string, query: any) {
     debug('get() id:', id, query);
     return this._socket.get(id, query);
+  }
+
+  public getRx(id: string, query?: any) {
+    return this._socket
+    .watch()
+    .get(id, query);
   }
 
   remove(id: string, query: any) {

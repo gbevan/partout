@@ -39,7 +39,8 @@ export class P2DashboardComponent {
 
   ngOnInit() {
 
-    this.agentsService.find({
+    this.agentsService
+    .findRx({
       rx: {
         listStrategy: 'always'
       }
@@ -54,7 +55,8 @@ export class P2DashboardComponent {
       }
     );
 
-    this.csrsService.find({
+    this.csrsService
+    .findRx({
       rx: {
         listStrategy: 'always'
       }
