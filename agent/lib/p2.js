@@ -678,7 +678,7 @@ var P2 = function () {
     /*
      * Load core roles
      */
-    var rolespath = path.join('lib', 'roles');
+    var rolespath = path.join(__dirname, 'roles');
 
     return pfs.pReadDir(rolespath)
     .then(function (roles_manifest) {

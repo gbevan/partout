@@ -39,7 +39,7 @@ var Cfg = function () {
 
   self.PARTOUT_AGENT_ENVIRONMENT_FILE = path.join(self.PARTOUT_VARDIR, 'environment');
 
-  self.PARTOUT_ETCDIR = path.join('.', 'etc');
+  self.PARTOUT_ETCDIR = path.join(__dirname, '..', 'etc');
   self.PARTOUT_MASTER_ETCDIR = 'etc';
   self.PARTOUT_MASTER_MANIFEST_DIR = path.join(self.PARTOUT_MASTER_ETCDIR, 'manifest');
 

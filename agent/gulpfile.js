@@ -33,7 +33,7 @@ gulp.task('default', function () {
   plugins.nodemon({
     script: 'bin/partout-agent',
     env: { 'NODE_ENV': env},
-    ignore: ['node_modules'],
+    ignore: ['node_modules', 'etc/ssl-test'],
     nodeArgs: ['--debug=5859']
   });
 });
