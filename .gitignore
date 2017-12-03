@@ -10,3 +10,4 @@
 /.nyc*/
 /coverage/
 /npm-debug.log
+/screenlog.*

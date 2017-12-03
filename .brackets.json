@@ -8,11 +8,11 @@
   "language.fileExtensions": {
     "p2": "javascript"
   },
-  "dimitrk.exclude-indexing-filetree.excludeList": [
-    ".git(?!ignore)",
-    "dist",
-    "jsdocs",
-    "bower_components",
-    "node_modules"
+  "brackets-file-tree-exclude.excludeList": [
+    "/\\.git/",
+    "/dist/",
+    "/jsdocs/",
+    "/bower_components/",
+    "/node_modules/"
   ]
 }

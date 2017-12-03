@@ -216,6 +216,35 @@ DEVELOPMENT
 
 See script ```launch_lxd_test_containers.sh``` for launching a selection of Linux containers for testing
 
+#### Fire up partout agents in all containers using screen
+
+```
+lxc list "p-.*" -c n | \
+  tail -n +3 | \
+  grep -v "^\+" | \
+  sed 's/[| ]//g' | \
+  xargs -i@ screen -L -S partout_@ -t @ -dm lxc exec @ -- sh -c 'cd /opt/partout/agent && gulp'
+```
+to list the screens:
+```
+$ screen -ls
+There are screens on:
+	23311.partout_p-ubuntu16	(Attached)
+	23309.partout_p-ubuntu14	(Detached)
+	23307.partout_p-oracle7	(Detached)
+	23305.partout_p-oracle6	(Detached)
+	23303.partout_p-opensuse423	(Detached)
+	23301.partout_p-gentoo	(Detached)
+	23299.partout_p-centos7	(Detached)
+	23297.partout_p-centos6	(Detached)
+8 Sockets in /tmp/screen/S-xxxxx.
+
+```
+to attach to a screen:
+```
+screen -S 23311.partout_p-ubuntu16 -D -RR
+```
+
 ### NFS Agents from Git Sandbox
 
 Prereqs (Debian/Ubuntu):
