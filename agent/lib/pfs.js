@@ -135,7 +135,7 @@ Pfs.prototype.hashFileSync = function (f) {
  */
 Pfs.prototype.hashWalk = function (folder, excludere, cb) {
   var self = this,
-    walker = walk.walk(folder),
+    walker = walk.walk(folder, { followLinks: true }),
     manifest = {},
     folder_re = new RegExp('^' + folder + '/');
 

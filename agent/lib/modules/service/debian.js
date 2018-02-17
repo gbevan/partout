@@ -92,6 +92,7 @@ var Service = P2M.Module(module.filename, function () {
 
     self.getStatus(opts.name)
     .done(function (status) {
+//      console.log('debian: name:', opts.name, 'status:', status);
 
       if (!status) {
         console.error('No status determined for service:', opts.name);
@@ -110,8 +111,11 @@ var Service = P2M.Module(module.filename, function () {
             } else if (status.provider === 'upstart') {
               deferred_enabled.resolve(upstart.setEnabled(opts.name));
 
+            } else if (status.provider === 'systemd') {
+              deferred_enabled.resolve(systemd.setEnabled(opts.name));
+
             } else {
-              console.error('Unsupported provider reported for debian service status:', status.provider);
+              console.error('Unsupported provider reported for debian service "', opts.name, '" enable, provider:', status.provider);
               deferred_enabled.resolve();
             }
           } else {
@@ -126,8 +130,11 @@ var Service = P2M.Module(module.filename, function () {
             } else if (status.provider === 'upstart') {
               deferred_enabled.resolve(upstart.setDisabled(opts.name));
 
+            } else if (status.provider === 'systemd') {
+              deferred_enabled.resolve(systemd.setDisabled(opts.name));
+
             } else {
-              console.error('Unsupported provider reported for debian service status:', status.provider);
+              console.error('Unsupported provider reported for debian service "', opts.name, '" disable, provider:', status.provider);
               deferred_enabled.resolve();
             }
           } else {
@@ -227,16 +234,19 @@ Service.prototype.getStatus = function (name) {
 
   Q.all([
     upstart.getStatus(name),
-    sysv.getStatus(name)
-    //TODO: systemd.getStatus(name)
+    sysv.getStatus(name),
+    systemd.getStatus(name)
   ])
   .done(function (res) {
     utils.dlog('service debian res:', res);
-    var upstart = res[0],
-        sysv = res[1];
+    var upstart_services = res[0],
+        sysv_services = res[1],
+        systemd_services = res[2];
+//    console.log('debian name:', name, 'systemd_services:', systemd_services);
 
-    services = sysv;
-    _.extend(services, upstart);
+    services = sysv_services || {};
+    _.extend(services, upstart_services || {}, systemd_services || {});
+//    console.log('debian name:', name, 'services:', services);
 
     deferred.resolve(services);
   });

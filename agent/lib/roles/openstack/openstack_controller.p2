@@ -34,6 +34,8 @@ var console = require('better-console'),
     forge = require('node-forge'),
     pfs = p2.require('pfs');
 
+var ETCD_VER = 'v3.2.7';
+
 p2
 
 // TODO: move roles into partout itself
@@ -255,6 +257,66 @@ EOF
       debug: false
 //      insecureAuth: false    // NEW
     })
+
+    /**************************
+     * etcd install and setup
+     */
+    .user('etcd', {
+      dir: '/var/lib/etcd',
+      system: true,
+      shell: '/bin/false'
+    })
+
+    .group('etcd', {
+      system: true,
+      user_list: ['etcd']
+    })
+
+    .file('/etc/etcd', {
+      ensure: 'directory',
+      owner: 'etcd',
+      group: 'etcd'
+    })
+
+    .file('/var/lib/etcd', {
+      ensure: 'directory',
+      owner: 'etcd',
+      group: 'etcd'
+    })
+
+    .command('install etcd', {
+      cmd: heredoc.strip(function () {/*
+      rm -rf /tmp/etcd && mkdir -p /tmp/etcd
+      curl -L https://github.com/coreos/etcd/releases/download/{{ opts.parms.ETCD_VER }}/etcd-{{ opts.parms.ETCD_VER }}-linux-amd64.tar.gz -o /tmp/etcd-{{ opts.parms.ETCD_VER }}-linux-amd64.tar.gz
+      tar xzvf /tmp/etcd-{{ opts.parms.ETCD_VER }}-linux-amd64.tar.gz -C /tmp/etcd --strip-components=1
+      cp /tmp/etcd/etcd /usr/bin/etcd
+      cp /tmp/etcd/etcdctl /usr/bin/etcdctl
+      */}),
+      creates: '/.etcd_installed',
+      parms: {
+        ETCD_VER: ETCD_VER
+      }
+    })
+
+    .file('/etc/etcd/etcd.conf.yml', {
+      content: {template: path.join(__dirname, 'files', 'etcd.conf.yml.template')},
+      parms: {
+        controller_ip: opts.controller_ip
+      }
+    })
+
+    .file('/lib/systemd/system/etcd.service', {
+      content: {template: path.join(__dirname, 'files', 'etcd.service.template')},
+      parms: {
+        controller_ip: opts.controller_ip
+      }
+    })
+
+    .service('etcd', {
+      enabled: true,
+      ensure: 'running'
+    })
+
 
     /////////////////////////////
     // Keystone

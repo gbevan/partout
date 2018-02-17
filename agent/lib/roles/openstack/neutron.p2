@@ -281,8 +281,9 @@ p2
         return Q.resolve();
       }
 
-      var router = JSON.parse(stdout || '{}'),
-          external_gateway_info = (router.external_gateway_info ? JSON.parse(router.external_gateway_info) : null),
+      var router = JSON.parse(stdout || '{}');
+//      console.log('neutron.p2: router:', router);
+      var external_gateway_info = router.external_gateway_info ? router.external_gateway_info : null,
           ext_deferred = Q.defer();
 
       if (external_gateway_info && external_gateway_info.network_id) {
@@ -397,9 +398,10 @@ p2
             matched_subnet;
 
         router_port_list.forEach(function (rp) {
+          console.log('neutron: rp:', rp);
 
           // rp.fixed_ips is returned as a string (holding json)
-          var rp_fixed_ips = JSON.parse(rp.fixed_ips || '{}');
+          var rp_fixed_ips = rp.fixed_ips || {};
 
           if (rp_fixed_ips && rp_fixed_ips.subnet_id && rp_fixed_ips.subnet_id === subnet.id) {
             if (!matched_subnet) {
