@@ -49,6 +49,7 @@ p2
  *   controller_ip: 'controller_ip_address',
  *   rabbit_pass: 'rabbit password',
  *   nova_user_pass: 'nova user password',
+ *   placement_user_pass: 'password',
  *   neutron_user_pass: 'neutron user password',
  *   ext_bridge_nic: 'enp2s0'
  * })
@@ -127,11 +128,22 @@ p2
           vncserver_listen: '0.0.0.0',
           vncserver_proxyclient_address: '$my_ip',
           novncproxy_base_url: 'http://{{ opts.parms.controller_ip }}:6080/vnc_auto.html'
+        },
+        placement: {
+          os_region_name: 'RegionOne',
+          project_domain_name: 'default',
+          project_name: 'service',
+          auth_type: 'password',
+          user_domain_name: 'default',
+          auth_url: 'http://{{ opts.parms.controller_ip }}:35357/v3',
+          username: 'placement',
+          password: '{{ opts.parms.placement_user_pass }}'
         }
       },
       parms: {
         controller_ip: opts.controller_ip,
         nova_user_pass: opts.nova_user_pass,
+        placement_user_pass: opts.placement_user_pass,
         neutron_user_pass: opts.neutron_user_pass,
         rabbit_host: opts.rabbit_host,
         rabbit_pass: opts.rabbit_pass,
@@ -189,13 +201,13 @@ p2
           physical_interface_mappings: 'provider:' + opts.ext_bridge_nic
         },
         securitygroup: {
-          enable_security_group: 'True',
-//          firewall_driver: 'neutron.agent.linux.iptables_firewall.IptablesFirewallDriver'
-          firewall_driver: 'iptables'
+          enable_security_group: 'true',
+          firewall_driver: 'neutron.agent.linux.iptables_firewall.IptablesFirewallDriver'
+//          firewall_driver: 'iptables'
         },
         vxlan: {
-          enable_vxlan: 'True',
-          l2_population: 'True',
+          enable_vxlan: 'true',
+          l2_population: 'true',
           local_ip: opts.ip
         }
       }

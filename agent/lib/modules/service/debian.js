@@ -213,8 +213,8 @@ var Service = P2M.Module(module.filename, function () {
           }
 
         } else {
-          console.error('ensure ' + opts.ensure + ' not supported');
-          deferred.resolve();
+          console.error('debian service', title, 'ensure ' + opts.ensure + ' not supported');
+          deferred.resolve({result: 'failed'});
         }
 
       }); // deferred_enabled

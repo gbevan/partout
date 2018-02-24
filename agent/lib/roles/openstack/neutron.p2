@@ -168,7 +168,6 @@ p2
         return Q.resolve();
 
       } else if (opts.ensure === 'absent') {
-        console.log('neutron_subnet absent:', title);
         if (subnet_byName[title]) {
           console.info('Deleting neutron subnet', title);
 
@@ -398,16 +397,14 @@ p2
             matched_subnet;
 
         router_port_list.forEach(function (rp) {
-          console.log('neutron: rp:', rp);
-
-          // rp.fixed_ips is returned as a string (holding json)
-          var rp_fixed_ips = rp.fixed_ips || {};
-
-          if (rp_fixed_ips && rp_fixed_ips.subnet_id && rp_fixed_ips.subnet_id === subnet.id) {
-            if (!matched_subnet) {
-              matched_subnet = subnet;
+          var rp_fixed_ips = rp.fixed_ips || [];
+          rp_fixed_ips.forEach((rp_fixed_ip) => {
+            if (rp_fixed_ip && rp_fixed_ip.subnet_id && rp_fixed_ip.subnet_id === subnet.id) {
+              if (!matched_subnet) {
+                matched_subnet = subnet;
+              }
             }
-          }
+          });
         });
         subnet_deferred.resolve(matched_subnet);
         return subnet_deferred.promise;
