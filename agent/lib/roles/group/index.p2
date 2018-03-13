@@ -1,0 +1,168 @@
+/*
+    Partout [Everywhere] - Policy-Based Configuration Management for the
+    Data-Driven-Infrastructure.
+
+    Copyright (C) 2016 Graham Lee Bevan <graham.bevan@ntlworld.com>
+
+    This file is part of Partout.
+
+    Partout is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*jslint node: true, nomen: true */
+'use strict';
+/*global p2*/
+
+// make parent node_modules available to sync'd manifest
+module.paths = module.paths.concat(module.parent.paths);
+
+var path = require('path'),
+    group = require('passwd-group-obj').group,
+    GGroup = require('passwd-group-obj').GGroup,
+    utils = require('../../utils');
+
+p2
+
+.role('group', {
+
+  facts: function (deferred, facts_so_far, title, opts) {
+    var facts = {};
+
+    if (utils.isLinux()) {
+      group.$loadGroups()
+      .then(function () {
+        facts.groups = group.$cleansed();
+        deferred.resolve(facts);
+      })
+      .done(null, function (err) {
+        deferred.reject(err);
+      });
+
+      // TODO: windows support
+//    } else if (utils.isWin()) {
+//      utils.runPs('Get-WmiObject -Class Win32_UserAccount | ConvertTo-Json -compress')
+//      .then(function (res) {
+//        var rc = res[0],
+//            stdout = res[1],
+//            stderr = res[2],
+//            res_array = JSON.parse(stdout),
+//            users = {};
+//
+//        res_array.forEach(function (u) {
+//          users[u.Name] = u;
+//        });
+//
+//        facts.users = users;
+//        deferred.resolve(facts);
+//
+//      })
+//      .done(null, function (err) {
+//        deferred.reject(err);
+//      });
+
+    } else { // unsupported OS
+      deferred.resolve();
+    }
+
+  },
+
+  p2: function (title, opts) {
+    opts = (opts || {});
+
+    if (!opts.ensure) {
+      opts.ensure = 'present';
+    }
+
+    if (p2.facts.platform === 'linux') {
+
+      if (opts.ensure === 'present') {
+        p2
+        .lambda('Ensure group exists', function (f, opts) {
+
+          var ggroup = new GGroup(opts);
+
+          ggroup.name = title;
+
+          if (!group[title]) {
+            return group.$addGroup(ggroup);
+          } else {
+            opts.name = title;
+            delete opts.ensure;
+            var g_ent = new GGroup(opts);
+            return group[title].$set(g_ent);
+          }
+        });
+
+      } else if (opts.ensure === 'absent') {
+        if (group[title]) {
+          return group[title].$delete();
+        }
+      }
+
+//    } else if (p2.facts.platform === 'win32') {
+//      var psVer = parseFloat(p2.facts.PSVersion.Major + '.' + p2.facts.PSVersion.Minor);
+//      console.log('title:', title);
+//      console.log('psVer:', psVer);
+//
+//      if (psVer < 5.1) {
+//        throw new Error('Powershell is < 5.1');
+//      }
+//
+//      if (opts.ensure === 'present') {
+//        p2
+//        .powershell(p2.heredoc(function () {/*
+//          # powershell
+//          $Computername = $env:COMPUTERNAME
+//          $ADSIComp = [adsi]"WinNT://$Computername"
+//          $Username = '{{{ opts.parms.user }}}'
+//          $NewUser = $ADSIComp.Create('User', $Username)
+//          $NewUser.SetInfo()
+//        */}), {
+//          parms: {
+//            user: title
+//          }
+//        }, function (rc, stdout, stderr) {
+//          console.log('rc:', rc);
+//          console.log('stdout:', stdout);
+//          console.log('stderr:', stderr);
+//        })
+//        ;
+//
+//      } else if (opts.ensure === 'absent') {
+//        p2
+//        .powershell(p2.heredoc(function () {/*
+//          # powershell
+//          $Computername = $env:COMPUTERNAME
+//          $ADSIComp = [adsi]"WinNT://$Computername"
+//          $Username = '{{{ opts.parms.user }}}'
+//          $ADSIComp.Delete('User', $Username)
+//        */}), {
+//          parms: {
+//            user: title
+//          }
+//        }, function (rc, stdout, stderr) {
+//          console.log('rc:', rc);
+//          console.log('stdout:', stdout);
+//          console.log('stderr:', stderr);
+//        })
+//        ;
+//      }
+
+    }
+
+  }
+
+})
+
+;

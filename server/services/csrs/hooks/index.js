@@ -22,7 +22,7 @@ exports.before = {
     globalHooks.hasPermission({permission: 'app:service:csrs', access: 'RW'}),
     (hook) => {
       return new Promise((resolve, reject) => {
-        console.log('hook:', hook);
+//        console.log('hook:', hook);
 
         if (hook.data.status === 'signed' && !hook.data.certPem) {
           debug('signing csr');

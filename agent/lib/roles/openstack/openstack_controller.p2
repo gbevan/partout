@@ -34,6 +34,8 @@ var console = require('better-console'),
     forge = require('node-forge'),
     pfs = p2.require('pfs');
 
+var ETCD_VER = 'v3.2.7';
+
 p2
 
 // TODO: move roles into partout itself
@@ -65,6 +67,7 @@ p2
  *   glance_user_pass: 'password',
  *   nova_db_pass: 'password',
  *   nova_user_pass: 'password',
+ *   placement_user_pass: 'password',
  *   neutron_db_pass: 'password',
  *   neutron_user_pass: 'password',
  *   cinder_db_pass: 'password',
@@ -255,6 +258,66 @@ EOF
       debug: false
 //      insecureAuth: false    // NEW
     })
+
+    /**************************
+     * etcd install and setup
+     */
+    .user('etcd', {
+      dir: '/var/lib/etcd',
+      system: true,
+      shell: '/bin/false'
+    })
+
+    .group('etcd', {
+      system: true,
+      user_list: ['etcd']
+    })
+
+    .file('/etc/etcd', {
+      ensure: 'directory',
+      owner: 'etcd',
+      group: 'etcd'
+    })
+
+    .file('/var/lib/etcd', {
+      ensure: 'directory',
+      owner: 'etcd',
+      group: 'etcd'
+    })
+
+    .command('install etcd', {
+      cmd: heredoc.strip(function () {/*
+      rm -rf /tmp/etcd && mkdir -p /tmp/etcd
+      curl -L https://github.com/coreos/etcd/releases/download/{{ opts.parms.ETCD_VER }}/etcd-{{ opts.parms.ETCD_VER }}-linux-amd64.tar.gz -o /tmp/etcd-{{ opts.parms.ETCD_VER }}-linux-amd64.tar.gz
+      tar xzvf /tmp/etcd-{{ opts.parms.ETCD_VER }}-linux-amd64.tar.gz -C /tmp/etcd --strip-components=1
+      cp /tmp/etcd/etcd /usr/bin/etcd
+      cp /tmp/etcd/etcdctl /usr/bin/etcdctl
+      */}),
+      creates: '/.etcd_installed',
+      parms: {
+        ETCD_VER: ETCD_VER
+      }
+    })
+
+    .file('/etc/etcd/etcd.conf.yml', {
+      content: {template: path.join(__dirname, 'files', 'etcd.conf.yml.template')},
+      parms: {
+        controller_ip: opts.ip
+      }
+    })
+
+    .file('/lib/systemd/system/etcd.service', {
+      content: {template: path.join(__dirname, 'files', 'etcd.service.template')},
+      parms: {
+        controller_ip: opts.controller_ip
+      }
+    })
+
+    .service('etcd', {
+      enabled: true,
+      ensure: 'running'
+    })
+
 
     /////////////////////////////
     // Keystone
@@ -600,6 +663,9 @@ EOF
     .mysql_database('nova', {
       ensure: 'present',
     })
+    .mysql_database('nova_cell0', {
+      ensure: 'present',
+    })
 
     .mysql_grant('nova_api localhost', {
       ensure: 'present',
@@ -631,6 +697,21 @@ EOF
       identifiedby: opts.nova_db_pass
     })
 
+    .mysql_grant('nova_cell0 localhost', {
+      ensure: 'present',
+      privileges: 'ALL PRIVILEGES',
+      privlevel: 'nova_cell0.*',
+      userspecs: {user: 'nova', host: 'localhost'},
+      identifiedby: opts.nova_db_pass
+    })
+    .mysql_grant('nova_cell0 %', {
+      ensure: 'present',
+      privileges: 'ALL PRIVILEGES',
+      privlevel: 'nova_cell0.*',
+      userspecs: {user: 'nova', host: '%'},
+      identifiedby: opts.nova_db_pass
+    })
+
     .openstack_user('nova', {
       password: opts.nova_user_pass,
       domain: 'default',
@@ -653,7 +734,8 @@ EOF
       region: 'RegionOne',
       service_type: 'compute',
       interface: 'public',
-      url: u.format('http://%s:8774/v2.1/%\\(tenant_id\\)s', p2.facts.os_hostname),
+//      url: u.format('http://%s:8774/v2.1/%\\(tenant_id\\)s', p2.facts.os_hostname),
+      url: u.format('http://%s:8774/v2.1', p2.facts.os_hostname),
       ensure: 'present'
     })
 
@@ -661,7 +743,8 @@ EOF
       region: 'RegionOne',
       service_type: 'compute',
       interface: 'internal',
-      url: u.format('http://%s:8774/v2.1/%\\(tenant_id\\)s', p2.facts.os_hostname),
+//      url: u.format('http://%s:8774/v2.1/%\\(tenant_id\\)s', p2.facts.os_hostname),
+      url: u.format('http://%s:8774/v2.1', p2.facts.os_hostname),
       ensure: 'present'
     })
 
@@ -669,15 +752,63 @@ EOF
       region: 'RegionOne',
       service_type: 'compute',
       interface: 'admin',
-      url: u.format('http://%s:8774/v2.1/%\\(tenant_id\\)s', p2.facts.os_hostname),
+//      url: u.format('http://%s:8774/v2.1/%\\(tenant_id\\)s', p2.facts.os_hostname),
+      url: u.format('http://%s:8774/v2.1', p2.facts.os_hostname),
       ensure: 'present'
     })
+
+    ///////////////////////////////////////
+    // Placement (mandatory since Ocata)
+    .openstack_user('placement', {
+      password: opts.placement_user_pass,
+      domain: 'default',
+      ensure: 'present'
+    })
+    .openstack_role('admin', {
+      project: 'service',
+      user: 'placement',
+      ensure: 'present'
+    })
+
+    .openstack_service('placement', {
+      description: 'Placement API',
+      type: 'placement',
+      ensure: 'present'
+    })
+
+    .openstack_endpoint('RegionOne/placement/public', {
+      region: 'RegionOne',
+      service_type: 'placement',
+      interface: 'public',
+      url: u.format('http://%s:8778', p2.facts.os_hostname),
+      ensure: 'present'
+    })
+
+    .openstack_endpoint('RegionOne/placement/internal', {
+      region: 'RegionOne',
+      service_type: 'placement',
+      interface: 'internal',
+      url: u.format('http://%s:8778', p2.facts.os_hostname),
+      ensure: 'present'
+    })
+
+    .openstack_endpoint('RegionOne/placement/admin', {
+      region: 'RegionOne',
+      service_type: 'placement',
+      interface: 'admin',
+//      url: u.format('http://%s:8774/v2.1/%\\(tenant_id\\)s', p2.facts.os_hostname),
+      url: u.format('http://%s:8778', p2.facts.os_hostname),
+      ensure: 'present'
+    })
+    ///////////////////////////////////////
+
 
     .package('nova-api')
     .package('nova-conductor')
     .package('nova-consoleauth')
     .package('nova-novncproxy')
     .package('nova-scheduler')
+    .package('nova-placement-api')
 
     .ini_file('/etc/nova/nova.conf', {
       cfg: {
@@ -686,7 +817,8 @@ EOF
           firewall_driver: 'nova.virt.firewall.NoopFirewallDriver',
           my_ip: opts.ip,
           transport_url: 'rabbit://openstack:{{ opts.parms.rabbit_pass }}@{{ f.os_hostname }}',
-          use_neutron: 'True'
+          use_neutron: 'True',
+          log_dir: undefined
         },
         api_database: {
           connection: 'mysql+pymysql://nova:{{ opts.parms.nova_db_pass }}@{{ f.os_hostname }}/nova_api'
@@ -718,7 +850,7 @@ EOF
           project_name: 'service',
           username: 'neutron',
           password: '{{ opts.parms.neutron_user_pass }}',
-          service_metadata_proxy: 'True',
+          service_metadata_proxy: 'true',
           metadata_proxy_shared_secret: '{{ opts.parms.metadata_secret }}'
         },
         oslo_concurrency: {
@@ -727,11 +859,22 @@ EOF
         vnc: {
           vncserver_listen: '$my_ip',
           vncserver_proxyclient_address: '$my_ip'
+        },
+        placement: {
+          os_region_name: 'RegionOne',
+          project_domain_name: 'default',
+          project_name: 'service',
+          auth_type: 'password',
+          user_domain_name: 'default',
+          auth_url: 'http://{{ f.os_hostname }}:35357/v3',
+          username: 'placement',
+          password: '{{ opts.parms.placement_user_pass }}'
         }
       },
       parms: {
         nova_db_pass: opts.nova_db_pass,
         nova_user_pass: opts.nova_user_pass,
+        placement_user_pass: opts.placement_user_pass,
         neutron_user_pass: opts.neutron_user_pass,
         rabbit_pass: opts.rabbit_pass,
         metadata_secret: opts.metadata_secret
@@ -747,6 +890,22 @@ EOF
         */}),
         creates: '{{{ f.cfg.PARTOUT_VARDIR }}}/populated_nova_api_database'
       })
+
+      .command('Register the cell0 database', {
+        cmd: heredoc(function () {/*
+          su -s /bin/sh -c "nova-manage cell_v2 map_cell0" nova && \
+          touch {{{ f.cfg.PARTOUT_VARDIR }}}/registered_nova_cell0_database
+        */}),
+        creates: '{{{ f.cfg.PARTOUT_VARDIR }}}/populated_nova_api_database'
+      })
+      .command('Create cell1 cell', {
+        cmd: heredoc(function () {/*
+          su -s /bin/sh -c "nova-manage cell_v2 create_cell --name=cell1 --verbose" nova && \
+          touch {{{ f.cfg.PARTOUT_VARDIR }}}/registered_nova_cell0_database
+        */}),
+        creates: '{{{ f.cfg.PARTOUT_VARDIR }}}/populated_nova_api_database'
+      })
+
       .command('populate nova db', {
         cmd: heredoc(function () {/*
           su -s /bin/sh -c "nova-manage db sync" nova && \
@@ -846,11 +1005,11 @@ EOF
     .ini_file('/etc/neutron/neutron.conf', {
       cfg: {
         DEFAULT: {
-          allow_overlapping_ips: 'True',
+          allow_overlapping_ips: 'true',
           auth_strategy: 'keystone',
           core_plugin: 'ml2',
-          notify_nova_on_port_data_changes: 'True',
-          notify_nova_on_port_status_changes: 'True',
+          notify_nova_on_port_data_changes: 'true',
+          notify_nova_on_port_status_changes: 'true',
           rpc_response_timeout: 240,
           service_plugins: 'router',
           transport_url: 'rabbit://openstack:{{ opts.parms.rabbit_pass }}@{{ f.os_hostname }}'
@@ -903,7 +1062,7 @@ EOF
           vni_ranges: '1:1000'
         },
         securitygroup: {
-          enable_ipset: 'True'
+          enable_ipset: 'true'
         }
       }
     })
@@ -914,13 +1073,13 @@ EOF
           physical_interface_mappings: 'provider:' + opts.ext_bridge_nic // virt provider net bridge to local lan
         },
         securitygroup: {
-          enable_security_group: 'True',
-//          firewall_driver: 'neutron.agent.linux.iptables_firewall.IptablesFirewallDriver'
-          firewall_driver: 'iptables'
+          enable_security_group: 'true',
+          firewall_driver: 'neutron.agent.linux.iptables_firewall.IptablesFirewallDriver'
+//          firewall_driver: 'iptables'
         },
         vxlan: {
-          enable_vxlan: 'True',
-          l2_population: 'True',
+          enable_vxlan: 'true',
+          l2_population: 'true',
           local_ip: opts.ip
         }
       }
@@ -940,7 +1099,7 @@ EOF
       cfg: {
         DEFAULT: {
           dhcp_driver: 'neutron.agent.linux.dhcp.Dnsmasq',
-          enable_isolated_metadata: 'True',
+          enable_isolated_metadata: 'true',
 //          interface_driver: 'neutron.agent.linux.interface.BridgeInterfaceDriver'
           interface_driver: 'linuxbridge',
           dnsmasq_dns_servers: opts.dns_resolvers ? opts.dns_resolvers.join(',') : ''
@@ -1041,7 +1200,7 @@ EOF
     .openstack_service('cinder', {
       description: 'OpenStack Block Storage',
       type: 'volume',
-      ensure: 'present'
+      ensure: 'absent'
     })
 
     .openstack_service('cinderv2', {
@@ -1050,53 +1209,96 @@ EOF
       ensure: 'present'
     })
 
+    .openstack_service('cinderv3', {
+      description: 'OpenStack Block Storage',
+      type: 'volumev3',
+      ensure: 'present'
+    })
+
     .openstack_endpoint('RegionOne/volume/public', {
       region: 'RegionOne',
       service_type: 'volume',
       interface: 'public',
-      url: u.format('http://%s:8776/v2/%\\(tenant_id\\)s', p2.facts.os_hostname),
-      ensure: 'present'
+      url: u.format('http://%s:8776/v2/%\\(project_id\\)s', p2.facts.os_hostname),
+      ensure: 'absent'
     })
     .openstack_endpoint('RegionOne/volume/internal', {
       region: 'RegionOne',
       service_type: 'volume',
       interface: 'internal',
-      url: u.format('http://%s:8776/v2/%\\(tenant_id\\)s', p2.facts.os_hostname),
-      ensure: 'present'
+      url: u.format('http://%s:8776/v2/%\\(project_id\\)s', p2.facts.os_hostname),
+      ensure: 'absent'
     })
     .openstack_endpoint('RegionOne/volume/admin', {
       region: 'RegionOne',
       service_type: 'volume',
       interface: 'admin',
-      url: u.format('http://%s:8776/v2/%\\(tenant_id\\)s', p2.facts.os_hostname),
-      ensure: 'present'
+      url: u.format('http://%s:8776/v2/%\\(project_id\\)s', p2.facts.os_hostname),
+      ensure: 'absent'
     })
 
     .openstack_endpoint('RegionOne/volumev2/public', {
       region: 'RegionOne',
       service_type: 'volumev2',
       interface: 'public',
-      url: u.format('http://%s:8776/v2/%\\(tenant_id\\)s', p2.facts.os_hostname),
+      url: u.format('http://%s:8776/v2/%\\(project_id\\)s', p2.facts.os_hostname),
       ensure: 'present'
     })
     .openstack_endpoint('RegionOne/volumev2/internal', {
       region: 'RegionOne',
       service_type: 'volumev2',
       interface: 'internal',
-      url: u.format('http://%s:8776/v2/%\\(tenant_id\\)s', p2.facts.os_hostname),
+      url: u.format('http://%s:8776/v2/%\\(project_id\\)s', p2.facts.os_hostname),
       ensure: 'present'
     })
     .openstack_endpoint('RegionOne/volumev2/admin', {
       region: 'RegionOne',
       service_type: 'volumev2',
       interface: 'admin',
-      url: u.format('http://%s:8776/v2/%\\(tenant_id\\)s', p2.facts.os_hostname),
+      url: u.format('http://%s:8776/v2/%\\(project_id\\)s', p2.facts.os_hostname),
+      ensure: 'present'
+    })
+
+    .openstack_endpoint('RegionOne/volumev3/public', {
+      region: 'RegionOne',
+      service_type: 'volumev3',
+      interface: 'public',
+      url: u.format('http://%s:8776/v3/%\\(project_id\\)s', p2.facts.os_hostname),
+      ensure: 'present'
+    })
+    .openstack_endpoint('RegionOne/volumev3/internal', {
+      region: 'RegionOne',
+      service_type: 'volumev3',
+      interface: 'internal',
+      url: u.format('http://%s:8776/v3/%\\(project_id\\)s', p2.facts.os_hostname),
+      ensure: 'present'
+    })
+    .openstack_endpoint('RegionOne/volumev3/admin', {
+      region: 'RegionOne',
+      service_type: 'volumev3',
+      interface: 'admin',
+      url: u.format('http://%s:8776/v3/%\\(project_id\\)s', p2.facts.os_hostname),
       ensure: 'present'
     })
 
     .package('cinder-api')
     .package('cinder-scheduler')
-    .package('python-cinderclient')
+//    .package('python-cinderclient')
+
+    .ini_file('/etc/nova/nova.conf', {
+      cfg: {
+        cinder: {
+          os_region_name: 'RegionOne'
+        }
+      }
+    })
+
+    .on('ini_file:/etc/nova/nova.conf:changed', function () {
+      p2
+      .service('nova-api', { ensure: 'stopped'})
+      .service('nova-api', { ensure: 'running'})
+      ;
+    })
 
     .ini_file('/etc/cinder/cinder.conf', {
       cfg: {
@@ -1119,7 +1321,7 @@ EOF
           password: '{{ opts.parms.cinder_user_pass }}'
         },
         oslo_concurrency: {
-          lock_path: '/var/lock/cinder'
+          lock_path: '/var/lib/cinder/tmp'
         }
       },
       parms: {
@@ -1133,8 +1335,10 @@ EOF
       p2
       .service('cinder-scheduler', { ensure: 'stopped'})
       .service('cinder-scheduler', { ensure: 'running'})
-      .service('cinder-api', { ensure: 'stopped'})
-      .service('cinder-api', { ensure: 'running'})
+//      .service('cinder-api', { ensure: 'stopped'})
+//      .service('cinder-api', { ensure: 'running'})
+      .service('apache2', { ensure: 'stopped'})
+      .service('apache2', { ensure: 'running'})
       ;
     })
 

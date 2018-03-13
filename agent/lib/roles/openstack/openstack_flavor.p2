@@ -82,6 +82,7 @@ p2
           stderr = res[2];
 
       if (rc !== 0) {
+        console.error(stderr);
         return Q.reject(new Error('openstack flavor list failed'));
       }
       stdout = stdout.trim();

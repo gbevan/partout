@@ -15,7 +15,7 @@ class CsrsService extends service.Service {
   }
 
   register(agent_uuid, ip, csr) {
-    console.log('csrsService register agent_uuid:', agent_uuid);
+    console.log('csrsService register agent_uuid:', agent_uuid, 'ip:', ip);
 
     var self = this,
         deferred = Q.defer(),
@@ -31,7 +31,7 @@ class CsrsService extends service.Service {
     //console.log('p:', p);
     return p
     .then(function (doc) {
-      console.log('doc:', doc);
+//      console.log('doc:', doc);
 
       if (doc.total === 0) {
         // Create new entry in csrs collection

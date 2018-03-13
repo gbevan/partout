@@ -69,7 +69,8 @@ var Cfg = function () {
       oldenv = fs.readFileSync(self.PARTOUT_AGENT_ENVIRONMENT_FILE).toString().trim();
     }
 
-    if (optenv && process.env.NODE_ENV === 'production') {
+//    if (optenv && process.env.NODE_ENV === 'production') {
+    if (optenv) {
 
       if (!stat || oldenv !== optenv) {
         try {

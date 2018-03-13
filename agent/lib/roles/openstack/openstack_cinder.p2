@@ -76,10 +76,21 @@ p2
 
     .package('qemu')
     .package('lvm2')
+    .package('thin-provisioning-tools')
+
+    .service('lvm2-lvmetad', {enabled: true, ensure: 'running'})
 
     .str_replace_infile('/etc/lvm/lvm.conf', {
-      regex: /^\s*filter\s*=.*$/mg,
-      with: u.format('    filter = [ %s]', filter_parm)
+//      regex: /^\s*filter\s*=.*$/mg,
+      regex: /^\s*[#]*\s*filter\s*=.*$/m,
+      with: u.format('    filter = [ %s ]', filter_parm)
+    })
+
+    .on('str_replace_infile:/etc/lvm/lvm.conf:changed', () => {
+      p2
+      .service('lvm2-lvmetad', {ensure: 'stopped'})
+      .service('lvm2-lvmetad', {ensure: 'running'})
+      ;
     })
 
     .package('cinder-volume')
@@ -116,7 +127,7 @@ p2
           iscsi_helper: 'tgtadm'
         },
         oslo_concurrency: {
-          lock_path: '/var/lock/cinder'
+          lock_path: '/var/lib/cinder/tmp'
         }
       },
       parms: {
