@@ -1,7 +1,7 @@
 import { Component, Input } from '@angular/core';
 import { MdDialogRef } from '@angular/material';
 // import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
-import * as _ from 'lodash';
+import each from 'lodash-es/each';
 
 import { AgentsService,
          EnvironmentsService } from '../services/services.module';
@@ -48,11 +48,11 @@ export class ViewAgentComponent {
   setAgent(agent: any) {
     debug('setAgent() agent:', agent);
     this.agent = agent;
-    _.each(agent.facts, (v, k) => {
+    each(agent.facts, (v, k) => {
       this.agentFactsKeys.push(k);
     });
 
-    _.each(agent.certInfo, (v, k) => {
+    each(agent.certInfo, (v, k) => {
       this.agentCertKeys.push(k);
     });
 

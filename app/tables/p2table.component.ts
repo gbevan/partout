@@ -5,7 +5,8 @@ import { Component, Input, OnInit } from '@angular/core';
 
 import { Subscriber } from 'rxjs';
 
-import * as _ from 'lodash';
+import each from 'lodash-es/each';
+import get from 'lodash-es/get';
 
 // enable in browser console: localStorage.debug = 'partout:*'
 const debug = require('debug').debug('partout:p2table');
@@ -108,7 +109,7 @@ export class P2TableComponent {
 
     const where = {};
     debug('pageChanged() filters:', this.filters);
-    _.each(this.filters, (v, k) => {
+    each(this.filters, (v, k) => {
       debug('where k:', k);
       const levels = k.split(/[.]/);
       debug('where levels:', levels);
@@ -128,7 +129,7 @@ export class P2TableComponent {
       });
 
       debug('path after loop:', path, 'where:', where);
-      let w = _.get(where, path);
+      let w = get(where, path);
       debug('w:', w);
       w = w ? w : where;
 
@@ -165,7 +166,7 @@ export class P2TableComponent {
   }
 
   private getValue(r, f) {
-    return _.get(r, f);
+    return get(r, f);
   }
 
 }

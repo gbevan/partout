@@ -2,7 +2,6 @@
 import { Component,
          Input,
          OnChanges } from '@angular/core';
-import * as _ from 'lodash';
 
 const debug = require('debug').debug('partout:bucketschart');
 

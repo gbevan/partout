@@ -1,6 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { MdDialogRef } from '@angular/material';
-import * as _ from 'lodash';
+import uniq from 'lodash-es/uniq';
 
 import { RolesService,
          PermissionsAllService} from '../services/services.module';
@@ -74,7 +74,7 @@ export class RoleComponent {
     this.permissionsAllService.find()
     .then((p_res) => {
       debug('p_res:', p_res);
-      this.permissionTypes = _.uniq(p_res.map((o) => o.type)) as string[];
+      this.permissionTypes = uniq(p_res.map((o) => o.type)) as string[];
 
       const seenSubType = {};
       const seenName = {};

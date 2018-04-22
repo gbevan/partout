@@ -4,7 +4,7 @@ import { Component,
          OnDestroy } from '@angular/core';
 import { MdDialogRef } from '@angular/material';
 import { Subscriber } from 'rxjs';
-import * as _ from 'lodash';
+import range from 'lodash-es/range';
 
 import { IssuesService,
          EnvironmentsService } from '../services/services.module';
@@ -54,7 +54,7 @@ export class ViewIssueComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.hourlyLabels = [];
-    _.range(0, 23).forEach((hour) => {
+    range(0, 23).forEach((hour) => {
       this.hourlyLabels.push(`hour_${hour}`);
     });
     this.initHourlyValues();
