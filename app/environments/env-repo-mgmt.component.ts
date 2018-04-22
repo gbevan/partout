@@ -1,6 +1,5 @@
 import { Component, Input } from '@angular/core';
 import { MdDialog, MdDialogConfig, MdDialogRef } from '@angular/material';
-import * as _ from 'lodash';
 
 import { EnvironmentsService } from '../services/services.module';
 

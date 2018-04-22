@@ -1,7 +1,6 @@
 import { Component, Inject, OnDestroy } from '@angular/core';
 import { MdDialogRef, MD_DIALOG_DATA } from '@angular/material';
 import { Subscriber } from 'rxjs';
-import * as _ from 'lodash';
 
 import { EnvironmentsService } from '../../services/services.module';
 

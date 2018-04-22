@@ -1,6 +1,5 @@
 import { Component, Input } from '@angular/core';
 import { MdDialogRef } from '@angular/material';
-import * as _ from 'lodash';
 
 import { UsersService,
          RolesAllService} from '../services/services.module';

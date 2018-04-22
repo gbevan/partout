@@ -1,6 +1,8 @@
 
 import { Component, Input, OnInit } from '@angular/core';
-import * as _ from 'lodash';
+import get from 'lodash-es/get';
+import map from 'lodash-es/map';
+import split from 'lodash-es/split';
 
 const debug = require('debug').debug('partout:piechart');
 
@@ -48,7 +50,7 @@ export class PieChartComponent {
     const sort = {};
     sort[this.field] = 1;
 
-    const rootField = _.split(this.field, '.', 1)[0];
+    const rootField = split(this.field, '.', 1)[0];
 
     this.rxservice.findRx({
       query: {
@@ -70,7 +72,7 @@ export class PieChartComponent {
 //        }
         const to = data
         .map((x) => {
-          return _.get(x, this.field);
+          return get(x, this.field);
         })
         .sort()
         .reduce((acc, v) => {
@@ -83,7 +85,7 @@ export class PieChartComponent {
 
         this.doughnutChartLabels = [];
         this.doughnutChartData = [];
-        _.map(to, (v: number, k: string) => {
+        map(to, (v: number, k: string) => {
           this.doughnutChartLabels.push(k);
           this.doughnutChartData.push(v);
         });

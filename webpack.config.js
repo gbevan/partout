@@ -1,6 +1,10 @@
 /*jslint node: true */
 'use strict';
 
+var BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
+var CompressionPlugin = require("compression-webpack-plugin");
+
+const webpack = require('webpack');
 const path = require('path');
 
 module.exports = {
@@ -9,7 +13,8 @@ module.exports = {
     filename: 'bundle.js'
     //path: './dist'
   },
-  devtool: 'source-map',
+//  devtool: 'source-map',
+  devtool: 'cheap-module-source-map',
   resolve: {
     // Add `.ts` and `.tsx` as a resolvable extension.
     extensions: ['.webpack.js', '.web.js', '.ts', '.tsx', '.js'],
@@ -35,5 +40,33 @@ module.exports = {
       { test: /\.html$/, loader: 'html-loader' }
     ]
   },
+  plugins: [
+    /*
+    new BundleAnalyzerPlugin({
+      defaultSizes: 'stat'
+      //defaultSizes: 'parsed'   // not yet supported
+      //defaultSizes: 'gzip'   // not yet supported
+    }),
+    */
+    new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/),
+
+    // Tree shake and compress
+    new webpack.optimize.UglifyJsPlugin({
+      compress: {
+        warnings: false
+      },
+      output: {
+        comments: false
+      },
+      sourceMap: false
+    }),
+    new CompressionPlugin({
+      asset: "[path].gz[query]",
+      algorithm: "gzip",
+      test: /\.js$|\.html$/,
+      threshold: 10240,
+      minRatio: 0.8
+    }),
+  ],
   watch: true
 };
